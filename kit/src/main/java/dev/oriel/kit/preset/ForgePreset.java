@@ -20,17 +20,19 @@ import java.util.Random;
 public final class ForgePreset implements PageControllers.Controller {
     static final float MIN_TEMP = 300, MAX_TEMP = 1600, IDEAL_LOW = 1050, IDEAL_HIGH = 1350;
     static final int STRIKES = 8;
+    /** Degrees a second: the bellows heat, the furnace cools. */
+    static final float HEAT_RATE = 380, COOL_RATE = 30;
 
     /** The forge's state, separate from the page so tests can drive it. */
     static final class Model {
-        float temp = 920, quality, phase, zoneCenter = 0.5f;
+        float temp = 1180, quality, phase, zoneCenter = 0.5f;
         int strikes;
         boolean bellows, done;
         final List<String> verdicts = new ArrayList<>();
 
         void advance(float dt) {
             if (done) return;
-            temp += (bellows ? 380 : -42) * dt;
+            temp += (bellows ? HEAT_RATE : -COOL_RATE) * dt;
             temp = Math.max(MIN_TEMP, Math.min(MAX_TEMP, temp));
             phase += dt * (2.2f + strikes * 0.18f);
         }

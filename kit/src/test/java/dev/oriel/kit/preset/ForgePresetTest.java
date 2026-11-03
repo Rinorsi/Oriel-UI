@@ -42,10 +42,10 @@ class ForgePresetTest {
         float start = m.temp;
         m.bellows = true;
         m.advance(1);
-        assertEquals(start + 380, m.temp, 0.01);
+        assertEquals(Math.min(ForgePreset.MAX_TEMP, start + ForgePreset.HEAT_RATE), m.temp, 0.01);
         m.bellows = false;
         m.advance(1);
-        assertEquals(start + 380 - 42, m.temp, 0.01);
+        assertEquals(Math.min(ForgePreset.MAX_TEMP, start + ForgePreset.HEAT_RATE) - ForgePreset.COOL_RATE, m.temp, 0.01);
         m.advance(100);
         assertEquals(ForgePreset.MIN_TEMP, m.temp, 0.01);
     }

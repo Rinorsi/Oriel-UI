@@ -9,11 +9,11 @@
 .group.empty { opacity: 0; }
 .head {
     display: flex; align-items: center; gap: 3px; height: 11px; padding: 0 3px;
-    color: var(--ore-text-dim); cursor: pointer; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    color: var(--ore-text); cursor: pointer; background: rgba(15, 15, 16, 0.62);
 }
 .head .caret { transition: transform var(--ore-medium) var(--ore-ease); }
 .group.folded .head .caret { transform: rotate(-90deg); }
-.head .n { margin-left: auto; color: var(--ore-text-faint); }
+.head .n { margin-left: auto; color: var(--ore-text-dim); }
 .list { display: flex; flex-direction: column; gap: 1px; }
 .strip { display: none; flex-wrap: wrap; gap: 1px; padding: 2px; background: rgba(15, 15, 16, 0.7); }
 .group.folded .list, .group.folded .more { display: none; }
