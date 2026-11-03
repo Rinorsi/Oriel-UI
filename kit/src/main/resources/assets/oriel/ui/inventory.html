@@ -1,77 +1,188 @@
 <!doctype html>
 <html>
 <head>
-<title>背包</title>
+<title>优易库 · 背包</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-.inventory { width: 330px; }
-.body { display: flex; gap: 8px; }
-.column { display: flex; flex-direction: column; gap: 3px; }
-.equip { display: flex; flex-direction: column; }
-.grid { display: flex; flex-wrap: wrap; width: 180px; }
-.hotbar { display: flex; width: 180px; margin-top: 4px; }
-.ore-slot item { position: absolute; left: 0; top: 0; width: 16px; height: 16px; }
-.ore-slot { transition: opacity var(--ore-medium); }
-.ore-slot.dim { opacity: 0.28; }
-.ore-slot.match { outline: 1px solid var(--ore-green-3); outline-offset: -1px; }
-.ore-slot .hint { position: absolute; left: 0; top: 0; width: 16px; height: 16px; opacity: 0.22; }
-.ore-slot.landed item { animation: ore-pop 0.22s var(--ore-ease); }
-.ore-slot.reject { animation: shake 0.25s linear; }
-@keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
-.ghost {
-    position: absolute; width: 20px; height: 20px; z-index: 40; pointer-events: none;
-    transform: rotate(-10deg) scale(1.2); display: none;
+/* Three columns on one window: the paper doll (3D player in its armour), the grid with category tabs, and a details
+   pane that turns the hovered item in 3D. Slots are lit by the rarity of what they hold; enchanted items carry the
+   enchanted-book glint. The controller (InventoryPreset) owns every slot. */
+.o-body { gap: 0; }
+.col { display: flex; flex-direction: column; gap: 6px; padding: 6px; min-height: 0; }
+.doll { width: 148px; flex: none; }
+.bag { flex: 1; min-width: 0; justify-content: center; }
+.info { width: 158px; flex: none; border-left: 1px solid var(--o-line-strong); box-shadow: inset 1px 0 0 var(--o-line); background: var(--o-well); }
+
+/* Paper doll: armour down the left, the player in the middle, the off hand at the bottom right. */
+.paper { position: relative; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+.equip { display: grid; grid-template-columns: 24px 1fr 24px; grid-template-rows: repeat(4, 24px); row-gap: 2px; }
+.equip entity { grid-column: 2; grid-row: 1 / 5; width: 100%; height: 100%; -mc-yaw: 20deg; }
+.equip [data-i='36'] { grid-column: 1; grid-row: 1; }
+.equip [data-i='37'] { grid-column: 1; grid-row: 2; }
+.equip [data-i='38'] { grid-column: 1; grid-row: 3; }
+.equip [data-i='39'] { grid-column: 1; grid-row: 4; }
+.equip [data-i='40'] { grid-column: 3; grid-row: 4; }
+.floor { position: absolute; left: 40px; right: 40px; bottom: 6px; height: 12px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(108, 195, 73, 0.30), rgba(0, 0, 0, 0) 70%); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 0 3px; }
+.stat .o-ico { -mc-tint: var(--c); }
+.stat .v { color: var(--o-text); }
+.stat .k { color: var(--o-text-faint); }
+.level { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; }
+.level .row { display: flex; justify-content: space-between; }
+.level .lv { color: #b6f08f; text-shadow: 1px 1px 0 #1d4d13; }
+.o-meter.xp { --fill-hi: #d8ff9a; --fill: #8fe04a; --fill-lo: #4c9a1e; }
+
+/* Tabs and search share a toolbar. */
+.bar { display: flex; align-items: center; gap: 4px; }
+.cats { flex: 1; }
+.cats > span .o-ico { width: 16px; height: 16px; }
+
+/* Slots: 24px Ore recesses; the item sits at 4px. A rarity ring inside the frame, and a glint on enchanted items. */
+.ore-slot { width: 24px; height: 24px; transition: opacity 180ms; }
+.ore-slot item { position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; }
+.ore-slot.r-uncommon::before, .ore-slot.r-rare::before, .ore-slot.r-epic::before {
+    content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--tier) 60%, transparent);
+    background: radial-gradient(circle, color-mix(in srgb, var(--tier) 30%, transparent), rgba(0, 0, 0, 0) 75%);
 }
-.ghost.on { display: block; animation: lift 0.16s var(--ore-ease); }
-.ghost .shadow { position: absolute; left: 4px; top: 7px; width: 16px; height: 16px; background: rgba(0, 0, 0, 0.35); }
-.ghost item { position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; }
-@keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.2); } }
-.details { width: 110px; display: flex; flex-direction: column; gap: 4px; padding: 6px; }
-.details .big { width: 32px; height: 32px; }
-.details .name { line-height: 10px; }
-.details .lore { color: var(--ore-text-dim); line-height: 10px; }
-.details .enchant { color: #a98cff; line-height: 10px; }
-.details .attr { color: var(--ore-green-3); line-height: 10px; }
-.tip-name { line-height: 10px; }
-.tip-line { color: var(--ore-text-dim); line-height: 10px; }
-.tip-enchant { color: #a98cff; line-height: 10px; }
-.tip-attr { color: var(--ore-green-3); line-height: 10px; }
-.rarity-common { color: var(--ore-text); }
-.rarity-uncommon { color: var(--ore-yellow); }
-.rarity-rare { color: #6ad9f5; }
-.rarity-epic { color: #d77bff; }
-.search { width: 104px; }
-.foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-.foot .ore-btn { min-height: 18px; }
+.ore-slot.r-epic::before { animation: slot-breathe 2.4s ease-in-out infinite; }
+@keyframes slot-breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+.ore-slot.dim { opacity: 0.22; }
+.ore-slot.match { outline: 1px solid var(--o-accent-strong); outline-offset: 0; }
+.ore-slot .hint { position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; opacity: 0.2; }
+.ore-slot.landed item { animation: fx-pop 0.24s var(--o-ease-back); }
+.ore-slot.reject { animation: fx-shake 0.26s linear; }
+.grid { display: grid; grid-template-columns: repeat(9, 24px); gap: 1px; align-self: center; }
+.hotbar { display: grid; grid-template-columns: repeat(9, 24px); gap: 1px; align-self: center; }
+.keys { display: grid; grid-template-columns: repeat(9, 24px); gap: 1px; align-self: center; margin-top: -3px; }
+.keys span { text-align: center; color: var(--o-text-faint); }
+.capacity { display: flex; align-items: center; gap: 6px; padding: 5px 6px; margin-top: 4px; }
+.capacity .o-meter { flex: 1; }
+.capacity .tiers { display: flex; gap: 6px; }
+.capacity .tiers span { display: flex; align-items: center; gap: 2px; color: var(--o-text-dim); }
+.capacity .tiers i { width: 5px; height: 5px; background: var(--tier); box-shadow: 0 0 3px var(--tier); }
+
+/* The details pane. */
+.details { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 3px; }
+.details .stage { position: relative; height: 70px; flex: none; display: flex; justify-content: center; }
+.details .stage::before {
+    content: ""; position: absolute; left: 10px; right: 10px; top: 0; bottom: 0; pointer-events: none;
+    background: radial-gradient(circle, color-mix(in srgb, var(--tier) 40%, transparent), rgba(0, 0, 0, 0) 62%);
+}
+.details .stage model { width: 70px; height: 70px; animation: turn 6s linear infinite; -mc-pitch: 12deg; }
+@keyframes turn { from { -mc-yaw: 0deg; } to { -mc-yaw: 360deg; } }
+.details .name { color: var(--tier); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); line-height: 10px; }
+[data-theme=light] .details .name { text-shadow: none; }
+.details .chips { display: flex; gap: 3px; }
+.details .chips .o-chip { height: 11px; padding: 0 4px; }
+.details .chips .tier { color: var(--tier); border-color: color-mix(in srgb, var(--tier) 60%, transparent); }
+.line { display: flex; align-items: center; gap: 3px; line-height: 10px; }
+.line .o-ico { width: 16px; height: 16px; }
+.line.enchant { color: #c9a6ff; }
+.line.enchant .o-ico { -mc-tint: #c46aff; }
+.line.attr { color: #86d562; }
+.line.attr .o-ico { -mc-tint: #6cc349; }
+.line.lore { color: var(--o-text-dim); }
+.dura { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+.dura .row { display: flex; justify-content: space-between; color: var(--o-text-faint); }
+.o-meter.low { --fill-hi: #ff9a9a; --fill: #e25a5a; --fill-lo: #8f2424; }
+.o-meter.mid { --fill-hi: #ffe08a; --fill: #f8af2b; --fill-lo: #b8771a; }
+.overview { display: flex; flex-direction: column; gap: 4px; }
+.overview .o-row { cursor: default; padding: 2px 3px; }
+.overview .o-row i { width: 6px; height: 6px; background: var(--tier); box-shadow: 0 0 3px var(--tier); }
+.overview .o-row .n { margin-left: auto; color: var(--o-text); }
+.overview .best { display: flex; align-items: center; gap: 4px; padding: 2px 3px; color: var(--tier); line-height: 10px; }
+.overview .best item { width: 16px; height: 16px; flex: none; }
+
+.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
+.foot .ore-btn { min-height: 18px; padding: 0 6px; }
+.foot #status { flex: 1; color: var(--o-text-dim); }
+
+.search { position: relative; display: flex; align-items: center; }
+.search .o-ico { position: absolute; left: 3px; top: 1px; -mc-tint: var(--o-text-faint); pointer-events: none; }
+.search input { width: 110px; padding-left: 20px; }
+
+.ghost { position: absolute; width: 24px; height: 24px; z-index: 40; pointer-events: none; transform: rotate(-10deg) scale(1.25); display: none; }
+.ghost.on { display: block; animation: lift 0.16s var(--o-ease-out); }
+.ghost .shadow { position: absolute; left: 6px; top: 8px; width: 16px; height: 16px; background: rgba(0, 0, 0, 0.35); }
+.ghost item { position: absolute; left: 4px; top: 4px; width: 16px; height: 16px; }
+/* Small screens (GUI 427x240): drop the paper doll and the extras, keep the bag whole. */
+@media (max-width: 560px) {
+    .doll { display: none; }
+    .info { width: 120px; }
+}
+@media (max-height: 300px) {
+    .keys, .capacity, .bag .o-caps, .foot .o-hints { display: none; }
+    .bag { gap: 3px; }
+}
+@keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.25); } }
+
+.ore-tooltip .tip-name { color: var(--tier); line-height: 10px; }
+.ore-tooltip .tip-line { color: #c4c5c8; line-height: 10px; }
+.ore-tooltip .tip-enchant { color: #c9a6ff; line-height: 10px; }
+.ore-tooltip .tip-attr { color: #86d562; line-height: 10px; }
 </style>
 </head>
 <body>
-<div class="ore-screen" id="screen">
-  <div class="ore-panel inventory ore-enter">
-    <div class="ore-header">
-      <div class="ore-btn icon" id="back" tabindex="0">‹</div>
-      <div class="ore-title">背包</div>
-      <div class="ore-spacer"></div>
-      <input class="ore-field search" id="search" placeholder="搜索物品…">
-      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+<div class="o-app" id="screen">
+  <div class="o-window">
+    <div class="o-titlebar">
+      <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
+      <img class="o-mark" src="../textures/icons/bag.png">
+      <h1>背包</h1><span class="o-crumb">/ 史蒂夫 · 生存模式</span>
+      <div class="o-grow"></div>
+      <div class="search"><input class="ore-field" id="search" placeholder="搜索物品…"><img class="o-ico" src="../textures/icons/search.png"></div>
+      <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
-    <div class="body">
-      <div class="column">
-        <div class="ore-label">装备</div>
-        <div class="equip" id="equip"></div>
+    <div class="o-body">
+      <div class="col doll">
+        <div class="o-caps">角色</div>
+        <div class="paper o-well">
+          <div class="equip" id="equip"><entity player follow-mouse rotatable></entity></div>
+          <div class="floor"></div>
+        </div>
+        <div class="stats">
+          <div class="stat o-tile" style="--c: #ff5a6a"><img class="o-ico" src="../textures/icons/heart.png"><span class="v">20</span><span class="k">生命</span></div>
+          <div class="stat o-tile" style="--c: #55c8ff"><img class="o-ico" src="../textures/icons/shield.png"><span class="v" id="armor">14</span><span class="k">护甲</span></div>
+          <div class="stat o-tile" style="--c: #ffb52b"><img class="o-ico" src="../textures/icons/sword.png"><span class="v">9</span><span class="k">攻击</span></div>
+        </div>
+        <div class="level o-tile">
+          <div class="row"><span class="o-dim">经验等级</span><span class="lv">32</span></div>
+          <div class="o-meter xp" style="--value: 0.64"><i></i></div>
+        </div>
       </div>
-      <div class="column">
-        <div class="ore-label">物品栏</div>
+      <div class="col bag">
+        <div class="bar">
+          <div class="o-seg cats" id="cats">
+            <span class="on" data-cat="all" title="全部"><img class="o-ico" src="../textures/icons/grid.png">全部</span>
+            <span data-cat="weapon" title="武器"><img class="o-ico" src="../textures/icons/sword.png"></span>
+            <span data-cat="tool" title="工具"><img class="o-ico" src="../textures/icons/pickaxe.png"></span>
+            <span data-cat="food" title="食物"><img class="o-ico" src="../textures/icons/heart.png"></span>
+            <span data-cat="block" title="方块"><img class="o-ico" src="../textures/icons/cube.png"></span>
+            <span data-cat="material" title="材料"><img class="o-ico" src="../textures/icons/gem.png"></span>
+          </div>
+        </div>
+        <div class="o-caps">物品栏</div>
         <div class="grid" id="main"></div>
+        <div class="o-caps">快捷栏</div>
         <div class="hotbar" id="hotbar"></div>
+        <div class="keys"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+        <div class="capacity o-tile">
+          <span class="o-dim" id="used">0 / 36</span>
+          <div class="o-meter" id="fill" style="--value: 0"><i></i></div>
+          <div class="tiers" id="tiers"></div>
+        </div>
       </div>
-      <div class="ore-inset details" id="details">
-        <div class="ore-faint">把鼠标移到物品上查看详情</div>
+      <div class="col info">
+        <div class="details r-common" id="details"></div>
       </div>
     </div>
     <div class="foot">
-      <div class="ore-btn primary" id="sort" tabindex="0">整理</div>
-      <span class="ore-faint" id="status">左键拖动换位 · 右键拿起一半 · Shift+点击快速移动</span>
+      <div class="ore-btn primary" id="sort" tabindex="0"><img class="o-ico" src="../textures/icons/sort.png">整理</div>
+      <span id="status">左键拖动换位 · 右键拿起一半 · Shift+点击快速移动</span>
+      <div class="o-hints"><span><span class="o-kbd">Esc</span>关闭</span></div>
     </div>
   </div>
   <div class="ghost" id="ghost"><div class="shadow"></div></div>

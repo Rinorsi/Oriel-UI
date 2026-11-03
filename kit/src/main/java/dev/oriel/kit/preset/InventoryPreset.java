@@ -2,6 +2,9 @@ package dev.oriel.kit.preset;
 
 import dev.oriel.kit.Dom;
 import dev.oriel.kit.Flip;
+import dev.oriel.kit.OrielKit;
+import dev.oriel.kit.Shell;
+import dev.oriel.kit.fx.Particles;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.MouseEvent;
@@ -19,7 +22,9 @@ import java.util.Map;
  * move, merge or swap it; right-press takes half; a click without moving picks the stack up to carry, and while
  * carrying a right-press drops one. Shift-click moves a stack between the hotbar and the main grid. Hovering shows
  * a tooltip and the details pane; the search dims what does not match and brings matches to the front with a FLIP
- * reorder; "整理" sorts and merges with the items gliding to their new slots.
+ * reorder; "整理" sorts and merges with the items gliding to their new slots. The category tabs filter the same
+ * way. Slots are lit by rarity and enchanted items carry the glint; the details pane turns the hovered item in 3D
+ * and otherwise shows an overview of the bag.
  */
 public final class InventoryPreset implements PageControllers.Controller {
     static final int MAIN = 27, HOTBAR = 9, EQUIP = 5;
@@ -54,11 +59,17 @@ public final class InventoryPreset implements PageControllers.Controller {
     private int pressButton = -1;
     private float pressX, pressY;
     private int hoverTarget = -1;
-    private String query = "";
+    private String query = "", category = "all";
+    private boolean ready;
+    private Particles particles;
+    /** The stack the details pane shows (null: the overview), so moving over one item does not rebuild it. */
+    private Stack detailed;
+    private boolean overviewShown;
 
     @Override
     public void attach(Document document) {
         doc = document;
+        particles = Shell.setup(doc);
         fixture(slots);
         Element main = Dom.byId(doc, "main"), hotbar = Dom.byId(doc, "hotbar"), equip = Dom.byId(doc, "equip");
         for (int i = 0; i < SLOTS; i++) {
@@ -89,7 +100,30 @@ public final class InventoryPreset implements PageControllers.Controller {
         search.addEventListener("input", e -> filter(search.value()));
         Dom.onClick(Dom.byId(doc, "sort"), e -> sort());
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate("gallery.html"));
+        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
+        for (Element tab : doc.querySelectorAll("[data-cat]")) Shell.activate(tab, () -> category(tab));
+        ready = true;
+        summary();
+        showOverview();
+    }
+
+    private void category(Element tab) {
+        for (Element t : doc.querySelectorAll("[data-cat]")) t.toggleClass("on", t == tab);
+        category = tab.getAttribute("data-cat");
+        filter(query);
+        if (category.equals("all") && query.isEmpty()) status("显示全部物品");
+    }
+
+    /** The tab an item belongs to. */
+    static String categoryOf(String id) {
+        String n = id.substring(id.indexOf(':') + 1);
+        if (n.endsWith("sword") || n.equals("bow") || n.equals("arrow") || n.equals("shield") || n.equals("crossbow") || n.equals("trident")) return "weapon";
+        if (n.endsWith("pickaxe") || n.endsWith("_axe") || n.endsWith("shovel") || n.endsWith("hoe") || n.endsWith("bucket")
+                || n.equals("compass") || n.equals("elytra") || n.equals("torch") || n.equals("ender_pearl") || n.endsWith("helmet")
+                || n.endsWith("chestplate") || n.endsWith("leggings") || n.endsWith("boots")) return "tool";
+        if (n.contains("apple") || n.contains("beef") || n.contains("bread") || n.contains("porkchop") || n.contains("cooked")) return "food";
+        if (n.endsWith("log") || n.contains("cobblestone") || n.endsWith("planks") || n.endsWith("stone")) return "block";
+        return "material";
     }
 
     // ---- Pointer ----
@@ -135,7 +169,10 @@ public final class InventoryPreset implements PageControllers.Controller {
             return;
         }
         if (i >= 0 && slots[i] != null) showTip(slots[i], e.clientX, e.clientY);
-        else hideTip();
+        else {
+            hideTip();
+            showOverview();
+        }
     }
 
     private void release(MouseEvent e) {
@@ -302,21 +339,28 @@ public final class InventoryPreset implements PageControllers.Controller {
         List<Integer> matches = new ArrayList<>(), rest = new ArrayList<>();
         for (int i = 0; i < MAIN; i++) (matches(slots[i]) ? matches : rest).add(i);
         int n = 0;
-        for (int i : matches) order(i, query.isEmpty() ? i : n++, false);
-        for (int i : rest) order(i, query.isEmpty() ? i : n++, true);
-        for (int i = FIRST_HOTBAR; i < SLOTS; i++) slotElements[i].toggleClass("dim", !query.isEmpty() && !matches(slots[i]));
+        for (int i : matches) order(i, filtering() ? n++ : i, false);
+        for (int i : rest) order(i, filtering() ? n++ : i, true);
+        for (int i = FIRST_HOTBAR; i < SLOTS; i++) slotElements[i].toggleClass("dim", filtering() && !matches(slots[i]));
         flip.play(0.28f);
         if (!query.isEmpty()) status("找到 " + matches.size() + " 组匹配「" + text.trim() + "」的物品");
+        else if (!category.equals("all")) status(matches.size() + " 组" + CATEGORY_NAMES.getOrDefault(category, "") + "物品");
     }
 
     private boolean matches(Stack s) {
-        if (query.isEmpty()) return true;
-        return s != null && (s.name().toLowerCase(Locale.ROOT).contains(query) || s.id().contains(query));
+        if (query.isEmpty() && category.equals("all")) return true;
+        if (s == null) return false;
+        if (!category.equals("all") && !categoryOf(s.id()).equals(category)) return false;
+        return query.isEmpty() || s.name().toLowerCase(Locale.ROOT).contains(query) || s.id().contains(query);
+    }
+
+    private boolean filtering() {
+        return !query.isEmpty() || !category.equals("all");
     }
 
     private void order(int i, int position, boolean dim) {
         style(slotElements[i]).set("order", Integer.toString(position)).apply();
-        slotElements[i].toggleClass("dim", dim && !query.isEmpty());
+        slotElements[i].toggleClass("dim", dim && filtering());
         slotElements[i].toggleClass("match", !dim && !query.isEmpty());
     }
 
@@ -340,7 +384,46 @@ public final class InventoryPreset implements PageControllers.Controller {
             }
             updateItem(item, s);
         }
-        if (i < MAIN && !query.isEmpty()) slotElements[i].toggleClass("dim", !matches(s));
+        if (i < MAIN && filtering()) slotElements[i].toggleClass("dim", !matches(s));
+        Element slot = slotElements[i];
+        for (String tier : TIERS) slot.toggleClass("r-" + tier, s != null && s.rarity().equals(tier) && !tier.equals("common"));
+        slot.toggleClass("fx-glint", s != null && enchanted(s));
+        if (ready) summary();
+    }
+
+    private static final String[] TIERS = {"common", "uncommon", "rare", "epic"};
+    private static final Map<String, String> TIER_NAMES = Map.of("common", "普通", "uncommon", "优秀", "rare", "稀有", "epic", "史诗");
+    private static final Map<String, String> CATEGORY_NAMES = Map.of("weapon", "武器", "tool", "工具", "food", "食物",
+            "block", "方块", "material", "材料");
+
+    private static boolean enchanted(Stack s) {
+        for (String line : s.lore()) if (line.startsWith("*")) return true;
+        return false;
+    }
+
+    /** The capacity bar and the rarity counts under the grid. */
+    private void summary() {
+        int used = 0;
+        Map<String, Integer> counts = new HashMap<>();
+        for (int i = 0; i < FIRST_EQUIP; i++) {
+            if (slots[i] == null) continue;
+            used++;
+            counts.merge(slots[i].rarity(), 1, Integer::sum);
+        }
+        Dom.text(Dom.byId(doc, "used"), used + " / " + FIRST_EQUIP);
+        style(Dom.byId(doc, "fill")).set("--value", String.valueOf(used / (float) FIRST_EQUIP)).apply();
+        Element tiers = Dom.byId(doc, "tiers");
+        tiers.removeAllChildren();
+        for (String tier : new String[] {"epic", "rare", "uncommon"}) {
+            Element t = Dom.el(doc, "span", "r-" + tier, null);
+            t.appendChild(Dom.el(doc, "i", null, null));
+            t.appendChild(doc.createTextNode(String.valueOf(counts.getOrDefault(tier, 0))));
+            tiers.appendChild(t);
+        }
+        if (overviewShown) {
+            overviewShown = false;
+            showOverview();
+        }
     }
 
     private static void updateItem(Element item, Stack s) {
@@ -396,7 +479,8 @@ public final class InventoryPreset implements PageControllers.Controller {
     private void showTip(Stack s, float x, float y) {
         tip.removeAllChildren();
         tip.toggleClass("rare", s.rarity().equals("epic"));
-        tip.appendChild(Dom.el(doc, "div", "tip-name rarity-" + s.rarity(), s.name()));
+        for (String tier : TIERS) tip.toggleClass("r-" + tier, s.rarity().equals(tier));
+        tip.appendChild(Dom.el(doc, "div", "tip-name", s.name()));
         for (String line : s.lore()) tip.appendChild(Dom.el(doc, "div", lineClass("tip-", line), strip(line)));
         if (s.maxDurability() > 0) tip.appendChild(Dom.el(doc, "div", "tip-line", "耐久 " + s.durability() + " / " + s.maxDurability()));
         float left = x + 10, top = y - 14;
@@ -410,20 +494,106 @@ public final class InventoryPreset implements PageControllers.Controller {
     }
 
     private void showDetails(Stack s) {
+        if (s == detailed) return;
+        detailed = s;
+        overviewShown = false;
         details.removeAllChildren();
-        Element big = Dom.el(doc, "item", "big", null);
-        big.setAttribute("id", s.id());
-        details.appendChild(big);
-        details.appendChild(Dom.el(doc, "div", "name rarity-" + s.rarity(), s.name() + (s.count() > 1 ? " ×" + s.count() : "")));
-        for (String line : s.lore()) details.appendChild(Dom.el(doc, "div", lineClass("", line), strip(line)));
-        if (s.maxDurability() > 0) {
-            Element bar = Dom.el(doc, "div", "ore-progress" + (s.durability() * 4 < s.maxDurability() ? " red" : ""), null);
-            Element fill = Dom.el(doc, "div", "fill", null);
-            fill.setAttribute("style", "width: " + Math.round(100f * s.durability() / s.maxDurability()) + "%");
-            bar.appendChild(fill);
-            details.appendChild(bar);
-            details.appendChild(Dom.el(doc, "div", "lore", "耐久 " + s.durability() + " / " + s.maxDurability()));
+        tier(s.rarity());
+        Element stage = Dom.el(doc, "div", "stage", null);
+        Element model = Dom.el(doc, "model", null, null);
+        model.setAttribute("item", s.id());
+        stage.appendChild(model);
+        if (s.rarity().equals("epic")) {
+            Element sparkle = Dom.el(doc, "canvas", "fx", null);
+            sparkle.setAttribute("data-fx", enchanted(s) ? "glint" : "stars");
+            sparkle.setAttribute("data-rate", "6");
+            stage.appendChild(sparkle);
+            particles.emitter(sparkle);
         }
+        details.appendChild(stage);
+        details.appendChild(Dom.el(doc, "div", "name", s.name()));
+        Element chips = Dom.el(doc, "div", "chips", null);
+        chips.appendChild(Dom.el(doc, "span", "o-chip tier", TIER_NAMES.getOrDefault(s.rarity(), "普通")));
+        chips.appendChild(Dom.el(doc, "span", "o-chip", CATEGORY_NAMES.getOrDefault(categoryOf(s.id()), "物品")));
+        if (s.count() > 1) chips.appendChild(Dom.el(doc, "span", "o-chip", "×" + s.count()));
+        details.appendChild(chips);
+        details.appendChild(Dom.el(doc, "div", "o-divider", null));
+        for (String line : s.lore()) {
+            String kind = lineClass("", line);
+            Element row = Dom.el(doc, "div", "line " + kind, null);
+            String icon = kind.equals("enchant") ? "sparkle" : kind.equals("attr") ? "plus" : null;
+            if (icon != null) row.appendChild(icon(icon));
+            row.appendChild(doc.createTextNode(strip(line).replaceFirst("^\\+", "")));
+            details.appendChild(row);
+        }
+        if (s.lore().isEmpty()) details.appendChild(Dom.el(doc, "div", "line lore", "普通的物品"));
+        if (s.maxDurability() > 0) {
+            float left = s.durability() / (float) s.maxDurability();
+            Element dura = Dom.el(doc, "div", "dura", null);
+            Element row = Dom.el(doc, "div", "row", null);
+            row.appendChild(Dom.el(doc, "span", null, "耐久"));
+            row.appendChild(Dom.el(doc, "span", null, s.durability() + " / " + s.maxDurability()));
+            dura.appendChild(row);
+            Element bar = Dom.el(doc, "div", "o-meter" + (left < 0.25f ? " low" : left < 0.6f ? " mid" : ""), null);
+            bar.setAttribute("style", "--value: " + left);
+            bar.appendChild(Dom.el(doc, "i", null, null));
+            dura.appendChild(bar);
+            details.appendChild(dura);
+        }
+    }
+
+    /** With nothing hovered: what is in the bag, by rarity. */
+    private void showOverview() {
+        if (overviewShown) return;
+        overviewShown = true;
+        detailed = null;
+        details.removeAllChildren();
+        tier("common");
+        Element box = Dom.el(doc, "div", "overview", null);
+        box.appendChild(Dom.el(doc, "div", "o-caps", "总览"));
+        Map<String, Integer> counts = new HashMap<>();
+        int enchantedCount = 0;
+        for (int i = 0; i < SLOTS; i++) {
+            if (slots[i] == null) continue;
+            counts.merge(slots[i].rarity(), 1, Integer::sum);
+            if (enchanted(slots[i])) enchantedCount++;
+        }
+        for (String tier : new String[] {"epic", "rare", "uncommon", "common"}) {
+            Element row = Dom.el(doc, "div", "o-row r-" + tier, null);
+            row.appendChild(Dom.el(doc, "i", null, null));
+            row.appendChild(Dom.el(doc, "span", "o-tier", TIER_NAMES.get(tier)));
+            row.appendChild(Dom.el(doc, "span", "n", String.valueOf(counts.getOrDefault(tier, 0))));
+            box.appendChild(row);
+        }
+        Element ench = Dom.el(doc, "div", "line enchant", null);
+        ench.appendChild(icon("sparkle"));
+        ench.appendChild(doc.createTextNode(enchantedCount + " 件附魔物品"));
+        box.appendChild(ench);
+        box.appendChild(Dom.el(doc, "div", "o-caps", "珍贵物品"));
+        List<Stack> best = new ArrayList<>();
+        for (Stack st : slots) if (st != null && !st.rarity().equals("common")) best.add(st);
+        best.sort(Comparator.comparingInt((Stack st) -> rank(st.rarity())));
+        for (Stack st : best.subList(0, Math.min(4, best.size()))) {
+            Element row = Dom.el(doc, "div", "best r-" + st.rarity(), null);
+            Element it = Dom.el(doc, "item", null, null);
+            it.setAttribute("id", st.id());
+            row.appendChild(it);
+            row.appendChild(doc.createTextNode(st.name()));
+            box.appendChild(row);
+        }
+        box.appendChild(Dom.el(doc, "div", "o-divider", null));
+        box.appendChild(Dom.el(doc, "div", "line lore", "把鼠标移到物品上，在这里转动查看。"));
+        details.appendChild(box);
+    }
+
+    private void tier(String rarity) {
+        for (String t : TIERS) details.toggleClass("r-" + t, t.equals(rarity));
+    }
+
+    private Element icon(String name) {
+        Element img = Dom.el(doc, "img", "o-ico", null);
+        img.setAttribute("src", "../textures/icons/" + name + ".png");
+        return img;
     }
 
     /** Lore lines starting with '+' are attributes, with '*' enchantments; the rest plain. */
