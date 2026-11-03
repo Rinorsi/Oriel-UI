@@ -69,7 +69,7 @@ D:\Minecraft\project\Mods\
 1. 规则：`docs/zh/design.md`（尺寸 640×360 / 427×240、三层层级、稀有度光效、粒子、图标）。流程：`docs/zh/making-a-page.md`。
 2. 新页面：`node tools/new-page.mjs <名字> "<标题>"`（页面 + 控制器 + 测试 + 登记）。
 3. 页面只写 HTML/CSS（`kit/src/main/resources/assets/oriel/ui/`，样式库 `ore.css`）；交互在 Java 控制器（`kit/.../preset/*Preset.java`），共用件在 `kit/.../kit/`（`Shell`、`Dom`、`Flip`、`Slider`、`fx/Particles`）。
-4. 每次改完：`./gradlew :kit:test :preview:checkUi`。排查布局：预览器 `--snapshot out.png --frames 60 --boxes "<选择器>"`。
+4. 每次改完：`./gradlew :kit:test :preview:checkUi`。排查布局：预览器 `--snapshot out.png --frames 60 --boxes "<选择器>"`。MCP：`node tools/mcp/oriel-preview.mjs`（检查、截图、交互）。
 5. 进游戏验收：`./gradlew :fabric:26.1:runClient -Pautopilot=oriel`（自动打开每个界面并截图，1280×720）。截图、日志放工作区 `daily/<日期>/`。
 
 ## 当前状态（2026-11-04 实测）

@@ -63,6 +63,8 @@ java -cp "preview/build/install/preview/lib/*" dev.oriel.preview.Preview \
 
 交互脚本（`--actions a.txt`，每行一个：`wait 30`、`click #id`、`key Enter`、`type 文字`、`shot 名字`）。
 
+给 AI 用的 MCP（stdio，无依赖）：`node tools/mcp/oriel-preview.mjs`（在仓库根目录运行），提供 `oriel_pages`、`oriel_check`、`oriel_snapshot`（可带交互动作与 `boxes`，直接返回 PNG）。客户端配置示例：`{"command": "node", "args": ["tools/mcp/oriel-preview.mjs"], "cwd": "<仓库根目录>"}`。
+
 注意：预览器画不出 3D 模型和实体（显示为占位色块），字体也和游戏略有差别；最终效果以游戏为准。
 
 ## 5. 进游戏看

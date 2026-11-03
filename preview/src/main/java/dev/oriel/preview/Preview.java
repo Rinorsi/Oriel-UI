@@ -150,6 +150,7 @@ public final class Preview {
                 ImageIO.write(image, "png", options.snapshot().toFile());
                 System.out.println("Wrote " + options.snapshot().toAbsolutePath());
             }
+            if (options.boxes() != null) printBoxes(scene, options.boxes());
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.err.println(options.actions() + ": " + e.getMessage());
             return 2;
