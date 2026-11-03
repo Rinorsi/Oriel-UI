@@ -302,6 +302,11 @@ final class Properties {
         add(Prop.OUTLINE_STYLE, Keywords.parser(BorderStyle.class, Map.of("auto", BorderStyle.SOLID)), KEYWORD);
         add(Prop.OUTLINE_COLOR, CssColors::read, COLOR);
         add(Prop.OUTLINE_OFFSET, (r, ctx) -> Numeric.px(r, ctx, true), PX);
+        add(Prop.BORDER_IMAGE_SOURCE, BorderImageValues::source, BorderImageValues::serializeSource);
+        add(Prop.BORDER_IMAGE_SLICE, BorderImageValues::slice, BorderImageValues::serializeSlice);
+        add(Prop.BORDER_IMAGE_WIDTH, BorderImageValues::width, BorderImageValues::serializeSides);
+        add(Prop.BORDER_IMAGE_OUTSET, BorderImageValues::outset, BorderImageValues::serializeSides);
+        add(Prop.BORDER_IMAGE_REPEAT, BorderImageValues::repeat, BorderImageValues::serializeRepeat);
         add(Prop.TRANSFORM, Transforms::read, v -> Transforms.serialize(Properties.<TransformFunction>cast(v)));
         add(Prop.TRANSFORM_ORIGIN_X, (r, ctx) -> Images.axis(r, ctx, "left", "right"), TEXT);
         add(Prop.TRANSFORM_ORIGIN_Y, (r, ctx) -> Images.axis(r, ctx, "top", "bottom"), TEXT);

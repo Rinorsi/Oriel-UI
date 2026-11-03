@@ -111,6 +111,11 @@ class ComputedStyleTest {
             case String s -> s + "x";
             case List<?> l -> l.isEmpty() ? List.of("x") : List.of();
             case Map<?, ?> m -> m.isEmpty() ? Map.of("--x", "1") : Map.of();
+            case BorderImage.Source src -> src.image() == null ? new BorderImage.Source(new Image.Url("x.png")) : BorderImage.Source.NONE;
+            case BorderImage.Slice sl -> new BorderImage.Slice(sl.sides(), !sl.fill());
+            case BorderImage.Sides sd -> sd.equals(BorderImage.Sides.ONE) ? BorderImage.Sides.ZERO : BorderImage.Sides.ONE;
+            case BorderImage.Repeats r -> r.equals(BorderImage.Repeats.STRETCH)
+                    ? new BorderImage.Repeats(BorderImage.Repeat.ROUND, BorderImage.Repeat.ROUND) : BorderImage.Repeats.STRETCH;
             default -> throw new AssertionError("no different value for " + v.getClass());
         };
     }

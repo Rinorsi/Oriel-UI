@@ -1,6 +1,7 @@
 package dev.oriel.engine.css;
 
 import dev.oriel.engine.css.ComponentValue.Block;
+import dev.oriel.engine.css.ComponentValue.Func;
 import dev.oriel.engine.css.Token.Type;
 
 import java.util.ArrayList;
@@ -70,6 +71,8 @@ final class Shorthands {
         pair("place-self", "align-self", "justify-self");
         anyOrder("flex-flow", slot("flex-direction"), slot("flex-wrap"));
         anyOrder("outline", slot("outline-width"), slot("outline-style"), slot("outline-color"));
+        register("border-image", longhands("border-image-source", "border-image-slice", "border-image-width",
+                "border-image-outset", "border-image-repeat"), Shorthands::borderImage);
         for (String side : List.of("top", "right", "bottom", "left")) {
             String p = "border-" + side + "-";
             anyOrder("border-" + side, slot(p + "width"), slot(p + "style"), slot(p + "color"));
@@ -168,6 +171,50 @@ final class Shorthands {
         };
         Map<Longhand, List<ComponentValue>> out = new HashMap<>();
         for (int i = 0; i < 4; i++) out.put(longhands.get(i), List.of(items.get(index[i])));
+        return out;
+    }
+
+    /**
+     * {@code border-image: <source> || <slice> [/ <width> | / <width>? / <outset>]? || <repeat>}: the slice, width
+     * and outset are numeric runs split by slashes, the source a url or none, the repeat keywords.
+     */
+    private static Map<Longhand, List<ComponentValue>> borderImage(List<Longhand> l, List<ComponentValue> v) {
+        List<ComponentValue> source = null, repeat = new ArrayList<>();
+        List<List<ComponentValue>> numeric = List.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        int phase = -1;
+        boolean afterSlash = false;
+        for (ComponentValue c : v) {
+            if (c instanceof Token t && t.is(Type.WHITESPACE)) continue;
+            if (c instanceof Token t && t.is(Type.DELIM) && t.value.equals("/")) {
+                if (phase < 0 || phase >= 2 || afterSlash && phase == 0) return null;
+                phase++;
+                afterSlash = true;
+                continue;
+            }
+            boolean url = c instanceof Token t && t.is(Type.URL) || c instanceof Func f && f.name().equals("url");
+            String ident = c instanceof Token t && t.is(Type.IDENT) ? t.lower : null;
+            if (url || "none".equals(ident)) {
+                if (source != null) return null;
+                source = List.of(c);
+                phase = phase < 0 ? -1 : 3;
+            } else if (ident != null && List.of("stretch", "repeat", "round", "space").contains(ident)) {
+                repeat.add(c);
+                phase = phase < 0 ? -1 : 3;
+            } else if ("fill".equals(ident) || !url && ident == null) {
+                if (phase == 3) return null;
+                if (phase < 0) phase = 0;
+                if ("fill".equals(ident) && phase != 0) return null;
+                numeric.get(phase).add(c);
+                afterSlash = false;
+            } else {
+                return null;
+            }
+        }
+        if (afterSlash) return null;
+        Map<Longhand, List<ComponentValue>> out = new HashMap<>();
+        if (source != null) out.put(l.get(0), source);
+        for (int i = 0; i < 3; i++) if (!numeric.get(i).isEmpty()) out.put(l.get(i + 1), numeric.get(i));
+        if (!repeat.isEmpty()) out.put(l.get(4), repeat);
         return out;
     }
 

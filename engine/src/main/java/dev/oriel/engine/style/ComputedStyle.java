@@ -131,6 +131,11 @@ public final class ComputedStyle implements Cloneable {
     public BorderStyle outlineStyle = BorderStyle.NONE;
     public int outlineColor = Colors.BLACK;
     public float outlineOffset;
+    public BorderImage.Source borderImageSource = BorderImage.Source.NONE;
+    public BorderImage.Slice borderImageSlice = BorderImage.Slice.INITIAL;
+    public BorderImage.Sides borderImageWidth = BorderImage.Sides.ONE;
+    public BorderImage.Sides borderImageOutset = BorderImage.Sides.ZERO;
+    public BorderImage.Repeats borderImageRepeat = BorderImage.Repeats.STRETCH;
     public List<TransformFunction> transform = List.of();
     public Length transformOriginX = Length.PERCENT_50, transformOriginY = Length.PERCENT_50;
     /**
@@ -334,7 +339,10 @@ public final class ComputedStyle implements Cloneable {
                 && backgroundColor == o.backgroundColor && backgroundLayers.equals(o.backgroundLayers)
                 && boxShadow.equals(o.boxShadow) && same(outlineWidth, o.outlineWidth)
                 && outlineStyle == o.outlineStyle && outlineColor == o.outlineColor
-                && same(outlineOffset, o.outlineOffset) && transform.equals(o.transform)
+                && same(outlineOffset, o.outlineOffset) && borderImageSource.equals(o.borderImageSource)
+                && borderImageSlice.equals(o.borderImageSlice) && borderImageWidth.equals(o.borderImageWidth)
+                && borderImageOutset.equals(o.borderImageOutset) && borderImageRepeat.equals(o.borderImageRepeat)
+                && transform.equals(o.transform)
                 && transformOriginX.equals(o.transformOriginX) && transformOriginY.equals(o.transformOriginY)
                 && tint == o.tint && same(modelYaw, o.modelYaw) && same(modelPitch, o.modelPitch)
                 && same(modelRoll, o.modelRoll) && same(modelScale, o.modelScale) && entityFocus == o.entityFocus

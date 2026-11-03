@@ -28,6 +28,7 @@ final class BoxPainter implements StackingOrder.Visitor {
     private final Geometry geometry = new Geometry();
     private final Backgrounds backgrounds;
     private final Borders borders = new Borders();
+    private final BorderImages borderImages;
 
     private Canvas canvas;
     /** GUI px per device pixel in the current transform, saved per transformed context. */
@@ -44,6 +45,7 @@ final class BoxPainter implements StackingOrder.Visitor {
     BoxPainter(Painter painter) {
         this.painter = painter;
         this.backgrounds = new Backgrounds(painter.document());
+        this.borderImages = new BorderImages(painter.document());
     }
 
     void begin(Canvas canvas) {
@@ -128,6 +130,8 @@ final class BoxPainter implements StackingOrder.Visitor {
         paintShadows(g, s.boxShadow, false, BackgroundLayer.Box.BORDER_BOX);
         backgrounds.paint(canvas, batch, g, s, dp);
         paintShadows(g, s.boxShadow, true, BackgroundLayer.Box.PADDING_BOX);
+        // A border image replaces the border's own painting (CSS Backgrounds 3 §6), when its source can be drawn.
+        if (borderImages.paint(canvas, g, s, dp)) return;
         if (!s.hasBorder()) return;
         rect[0] = g.x;
         rect[1] = g.y;
