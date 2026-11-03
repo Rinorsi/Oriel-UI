@@ -1,0 +1,325 @@
+package dev.oriel.kit.preset;
+
+import dev.oriel.kit.Dom;
+import dev.oriel.kit.Slider;
+import dev.oriel.engine.dom.Document;
+import dev.oriel.engine.dom.Element;
+import dev.oriel.engine.event.KeyboardEvent;
+import dev.oriel.engine.host.PageControllers;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The settings preset: four tabs of toggles, sliders, dropdowns and text fields over a fixture schema. Everything
+ * works from the keyboard: Tab moves focus (with the Ore focus ring), the arrow keys switch tabs and move sliders,
+ * Space and Enter flip toggles and open dropdowns, Escape closes an open dropdown. Changed settings get a dot and
+ * a count; "恢复默认" resets the shown tab.
+ */
+public final class SettingsPreset implements PageControllers.Controller {
+    enum Kind { TOGGLE, SLIDER, SELECT, TEXT }
+
+    /** One setting of the schema: for sliders min, max and step; for selects the options. */
+    record Setting(String key, String label, Kind kind, Object initial, float min, float max, float step, String unit,
+                   List<String> options, String section) {
+        static Setting toggle(String key, String label, boolean on, String section) {
+            return new Setting(key, label, Kind.TOGGLE, on, 0, 1, 1, "", List.of(), section);
+        }
+
+        static Setting slider(String key, String label, float value, float min, float max, float step, String unit, String section) {
+            return new Setting(key, label, Kind.SLIDER, value, min, max, step, unit, List.of(), section);
+        }
+
+        static Setting select(String key, String label, String value, List<String> options, String section) {
+            return new Setting(key, label, Kind.SELECT, value, 0, 0, 0, "", options, section);
+        }
+
+        static Setting text(String key, String label, String value, String section) {
+            return new Setting(key, label, Kind.TEXT, value, 0, 0, 0, "", List.of(), section);
+        }
+    }
+
+    static final Map<String, List<Setting>> TABS = new LinkedHashMap<>();
+
+    static {
+        TABS.put("视频", List.of(
+                Setting.slider("render", "渲染距离", 12, 2, 32, 1, " 区块", "画面"),
+                Setting.slider("fps", "最大帧率", 120, 30, 260, 10, " FPS", "画面"),
+                Setting.select("graphics", "图像品质", "高品质", List.of("流畅", "高品质", "极佳"), "画面"),
+                Setting.toggle("vsync", "垂直同步", true, "画面"),
+                Setting.toggle("fullscreen", "全屏", false, "窗口"),
+                Setting.select("scale", "界面尺寸", "自动", List.of("自动", "1", "2", "3", "4"), "窗口"),
+                Setting.slider("gamma", "亮度", 50, 0, 100, 5, "%", "窗口")));
+        TABS.put("声音", List.of(
+                Setting.slider("master", "主音量", 100, 0, 100, 5, "%", "音量"),
+                Setting.slider("music", "音乐", 60, 0, 100, 5, "%", "音量"),
+                Setting.slider("blocks", "方块", 80, 0, 100, 5, "%", "音量"),
+                Setting.slider("ambient", "环境", 70, 0, 100, 5, "%", "音量"),
+                Setting.toggle("subtitles", "显示字幕", false, "其他"),
+                Setting.select("device", "输出设备", "系统默认", List.of("系统默认", "扬声器", "耳机"), "其他")));
+        TABS.put("控制", List.of(
+                Setting.slider("sensitivity", "鼠标灵敏度", 100, 1, 200, 1, "%", "鼠标"),
+                Setting.toggle("invert", "反转鼠标", false, "鼠标"),
+                Setting.toggle("autojump", "自动跳跃", false, "移动"),
+                Setting.toggle("sneak", "潜行切换", true, "移动"),
+                Setting.text("name", "玩家名称", "Steve", "身份"),
+                Setting.text("prefix", "聊天前缀", "[优易]", "身份")));
+        TABS.put("辅助功能", List.of(
+                Setting.select("narrator", "旁白", "关闭", List.of("关闭", "全部", "仅聊天", "仅系统"), "朗读"),
+                Setting.toggle("contrast", "高对比度", false, "显示"),
+                Setting.slider("textbg", "文本背景不透明度", 50, 0, 100, 10, "%", "显示"),
+                Setting.toggle("motion", "减少动效", false, "显示"),
+                Setting.slider("tooltip", "提示延迟", 500, 0, 2000, 100, " ms", "显示")));
+    }
+
+    final Map<String, Object> values = new LinkedHashMap<>();
+    String tab = "视频";
+    private Document doc;
+    private Element tabs, rows, status;
+    private final List<Element> tabElements = new ArrayList<>();
+    private Element openSelect;
+
+    @Override
+    public void attach(Document document) {
+        doc = document;
+        for (List<Setting> list : TABS.values()) for (Setting s : list) values.put(s.key(), s.initial());
+        tabs = Dom.byId(doc, "tabs");
+        rows = Dom.byId(doc, "rows");
+        status = Dom.byId(doc, "status");
+        for (String name : TABS.keySet()) {
+            Element t = Dom.el(doc, "div", "ore-tab", name);
+            t.setAttribute("tabindex", "0");
+            Dom.onClick(t, e -> show(name, false));
+            Dom.onKey(t, e -> tabKey(e, name));
+            tabs.appendChild(t);
+            tabElements.add(t);
+        }
+        Dom.onClick(Dom.byId(doc, "reset"), e -> resetTab());
+        Dom.onKey(Dom.byId(doc, "reset"), e -> activate(e, this::resetTab));
+        Dom.onClick(Dom.byId(doc, "done"), e -> doc.host().close());
+        Dom.onClick(Dom.byId(doc, "cancel"), e -> doc.host().close());
+        Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
+        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate("gallery.html"));
+        // A press outside an open dropdown closes it.
+        Dom.onMouse(doc, "mousedown", e -> {
+            if (openSelect != null && Dom.closest(e, ".ore-select") != openSelect) closeSelect();
+        });
+        show(tab, false);
+    }
+
+    private static void activate(KeyboardEvent e, Runnable action) {
+        if (e.key.equals("Enter") || e.key.equals(" ")) {
+            e.preventDefault();
+            action.run();
+        }
+    }
+
+    private void tabKey(KeyboardEvent e, String name) {
+        List<String> names = new ArrayList<>(TABS.keySet());
+        int i = names.indexOf(name);
+        if (e.key.equals("ArrowRight") || e.key.equals("ArrowLeft")) {
+            e.preventDefault();
+            int next = Math.floorMod(i + (e.key.equals("ArrowRight") ? 1 : -1), names.size());
+            show(names.get(next), true);
+        } else {
+            activate(e, () -> show(name, false));
+        }
+    }
+
+    void show(String name, boolean focusTab) {
+        tab = name;
+        closeSelect();
+        List<String> names = new ArrayList<>(TABS.keySet());
+        for (int i = 0; i < tabElements.size(); i++) tabElements.get(i).toggleClass("selected", names.get(i).equals(name));
+        if (focusTab) tabElements.get(names.indexOf(name)).focus();
+        rows.removeAllChildren();
+        String section = null;
+        for (Setting s : TABS.get(name)) {
+            if (!s.section().equals(section)) {
+                section = s.section();
+                rows.appendChild(Dom.el(doc, "div", "section", section));
+            }
+            rows.appendChild(row(s));
+        }
+        rows.removeClass("swap");
+        doc.scheduler().requestAnimationFrame(t -> rows.addClass("swap"));
+        updateStatus();
+    }
+
+    private Element row(Setting s) {
+        Element row = Dom.el(doc, "div", "ore-row", null);
+        row.setAttribute("data-key", s.key());
+        Element label = Dom.el(doc, "div", "label", s.label());
+        label.appendChild(Dom.el(doc, "span", "dot", "●"));
+        row.appendChild(label);
+        Element control = Dom.el(doc, "div", "control", null);
+        row.appendChild(control);
+        switch (s.kind()) {
+            case TOGGLE -> toggle(s, control);
+            case SLIDER -> slider(s, control);
+            case SELECT -> select(s, control);
+            case TEXT -> text(s, control);
+        }
+        row.toggleClass("changed", !values.get(s.key()).equals(s.initial()));
+        return row;
+    }
+
+    private void toggle(Setting s, Element control) {
+        Element t = Dom.el(doc, "div", "ore-toggle", null);
+        t.setAttribute("tabindex", "0");
+        t.toggleClass("on", (Boolean) values.get(s.key()));
+        Element state = Dom.el(doc, "span", "help", (Boolean) values.get(s.key()) ? "开" : "关");
+        Runnable flip = () -> {
+            boolean on = !(Boolean) values.get(s.key());
+            set(s, on);
+            t.toggleClass("on", on);
+            Dom.text(state, on ? "开" : "关");
+        };
+        Dom.onClick(t, e -> flip.run());
+        Dom.onKey(t, e -> activate(e, flip));
+        control.appendChild(t);
+        control.appendChild(state);
+    }
+
+    private void slider(Setting s, Element control) {
+        Element el = Dom.html(doc, "<div class=\"ore-slider\" tabindex=\"0\"><div class=\"track\"></div><div class=\"fill\"></div><div class=\"thumb\"></div></div>");
+        control.appendChild(el);
+        Element val = Dom.el(doc, "span", "val", null);
+        control.appendChild(val);
+        int steps = Math.round((s.max() - s.min()) / s.step());
+        Slider slider = new Slider(doc, el, steps);
+        Runnable label = () -> Dom.text(val, format((Float) values.get(s.key())) + s.unit());
+        slider.set(((Float) values.get(s.key()) - s.min()) / (s.max() - s.min()));
+        slider.onInput(v -> {
+            set(s, s.min() + Math.round(v * steps) * s.step());
+            label.run();
+        });
+        label.run();
+    }
+
+    private void select(Setting s, Element control) {
+        Element sel = Dom.el(doc, "div", "ore-select", null);
+        sel.setAttribute("tabindex", "0");
+        Element value = Dom.el(doc, "div", "value", (String) values.get(s.key()));
+        Element menu = Dom.el(doc, "div", "menu", null);
+        sel.appendChild(value);
+        sel.appendChild(menu);
+        for (String option : s.options()) {
+            Element o = Dom.el(doc, "div", "option", option);
+            o.toggleClass("chosen", option.equals(values.get(s.key())));
+            Dom.onMouse(o, "mousedown", e -> {
+                e.stopPropagation();
+                choose(s, sel, option);
+            });
+            menu.appendChild(o);
+        }
+        Dom.onMouse(value, "mousedown", e -> {
+            if (sel == openSelect) closeSelect();
+            else openSelect(sel, s);
+        });
+        Dom.onKey(sel, e -> selectKey(e, s, sel));
+        control.appendChild(sel);
+    }
+
+    private void openSelect(Element sel, Setting s) {
+        closeSelect();
+        openSelect = sel;
+        sel.addClass("open");
+        sel.focus();
+        highlight(sel, s.options().indexOf((String) values.get(s.key())));
+    }
+
+    private void closeSelect() {
+        if (openSelect != null) openSelect.removeClass("open");
+        openSelect = null;
+    }
+
+    private void highlight(Element sel, int index) {
+        List<Element> options = Dom.query(sel, ".menu").children();
+        for (int i = 0; i < options.size(); i++) options.get(i).toggleClass("active", i == index);
+    }
+
+    private int highlighted(Element sel) {
+        List<Element> options = Dom.query(sel, ".menu").children();
+        for (int i = 0; i < options.size(); i++) if (options.get(i).hasClass("active")) return i;
+        return 0;
+    }
+
+    private void selectKey(KeyboardEvent e, Setting s, Element sel) {
+        boolean open = sel == openSelect;
+        switch (e.key) {
+            case "Enter", " " -> {
+                e.preventDefault();
+                if (open) choose(s, sel, s.options().get(highlighted(sel)));
+                else openSelect(sel, s);
+            }
+            case "ArrowDown", "ArrowUp" -> {
+                e.preventDefault();
+                int delta = e.key.equals("ArrowDown") ? 1 : -1;
+                if (!open) {
+                    int i = Math.floorMod(s.options().indexOf((String) values.get(s.key())) + delta, s.options().size());
+                    choose(s, sel, s.options().get(i));
+                } else {
+                    highlight(sel, Math.floorMod(highlighted(sel) + delta, s.options().size()));
+                }
+            }
+            case "Escape" -> {
+                if (open) {
+                    e.preventDefault();
+                    closeSelect();
+                }
+            }
+            default -> { }
+        }
+    }
+
+    private void choose(Setting s, Element sel, String option) {
+        set(s, option);
+        Dom.text(Dom.query(sel, ".value"), option);
+        for (Element o : Dom.query(sel, ".menu").children()) o.toggleClass("chosen", o.textContent().equals(option));
+        closeSelect();
+    }
+
+    private void text(Setting s, Element control) {
+        Element input = Dom.el(doc, "input", "ore-field", null);
+        input.setValue((String) values.get(s.key()));
+        input.setAttribute("maxlength", "24");
+        input.addEventListener("input", e -> set(s, input.value()));
+        control.appendChild(input);
+    }
+
+    void set(Setting s, Object value) {
+        values.put(s.key(), value);
+        for (Element row : rows.querySelectorAll(".ore-row")) {
+            if (row.getAttribute("data-key").equals(s.key())) row.toggleClass("changed", !value.equals(s.initial()));
+        }
+        updateStatus();
+    }
+
+    int changes() {
+        int n = 0;
+        for (List<Setting> list : TABS.values()) for (Setting s : list) if (!values.get(s.key()).equals(s.initial())) n++;
+        return n;
+    }
+
+    private void updateStatus() {
+        int n = changes();
+        Dom.text(status, n == 0 ? "没有修改" : "已修改 " + n + " 项");
+    }
+
+    void resetTab() {
+        List<String> changed = new ArrayList<>();
+        for (Setting s : TABS.get(tab)) {
+            if (!values.get(s.key()).equals(s.initial())) changed.add(s.key());
+            values.put(s.key(), s.initial());
+        }
+        show(tab, false);
+        for (Element row : rows.querySelectorAll(".ore-row")) if (changed.contains(row.getAttribute("data-key"))) row.addClass("flash");
+    }
+
+    private static String format(float v) {
+        return v == Math.round(v) ? Integer.toString(Math.round(v)) : Float.toString(v);
+    }
+}
