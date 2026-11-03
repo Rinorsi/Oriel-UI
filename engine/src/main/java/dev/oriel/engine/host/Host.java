@@ -1,6 +1,7 @@
 package dev.oriel.engine.host;
 
 import dev.oriel.engine.Limits;
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.inspect.Inspection;
@@ -74,6 +75,14 @@ public interface Host {
 
     default void log(LogLevel level, String message) {
         (level == LogLevel.ERROR || level == LogLevel.WARN ? System.err : System.out).println("[oriel] " + message);
+    }
+
+    /**
+     * A diagnostic about the page's markup or styles ({@link Diagnostic}), once per distinct one. By default logged:
+     * warnings and errors at WARN, so unsupported CSS is never silent; notes at DEBUG.
+     */
+    default void diagnostic(Diagnostic d) {
+        log(d.severity() == Diagnostic.Severity.INFO ? LogLevel.DEBUG : LogLevel.WARN, d.format());
     }
 
     default void reportError(String message, Throwable error) {

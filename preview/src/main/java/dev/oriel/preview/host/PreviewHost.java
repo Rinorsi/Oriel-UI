@@ -1,5 +1,6 @@
 package dev.oriel.preview.host;
 
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.Host;
@@ -170,6 +171,19 @@ public final class PreviewHost implements Host {
     @Override
     public ScriptRuntime createScriptRuntime(Document document) {
         return dev.oriel.engine.script.Scripting.rhino().apply(document);
+    }
+
+    /** Diagnostics at warning level or above so far, for {@code --strict}. */
+    private int problems;
+
+    @Override
+    public void diagnostic(Diagnostic d) {
+        System.err.println("[diagnostic] " + d.format());
+        if (d.severity() != Diagnostic.Severity.INFO) problems++;
+    }
+
+    public int problems() {
+        return problems;
     }
 
     @Override

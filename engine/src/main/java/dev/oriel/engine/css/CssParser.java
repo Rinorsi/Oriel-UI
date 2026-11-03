@@ -72,16 +72,41 @@ final class CssParser {
 
     /** Parses a declaration list (a style rule's block or a {@code style} attribute). Nested at-rules are ignored. */
     static List<Declaration> parseDeclarations(List<ComponentValue> values) {
+        return parseDeclarations(values, (text, line) -> {});
+    }
+
+    /** What {@link #parseDeclarations(List, Dropped)} skipped: an item that is not a declaration. */
+    @FunctionalInterface
+    interface Dropped {
+        void accept(String text, int line);
+    }
+
+    /**
+     * {@link #parseDeclarations(List)}, telling {@code dropped} about every non-empty item that is not a
+     * declaration (a nested rule, a stray token), which CSS skips.
+     */
+    static List<Declaration> parseDeclarations(List<ComponentValue> values, Dropped dropped) {
         List<Declaration> out = new ArrayList<>();
         int i = 0;
         while (i < values.size()) {
             int end = i;
             while (end < values.size() && !(values.get(end) instanceof Token t && t.is(Type.SEMICOLON))) end++;
-            Declaration d = declaration(values.subList(i, end));
-            if (d != null) out.add(d);
+            List<ComponentValue> item = values.subList(i, end);
+            Declaration d = declaration(item);
+            if (d != null) {
+                out.add(d);
+            } else {
+                List<ComponentValue> trimmed = trim(item);
+                if (!trimmed.isEmpty()) dropped.accept(ComponentValue.text(trimmed), lineOf(trimmed));
+            }
             i = end + 1;
         }
         return out;
+    }
+
+    private static int lineOf(List<ComponentValue> values) {
+        for (ComponentValue v : values) if (v instanceof Token t) return t.line();
+        return 0;
     }
 
     private static Declaration declaration(List<ComponentValue> values) {

@@ -6,6 +6,8 @@ import dev.oriel.engine.css.RuleIndex.Source;
 import dev.oriel.engine.css.Selector.MatchContext;
 import dev.oriel.engine.css.Stylesheet.Keyframe;
 import dev.oriel.engine.css.Stylesheet.KeyframesRule;
+import dev.oriel.engine.diag.Diagnostic;
+import dev.oriel.engine.diag.Diagnostic.Severity;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.PseudoElement;
@@ -290,20 +292,24 @@ public final class StyleEngine {
     private Stylesheet loadSheet(String url) {
         return loadedSheets.computeIfAbsent(url, u -> {
             String css = host.loadText(u);
-            if (css == null) host.log(Host.LogLevel.WARN, "Stylesheet not found: " + u);
+            if (css == null) {
+                document.diagnostics().report(new Diagnostic(Severity.ERROR, "missing-stylesheet", document.url(), 0,
+                        "Stylesheet not found: " + u, "check the href against the page's namespace and path"));
+            }
             return Stylesheet.parse(css == null ? "" : css, u, host, log(u));
         });
     }
 
-    private Consumer<String> log(String url) {
-        return message -> host.log(Host.LogLevel.DEBUG, url + ":" + message);
+    /** Where a sheet's diagnostics go: the document's (the URL is the sheet's own, in each diagnostic). */
+    private Consumer<Diagnostic> log(String url) {
+        return document.diagnostics()::report;
     }
 
     private static Stylesheet loadUserAgentSheet() {
         try (InputStream in = StyleEngine.class.getResourceAsStream("/oriel/ua.css")) {
             if (in == null) throw new IllegalStateException("Missing /oriel/ua.css");
             String css = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-            return Stylesheet.parse(css, "oriel:ua.css", null, message -> System.err.println("[oriel] ua.css:" + message));
+            return Stylesheet.parse(css, "oriel:ua.css", null, d -> System.err.println("[oriel] " + d.format()));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -3,6 +3,8 @@ package dev.oriel.engine.css;
 import dev.oriel.engine.css.ComponentValue.Block;
 import dev.oriel.engine.css.ComponentValue.Func;
 import dev.oriel.engine.css.Token.Type;
+import dev.oriel.engine.diag.Diagnostic;
+import dev.oriel.engine.diag.Diagnostic.Severity;
 import dev.oriel.engine.host.Host;
 
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import java.util.function.Predicate;
  * A parsed stylesheet: style rules with expanded declarations, {@code @media} blocks, {@code @import}s (loaded by
  * the style engine) and {@code @keyframes}. {@code @supports} is decided while parsing, {@code @layer} blocks are
  * flattened (layer order is not modelled), and other at-rules ({@code @font-face}, {@code @page}...) are skipped.
+ * Everything not taken as written is reported as a {@link Diagnostic}.
  */
 final class Stylesheet {
     sealed interface Rule permits StyleRule, MediaRule, ImportRule, KeyframesRule {}
@@ -41,20 +44,20 @@ final class Stylesheet {
     }
 
     /**
-     * Parses a stylesheet. Problems (invalid selectors, declarations, at-rules) are reported to {@code log} as
-     * "line: message" and skipped, per CSS error handling.
+     * Parses a stylesheet. Problems (invalid selectors, declarations, at-rules) are skipped, per CSS error handling,
+     * and reported to {@code log}; so are features only approximated ({@code @layer}, {@code position: sticky}).
      */
-    static Stylesheet parse(String css, String url, Host host, Consumer<String> log) {
+    static Stylesheet parse(String css, String url, Host host, Consumer<Diagnostic> log) {
         Builder b = new Builder(url, host, log);
         return new Stylesheet(url, b.rules(CssParser.parseRules(css), true));
     }
 
     /** Parses a declaration list (a {@code style} attribute) into longhand declarations. */
-    static List<Decl> declarations(String css, String url, Host host, Consumer<String> log) {
+    static List<Decl> declarations(String css, String url, Host host, Consumer<Diagnostic> log) {
         return new Builder(url, host, log).declarations(CssParser.parseComponentValues(css), false);
     }
 
-    private record Builder(String url, Host host, Consumer<String> log) {
+    private record Builder(String url, Host host, Consumer<Diagnostic> log) {
         List<Rule> rules(List<CssParser.Rule> raw, boolean topLevel) {
             List<Rule> out = new ArrayList<>();
             boolean importsAllowed = topLevel;
@@ -72,20 +75,30 @@ final class Stylesheet {
                     }
                     case "supports" -> {
                         Predicate<Void> condition = Conditions.parse(r.prelude(), this::supports);
-                        if (condition == null) log(r.line(), "Invalid @supports condition");
+                        if (condition == null) warn(r.line(), "invalid-supports", "Invalid @supports condition", "the block is skipped");
                         else if (r.block() != null && condition.test(null)) out.addAll(nested(r));
                     }
                     case "layer" -> {
-                        if (r.block() != null) out.addAll(nested(r));
+                        if (r.block() != null) {
+                            note(r.line(), "layer-flattened", "@layer is flattened: layer order is not modelled",
+                                    "its rules cascade in source order with the rest");
+                            out.addAll(nested(r));
+                        }
                     }
                     case "import" -> {
                         ImportRule imp = importRule(r);
-                        if (imp == null || !importsAllowed) log(r.line(), "Ignored @import");
+                        if (imp == null || !importsAllowed) {
+                            warn(r.line(), "ignored-import", "Ignored @import",
+                                    imp == null ? "write @import url(file.css);" : "@import must come before all other rules");
+                        }
                         else out.add(imp);
                     }
                     case "keyframes", "-webkit-keyframes" -> keyframes(r, out);
-                    case "charset", "namespace", "font-face", "page", "property", "counter-style" -> { }
-                    default -> log(r.line(), "Unknown at-rule @" + name);
+                    case "charset" -> { }
+                    case "namespace", "font-face", "page", "property", "counter-style" -> note(r.line(),
+                            "ignored-at-rule", "@" + name + " is not supported and is ignored", "");
+                    default -> warn(r.line(), "unknown-at-rule", "Unknown at-rule @" + name,
+                            "supported: @media, @supports, @import, @keyframes, @layer");
                 }
             }
             return out;
@@ -100,7 +113,8 @@ final class Stylesheet {
             try {
                 selectors = SelectorParser.parse(r.prelude());
             } catch (IllegalArgumentException e) {
-                log(r.line(), "Invalid selector '" + ComponentValue.text(r.prelude()) + "': " + e.getMessage());
+                warn(r.line(), "invalid-selector", "Invalid selector '" + ComponentValue.text(r.prelude()) + "': "
+                        + e.getMessage(), "the whole rule is skipped");
                 return;
             }
             List<Decl> decls = declarations(r.block().body(), false);
@@ -110,13 +124,27 @@ final class Stylesheet {
         /** Expands declarations, logging invalid ones; {@code !important} ones are dropped in keyframes. */
         List<Decl> declarations(List<ComponentValue> body, boolean keyframe) {
             List<Decl> out = new ArrayList<>();
-            for (CssParser.Declaration d : CssParser.parseDeclarations(body)) {
-                List<Decl> expanded = keyframe && d.important() ? List.of() : Decl.expand(d, url, host);
-                if (expanded == null) {
-                    log(d.line(), "Invalid declaration '" + d.name() + ": " + ComponentValue.text(d.value()) + "'");
-                } else {
-                    out.addAll(expanded);
+            List<CssParser.Declaration> parsed = CssParser.parseDeclarations(body, (text, line) -> warn(line,
+                    "not-a-declaration", "Skipped '" + Suggestions.clip(text) + "': not a declaration",
+                    text.contains("{") ? "CSS nesting is not supported: write the nested rule out at the top level"
+                            : "a declaration is name: value;"));
+            for (CssParser.Declaration d : parsed) {
+                if (keyframe && d.important()) {
+                    warn(d.line(), "ignored-important", "!important is ignored in keyframes", "");
+                    continue;
                 }
+                List<Decl> expanded = Decl.expand(d, url, host);
+                String value = ComponentValue.text(d.value());
+                if (expanded == null) {
+                    warn(d.line(), Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property",
+                            "Invalid declaration '" + d.name() + ": " + value + "'", Suggestions.forDeclaration(d.name(), d.value()));
+                    continue;
+                }
+                if (d.name().equals("position") && value.trim().equalsIgnoreCase("sticky")) {
+                    warn(d.line(), "approximated", "position: sticky is treated as relative",
+                            "sticky offsets are not applied; use relative, or absolute in a positioned parent");
+                }
+                out.addAll(expanded);
             }
             return out;
         }
@@ -135,13 +163,13 @@ final class Stylesheet {
         private void keyframes(CssParser.Rule r, List<Rule> out) {
             ComponentValue name = r.prelude().size() == 1 ? r.prelude().get(0) : null;
             if (r.block() == null || !(name instanceof Token t) || !(t.is(Type.IDENT) || t.is(Type.STRING))) {
-                log(r.line(), "Invalid @keyframes");
+                warn(r.line(), "invalid-keyframes", "Invalid @keyframes", "write @keyframes name { from {...} to {...} }");
                 return;
             }
             List<Keyframe> frames = new ArrayList<>();
             for (CssParser.Rule frame : CssParser.parseRules(r.block().body(), false)) {
                 List<Float> offsets = frame.isAtRule() || frame.block() == null ? null : offsets(frame.prelude());
-                if (offsets == null) log(frame.line(), "Invalid keyframe selector");
+                if (offsets == null) warn(frame.line(), "invalid-keyframe", "Invalid keyframe selector", "use from, to or percentages");
                 else frames.add(new Keyframe(offsets, declarations(frame.block().body(), true)));
             }
             out.add(new KeyframesRule(t.value, frames));
@@ -179,8 +207,12 @@ final class Stylesheet {
             return ignored -> result;
         }
 
-        private void log(int line, String message) {
-            log.accept(line + ": " + message);
+        private void warn(int line, String code, String message, String suggestion) {
+            log.accept(new Diagnostic(Severity.WARNING, code, url, line, message, suggestion));
+        }
+
+        private void note(int line, String code, String message, String suggestion) {
+            log.accept(new Diagnostic(Severity.INFO, code, url, line, message, suggestion));
         }
     }
 }

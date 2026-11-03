@@ -7,6 +7,7 @@ import dev.oriel.engine.css.StyleEngine;
 import dev.oriel.engine.event.CustomEvent;
 import dev.oriel.engine.event.Event;
 import dev.oriel.engine.event.FocusEvent;
+import dev.oriel.engine.diag.Diagnostics;
 import dev.oriel.engine.host.Host;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.engine.host.ReplacedContent;
@@ -57,6 +58,7 @@ public final class Document extends Node {
     private final String initialData;
     private final Scheduler scheduler = new Scheduler(this);
     private final Scrolling scrolling = new Scrolling();
+    private final Diagnostics diagnostics;
     private final StyleEngine styleEngine;
     private final LayoutEngine layoutEngine;
     private final AnimationEngine animationEngine;
@@ -102,6 +104,7 @@ public final class Document extends Node {
         this.viewportWidth = viewport.width();
         this.viewportHeight = viewport.height();
         this.devicePixelRatio = viewport.devicePixelRatio();
+        this.diagnostics = new Diagnostics(host);
         this.styleEngine = new StyleEngine(this);
         this.layoutEngine = new LayoutEngine(this);
         this.animationEngine = new AnimationEngine(this);
@@ -146,6 +149,8 @@ public final class Document extends Node {
     public String nodeName() { return "#document"; }
 
     public Host host() { return host; }
+    /** What this page's markup and styles did not get as written. */
+    public Diagnostics diagnostics() { return diagnostics; }
     /** The caps on this page, from {@link Host#limits()} when it was created. */
     public Limits limits() { return limits; }
     public String url() { return url; }

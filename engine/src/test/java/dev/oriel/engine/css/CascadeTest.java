@@ -400,7 +400,8 @@ class CascadeTest {
         assertEquals(Length.px(3), page.style("#a").width);
         assertEquals(new dev.oriel.engine.style.Image.Url("test:css/img.png"),
                 page.style("#b").backgroundLayers.get(0).image(), "urls resolve against the stylesheet");
-        assertTrue(host.logs.contains("WARN: Stylesheet not found: test:missing.css"), host.logs::toString);
+        assertTrue(host.logs.contains("WARN: test:page.html: error [missing-stylesheet] Stylesheet not found: "
+                + "test:missing.css (check the href against the page's namespace and path)"), host.logs::toString);
     }
 
     @Test
@@ -413,11 +414,14 @@ class CascadeTest {
     }
 
     @Test
-    void invalidDeclarationsAreLoggedAtDebug() {
+    void invalidDeclarationsAreReportedAsWarnings() {
         TestHost host = new TestHost();
-        host.load("<style>\n#a { colr: red }</style><div id=a style='width: nope'></div>");
-        assertTrue(host.logs.contains("DEBUG: test:page.html:2: Invalid declaration 'colr: red'"), host.logs::toString);
-        assertTrue(host.logs.stream().anyMatch(l -> l.startsWith("DEBUG:") && l.contains("'width: nope'")));
+        Page page = host.load("<style>\n#a { colr: red }</style><div id=a style='width: nope'></div>");
+        assertTrue(host.logs.contains("WARN: test:page.html:2: warning [unknown-property] Invalid declaration "
+                + "'colr: red' (did you mean 'color'?)"), host.logs::toString);
+        assertTrue(host.logs.stream().anyMatch(l -> l.startsWith("WARN:") && l.contains("[invalid-value]")
+                && l.contains("'width: nope'")), host.logs::toString);
+        assertEquals(2, page.doc.diagnostics().all().size());
         assertTrue(host.errors.isEmpty());
     }
 

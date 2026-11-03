@@ -1,5 +1,7 @@
 package dev.oriel.engine.css;
 
+import dev.oriel.engine.diag.Diagnostic;
+import dev.oriel.engine.diag.Diagnostic.Severity;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.Host;
@@ -217,8 +219,10 @@ public final class InlineStyle {
             if (e != null) {
                 out.add(e);
             } else {
-                doc.host().log(Host.LogLevel.DEBUG, doc.url() + ": invalid declaration in a style attribute '"
-                        + d.name() + ": " + value + "'");
+                doc.diagnostics().report(new Diagnostic(Severity.WARNING,
+                        Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property", doc.url(), 0,
+                        "Invalid declaration in a style attribute '" + d.name() + ": " + value + "'",
+                        Suggestions.forDeclaration(d.name(), d.value())));
             }
         }
         return out;

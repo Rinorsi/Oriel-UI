@@ -43,7 +43,7 @@ class UserAgentSheetTest {
             css = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
         List<String> problems = new ArrayList<>();
-        Stylesheet.parse(css, "oriel:ua.css", null, problems::add);
+        Stylesheet.parse(css, "oriel:ua.css", null, d -> problems.add(d.line() + ": " + d.message()));
         assertEquals(List.of(), problems);
     }
 

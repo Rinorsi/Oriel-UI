@@ -16,7 +16,7 @@ class CssParserTest {
     private final List<String> problems = new ArrayList<>();
 
     private Stylesheet sheet(String css) {
-        return Stylesheet.parse(css, "test:a.css", null, problems::add);
+        return Stylesheet.parse(css, "test:a.css", null, d -> problems.add(d.line() + ": " + d.message()));
     }
 
     private static List<String> names(List<Decl> decls) {

@@ -17,17 +17,19 @@ import java.util.Optional;
 /** The standalone previewer: a window that renders a page live, or a headless snapshot to PNG. */
 public final class Preview {
     private static final String USAGE = """
-            Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N]] [--narrate]
+            Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N]] [--narrate] [--strict]
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
-            The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.""";
+            The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
+            Diagnostics (CSS the engine did not take as written) go to stderr; with --strict a warning fails the run
+            (exit code 3).""";
 
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
-                   Path actions, Path out, boolean narrate) {
+                   Path actions, Path out, boolean narrate, boolean strict) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
-            boolean canvasTest = false, narrate = false;
+            boolean canvasTest = false, narrate = false, strict = false;
             int scale = 2, width = CanvasTest.WIDTH, height = CanvasTest.HEIGHT, frames = 1;
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
@@ -40,6 +42,7 @@ public final class Preview {
                     case "--actions" -> actions = Path.of(value(args, ++i, arg));
                     case "--out" -> out = Path.of(value(args, ++i, arg));
                     case "--narrate" -> narrate = true;
+                    case "--strict" -> strict = true;
                     case "--size" -> {
                         String[] size = value(args, ++i, arg).split("x");
                         if (size.length != 2) throw new IllegalArgumentException("--size takes WxH, e.g. 427x240");
@@ -56,7 +59,7 @@ public final class Preview {
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate);
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
@@ -115,10 +118,10 @@ public final class Preview {
         if (options.narrate()) ((PageScene) scene).narrateTo(System.out);
 
         if (options.actions() != null) {
-            System.exit(actions((PageScene) scene, new FrameRenderer(assets, font), options));
+            System.exit(strict(actions((PageScene) scene, new FrameRenderer(assets, font), options), host, options));
         }
         if (options.snapshot() != null) {
-            System.exit(snapshot(scene, new FrameRenderer(assets, font), options));
+            System.exit(strict(snapshot(scene, new FrameRenderer(assets, font), options), host, options));
         }
         SwingUtilities.invokeLater(() -> new PreviewWindow(scene, host, options.scale(), options.width(), options.height()).show());
     }
@@ -143,6 +146,15 @@ public final class Preview {
             return 2;
         }
         return scene.error() == null ? 0 : 1;
+    }
+
+    /** With {@code --strict}, a run that otherwise passed fails with 3 when the page had warnings or errors. */
+    private static int strict(int code, PreviewHost host, Options options) {
+        if (code == 0 && options.strict() && host.problems() > 0) {
+            System.err.println(host.problems() + " diagnostic(s) at warning level or above (--strict)");
+            return 3;
+        }
+        return code;
     }
 
     /** Renders {@code frames} frames 16 ms apart and writes the last; exits non-zero if the page failed. */
