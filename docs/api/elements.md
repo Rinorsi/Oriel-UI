@@ -67,11 +67,11 @@ without a class.
 | `mc-dim` | The dim over the world behind in-game menus (put it on `html`) |
 | `mc-center` | Centers the page's content in the screen, as vanilla centers container GUIs (put it on `body`) |
 
-A vanilla chest is a few lines with these. See [demo/chest.html](../../common/src/main/resources/assets/vellum/vellum/demo/chest.html).
+A vanilla chest is a few lines with these. See [demo/chest.html](../../common/src/main/resources/assets/oriel/oriel/demo/chest.html).
 
 ## Text in the Minecraft font
 
-Vellum measures text exactly as vanilla does, so two of the font's habits show up around small boxes of text:
+Oriel measures text exactly as vanilla does, so two of the font's habits show up around small boxes of text:
 
 - Every glyph's advance includes the 1 px gap that follows it, the last one too. A one-letter badge with
   `padding: 0 2px` has 2 px of background left of the glyph and 3 px right of it, and centered text sits half a pixel
@@ -118,7 +118,7 @@ An `<entity>` is fitted one of three ways:
 
 The eye point is on the entity's upright axis at its eye height. That suits mobs whose heads sit above their bodies
 (players, villagers, golems, creepers). A pig's or a fox's head sits in front of that axis, so it moves out of the
-frame when the mob is turned sideways. The Turntable showcase (`/vellum showcase models`) has a row of portraits that
+frame when the mob is turned sideways. The Turntable showcase (`/oriel showcase models`) has a row of portraits that
 follow the pointer.
 
 ## Following the pointer
@@ -204,8 +204,8 @@ with a null `detail` when the pointer leaves the blocks. A click that didn't dra
 
 ### A build, step by step
 
-Vellum has no timeline. A build that assembles itself is groups, CSS and a timer, as the Cottage showcase
-(`/vellum showcase scene`) does it:
+Oriel has no timeline. A build that assembles itself is groups, CSS and a timer, as the Cottage showcase
+(`/oriel showcase scene`) does it:
 
 ```html
 <style>
@@ -290,21 +290,21 @@ along to NeoForge's tooltip events, as for any item tooltip.
 
 ## Entity render states
 
-Minecraft 26.3 only: 1.21.1 has no entity render states, and Vellum poses the entity itself there.
+Minecraft 26.3 only: 1.21.1 has no entity render states, and Oriel poses the entity itself there.
 
-Vellum draws an entity from the render state its renderer makes. If your renderer adds things for the world (speech
+Oriel draws an entity from the render state its renderer makes. If your renderer adds things for the world (speech
 bubbles, labels, effects), register a function that makes a state for screens instead:
 
 ```java
 // Client setup:
-VellumEntities.registerPortraitState(MyEntities.AUTOMATON.get(), AutomatonRenderer::portraitState);
+OrielEntities.registerPortraitState(MyEntities.AUTOMATON.get(), AutomatonRenderer::portraitState);
 ```
 
 ```java
 public static <T extends Entity> void registerPortraitState(EntityType<T> type, PortraitState<? super T> state)
 
 @FunctionalInterface
-public interface PortraitState<T extends Entity> {   // VellumEntities.PortraitState
+public interface PortraitState<T extends Entity> {   // OrielEntities.PortraitState
     @Nullable EntityRenderState create(T entity, float partialTick);
 }
 ```
@@ -313,7 +313,7 @@ The function gets the entity and the partial tick and runs every frame for every
 screen. Return null to fall back to the renderer's state for that frame. Registering the type again replaces the
 function. A method reference like the one above, or a lambda, fits it.
 
-Vellum then sets these fields on your state, as it does on its own:
+Oriel then sets these fields on your state, as it does on its own:
 
 | Field | Set to |
 |---|---|

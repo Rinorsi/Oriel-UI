@@ -10,10 +10,10 @@ base.archivesName = mod_id
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
-    // Vellum's maven. Only dev.vellum comes from it.
+    // Oriel's maven. Only dev.oriel comes from it.
     maven {
         url = 'https://maven.maxleiter.com'
-        content { includeGroup('dev.vellum') }
+        content { includeGroup('dev.oriel') }
     }
 }
 
@@ -21,9 +21,9 @@ dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-    // Vellum for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
-    // instead: include(implementation("dev.vellum:vellum-fabric-${minecraft_version}:${vellum_version}"))
-    implementation "dev.vellum:vellum-fabric-${minecraft_version}:${vellum_version}"
+    // Oriel for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
+    // instead: include(implementation("dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"))
+    implementation "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -32,7 +32,7 @@ tasks.withType(JavaCompile).configureEach {
 
 processResources {
     def props = [minecraft_version: minecraft_version, fabric_loader_version: fabric_loader_version,
-                 vellum_version: vellum_version, mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
+                 oriel_version: oriel_version, mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
                  mod_authors: mod_authors, mod_description: mod_description, mod_license: mod_license]
     inputs.properties(props)
     filesMatching('fabric.mod.json') { expand(props) }

@@ -49,7 +49,7 @@ loom {
             client()
             setConfigName('Fabric Client')
             ideConfigGenerated(true)
-            runDir('runs/client')
+            runDirectory.set(orielRunDir('client'))
             // -Pautopilot and -Ptour (multiloader-loader.gradle).
             clientRunProperties.each { key, value -> property(key, value) }
             programArgs(clientRunArgs)
@@ -58,9 +58,14 @@ loom {
             server()
             setConfigName('Fabric Server')
             ideConfigGenerated(true)
-            runDir('runs/server')
+            runDirectory.set(orielRunDir('server'))
         }
     }
+}
+
+// The GameTest run that fabricApi.configureTests adds lives outside the repository too.
+loom.runs.configureEach { run ->
+    if (run.name.toLowerCase(Locale.ROOT).contains('gametest')) run.runDirectory.set(orielRunDir(run.name))
 }
 
 // The mcgradleconventions loader attribute (multiloader-common.gradle) on Loom's configurations too.

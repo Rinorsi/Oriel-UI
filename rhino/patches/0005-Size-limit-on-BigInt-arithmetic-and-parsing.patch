@@ -5,8 +5,8 @@ Subject: [PATCH] Size limit on BigInt arithmetic and parsing
 
 A single BigInteger multiplication, power, shift or parse runs in Java,
 out of sight of the instruction observer, and its cost grows faster than
-its operands. VellumBigInts checks the size of each result first and
-throws a RangeError past VellumBigInts.setMaxBits. The limit is
+its operands. OrielBigInts checks the size of each result first and
+throws a RangeError past OrielBigInts.setMaxBits. The limit is
 process-wide and unlimited by default.
 
 diff --git a/rhino/src/main/java/org/mozilla/javascript/NativeBigInt.java b/rhino/src/main/java/org/mozilla/javascript/NativeBigInt.java
@@ -18,7 +18,7 @@ index 30edaff79f3b..1719f98d4dc2 100644
          }
  
 -        BigInteger modulus = BigInteger.ONE.shiftLeft(bits); // 2^bits
-+        BigInteger modulus = VellumBigInts.shiftLeft(BigInteger.ONE, bits); // 2^bits
++        BigInteger modulus = OrielBigInts.shiftLeft(BigInteger.ONE, bits); // 2^bits
  
          if (isSigned) {
              return asSignedN(bigInt, bits, modulus);
@@ -27,7 +27,7 @@ index 30edaff79f3b..1719f98d4dc2 100644
      private static BigInteger asSignedN(BigInteger bigInt, int bits, BigInteger modulus) {
          // For signed: use two's complement representation
 -        BigInteger halfModulus = BigInteger.ONE.shiftLeft(bits - 1); // 2^(bits-1)
-+        BigInteger halfModulus = VellumBigInts.shiftLeft(BigInteger.ONE, bits - 1); // 2^(bits-1)
++        BigInteger halfModulus = OrielBigInts.shiftLeft(BigInteger.ONE, bits - 1); // 2^(bits-1)
          BigInteger minValue = halfModulus.negate(); // -2^(bits-1)
          BigInteger maxValue = halfModulus.subtract(BigInteger.ONE); // 2^(bits-1) - 1
  
@@ -40,7 +40,7 @@ index ad7d84099591..8243b518cbf4 100644
                  if (radix != -1) {
                      try {
 -                        return new BigInteger(s.substring(start + 2, end + 1), radix);
-+                        return VellumBigInts.parse(s.substring(start + 2, end + 1), radix);
++                        return OrielBigInts.parse(s.substring(start + 2, end + 1), radix);
                      } catch (NumberFormatException ex) {
                          throw syntaxErrorById("msg.bigint.bad.form");
                      }
@@ -49,7 +49,7 @@ index ad7d84099591..8243b518cbf4 100644
          }
          try {
 -            return new BigInteger(sub);
-+            return VellumBigInts.parse(sub);
++            return OrielBigInts.parse(sub);
          } catch (NumberFormatException ex) {
              throw syntaxErrorById("msg.bigint.bad.form");
          }
@@ -58,7 +58,7 @@ index ad7d84099591..8243b518cbf4 100644
      public static Number multiply(Number val1, Number val2) {
          if (val1 instanceof BigInteger && val2 instanceof BigInteger) {
 -            return ((BigInteger) val1).multiply((BigInteger) val2);
-+            return VellumBigInts.multiply((BigInteger) val1, (BigInteger) val2);
++            return OrielBigInts.multiply((BigInteger) val1, (BigInteger) val2);
          } else if (val1 instanceof BigInteger || val2 instanceof BigInteger) {
              throw ScriptRuntime.typeErrorById("msg.cant.convert.to.number", "BigInt");
          } else if (val1 instanceof Integer && val2 instanceof Integer) {
@@ -67,7 +67,7 @@ index ad7d84099591..8243b518cbf4 100644
              try {
                  int intVal2 = ((BigInteger) val2).intValueExact();
 -                return ((BigInteger) val1).pow(intVal2);
-+                return VellumBigInts.pow((BigInteger) val1, intVal2);
++                return OrielBigInts.pow((BigInteger) val1, intVal2);
              } catch (ArithmeticException e) {
                  // This is outside the scope of the ECMA262 specification.
                  throw ScriptRuntime.rangeErrorById("msg.bigint.out.of.range.arithmetic");
@@ -76,7 +76,7 @@ index ad7d84099591..8243b518cbf4 100644
              try {
                  int intVal2 = ((BigInteger) val2).intValueExact();
 -                return ((BigInteger) val1).shiftLeft(intVal2);
-+                return VellumBigInts.shiftLeft((BigInteger) val1, intVal2);
++                return OrielBigInts.shiftLeft((BigInteger) val1, intVal2);
              } catch (ArithmeticException e) {
                  // This is outside the scope of the ECMA262 specification.
                  throw ScriptRuntime.rangeErrorById("msg.bigint.out.of.range.arithmetic");
@@ -85,7 +85,7 @@ index ad7d84099591..8243b518cbf4 100644
              try {
                  int intVal2 = ((BigInteger) val2).intValueExact();
 -                return ((BigInteger) val1).shiftRight(intVal2);
-+                return VellumBigInts.shiftRight((BigInteger) val1, intVal2);
++                return OrielBigInts.shiftRight((BigInteger) val1, intVal2);
              } catch (ArithmeticException e) {
                  // This is outside the scope of the ECMA262 specification.
                  throw ScriptRuntime.rangeErrorById("msg.bigint.out.of.range.arithmetic");
@@ -98,15 +98,15 @@ index 45f9b91d6e4d..d5a0d487445d 100644
  
                  if (isBigInt) {
 -                    this.bigInt = new BigInteger(numString, base);
-+                    this.bigInt = VellumBigInts.parse(numString, base);
++                    this.bigInt = OrielBigInts.parse(numString, base);
                      return Token.BIGINT;
                  }
  
-diff --git a/rhino/src/main/java/org/mozilla/javascript/VellumBigInts.java b/rhino/src/main/java/org/mozilla/javascript/VellumBigInts.java
+diff --git a/rhino/src/main/java/org/mozilla/javascript/OrielBigInts.java b/rhino/src/main/java/org/mozilla/javascript/OrielBigInts.java
 new file mode 100644
 index 000000000000..f711a19aaf96
 --- /dev/null
-+++ b/rhino/src/main/java/org/mozilla/javascript/VellumBigInts.java
++++ b/rhino/src/main/java/org/mozilla/javascript/OrielBigInts.java
 @@ -0,0 +1,66 @@
 +/* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 + *
@@ -125,11 +125,11 @@ index 000000000000..f711a19aaf96
 + * power, shift and parse from text goes through here first, and results larger than {@link
 + * #maxBits} throw a RangeError.
 + */
-+public final class VellumBigInts {
++public final class OrielBigInts {
 +    /** The largest BigInt, in bits; process-wide, and unlimited unless an embedding sets it. */
 +    private static volatile long maxBits = Long.MAX_VALUE;
 +
-+    private VellumBigInts() {}
++    private OrielBigInts() {}
 +
 +    public static void setMaxBits(long bits) {
 +        maxBits = bits;

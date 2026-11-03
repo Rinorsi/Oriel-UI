@@ -1,0 +1,113 @@
+package dev.oriel.preview;
+
+import dev.oriel.engine.dom.Document;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/** {@code --actions}: a script of input and shots run against a page through the previewer's rendering path. */
+class ActionsTest {
+    @TempDir
+    Path dir;
+
+    @Test
+    void scriptsDriveThePageAndSaveShots() throws IOException {
+        Path page = dir.resolve("page.html");
+        Files.writeString(page, """
+                <body style="margin: 0">
+                <button id=b onclick="this.textContent = 'clicked'">go</button>
+                <input id=i><p id=o></p>
+                <div id=s style="height: 40px; overflow: auto; scroll-behavior: auto"><div style="height: 200px"></div></div>
+                <script>
+                  document.getElementById('i').addEventListener('keydown', e => {
+                    if (e.key === 'Enter' && e.shiftKey) document.getElementById('o').textContent = document.getElementById('i').value;
+                  });
+                </script>""");
+        TestScene t = TestScene.open(page, Optional.empty(), 200, 120, 2);
+        Actions actions = Actions.parse("""
+                # click, type, a key with a modifier, the wheel over a selector, a shot
+                wait 2
+                click #b
+                click #i
+                type hi there
+                key Shift+Enter
+                wheel #s 24
+                shot done
+                """);
+        ByteArrayOutputStream log = new ByteArrayOutputStream();
+        actions.run(t.scene(), t.renderer(), 200, 120, 2, dir, new PrintStream(log));
+
+        Document doc = t.scene().document();
+        assertEquals("clicked", doc.getElementById("b").textContent());
+        assertEquals("hi there", doc.getElementById("o").textContent());
+        assertEquals(24, doc.getElementById("s").scrollTop(), 1e-3);
+        assertTrue(Files.size(dir.resolve("done.png")) > 0);
+        assertTrue(log.toString().contains("done.png"), log.toString());
+    }
+
+    /** {@code --narrate}: the title, live regions and what focus and the pointer read, printed as they change. */
+    @Test
+    void narrationIsPrinted() throws IOException {
+        Path page = dir.resolve("talk.html");
+        Files.writeString(page, """
+                <head><title>Emperor Cualius</title></head>
+                <body style="margin: 0">
+                <p id=line aria-live=polite>Greetings, stranger!</p>
+                <button id=reply aria-label="Reply 1: About the letter"
+                        onclick="document.getElementById('line').textContent = 'Then go.'">1 About it</button>""");
+        TestScene t = TestScene.open(page, Optional.empty(), 200, 120, 2);
+        ByteArrayOutputStream said = new ByteArrayOutputStream();
+        t.scene().narrateTo(new PrintStream(said));
+        Actions.parse("wait 1\nclick #reply\nwait 1").run(t.scene(), t.renderer(), 200, 120, 2, dir,
+                new PrintStream(new ByteArrayOutputStream()));
+        assertEquals("""
+                [narrate] title: Emperor Cualius
+                [narrate] live: Greetings, stranger!
+                [narrate] live: Then go.
+                [narrate] focus: Reply 1: About the letter, button
+                [narrate] pointer: Reply 1: About the letter, button
+                """, said.toString().replace(System.lineSeparator(), "\n"));
+    }
+
+    /** Selectors aim where the element shows, as {@code OrielAutomation} does in game, not at its border box's centre. */
+    @Test
+    void selectorsAimAtThePartThatShows() throws IOException {
+        Path page = dir.resolve("clipped.html");
+        Files.writeString(page, """
+                <body style="margin: 0">
+                <div style="height: 20px; overflow: hidden">
+                  <button id=tall style="display: block; height: 60px" onclick="this.textContent = 'clicked'">go</button>
+                </div>
+                <button id=below style="display: block; height: 40px" onclick="this.textContent = 'missed'">no</button>
+                <div style="position: relative"><p id=covered>x</p><i style="position: absolute; inset: 0"></i></div>""");
+        TestScene t = TestScene.open(page, Optional.empty(), 200, 120, 2);
+        PageScene scene = t.scene();
+        FrameRenderer renderer = t.renderer();
+        Actions.parse("click #tall").run(scene, renderer, 200, 120, 2, dir, new PrintStream(new ByteArrayOutputStream()));
+        Document doc = scene.document();
+        assertEquals("clicked", doc.getElementById("tall").textContent(), "the middle of its 20 px that show");
+        assertEquals("no", doc.getElementById("below").textContent());
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> Actions.parse("move #covered")
+                .run(scene, renderer, 200, 120, 2, dir, new PrintStream(new ByteArrayOutputStream())));
+        assertTrue(e.getMessage().contains("covers it"), e.getMessage());
+    }
+
+    @Test
+    void malformedScriptsNameTheLine() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> Actions.parse("wait 2\n\njump 3"));
+        assertEquals("line 3: unknown action 'jump'", e.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("wait soon"));
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("wheel 24"));
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("shot"));
+    }
+}

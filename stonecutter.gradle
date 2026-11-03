@@ -58,11 +58,11 @@ stonecutter.parameters { sc ->
         spec.replace("\\bcom\\.mojang\\.blaze3d\\.$renderpearlTypes\\b", 'com.mojang.renderpearl.api.$1',
                 "\\bcom\\.mojang\\.renderpearl\\.api\\.$renderpearlTypes\\b", 'com.mojang.blaze3d.$1')
     }
-    // 26.x has input event records; for older versions Vellum has records of the same shape in its own package.
+    // 26.x has input event records; for older versions Oriel has records of the same shape in its own package.
     String inputEvents = '(KeyEvent|MouseButtonEvent|MouseButtonInfo|CharacterEvent)'
     sc.replacements.regex(modern) { spec ->
-        spec.replace("\\bdev\\.vellum\\.mod\\.client\\.input\\.$inputEvents\\b", 'net.minecraft.client.input.$1',
-                "\\bnet\\.minecraft\\.client\\.input\\.$inputEvents\\b", 'dev.vellum.mod.client.input.$1')
+        spec.replace("\\bdev\\.oriel\\.mod\\.client\\.input\\.$inputEvents\\b", 'net.minecraft.client.input.$1',
+                "\\bnet\\.minecraft\\.client\\.input\\.$inputEvents\\b", 'dev.oriel.mod.client.input.$1')
     }
     // Fabric's access widener names Mojang's names "official" on 26.x, "named" before.
     sc.replacements.string(modern) { spec ->
@@ -71,14 +71,14 @@ stonecutter.parameters { sc ->
 }
 
 // maven.maxleiter.com is a static site (the MaxLeiter/maven repo on GitHub Pages). The release workflow checks it out
-// and publishes every artifact into it with -Pvellum_maven_dir=<checkout>: publishAllPublicationsToVellumMavenRepository.
-def vellumMavenDir = findProperty('vellum_maven_dir')
-if (vellumMavenDir) {
+// and publishes every artifact into it with -Poriel_maven_dir=<checkout>: publishAllPublicationsToOrielMavenRepository.
+def orielMavenDir = findProperty('oriel_maven_dir')
+if (orielMavenDir) {
     allprojects {
         plugins.withId('maven-publish') {
             publishing.repositories.maven {
-                name = 'vellumMaven'
-                url = rootProject.file(vellumMavenDir).toURI()
+                name = 'orielMaven'
+                url = rootProject.file(orielMavenDir).toURI()
             }
         }
     }

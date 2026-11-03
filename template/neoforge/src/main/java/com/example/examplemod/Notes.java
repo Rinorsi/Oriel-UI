@@ -2,23 +2,23 @@ package com.example.examplemod;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import dev.vellum.mod.client.VellumScreen;
-import dev.vellum.mod.client.VellumScreens;
+import dev.oriel.mod.client.OrielScreen;
+import dev.oriel.mod.client.OrielScreens;
 import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** The notes page: opens assets/examplemod/vellum/notes.html with the notes, and handles what it sends back. */
+/** The notes page: opens assets/examplemod/oriel/notes.html with the notes, and handles what it sends back. */
 final class Notes {
-    private static final String PAGE = "examplemod:vellum/notes.html";
+    private static final String PAGE = "examplemod:oriel/notes.html";
     // Kept in memory to keep the example short. A real mod would save them.
     private static final List<String> NOTES = new ArrayList<>();
 
     private Notes() {}
 
     static void open() {
-        VellumScreen screen = VellumScreens.open(PAGE, data());
+        OrielScreen screen = OrielScreens.open(PAGE, data());
         screen.driver()
                 .onMessage("add", value -> {
                     NOTES.add(value.getAsString());
@@ -31,7 +31,7 @@ final class Notes {
                 });
     }
 
-    /** What the page sees as vellum.data. */
+    /** What the page sees as oriel.data. */
     private static JsonObject data() {
         JsonObject data = new JsonObject();
         data.addProperty("player", Minecraft.getInstance().getUser().getName());

@@ -21,7 +21,7 @@ run/
 .DS_Store
 Thumbs.db
 
-# From upstream Vellum
+# From upstream Oriel
 *.ipr
 *.iws
 .idea/*

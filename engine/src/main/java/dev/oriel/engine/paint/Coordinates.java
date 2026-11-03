@@ -1,0 +1,165 @@
+package dev.oriel.engine.paint;
+
+import dev.oriel.engine.dom.Document;
+import dev.oriel.engine.dom.Element;
+import dev.oriel.engine.host.ReplacedContent;
+import dev.oriel.engine.layout.Box;
+import dev.oriel.engine.style.ComputedStyle;
+
+import java.util.List;
+
+/**
+ * Where boxes are on screen: the one mapping between a box's border-box coordinates and viewport coordinates, as
+ * painted. Painting, hit testing, input, scripts and hosts all use it, so they agree.
+ *
+ * <p>A box sits at its {@code x}/{@code y} in its parent, shifted by the scroll offset of the box whose content it is
+ * in ({@link Box#contentParent()}: absolutely and fixed positioned boxes skip the scrollers below their containing
+ * block), and drawn through its CSS transform and those of its ancestors ({@link #transform}).
+ */
+public final class Coordinates {
+    /** Marks the elements whose border boxes are a page's {@link #contentBounds}. */
+    public static final String BOUNDS_ATTRIBUTE = "data-oriel-bounds";
+
+    private Coordinates() {}
+
+    /**
+     * Sets {@code out} to a box's CSS transform, {@code translate(origin) · transform · translate(-origin)} with
+     * percentages against its border box, mapping its border-box space into the space it is placed in (origin at
+     * its border-box origin), after its {@link Box#hostOffsetX host offset}. Returns false, leaving {@code out}
+     * alone, when it has none: no transform on a box that is not {@link Box#hosted}, or an inline box, which CSS
+     * transforms do not apply to. {@code s} is the style it is painted with.
+     */
+    static boolean transform(Box box, ComputedStyle s, Affine out) {
+        if (box.kind == Box.Kind.INLINE || !s.hasTransform() && !box.hosted()) return false;
+        out.identity().translate(box.hostOffsetX, box.hostOffsetY);
+        if (!s.hasTransform()) return true;
+        float ox = s.transformOriginX.resolve(box.width), oy = s.transformOriginY.resolve(box.height);
+        out.translate(ox, oy).concat(s.transform, box.width, box.height).translate(-ox, -oy);
+        return true;
+    }
+
+    /** Sets {@code out} to the matrix from {@code box}'s border-box coordinates to viewport coordinates. */
+    public static Affine toViewport(Box box, Affine out) {
+        return toViewport(box, out, new Affine());
+    }
+
+    /**
+     * {@link #toViewport(Box, Affine)} with {@code scratch} (overwritten) for each box's own transform, so callers
+     * that map on every pointer move allocate nothing.
+     */
+    public static Affine toViewport(Box box, Affine out, Affine scratch) {
+        out.identity();
+        for (Box b = box; b != null; b = hop(b, out)) {
+            if (transform(b, StackingOrder.styleOf(b), scratch)) out.preMultiply(scratch);
+        }
+        return out;
+    }
+
+    /**
+     * Sets {@code out} to the matrix from viewport coordinates to {@code box}'s border-box coordinates. Returns false
+     * when a transform collapses the box (such as {@code scale(0)}), so no point maps into it.
+     */
+    public static boolean fromViewport(Box box, Affine out) {
+        return toViewport(box, out).invert();
+    }
+
+    /** The bounding rectangle {x, y, width, height} of {@code box}'s border box in viewport coordinates. */
+    public static float[] boundingRect(Box box) {
+        return toViewport(box, new Affine()).mapBounds(0, 0, box.width, box.height, new float[4]);
+    }
+
+    /**
+     * The part of {@code box}'s border box that can show, {x, y, width, height} in viewport coordinates: its
+     * {@link #boundingRect} cut to the viewport and to the padding box of every box that clips the content holding
+     * it ({@link Box#contentParent()} up the tree, as painting clips it), or null when nothing is left. Transformed
+     * boxes count as their bounding rectangles. Content painted over it is not checked here: hit test for that.
+     */
+    public static float[] visibleRect(Box box, float viewportWidth, float viewportHeight) {
+        float[] r = boundingRect(box);
+        float x0 = Math.max(r[0], 0), y0 = Math.max(r[1], 0);
+        float x1 = Math.min(r[0] + r[2], viewportWidth), y1 = Math.min(r[1] + r[3], viewportHeight);
+        Affine m = new Affine(), scratch = new Affine();
+        float[] clip = new float[4];
+        for (Box c = box.contentParent(); c != null && x0 < x1 && y0 < y1; c = c.contentParent()) {
+            if (!StackingOrder.clips(c, StackingOrder.styleOf(c))) continue;
+            toViewport(c, m, scratch)
+                    .mapBounds(c.borderLeft, c.borderTop, c.paddingBoxWidth(), c.paddingBoxHeight(), clip);
+            x0 = Math.max(x0, clip[0]);
+            y0 = Math.max(y0, clip[1]);
+            x1 = Math.min(x1, clip[0] + clip[2]);
+            y1 = Math.min(y1, clip[1] + clip[3]);
+        }
+        return x0 < x1 && y0 < y1 ? new float[] {x0, y0, x1 - x0, y1 - y0} : null;
+    }
+
+    /**
+     * Where a page's content is, {x, y, width, height} in viewport coordinates: the union of the border boxes of the
+     * elements marked {@value #BOUNDS_ATTRIBUTE}, or when none is, of {@code body}'s in-flow child elements (what a
+     * centred panel is); as painted, so after scrolling and transforms. Null when none of them has a box. Hosts tell
+     * the game where their GUI is with it (Minecraft container screens, which JEI and REI lay out around).
+     */
+    public static float[] contentBounds(Document doc) {
+        List<Element> parts = doc.descendants(e -> e.hasAttribute(BOUNDS_ATTRIBUTE));
+        Element body = doc.body();
+        if (parts.isEmpty() && body != null) {
+            parts = body.children().stream().filter(e -> e.box != null && !e.box.outOfFlow).toList();
+        }
+        float x0 = Float.POSITIVE_INFINITY, y0 = Float.POSITIVE_INFINITY, x1 = Float.NEGATIVE_INFINITY, y1 = x1;
+        for (Element e : parts) {
+            if (e.box == null) continue;
+            float[] r = boundingRect(e.box);
+            x0 = Math.min(x0, r[0]);
+            y0 = Math.min(y0, r[1]);
+            x1 = Math.max(x1, r[0] + r[2]);
+            y1 = Math.max(y1, r[1] + r[3]);
+        }
+        return x0 > x1 ? null : new float[] {x0, y0, x1 - x0, y1 - y0};
+    }
+
+    /**
+     * Sets {@code out} to the translation from {@code box}'s placement (its border-box origin, before its own
+     * transform) to the coordinate space of {@code space}: a transformed ancestor's border box, or the viewport for
+     * null. No box in between may be transformed, which holds for the boxes a stacking context paints: a transformed
+     * box is a stacking context, and the containing block of the positioned boxes inside it.
+     */
+    static Affine offset(Box box, Box space, Affine out) {
+        out.identity();
+        for (Box b = hop(box, out); b != space && b != null; ) b = hop(b, out);
+        return out;
+    }
+
+    /**
+     * Moves {@code out} from {@code b}'s placement into the content of the box that holds it
+     * ({@link Box#contentParent()}): by its offset up the tree, less the holder's scroll offset. Returns the holder.
+     */
+    private static Box hop(Box b, Affine out) {
+        Box holder = b.contentParent();
+        for (Box p = b; p != holder && p != null; p = p.parent) out.preTranslate(p.x, p.y);
+        if (holder != null) out.preTranslate(-holder.scrollLeft(), -holder.scrollTop());
+        return holder;
+    }
+
+    /**
+     * Where replaced content is painted in its box, {x, y, width, height} from the border-box origin: the content box,
+     * sized by object-fit against the content's intrinsic size and placed by object-position (before snapping to
+     * device pixels).
+     */
+    public static float[] objectBox(Box box, ComputedStyle s, ReplacedContent content) {
+        float cw = box.contentWidth(), ch = box.contentHeight();
+        float iw = content.intrinsicWidth(), ih = content.intrinsicHeight(), w = cw, h = ch;
+        if (iw > 0 && ih > 0) {
+            float scale = switch (s.objectFit) {
+                case FILL -> Float.NaN;
+                case CONTAIN -> Math.min(cw / iw, ch / ih);
+                case COVER -> Math.max(cw / iw, ch / ih);
+                case NONE -> 1;
+                case SCALE_DOWN -> Math.min(1, Math.min(cw / iw, ch / ih));
+            };
+            if (!Float.isNaN(scale)) {
+                w = iw * scale;
+                h = ih * scale;
+            }
+        }
+        return new float[] {box.contentX() + s.objectX(cw - w), box.contentY() + s.objectY(ch - h), w, h};
+    }
+}

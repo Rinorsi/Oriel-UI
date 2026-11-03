@@ -1,4 +1,4 @@
-# Vellum mod template
+# Oriel mod template
 
 Two small mods to start from, one for NeoForge and one for Fabric, on Minecraft 26.3. Each adds a `/notes` command that
 opens a notes page: the mod gives the page your notes, and the page sends back what you add and remove.
@@ -24,14 +24,14 @@ On macOS, if the client hangs on its first frame, add `enableVsync:false` to `ru
 
 ## What's in it
 
-- `src/main/resources/assets/examplemod/vellum/notes.html` is the page: HTML, CSS and a Vue-style template, with a
+- `src/main/resources/assets/examplemod/oriel/notes.html` is the page: HTML, CSS and a Vue-style template, with a
   few lines of script.
 - `Notes.java` opens the page with its data and handles the messages it sends.
 - `ExampleModClient.java` registers `/notes`.
-- `build.gradle` gets Vellum from [maven.maxleiter.com](https://maven.maxleiter.com).
-- `neoforge.mods.toml` or `fabric.mod.json` makes Vellum a required dependency. Players install it like any other
+- `build.gradle` gets Oriel from [maven.maxleiter.com](https://maven.maxleiter.com).
+- `neoforge.mods.toml` or `fabric.mod.json` makes Oriel a required dependency. Players install it like any other
   mod, and launchers do it for them when you list it as a required dependency on your Modrinth and CurseForge pages.
-  To ship one jar instead, bundle Vellum in yours ([Depending on Vellum](../docs/api/setup.md#depending-on-vellum)).
+  To ship one jar instead, bundle Oriel in yours ([Depending on Oriel](../docs/api/setup.md#depending-on-oriel)).
 
 While `runClient` is running, saving `notes.html` reloads the open page, so you can change it without restarting
 the game. The [previewer](../preview/README.md) shows a page without launching Minecraft at all.

@@ -3,7 +3,7 @@ From: Max Leiter <8675906+MaxLeiter@users.noreply.github.com>
 Date: Sat, 24 Oct 2026 20:04:25 -0700
 Subject: [PATCH] No CommonJS modules
 
-Vellum leaves out Rhino's commonjs package (require() and its module loader); FunctionObject was its only user
+Oriel leaves out Rhino's commonjs package (require() and its module loader); FunctionObject was its only user
 outside it, for calls with a ModuleScope as this.
 
 diff --git a/rhino/src/main/java/org/mozilla/javascript/FunctionObject.java b/rhino/src/main/java/org/mozilla/javascript/FunctionObject.java

@@ -15,6 +15,6 @@
         "fabric-api": "*",
         "minecraft": "~${minecraft_version}",
         "java": ">=25",
-        "vellum": ">=${vellum_version}"
+        "oriel": ">=${oriel_version}"
     }
 }

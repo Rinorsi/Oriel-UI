@@ -1,7 +1,7 @@
 # Design: drawing boxes with a signed-distance shader
 
 Status: built for 26.3 and 26.2 (`Canvas.fillBoxShadow`, `SmoothShape`, `SdfRenderState`,
-`assets/vellum/shaders/core/sdf_box`, the overrides in `McCanvas`), behind `client.shapeShader`, with
+`assets/oriel/shaders/core/sdf_box`, the overrides in `McCanvas`), behind `client.shapeShader`, with
 `shape-rendering: crispEdges` for pages that want hard edges, and the previewer draws the same shapes. Loader
 registration is not done (see "As built"). Where the build differs from the proposal below, the "As built" sections
 say so.
@@ -69,7 +69,7 @@ stencil, or drawing the subtree to an offscreen target and blitting it through t
 
 ### Pipeline
 
-One pipeline, `vellum:pipeline/sdf_box`, with shaders at `assets/vellum/shaders/core/sdf_box.{vsh,fsh}`, built as the
+One pipeline, `oriel:pipeline/sdf_box`, with shaders at `assets/oriel/shaders/core/sdf_box.{vsh,fsh}`, built as the
 GUI API notes describe: QUADS, translucent blend, no culling (so mirrored transforms need no rewinding), the
 `GLOBALS`, `PROJECTION` and `DYNAMIC_TRANSFORMS` bind groups.
 
@@ -135,11 +135,11 @@ matches the game to within the font and a sub-pixel of layout rounding. `SmoothS
 
 1. Engine: `Canvas.fillBoxShadow` with today's code as the default; `BoxPainter` calls it. No visible change.
 2. 26.3: pipeline, shaders and `SdfBoxRenderState` for fills only. Compare against the tessellated fill in
-   `/vellum canvastest` (new cells: the same box both ways, at GUI scales 1 to 4, rotated).
+   `/oriel canvastest` (new cells: the same box both ways, at GUI scales 1 to 4, rotated).
 3. Borders, then shadows, each with canvastest cells and a before/after screenshot of the showcase pages.
 4. Port to 26.2 (package names), then register on both loaders.
 5. Previewer: antialiased overrides in `ImageCanvas`.
-6. A config switch (`render.sdf=true` in `vellum.properties`) to fall back to tessellation, kept until the shader has
+6. A config switch (`render.sdf=true` in `oriel.properties`) to fall back to tessellation, kept until the shader has
    been seen on a range of GPUs and both backends (OpenGL and Vulkan, since 26.3 compiles GLSL to SPIR-V).
 
 1.21.1 stays on tessellation: its renderer is immediate-mode with a different shader system, and porting there is
@@ -152,11 +152,11 @@ not worth the code until someone asks.
   shadow's spread rides in `Position.z` (the GUI pipelines have no depth test) and its flags in `Normal`. Offset inset
   shadows would need two more floats; they are tessellated. Shadows blur with one corner radius, so a shadow whose
   corners differ is tessellated too.
-- **One pipeline per kind.** `vellum:pipeline/sdf_box` (fills and borders) and `vellum:pipeline/sdf_shadow` (the same
+- **One pipeline per kind.** `oriel:pipeline/sdf_box` (fills and borders) and `oriel:pipeline/sdf_shadow` (the same
   shaders with `SHADOW` defined), no culling, so mirrored transforms need no rewinding.
 - **No loader registration yet.** Vanilla compiles a pipeline it was not told about on first use;
   `SdfRenderState.available()` asks for both, and a failure (shaders not loaded, a driver that rejects them) is logged,
-  and shapes are tessellated until resources reload (`VellumClient.onResourceReload`), when it asks again.
+  and shapes are tessellated until resources reload (`OrielClient.onResourceReload`), when it asks again.
 - **The cutout.** The proposal's `boxOpaque` flag is not needed: `fillBoxShadow` passes the box and the `Shadow`, so the
   shader knows the box and leaves it uncovered under an outer shadow that is not offset, as the tessellation does.
 - **Square shapes stay quads.** Unrounded fills and borders, and unblurred square shadows, keep the exact quads, which
@@ -172,7 +172,7 @@ not worth the code until someone asks.
   (the largest the call asked for on any side) and sends the margin in `Position.z`, so the shader gets the half size
   as `|UV0|` minus the margin. A shadow has one radius, which fits in `UV1`, and its spread travels as the bits of a
   float split over `UV2`'s two shorts.
-- The shader source is shared. The 26.2 pipelines define `VELLUM_26_2`, which switches `sdf_box.vsh` and `.fsh` to
+- The shader source is shared. The 26.2 pipelines define `ORIEL_26_2`, which switches `sdf_box.vsh` and `.fsh` to
   26.2's conventions: `#moj_import` instead of `#include` (vanilla's include files order `DynamicTransforms`
   differently on the two versions, so the shader has to use them), and inputs and outputs without `layout(location)`,
   because both of 26.2's backends match attributes and varyings by name.

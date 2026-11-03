@@ -2,7 +2,7 @@
 
 [All docs](index.md)
 
-Vellum builds for three Minecraft versions from one source tree, with [Stonecutter](https://stonecutter.kikugie.dev):
+Oriel builds for three Minecraft versions from one source tree, with [Stonecutter](https://stonecutter.kikugie.dev):
 
 | Minecraft | NeoForge | Fabric | Java |
 |---|---|---|---|
@@ -12,14 +12,14 @@ Vellum builds for three Minecraft versions from one source tree, with [Stonecutt
 
 Each version has its own Gradle projects, named after it: `:common:1.21.1`, `:neoforge:1.21.1`, `:fabric:1.21.1`.
 Their settings are in `stonecutter.properties.toml`. The engine, Rhino and the previewer are built once and shared.
-The jars are `vellum-<loader>-<minecraft>-<version>.jar` (`vellum-neoforge-1.21.1-0.3.0.jar`) in
+The jars are `oriel-<loader>-<minecraft>-<version>.jar` (`oriel-neoforge-1.21.1-0.3.0.jar`) in
 `<loader>/versions/<minecraft>/build/libs/`, and a release publishes
-`dev.vellum:vellum-{common,neoforge,fabric}-<minecraft>` for every version at the same Vellum version.
+`dev.oriel:oriel-{common,neoforge,fabric}-<minecraft>` for every version at the same Oriel version.
 
 The sources are written for 26.3. Where 1.21.1 differs, Stonecutter comments (`//? if >=26 {`) pick the code, and where 26.2 differs from 26.3 finer ones (`//? if >=26.3 {`, `#? if >=26.3 {` in the access widener and
 transformer). Renames such as `Identifier`/`ResourceLocation` are replacements in `stonecutter.gradle`. Files that
 1.21.1 needs written differently live in `common/versions/1.21.1/src`: `McGui` (drawing), `McClient` (screens and
-input), `Scene` and `EntityPortrait` (3D), `ModelContent`, `PlayerHeadContent`, `McSurface`, `VellumEntities`,
+input), `Scene` and `EntityPortrait` (3D), `ModelContent`, `PlayerHeadContent`, `McSurface`, `OrielEntities`,
 `GameTests`, and the input event records. Their 26.x versions in `common/src` are wrapped in `//? if >=26 {`, so
 1.21.1 compiles only its own. Keep committed sources on 26.3: if you switch Stonecutter's active version to work on
 1.21.1, switch back before committing.
@@ -32,7 +32,7 @@ differences, which are `>=26.3` comments and the `blaze3d`/`renderpearl` rename 
 - `PoseStack` has `mulPose(Quaternionfc)` but no `rotate` or `rotateDegrees`; `SubmitNodeCollection` has a no-argument constructor and `submitModel` takes a sprite and a crumbling overlay where 26.3 takes a `UvMapping`.
 - `GuiGraphicsExtractor.setTooltipForNextFrame` has no `replaceExisting` overload with an item style (NeoForge's takes the stack and style only); `ScreenNarrationCollector.update` has no `NarrationTrigger`.
 - `MouseHandler.onButton`, `onScroll`, `onMove` and `KeyboardHandler.keyPress`, `charTyped` are private: they are widened (`#? if <26.3`), and `PictureInPictureRenderer.textureView` is widened with the `blaze3d` type.
-- The shape shader's vertices are packed differently. 26.2's `BufferBuilder` writes only `Position`, `Color`, `UV0`, `UV1`, `UV2`, `Normal` and `LineWidth` (no `UV3`), so on 26.2 `SdfRenderState` grows the box by the same margin on every side and sends the margin in `Position.z`; the shader works out the half size from that. A shadow's spread travels as the bits of a float in `UV2`. The 26.2 pipelines define `VELLUM_26_2`, which picks the 26.2 parts of `sdf_box.vsh` and `.fsh`: `#moj_import` instead of `#include`, and attributes and varyings without `layout(location)`, since 26.2 matches them by name. A pipeline that fails to compile stays failed until resources reload, so the retry in `SdfRenderState.available()` only helps after one.
+- The shape shader's vertices are packed differently. 26.2's `BufferBuilder` writes only `Position`, `Color`, `UV0`, `UV1`, `UV2`, `Normal` and `LineWidth` (no `UV3`), so on 26.2 `SdfRenderState` grows the box by the same margin on every side and sends the margin in `Position.z`; the shader works out the half size from that. A shadow's spread travels as the bits of a float in `UV2`. The 26.2 pipelines define `ORIEL_26_2`, which picks the 26.2 parts of `sdf_box.vsh` and `.fsh`: `#moj_import` instead of `#include`, and attributes and varyings without `layout(location)`, since 26.2 matches them by name. A pipeline that fails to compile stays failed until resources reload, so the retry in `SdfRenderState.available()` only helps after one.
 - The dev tour is off: `DevTour` and `TourCursor` are stubs (their `else` blocks), since the tour hides and reads the system cursor through SDL.
 
 Everything works on 1.21.1, with these differences:
@@ -41,11 +41,11 @@ Everything works on 1.21.1, with these differences:
 - `<entity>` and `<model>` can't fade: under half opacity they aren't drawn, as items aren't on either version. `-mc-tint` works.
 - `<scene>` draws nothing. It still lays out, places its anchors and fires `blockhover` and `blockclick`, so a page
   works, but the blocks, block entities and entities in it are only drawn on 26.x.
-- `VellumEntities.registerPortraitState` doesn't exist, since 1.21.1 has no entity render states. Entity `components`
+- `OrielEntities.registerPortraitState` doesn't exist, since 1.21.1 has no entity render states. Entity `components`
   are ignored, and `variant` and `color` are set through the entity's NBT.
 - The CSS `cursor` shows over screens only, not over HUD overlays.
 - Fabric draws HUD overlays after the whole HUD, since 1.21.1 has no HUD layers.
-- Key events are GLFW's: `DocumentDriver.onKey` handlers get `dev.vellum.mod.client.input.KeyEvent` with GLFW key codes.
+- Key events are GLFW's: `DocumentDriver.onKey` handlers get `dev.oriel.mod.client.input.KeyEvent` with GLFW key codes.
 - The dev tour (`-Ptour`) is 26.3 only.
 
 ## Adding a Minecraft version

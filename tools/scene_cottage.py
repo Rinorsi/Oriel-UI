@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes the scene showcase's cottage as a structure file, as a structure block saves one.
 
-    python3 tools/scene_cottage.py common/src/main/resources/assets/vellum/structures/cottage.nbt
+    python3 tools/scene_cottage.py common/src/main/resources/assets/oriel/structures/cottage.nbt
 
 The blocks carry their connection states (fences, panes, stairs), as a real save does.
 """

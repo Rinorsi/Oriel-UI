@@ -3,13 +3,13 @@
 What Minecraft's narrator reads from a page. [All docs](../index.md)
 
 
-With Minecraft's narrator on (Ctrl+B), a Vellum screen narrates as a vanilla screen does. When it opens, the narrator
+With Minecraft's narrator on (Ctrl+B), a Oriel screen narrates as a vanilla screen does. When it opens, the narrator
 reads the screen's title. Then, after a key or button press (200 ms) or once the pointer has rested (750 ms), it
 reads the focused element, or else the one under the pointer, in the words vanilla uses for its widgets:
 "Reply 1: About the letter button. Left click to activate". It reads only what changed since it last spoke.
 
 The title is the page's `<title>`. A script that sets `document.title` changes it, and `Screen.getTitle()` returns
-it too. A page without one is "Vellum" (a container screen keeps its menu's title). A link to another page in the same
+it too. A page without one is "Oriel" (a container screen keeps its menu's title). A link to another page in the same
 screen reads the new page's title.
 
 The element under the pointer is read when it is a control, a link, a slot, a tab stop or an `<item tooltip>`, or

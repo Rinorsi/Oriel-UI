@@ -1,10 +1,10 @@
-# Scripting Vellum UIs
+# Scripting Oriel UIs
 
-Vellum pages can carry JavaScript: `<script>` elements (inline or `src`), inline handlers (`onclick="..."`), and
+Oriel pages can carry JavaScript: `<script>` elements (inline or `src`), inline handlers (`onclick="..."`), and
 Vue-style templates that bind HTML to data without writing any script at all. This guide covers what scripts can
-use, how templates work, and where Vellum differs from a browser.
+use, how templates work, and where Oriel differs from a browser.
 
-Scripts run in [Mozilla Rhino](https://github.com/mozilla/rhino) 1.9, with Vellum's patches, inside a sandbox, because pages can come from
+Scripts run in [Mozilla Rhino](https://github.com/mozilla/rhino) 1.9, with Oriel's patches, inside a sandbox, because pages can come from
 servers.
 
 - [The language](#the-language)
@@ -13,13 +13,13 @@ servers.
 - [The DOM](#the-dom)
 - [Events](#events)
 - [Animations](#animations)
-- [The `vellum` object](#the-vellum-object)
+- [The `oriel` object](#the-oriel-object)
 - [Templates](#templates)
 - [Limits](#limits)
 
 ## The language
 
-Rhino implements most of ES2015 and a good part of later editions. Vellum builds it with patches
+Rhino implements most of ES2015 and a good part of later editions. Oriel builds it with patches
 (`rhino/patches`) for the parts pages use most that upstream lacks. These all work:
 
 - `let` and `const`, block scoped, with a fresh binding in each loop iteration (`for (let i ...)`,
@@ -70,11 +70,11 @@ fire. A `<script>` inserted later by a script runs when it is connected.
 
 When the page goes away (its screen closes, its HUD overlay is hidden, a link or `location.href` loads another page,
 or it is reloaded), `pagehide` and then `unload` fire at `window` (`addEventListener('unload', fn)`). Scripts still
-run then, so a page can save state or `vellum.send` a last message; timers it starts never fire.
+run then, so a page can save state or `oriel.send` a last message; timers it starts never fire.
 
 Everything runs on one thread: the game's render thread. Each time the engine calls into scripts (running a
 `<script>`, an event listener, an inline handler, a timer, an animation frame, a message from the server) is an
-**entry**. When an entry finishes, Vellum
+**entry**. When an entry finishes, Oriel
 
 1. runs the microtask queue (promise callbacks, `queueMicrotask`, and async functions resuming after an `await`),
 2. re-renders templates (see [Templates](#templates)),
@@ -82,7 +82,7 @@ Everything runs on one thread: the game's render thread. Each time the engine ca
 
 Errors never escape to the game. An uncaught exception is reported through the host (the game log in Minecraft,
 `host.errors` in tests) with the script name and line, for example
-`Error in script ns:vellum/shop.html#script: TypeError: Cannot read property "price" from undefined (ns:vellum/shop.html#script:12)`,
+`Error in script ns:oriel/shop.html#script: TypeError: Cannot read property "price" from undefined (ns:oriel/shop.html#script:12)`,
 and the page keeps working. Line numbers of inline scripts count from the `<script>` tag.
 
 ## Globals
@@ -105,12 +105,12 @@ declarations of every `<script>` are globals.
 | `devicePixelRatio` | Minecraft's GUI scale. |
 | `getComputedStyle(el, pseudo?)` | Read-only: `getPropertyValue('margin-top')` or `.marginTop`. Values are CSS text. |
 | `addEventListener`, `removeEventListener`, `dispatchEvent` | On `window`, these go to the document. |
-| `close()` | Closes the screen (same as `vellum.close()`). |
+| `close()` | Closes the screen (same as `oriel.close()`). |
 | `JSON`, `Math`, `Date`, `RegExp`, `Promise`... | The standard library. |
 | `Event`, `CustomEvent` | Constructible. `Node`, `Element` (alias `HTMLElement`), `Text`, `Document`, `DocumentFragment`, `MouseEvent`, `WheelEvent`, `KeyboardEvent`, `FocusEvent`, `InputEvent`, `TransitionEvent` (alias `AnimationEvent`), `CSSStyleDeclaration`, `DOMTokenList`, `Animation` and `Storage` exist for `instanceof`. |
 
 There is no `fetch`, `XMLHttpRequest`, `WebSocket`, `alert`, `prompt` or module loader. Talk to the server with
-[`vellum.send` and `vellum.on`](#the-vellum-object).
+[`oriel.send` and `oriel.on`](#the-oriel-object).
 
 ## The DOM
 
@@ -153,7 +153,7 @@ which are snapshots: they do not update when the document changes.
   `scrollWidth/Height`, `scrollLeft/Top` (settable), `scrollTo(x, y)` or `scrollTo({left, top, behavior})`,
   `scrollBy(...)`, `scrollIntoView()` (`true`/`false`, or `{block, inline, behavior}`). Scrolls without a
   `behavior` (also setting `scrollTop`) follow the element's `scroll-behavior`, which is `smooth` by default in
-  Vellum: the position then eases there over the next frames. `scroll` events fire once per frame.
+  Oriel: the position then eases there over the next frames. `scroll` events fire once per frame.
 - `focus()`, `blur()`, `click()`, `animate(keyframes, options)`.
 - Canvases: `width`/`height` (settable; a new size clears the canvas) and `getContext('2d')`, which returns the
   canvas's one 2D context (null for other types and other elements). The context supports `fillStyle` and
@@ -245,40 +245,40 @@ anim.finished.then(() => console.log('shown'));
   `running`, `paused`, `finished`), `currentTime`, `playbackRate`, `onfinish`, `oncancel` and a `finished` promise
   (rejected with an `AbortError` when canceled).
 
-## The `vellum` object
+## The `oriel` object
 
 | Member | |
 |---|---|
-| `vellum.data` | The latest data from the server or the mod that opened the page (a parsed JSON value; `{}` until data arrives). Templates read from it. |
-| `vellum.on(channel, fn)` | Calls `fn(value)` for messages on `channel`; `'data'` fires whenever `vellum.data` is replaced or patched, and `'patch'` when one field of it is ([below](#patches)). Returns a function that removes the listener. |
-| `vellum.off(channel, fn)` | Removes a listener. |
-| `vellum.send(channel, value)` | Sends `JSON.stringify(value)` to the server or mod. A burst of 20 messages, then 20 per second, so up to 40 in the first second. Extra messages are dropped with a warning, and `send` returns false. |
-| `vellum.state(object)` | Makes the object's properties visible to [templates](#templates) and returns it. |
-| `vellum.close()` | Closes the screen. |
-| `vellum.playSound(id, volume = 1, pitch = 1)` | Plays a sound event such as `'minecraft:ui.button.click'`. |
-| `vellum.t(key, ...args)` | Translates a language key, e.g. `vellum.t('gui.done')`. |
-| `vellum.open(url)` | Opens another Vellum page (relative to this one). |
-| `vellum.nextTick(fn)` | Calls `fn` once [templates](#updates) have rendered the current state (at the next frame). |
+| `oriel.data` | The latest data from the server or the mod that opened the page (a parsed JSON value; `{}` until data arrives). Templates read from it. |
+| `oriel.on(channel, fn)` | Calls `fn(value)` for messages on `channel`; `'data'` fires whenever `oriel.data` is replaced or patched, and `'patch'` when one field of it is ([below](#patches)). Returns a function that removes the listener. |
+| `oriel.off(channel, fn)` | Removes a listener. |
+| `oriel.send(channel, value)` | Sends `JSON.stringify(value)` to the server or mod. A burst of 20 messages, then 20 per second, so up to 40 in the first second. Extra messages are dropped with a warning, and `send` returns false. |
+| `oriel.state(object)` | Makes the object's properties visible to [templates](#templates) and returns it. |
+| `oriel.close()` | Closes the screen. |
+| `oriel.playSound(id, volume = 1, pitch = 1)` | Plays a sound event such as `'minecraft:ui.button.click'`. |
+| `oriel.t(key, ...args)` | Translates a language key, e.g. `oriel.t('gui.done')`. |
+| `oriel.open(url)` | Opens another Oriel page (relative to this one). |
+| `oriel.nextTick(fn)` | Calls `fn` once [templates](#updates) have rendered the current state (at the next frame). |
 
 A message also reaches the page as a `message` event on the document whose `detail` is `[channel, json]`.
 
 ### Patches
 
-The mod or server can change one top-level field of `vellum.data` instead of sending all of it
+The mod or server can change one top-level field of `oriel.data` instead of sending all of it
 (`driver.patch(key, value)`, `session.patch(key, value)`). The page parses only the new value and sets
-`vellum.data[key]` in place, or deletes it when the value is null, so every other object in `vellum.data` stays the
+`oriel.data[key]` in place, or deletes it when the value is null, so every other object in `oriel.data` stays the
 same object and a `v-for` over them keeps its rows. Then:
 
 1. `'patch'` listeners get `{key, value}` (`value` is `undefined` when the field was removed);
-2. `'data'` listeners get `(vellum.data, key)`, so a page that only listens to `'data'` still sees every change.
+2. `'data'` listeners get `(oriel.data, key)`, so a page that only listens to `'data'` still sees every change.
    After a full update the second argument is `undefined`;
 3. templates update at the next frame, as after any entry.
 
 ```js
-vellum.on('patch', ({key, value}) => {
+oriel.on('patch', ({key, value}) => {
   if (key === 'gold') animateCoins(value);
 });
-vellum.on('data', (data, key) => {
+oriel.on('data', (data, key) => {
   if (key === undefined || key === 'items') rebuildIndex(data.items);   // skip work a patch didn't touch
 });
 ```
@@ -297,7 +297,7 @@ loaded and its scripts have run, so a page needs no `<script>` at all to use the
   <ul v-else>
     <li v-for="item in items" :key="item.id" :class="{ sold: item.stock === 0 }">
       <item :id="item.id"></item> {{ item.name }} - {{ item.price }} emeralds
-      <button :disabled="item.stock === 0" @click="vellum.send('buy', item.id)">Buy</button>
+      <button :disabled="item.stock === 0" @click="oriel.send('buy', item.id)">Buy</button>
     </li>
   </ul>
 </div>
@@ -310,16 +310,16 @@ The server sends `{"title": "Armorer", "items": [...]}` as data, and the page fo
 `{{ expr }}`, directive values and handlers are JavaScript. A name is looked up in, in order:
 
 1. the loop variables of enclosing `v-for`s (and `$event` in handlers),
-2. `vellum.data`,
-3. the objects passed to `vellum.state()`, in the order they were registered,
-4. the globals: functions and variables of your scripts, `Math`, `JSON`, `vellum`...
+2. `oriel.data`,
+3. the objects passed to `oriel.state()`, in the order they were registered,
+4. the globals: functions and variables of your scripts, `Math`, `JSON`, `oriel`...
 
 Assigning to a name (`@click="count++"`) writes to whichever of those objects has it, or creates a global. In
 handler statements `this` is the element. Methods are called as methods: in `@click="shop.buy"`, and in
-`@click="buy"` for a method of a `vellum.state()` object, `this.stock` inside `buy` reads that object's `stock`.
+`@click="buy"` for a method of a `oriel.state()` object, `this.stock` inside `buy` reads that object's `stock`.
 
-Because `vellum.data` comes first, a data key hides state and globals of the same name. If the page is opened
-with `{"count": 3}`, `{{ count }}` always reads the data, and `count++` writes into `vellum.data` (which the next
+Because `oriel.data` comes first, a data key hides state and globals of the same name. If the page is opened
+with `{"count": 3}`, `{{ count }}` always reads the data, and `count++` writes into `oriel.data` (which the next
 data update replaces) instead of your state; a data key named like one of your functions breaks the handlers that
 call it. Keep the data a page is opened with under one key, `{"options": {"title": "Shop"}}` read as
 `{{ options.title }}`, so its names never collide with the page's own.
@@ -327,7 +327,7 @@ call it. Keep the data a page is opened with under one key, `{"options": {"title
 ```html
 <button @click="count++">Clicked {{ count }} times</button>
 <script>
-  const counter = vellum.state({count: 0});
+  const counter = oriel.state({count: 0});
 </script>
 ```
 
@@ -336,13 +336,13 @@ Text interpolation shows strings as they are, `null` and `undefined` as nothing,
 ### Updates
 
 Templates render when the page loads. After any entry (an event handler, a timer, an animation frame, a message, a
-`v-model` input...) Vellum re-evaluates every binding once, at the start of the next frame, and changes the DOM only
+`v-model` input...) Oriel re-evaluates every binding once, at the start of the next frame, and changes the DOM only
 where a value changed. It repeats until nothing changes, at most 10 times; if a template still changes after that
 (an expression that modifies state when evaluated, such as `{{ n++ }}`), it logs a warning and stops. There is
 nothing to call: change your state, and the page catches up by the next frame.
 
 As in Vue, the DOM does not change while your code runs: a handler that sets `count` and then reads the button's
-text sees the old text. To read the DOM after it updates, pass a callback to `vellum.nextTick(fn)`.
+text sees the old text. To read the DOM after it updates, pass a callback to `oriel.nextTick(fn)`.
 
 Templates are compiled once. Markup added later (by `innerHTML` or `v-html`) is not compiled.
 
@@ -407,11 +407,11 @@ field. While the field has focus, text that only a modifier changes is left as t
 ## Limits
 
 Scripts are sandboxed because pages can come from servers. The numbers below are the defaults; players and server
-owners can change them in `config/vellum.properties` ([Settings](api/security.md#settings)).
+owners can change them in `config/oriel.properties` ([Settings](api/security.md#settings)).
 
 - No Java access: `java`, `Packages` and friends do not exist, and no Java object is ever visible to scripts.
   Rhino's non-standard globals (`Continuation`, `Script`, `With`, `Call`, `JavaException`) are removed too.
-- No network, files or other pages: the only way out is `vellum.send`.
+- No network, files or other pages: the only way out is `oriel.send`.
 - CPU: each entry may run about 50 million instructions or 1 second, whichever comes first. A script that runs over
   is stopped (its `catch` and `finally` blocks do not run), the error is reported, and the page stays usable. The
   limit covers everything the entry does, including microtasks, template updates and regular expressions; an async
@@ -440,7 +440,7 @@ owners can change them in `config/vellum.properties` ([Settings](api/security.md
 - `localStorage` and `sessionStorage` hold at most 256K characters each (keys plus values); going over throws a
   `RangeError` whose message starts with `QuotaExceededError`.
 - `v-for` renders at most 10,000 items.
-- `vellum.send` delivers a burst of 20 messages, then 20 per second, and `vellum.playSound` plays at most 8 sounds
+- `oriel.send` delivers a burst of 20 messages, then 20 per second, and `oriel.playSound` plays at most 8 sounds
   per second. Both count per screen, so reloading the page doesn't reset them (`client.messagesPerSecond`,
   `client.messageBurst` and `client.soundsPerSecond`).
 - Don't send a message per input event. Wheel and pointer events fire once per callback, and a trackpad can scroll

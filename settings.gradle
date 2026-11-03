@@ -33,7 +33,7 @@ plugins {
     id 'dev.kikugie.stonecutter' version '0.9.8'
 }
 
-rootProject.name = 'vellum'
+rootProject.name = 'oriel'
 includeBuild('build-logic')
 // Version-independent: one build for every Minecraft version.
 include('rhino')

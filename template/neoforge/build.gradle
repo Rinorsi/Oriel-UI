@@ -11,10 +11,10 @@ base.archivesName = mod_id
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
-    // Vellum's maven. Only dev.vellum comes from it.
+    // Oriel's maven. Only dev.oriel comes from it.
     maven {
         url = 'https://maven.maxleiter.com'
-        content { includeGroup('dev.vellum') }
+        content { includeGroup('dev.oriel') }
     }
 }
 
@@ -34,9 +34,9 @@ neoForge {
 }
 
 dependencies {
-    // Vellum for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
-    // instead: jarJar(implementation("dev.vellum:vellum-neoforge-${minecraft_version}:${vellum_version}"))
-    implementation "dev.vellum:vellum-neoforge-${minecraft_version}:${vellum_version}"
+    // Oriel for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
+    // instead: jarJar(implementation("dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"))
+    implementation "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -45,7 +45,7 @@ tasks.withType(JavaCompile).configureEach {
 
 processResources {
     def props = [minecraft_version_range: minecraft_version_range, neoforge_version: neoforge_version,
-                 neoforge_loader_version_range: neoforge_loader_version_range, vellum_version: vellum_version,
+                 neoforge_loader_version_range: neoforge_loader_version_range, oriel_version: oriel_version,
                  mod_id: mod_id, mod_name: mod_name, mod_version: mod_version, mod_authors: mod_authors,
                  mod_description: mod_description, mod_license: mod_license]
     inputs.properties(props)

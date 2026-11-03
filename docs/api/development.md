@@ -6,20 +6,20 @@ Commands, hot reload, and driving pages from code for autopilots and tests. [All
 
 | Command | Side | |
 |---|---|---|
-| `/vellum open <url>` | client | Opens any page, e.g. `/vellum open mymod:vellum/shop.html`. |
-| `/vellum demo [name]` | client | The demo gallery, or one demo: `settings`, `layout`, `animation`, `templates`, `hud` (toggles the HUD overlay), `toast` (toggles an interactive HUD overlay: press T and click it). |
-| `/vellum demo chest` | server | The inventory demo on a real chest menu (needs cheats). |
-| `/vellum demo live` | server | The templates demo as a server session with live data. |
-| `/vellum showcase [page]` | client | The showcase gallery, or one page: `title`, `hud`, `shop`, `mobdex` (every mob in the game, with your kill statistics), `journal`, `console`, `models` (blocks, items and mobs in 3D, and head-and-shoulders portraits). |
-| `/vellum reload` | client | Reloads every open page. Resource reloads (F3+T) do too. |
-| `/vellum canvastest` | client | Draws every Minecraft canvas primitive without the engine, to check the renderer. |
+| `/oriel open <url>` | client | Opens any page, e.g. `/oriel open mymod:oriel/shop.html`. |
+| `/oriel demo [name]` | client | The demo gallery, or one demo: `settings`, `layout`, `animation`, `templates`, `hud` (toggles the HUD overlay), `toast` (toggles an interactive HUD overlay: press T and click it). |
+| `/oriel demo chest` | server | The inventory demo on a real chest menu (needs cheats). |
+| `/oriel demo live` | server | The templates demo as a server session with live data. |
+| `/oriel showcase [page]` | client | The showcase gallery, or one page: `title`, `hud`, `shop`, `mobdex` (every mob in the game, with your kill statistics), `journal`, `console`, `models` (blocks, items and mobs in 3D, and head-and-shoulders portraits). |
+| `/oriel reload` | client | Reloads every open page. Resource reloads (F3+T) do too. |
+| `/oriel canvastest` | client | Draws every Minecraft canvas primitive without the engine, to check the renderer. |
 
 - When a page fails to load or the engine throws, the screen shows the error and its stack instead of crashing;
-  `/vellum reload` tries again.
-- In a development environment Vellum reads pages straight from your sources and reloads open pages when a file
+  `/oriel reload` tries again.
+- In a development environment Oriel reads pages straight from your sources and reloads open pages when a file
   they were read from is saved. It looks for `src/main/resources/assets` and `common/src/main/resources/assets` from
   the run directory up to the project root (the directory with `settings.gradle`).
-- `config/vellum.properties`: `client.reducedMotion=true` makes pages match `@media (prefers-reduced-motion: reduce)`.
+- `config/oriel.properties`: `client.reducedMotion=true` makes pages match `@media (prefers-reduced-motion: reduce)`.
   The file holds every other setting too ([Settings](security.md#settings)).
 
 ## Inspector
@@ -40,19 +40,19 @@ while you inspect it.
   between the tree and the details to share the height between them.
 - Escape or F12 closes the inspector. While one of its fields has focus, keys type into the field instead.
 
-The panel is a Vellum page itself (`vellum:vellum/dev/inspector.html`), which reads and edits the inspected page
+The panel is a Oriel page itself (`oriel:oriel/dev/inspector.html`), which reads and edits the inspected page
 through an `inspector` global that only it gets. The previewer's F12 draws the same box highlight for the element
 under the pointer.
 
 ## Dev automation
 
-`dev.vellum.mod.client.VellumAutomation` drives a page from code, for dev autopilots and in-game checks. It finds
+`dev.oriel.mod.client.OrielAutomation` drives a page from code, for dev autopilots and in-game checks. It finds
 elements by CSS selector and sends input through Minecraft's own mouse and keyboard handlers, the path real input
 takes, so vanilla slot highlights, clicks and shift-clicks work in container screens as well. Render thread only;
 positions are GUI pixels.
 
 ```java
-VellumAutomation.screen().ifPresent(page -> {      // the open VellumScreen or VellumContainerScreen
+OrielAutomation.screen().ifPresent(page -> {      // the open OrielScreen or OrielContainerScreen
     page.click("#amount");                         // pointer onto the element, press, release
     page.type("64");                               // key down, character, key up per character
     page.key("Enter");
@@ -60,7 +60,7 @@ VellumAutomation.screen().ifPresent(page -> {      // the open VellumScreen or V
 });
 
 // Then once a tick, until the page has settled:
-VellumAutomation.screen().filter(VellumAutomation::settled).ifPresent(page -> {
+OrielAutomation.screen().filter(OrielAutomation::settled).ifPresent(page -> {
     boolean ok = page.eval("state.amount").map(v -> v.getAsInt() == 64).orElse(false);
     // ...take the screenshot, go on to the next step
 });
@@ -68,8 +68,8 @@ VellumAutomation.screen().filter(VellumAutomation::settled).ifPresent(page -> {
 
 | Method | |
 |---|---|
-| `static Optional<VellumAutomation> screen()` | The open Vellum screen, if its page is showing. |
-| `static Optional<VellumAutomation> hud(Identifier id)` | A shown HUD overlay. Its page can always be read; it takes input only while it is interactive (see below). |
+| `static Optional<OrielAutomation> screen()` | The open Oriel screen, if its page is showing. |
+| `static Optional<OrielAutomation> hud(Identifier id)` | A shown HUD overlay. Its page can always be read; it takes input only while it is interactive (see below). |
 | `boolean exists(String selector)` | Whether an element matches. |
 | `Optional<float[]> rect(String selector)` | `{x, y, width, height}` of the first match's border box as painted (after scrolling and transforms, like `getBoundingClientRect()`). |
 | `Optional<String> text(String selector)` | Its `textContent`. |
@@ -78,14 +78,14 @@ VellumAutomation.screen().filter(VellumAutomation::settled).ifPresent(page -> {
 | `boolean click(String selector)`, `click(String selector, int button)` | Hovers it, then presses and releases `button`: 0 left, 1 middle, 2 right. False, sending nothing, when `hover` is. The pointer stays on the element. |
 | `boolean wheel(String selector, double notches)` | Hovers it, then turns the wheel; positive notches scroll down. False when `hover` is. The pointer stays on the element. |
 | `boolean drag(String selector, float dx, float dy)` | Hovers it, presses the left button, moves `(dx, dy)` GUI px in a few steps and releases, all at once (see below). False, sending nothing, when `hover` is. The pointer stays where the drag ended. |
-| `void leave()` | Moves the pointer outside the window, where it hovers nothing: no `:hover` style, `title` tooltip, item tooltip or slot highlight is left in the next frame, on any Vellum page or vanilla screen. Does nothing while no screen is open. |
+| `void leave()` | Moves the pointer outside the window, where it hovers nothing: no `:hover` style, `title` tooltip, item tooltip or slot highlight is left in the next frame, on any Oriel page or vanilla screen. Does nothing while no screen is open. |
 | `boolean scrollIntoView(String selector)` | Scrolls the scroll containers the first match is in so it shows, instantly and by the least scroll. True when some of it shows afterwards. |
 | `boolean key(String domKey)` | Presses and releases the key that gives a DOM key name (`"Enter"`, `"ArrowDown"`, `"a"`, `"A"`) on the current layout. False when no key does, or the page takes no input. |
 | `void type(String text)` | Types text. Characters no key gives are sent as text only. |
 | `Optional<JsonElement> eval(String js)` | Runs `js` in the page's script sandbox; its completion value as JSON. Empty for undefined, functions and errors (which are reported like any script error). |
 | `boolean tooltipShown()` | Whether the page's last frame showed a tooltip: a `title` past its delay, or an `<item tooltip>`'s. False while a container screen's slot shows its own item tooltip. |
 | `Optional<String> narration()` | What the narrator says for the page's screen now, all of it, as vanilla puts it together when a screen opens: the title, then the focused or hovered element (`"Emperor Cualius. Reply 1: About the letter button. Left click to activate"`). Works with the narrator off. Empty for a HUD overlay. |
-| `static List<String> recordNarration()` | Starts recording what Vellum hands the narrator besides a screen's own narration: live regions' announcements and what HUD overlays read under the pointer. While it records, pages work this out with the narrator off too. Returns the list it records into, the same one until `stopRecordingNarration()`. |
+| `static List<String> recordNarration()` | Starts recording what Oriel hands the narrator besides a screen's own narration: live regions' announcements and what HUD overlays read under the pointer. While it records, pages work this out with the narrator off too. Returns the list it records into, the same one until `stopRecordingNarration()`. |
 | `static void stopRecordingNarration()` | Stops recording. |
 | `boolean settled()` | Whether the page has stopped changing by itself (see below). |
 
@@ -116,7 +116,7 @@ interactive.
 ```java
 mc.gui.setScreen(new ChatScreen("", false));
 // From the next tick, until it returns true:
-VellumAutomation.hud(id("ask")).map(toast -> toast.click(".allow")).orElse(false);
+OrielAutomation.hud(id("ask")).map(toast -> toast.click(".allow")).orElse(false);
 ```
 
 `settled()` is true when nothing the page is doing will change it soon. Poll it once a tick instead of waiting a
@@ -124,7 +124,7 @@ fixed number of ticks. It is false while:
 
 - a restyle, relayout or repaint is pending, as after input, `eval` or opening the page, until the next frame paints;
 - a smooth scroll is moving, or a `scroll` event is waiting;
-- a template update or a `vellum.nextTick` callback is waiting;
+- a template update or a `oriel.nextTick` callback is waiting;
 - a transition or a finite animation (CSS or `element.animate()`) runs, or its events are waiting;
 - a drag is held, or a `rotatable` element is still spinning;
 - a `title` tooltip is waiting out its delay;
@@ -137,7 +137,7 @@ count. A page whose timers keep starting transitions or animations may never set
 is one), so cap the wait. A HUD overlay is not settled until its page has loaded, at its first draw; a page showing
 its error panel is settled.
 
-Vellum's own autopilot (`./gradlew :neoforge:26.3:runClient -Pautopilot`, or `:fabric:26.3`, `:neoforge:1.21.1`
+Oriel's own autopilot (`./gradlew :neoforge:26.3:runClient -Pautopilot`, or `:fabric:26.3`, `:neoforge:1.21.1`
 and `:fabric:1.21.1`; `-Pautopilot=scene` runs only the scene showcase's steps) uses all of this: it waits for each page to settle, hovers the showcase title screen, drags a
 turntable, opens a page under a resting cursor and checks it is hovered within its first frames, hovers items and
 titles for their tooltips, checks that a map pin with `-mc-tooltip-delay: 0ms` shows its title on the first frame and
@@ -148,7 +148,7 @@ checks failed, and on 1.21.1 the ones it skipped because their feature is 26.3 o
 
 ## Running the game without a screen
 
-The autopilot and `VellumAutomation` need a real client. These setups are known to work for `runClient` on 26.3:
+The autopilot and `OrielAutomation` need a real client. These setups are known to work for `runClient` on 26.3:
 
 - macOS: add `enableVsync:false` to `runs/client/options.txt`, or the client can hang on its first frame, and set
   `earlyWindowControl = false` in `runs/client/config/fml.toml` on NeoForge.

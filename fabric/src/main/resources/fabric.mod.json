@@ -8,14 +8,14 @@
         "${mod_author}"
     ],
     "license": "${license}",
-    "icon": "assets/vellum/icon.png",
+    "icon": "assets/oriel/icon.png",
     "environment": "*",
     "entrypoints": {
         "main": [
-            "dev.vellum.fabric.VellumFabric"
+            "dev.oriel.fabric.OrielFabric"
         ],
         "client": [
-            "dev.vellum.fabric.client.VellumFabricClient"
+            "dev.oriel.fabric.client.OrielFabricClient"
         ]
     },
     "accessWidener": "${mod_id}.accesswidener",

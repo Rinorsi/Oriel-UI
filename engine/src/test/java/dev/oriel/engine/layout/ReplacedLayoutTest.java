@@ -1,0 +1,61 @@
+package dev.oriel.engine.layout;
+
+import dev.oriel.engine.dom.Element;
+import dev.oriel.engine.testing.Page;
+import dev.oriel.engine.testing.TestHost;
+import dev.oriel.engine.testing.TestItem;
+import org.junit.jupiter.api.Test;
+
+
+import static dev.oriel.engine.layout.BlockLayoutTest.assertRect;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/** Replaced elements sized from host content or attributes, and form controls as CSS-sized leaves. */
+class ReplacedLayoutTest {
+    /** A host whose {@code <item>} elements are 16x16 replaced content. */
+    private static TestHost itemHost() {
+        TestHost host = new TestHost();
+        host.replaced.put("item", TestItem::new);
+        return host;
+    }
+
+    @Test
+    void naturalSizeRatioAndAttributes() {
+        Page page = itemHost().load("""
+                <style>item { width: auto; height: auto }</style>
+                <div id=p><item id=item></item></div>
+                <item id=scaled style="display: block; width: 32px"></item>
+                <img id=empty style="display: block">
+                <img id=attrs width=20 height=10 style="display: block">
+                <img id=fromHeight width=20 height=10 style="display: block; height: 20px">
+                <canvas id=canvas style="display: block"></canvas>""");
+        Element item = page.byId("item");
+        assertNotNull(item.replaced);
+        assertEquals(Box.Kind.REPLACED, item.box.kind);
+        assertTrue(item.box.atomicInline);
+        // Inline replaced content sits on the baseline: 16 above it, 2 of descent below.
+        assertRect(item, 0, 0, 16, 16);
+        assertEquals(18, page.byId("p").box.height, 0.01);
+        assertRect(page.byId("scaled"), 0, 18, 32, 32);
+        assertRect(page.byId("empty"), 0, 50, 0, 0);
+        assertRect(page.byId("attrs"), 0, 50, 20, 10);
+        assertRect(page.byId("fromHeight"), 0, 60, 40, 20);
+        assertRect(page.byId("canvas"), 0, 80, 300, 150);
+    }
+
+    @Test
+    void formControlsAreLeavesSizedByCss() {
+        Page page = new TestHost().load("""
+                <div><input id=input style="width: 50px; height: 12px; padding: 2px"></div>
+                <select id=select style="display: block; width: 40px; height: 10px"><option id=option style="display: block">one</select>""");
+        Box input = page.byId("input").box, select = page.byId("select").box;
+        assertRect(input, 0, 0, 50, 12);
+        assertTrue(select.children.isEmpty());
+        assertNull(page.byId("option").box);
+        // A single-line control's baseline is its text's, centred in the content box: 2 + (8 - 9) / 2 + 7.
+        assertEquals(8.5f, input.baseline, 0.01);
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "oriel.screen": "Oriel",
+  "oriel.demo.chest": "Oriel Demo Chest",
+  "oriel.demo.title": "Oriel demos",
+  "oriel.narrate.link": "%s link",
+  "oriel.narration.radio": "Radio button: %s",
+  "oriel.narration.checkbox.usage.focused.check": "Press Space to check",
+  "oriel.narration.checkbox.usage.focused.uncheck": "Press Space to uncheck",
+  "oriel.serverPages.typing": "This page is from the server. Never type your Microsoft password here.",
+  "oriel.serverPages.blocked": "Oriel: this server kept reopening pages after you closed them. Its pages are blocked for %s seconds.",
+  "oriel.serverPages.ask.title": "This server wants to show you a page",
+  "oriel.serverPages.ask.message": "Pages are made by the server and can look like any screen. Allow pages from this server until you leave?",
+  "oriel.serverPages.ask.allow": "Allow",
+  "oriel.serverPages.ask.deny": "Don't allow"
+}

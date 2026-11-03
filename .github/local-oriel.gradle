@@ -1,0 +1,6 @@
+// CI: builds template/ against the Oriel just published to mavenLocal, ahead of the maven.
+allprojects {
+    repositories {
+        mavenLocal { content { includeGroup('dev.oriel') } }
+    }
+}

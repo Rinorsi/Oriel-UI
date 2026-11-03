@@ -29,14 +29,14 @@ jobs:
       # Engine and previewer tests, both Minecraft versions on both loaders, and Fabric's GameTests.
       - run: ./gradlew build --stacktrace
 
-      # The example mods in template/, against this Vellum rather than the released one, so an API change can't
+      # The example mods in template/, against this Oriel rather than the released one, so an API change can't
       # break them unnoticed.
       - name: Build the templates
         run: |
           ./gradlew publishToMavenLocal --stacktrace
           version=$(sed -n 's/^version=//p' gradle.properties)
           for loader in neoforge fabric; do
-            (cd template/$loader && ./gradlew build -I "$GITHUB_WORKSPACE/.github/local-vellum.gradle" -Pvellum_version="$version" --stacktrace)
+            (cd template/$loader && ./gradlew build -I "$GITHUB_WORKSPACE/.github/local-oriel.gradle" -Poriel_version="$version" --stacktrace)
           done
 
       - if: failure()

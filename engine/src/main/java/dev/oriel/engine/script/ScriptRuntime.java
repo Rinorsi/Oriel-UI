@@ -1,0 +1,56 @@
+package dev.oriel.engine.script;
+
+import dev.oriel.engine.dom.Element;
+import dev.oriel.engine.event.Event;
+
+/**
+ * A script engine bound to one document. Created by {@link dev.oriel.engine.host.Host#createScriptRuntime}.
+ * Timers and animation frames go through the document's {@link dev.oriel.engine.dom.Scheduler}, so the runtime
+ * only evaluates code.
+ *
+ * <p>Implementations must sandbox scripts: no access to Java classes, a CPU budget per call, and nothing that
+ * reaches the file system or network. Documents may come from servers.
+ */
+public interface ScriptRuntime {
+    /** Runs a classic script (inline {@code <script>} or {@code src}). Errors are reported, not thrown. */
+    void evaluate(String source, String sourceName);
+
+    /**
+     * Runs a script like {@link #evaluate} and returns its completion value as JSON text ({@code "count + 1"} gives
+     * {@code "3"}), or null when it has none: undefined, a function, a value JSON cannot express, or an error (which
+     * is reported). For host tooling and tests.
+     */
+    String evaluateToJson(String source, String sourceName);
+
+    /** Runs an inline handler attribute ({@code onclick="..."}) with {@code this} = element and {@code event} bound. */
+    void runInlineHandler(Element element, String code, Event event);
+
+    /**
+     * Delivers a message from the host (server data, mod events) to listeners registered with
+     * {@code oriel.on(channel, fn)}. {@code json} is a JSON value.
+     */
+    default void receive(String channel, String json) {}
+
+    /**
+     * Sets one top-level field of {@code oriel.data} from the host, {@code json} (a JSON value) parsed, or removes it
+     * when {@code json} is null, keeping the rest of the data as it is. {@code oriel.on('patch', fn)} listeners get
+     * {@code {key, value}}, then {@code 'data'} listeners get {@code (oriel.data, key)}.
+     */
+    default void patch(String key, String json) {}
+
+    /** Called once the document's scripts have run, before {@code DOMContentLoaded} is dispatched. */
+    default void documentLoaded() {}
+
+    /**
+     * Called by {@link dev.oriel.engine.dom.Document#frame} once per frame, after timers, animation frames and
+     * input and before restyle: applies the DOM updates the runtime deferred (template bindings re-render here, at
+     * most once per frame however many entries ran).
+     */
+    default void beforeRestyle() {}
+
+    /** Whether {@link #beforeRestyle} has work (templates to re-render), so a host that idles renders a frame. */
+    default boolean needsFrame() { return false; }
+
+    /** Releases resources. The runtime is unusable afterwards. */
+    void dispose();
+}

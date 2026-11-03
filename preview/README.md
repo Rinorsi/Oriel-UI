@@ -1,6 +1,6 @@
-# Vellum previewer
+# Oriel previewer
 
-Renders a Vellum page in a window without launching Minecraft. It uses the engine, Java2D, and Minecraft's own font
+Renders a Oriel page in a window without launching Minecraft. It uses the engine, Java2D, and Minecraft's own font
 glyphs and GUI sprites, which it reads from your Minecraft jar. It is also where the snapshot tests live.
 
 It draws like Minecraft 26.3: rounded boxes, borders and box-shadows come out smooth, as the game's shape shader
@@ -52,7 +52,7 @@ The file has one action per line; lines starting with `#` are comments. Frames r
 snapshot, and every input action is followed by one frame, so the next action and the next shot see its effect.
 A target is a point in GUI pixels (`120 40`) or a CSS selector, which aims at the first matching element as it is
 painted (after scrolling and transforms): at the center of the part of it that shows, cut to its scroll containers
-and the window, as `VellumAutomation` aims in game. When none of it shows, the previewer first scrolls its scroll
+and the window, as `OrielAutomation` aims in game. When none of it shows, the previewer first scrolls its scroll
 containers to bring it into view. An element covered by another one at that point is an error.
 
 | Action | Does |
@@ -86,7 +86,7 @@ names the line.
 Assets are read straight from a Minecraft 26.3 client jar and never copied into the repository. The jar is looked up
 in this order:
 
-1. `-Dvellum.mcJar=/path/to/client.jar` or the `VELLUM_MC_JAR` environment variable;
+1. `-Doriel.mcJar=/path/to/client.jar` or the `ORIEL_MC_JAR` environment variable;
 2. `vanilla-26.3-*.jar` in `common/versions/26.3/build/moddev/artifacts/` or `common/build/moddev/artifacts/` (this
    repository after a build, or a parent directory's);
 3. the launcher's `versions/26.3/26.3.jar` in `~/Library/Application Support/minecraft`, `~/.minecraft` or
@@ -102,7 +102,7 @@ page's `ns:` stylesheets, scripts and textures resolve as they do in game. Other
 
 ```sh
 ./gradlew :preview:test                                 # compare with the goldens in src/test/snapshots
-./gradlew :preview:test -Dvellum.updateSnapshots=true   # accept the current output as the new goldens
+./gradlew :preview:test -Doriel.updateSnapshots=true   # accept the current output as the new goldens
 ```
 
 On a mismatch, the actual image and a diff (differing pixels in red) are written to `preview/build/snapshots/`.

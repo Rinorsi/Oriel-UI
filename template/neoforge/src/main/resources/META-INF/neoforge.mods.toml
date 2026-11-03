@@ -21,10 +21,10 @@ type = "required"
 versionRange = "${minecraft_version_range}"
 side = "BOTH"
 
-# Required: launchers install Vellum along with your mod. Also list it as a required dependency on your Modrinth and
+# Required: launchers install Oriel along with your mod. Also list it as a required dependency on your Modrinth and
 # CurseForge pages.
 [[dependencies.${mod_id}]]
-modId = "vellum"
+modId = "oriel"
 type = "required"
-versionRange = "[${vellum_version},)"
+versionRange = "[${oriel_version},)"
 side = "BOTH"

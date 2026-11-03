@@ -77,23 +77,23 @@ tasks.named('sourcesJar', Jar) {
 }
 
 // The client run's system properties and program arguments, which each loader's build script sets with its own run DSL.
-// `./gradlew :neoforge:26.3:runClient -Pautopilot` (or :fabric:1.21.1...) opens the Vellum demo screens, screenshots
+// `./gradlew :neoforge:26.3:runClient -Pautopilot` (or :fabric:1.21.1...) opens the Oriel demo screens, screenshots
 // them and quits; `-Pautopilot=scene` runs only the scene showcase's steps. `-Ptour [-PtourGo=<file>] [-PtourShots]`: the scripted showcase tour for demo videos, in a 1280x720
 // window (tools/record creates the go-file once it is recording); tourShots saves a screenshot at each beat, and
 // `-Ptour=scene,shop` plays only those beats (title, mobdex, turntable, shop, scene, end).
 def clientRunProperties = [:]
 def clientRunArgs = []
 if (project.hasProperty('autopilot') || project.hasProperty('tour')) {
-    clientRunProperties['vellum.autopilot'] = 'true'
+    clientRunProperties['oriel.autopilot'] = 'true'
     String only = project.findProperty('autopilot')?.toString()
-    if (only && only != 'true') clientRunProperties['vellum.autopilot.only'] = only
+    if (only && only != 'true') clientRunProperties['oriel.autopilot.only'] = only
 }
 if (project.hasProperty('tour')) {
-    clientRunProperties['vellum.tour'] = 'true'
+    clientRunProperties['oriel.tour'] = 'true'
     String beats = project.findProperty('tour')?.toString()
-    if (beats && beats != 'true') clientRunProperties['vellum.tour.only'] = beats
-    if (project.hasProperty('tourGo')) clientRunProperties['vellum.tour.go'] = project.property('tourGo').toString()
-    if (project.hasProperty('tourShots')) clientRunProperties['vellum.tour.shots'] = 'true'
+    if (beats && beats != 'true') clientRunProperties['oriel.tour.only'] = beats
+    if (project.hasProperty('tourGo')) clientRunProperties['oriel.tour.go'] = project.property('tourGo').toString()
+    if (project.hasProperty('tourShots')) clientRunProperties['oriel.tour.shots'] = 'true'
     clientRunArgs.addAll('--width', '1280', '--height', '720')
 }
 ext.clientRunProperties = clientRunProperties
@@ -101,9 +101,9 @@ ext.clientRunArgs = clientRunArgs
 
 // Game run directories never live in the repository. They go under -Poriel_run_dir or the ORIEL_RUN_DIR environment
 // variable when one is set, else under the root project's build directory, one directory per subproject and run:
-// <root>/fabric-26.3/client and so on. The runs get the subproject's directory as vellum.sourceRoot, where dev hot
-// reload starts looking for asset source trees (VellumResources), since the working directory is elsewhere.
+// <root>/fabric-26.3/client and so on. The runs get the subproject's directory as oriel.sourceRoot, where dev hot
+// reload starts looking for asset source trees (OrielResources), since the working directory is elsewhere.
 def configuredRunRoot = findProperty('oriel_run_dir') ?: System.getenv('ORIEL_RUN_DIR')
 def runRoot = configuredRunRoot ? file(configuredRunRoot) : rootProject.layout.buildDirectory.dir('runs').get().asFile
 ext.orielRunDir = { String run -> new File(runRoot, "${project.parent.name}-${project.name}/${run}") }
-clientRunProperties['vellum.sourceRoot'] = project.projectDir.absolutePath
+clientRunProperties['oriel.sourceRoot'] = project.projectDir.absolutePath

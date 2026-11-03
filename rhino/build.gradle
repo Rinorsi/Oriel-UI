@@ -1,5 +1,5 @@
-// Mozilla Rhino (MPL-2.0), built from upstream source with Vellum's patches applied, then relocated to
-// dev.vellum.shadow.rhino so it can never clash with another mod's copy (KubeJS's fork lives in its own package, but
+// Mozilla Rhino (MPL-2.0), built from upstream source with Oriel's patches applied, then relocated to
+// dev.oriel.shadow.rhino so it can never clash with another mod's copy (KubeJS's fork lives in its own package, but
 // other mods jar-in-jar plain org.mozilla:rhino). The relocated classes are copied into the engine consumers' outputs
 // (see multiloader-loader.gradle), not nested as a jar.
 //
@@ -12,13 +12,13 @@ import java.security.MessageDigest
 import java.util.zip.ZipFile
 
 plugins {
-    id 'vellum-java'
+    id 'oriel-java'
     id 'com.gradleup.shadow' version '9.6.1'
 }
 
 def upstreamCommit = rhino_commit
 def upstreamSha256 = rhino_sha256
-def archiveFile = new File(gradle.gradleUserHomeDir, "caches/vellum-rhino/rhino-${upstreamCommit}.zip")
+def archiveFile = new File(gradle.gradleUserHomeDir, "caches/oriel-rhino/rhino-${upstreamCommit}.zip")
 def patchesDir = layout.projectDirectory.dir('patches')
 def sourceDir = layout.buildDirectory.dir('rhino-src')
 def workDir = layout.projectDirectory.dir('work')
@@ -105,11 +105,11 @@ def prepareRhinoSources = tasks.register('prepareRhinoSources') {
         unpack(archiveFile, 'LICENSE.txt', dest)
         unpack(archiveFile, 'NOTICE.txt', dest)
         new File(dest, 'SOURCE.txt').text = """\
-            Vellum includes Mozilla Rhino, relocated to dev.vellum.shadow.rhino and modified. Rhino is licensed under
+            Oriel includes Mozilla Rhino, relocated to dev.oriel.shadow.rhino and modified. Rhino is licensed under
             the Mozilla Public License 2.0 (LICENSE.txt); NOTICE.txt lists the other code it contains.
 
             Source: the upstream commit https://github.com/mozilla/rhino/tree/${upstreamCommit}
-            with the patches in rhino/patches of https://github.com/MaxLeiter/vellum applied in order.
+            with the patches in rhino/patches of the Oriel UI source (a fork of https://github.com/MaxLeiter/vellum) applied in order.
             """.stripIndent()
         // A repository of its own, so that git apply never looks at an enclosing one.
         git(dest, 'git init', ['init', '-q'])
@@ -124,7 +124,7 @@ sourceSets {
     main {
         java.srcDir(prepareRhinoSources.map { sourceDir.get().dir('rhino/src/main/java') })
         java.exclude('module-info.java')
-        // Parts of Rhino Vellum never runs, left out of the jar: the compiler to Java bytecode (scripts are always
+        // Parts of Rhino Oriel never runs, left out of the jar: the compiler to Java bytecode (scripts are always
         // interpreted), serialization of scopes, and the CommonJS require() loader (patch 0006 drops its one use).
         // Code that is not there cannot be reached, even through a sandbox bug. The class file writer stays: the
         // Java-adapter code the sandbox blocks still compiles against it.
@@ -146,8 +146,8 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('shadowJar') {
     archiveClassifier = ''
-    relocate('org.mozilla.javascript', 'dev.vellum.shadow.rhino')
-    relocate('org.mozilla.classfile', 'dev.vellum.shadow.rhino.classfile')
+    relocate('org.mozilla.javascript', 'dev.oriel.shadow.rhino')
+    relocate('org.mozilla.classfile', 'dev.oriel.shadow.rhino.classfile')
     mergeServiceFiles()
     dependsOn(prepareRhinoSources)
     from(sourceDir) {
@@ -183,7 +183,7 @@ tasks.register('applyRhinoPatches') {
                                            'commit', '-q', '-m', "Upstream Rhino ${upstreamCommit}"])
         git(work, 'Tagging upstream', ['tag', 'upstream'])
         patchFiles(patchesDir.asFile).each { File patch ->
-            git(work, "Applying ${patch.name}", ['-c', 'user.name=Vellum', '-c', 'user.email=vellum@invalid',
+            git(work, "Applying ${patch.name}", ['-c', 'user.name=Oriel', '-c', 'user.email=oriel@invalid',
                                                  'am', '-q', '--committer-date-is-author-date', patch.absolutePath])
         }
         logger.lifecycle("rhino/work is ready: upstream is tagged 'upstream', each patch is a commit on top.")

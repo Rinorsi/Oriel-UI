@@ -3,7 +3,7 @@
 // (see multiloader-loader.gradle), as they do Rhino's.
 plugins {
     id 'java-library'
-    id 'vellum-java'
+    id 'oriel-java'
     id 'maven-publish'
 }
 
@@ -41,11 +41,11 @@ java {
     withSourcesJar()
 }
 
-// Published so mods compiling against vellum-common resolve the engine types its API uses (Document, events...).
+// Published so mods compiling against oriel-common resolve the engine types its API uses (Document, events...).
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
-            artifactId = 'vellum-engine'
+            artifactId = 'oriel-engine'
             from components.java
         }
     }

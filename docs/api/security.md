@@ -1,9 +1,9 @@
 # Security
 
-What players are protected from, what a page can still do, what mod and server authors must do, and every setting in `config/vellum.properties`. [All docs](../index.md)
+What players are protected from, what a page can still do, what mod and server authors must do, and every setting in `config/oriel.properties`. [All docs](../index.md)
 
 
-Players join servers they don't control, and servers let in clients they don't control. Vellum assumes the worst of
+Players join servers they don't control, and servers let in clients they don't control. Oriel assumes the worst of
 both. A page a server opens is untrusted whether the server sent its HTML (`openInline`) or it comes from a mod: a
 server resource pack can replace any mod's page, script or stylesheet, so the page's code may be the server's either
 way. Your own bundled pages run under the same rules. Messages a client sends are untrusted too, since a modified
@@ -11,7 +11,7 @@ client can send anything.
 
 ## What players are protected from
 
-- Scripts run in a sandbox: no Java, no network, no files. Their only way out is `vellum.send`, to the server that
+- Scripts run in a sandbox: no Java, no network, no files. Their only way out is `oriel.send`, to the server that
   opened the page or to the mod's own handlers. They can't read the clipboard (only the player's own Ctrl+V into a
   text field does) or write it (only Ctrl+C or Ctrl+X).
 - A page can't keep the game busy. Each script call has a budget (50M instructions or 1 second), timers and frame
@@ -32,9 +32,9 @@ client can send anything.
   can't read them, and a server can't open them.
 - A canvas can only draw other canvases, so `getImageData` can't read the pixels of a texture, a skin or the screen.
   There is no `toDataURL`.
-- Shift+Escape always closes a Vellum screen, and the page never sees the key. Escape pressed three times within 1.5
+- Shift+Escape always closes a Oriel screen, and the page never sees the key. Escape pressed three times within 1.5
   seconds closes it too, even when the page keeps Escape with `preventDefault()`.
-- A server page only replaces nothing, a container screen or another Vellum screen. While the player is in chat, the
+- A server page only replaces nothing, a container screen or another Oriel screen. While the player is in chat, the
   pause menu, options, a sign or any other screen, the page waits until they leave it. A server can't catch keys
   typed into chat, and the pause menu with its Disconnect button stays reachable.
 - A server that opens a page within a second of the player closing one with Escape, three times in a row, can't
@@ -43,11 +43,11 @@ client can send anything.
 - Links to web pages ask first, as chat links do, and only right after a click or key press in the page, so a script
   can't bring the question up again and again. `client.webLinks=block` turns web links off. Other links only load
   `.html` pages from resources.
-- `vellum.send` delivers at most 20 messages a second, counted per screen, so reloading the page or following a
+- `oriel.send` delivers at most 20 messages a second, counted per screen, so reloading the page or following a
   link doesn't reset the count.
-- `vellum.playSound` plays only sounds the game knows, at most 8 a second per screen, no louder than
+- `oriel.playSound` plays only sounds the game knows, at most 8 a second per screen, no louder than
   `client.maxSoundVolume` and then scaled by the player's sound settings.
-- While the player types into a server's page, Vellum draws a notice at the bottom of the screen. The page can't
+- While the player types into a server's page, Oriel draws a notice at the bottom of the screen. The page can't
   cover it or tell that it is there.
 - Data from a server is capped in size and nesting depth before a script parses it. A malformed packet, in either
   direction, disconnects the sender and crashes nothing.
@@ -61,14 +61,14 @@ client can send anything.
   Minecraft screen.
 - Read what the player types or pastes into its own fields, and send it to the server.
 - Learn about the client and send it home: whether a resource exists and an image's size (from layout),
-  translations including other mods' (`vellum.t`, `<mc-text key>`, translatable `<mc-text json>`), the player's key
+  translations including other mods' (`oriel.t`, `<mc-text key>`, translatable `<mc-text json>`), the player's key
   bindings (`keybind` components), the GUI scale and window size, and `client.reducedMotion`. A server can tell
   from these which mods and resource packs a player has, as vanilla's translatable sign text once allowed.
 - Draw any entity the client knows by its network id. The server sent those entities, so this reveals nothing to
   it, but it can show the player entities the game would hide.
 - Make the client look up any player name with Mojang for `<player-head name>`, as vanilla player head items do.
-- Link to another mod's page (`<a href>`, `vellum.open`). The page stays in the server's session, so its
-  `vellum.send` messages go to the server, and `onPageLoad` hooks run for it.
+- Link to another mod's page (`<a href>`, `oriel.open`). The page stays in the server's session, so its
+  `oriel.send` messages go to the server, and `onPageLoad` hooks run for it.
 - Use its budgets in full. A page can allocate up to its limits every frame and make the game collect garbage more
   often, navigate or reload itself over and over, and keep Escape. The player can still leave with Shift+Escape.
 - Push data as often as it likes. Each push runs the page's listeners within their CPU budget. A server that wants
@@ -81,32 +81,32 @@ On the server:
 - Treat every message as hostile. A modified client can send any JSON value on any channel to its own sessions, up
   to the rate limit. Check types (`isJsonPrimitive()` before `getAsString()`), ranges (negative, zero and enormous
   counts; `1e999` parses as infinity) and that the player may act now: still near the block, still holding the
-  items, the shop still in stock. Vellum logs a handler's exception and carries on.
+  items, the shop still in stock. Oriel logs a handler's exception and carries on.
 - Take ids, prices and names from your own state, not from the message. A message should say what the player
   chose, and the server decides what that costs.
-- Don't rely on `onClose` arriving soon. A client may never report a close. Vellum ends a player's oldest session
+- Don't rely on `onClose` arriving soon. A client may never report a close. Oriel ends a player's oldest session
   once they have `server.maxSessionsPerPlayer` open, and all of them when they leave.
 - Messages are parsed strictly (no `NaN`, comments or trailing text), nest at most `server.maxMessageDepth` deep,
   and come with the real sending player. A client can't reach another player's sessions or one that has closed.
 - Don't build inline HTML from text players wrote. A name or chat line put into `openInline` markup, `innerHTML` or
   `v-html` can add elements with `onclick` handlers, which run in the viewer's page and can send messages as that
-  player. Pass such text in `vellum.data` and show it with `{{ }}` or `textContent`, which never parse HTML.
+  player. Pass such text in `oriel.data` and show it with `{{ }}` or `textContent`, which never parse HTML.
 - Keep `push` data small. The client parses all of it every time.
 
 On the client:
 
-- `VellumScreens.onPageLoad` hooks run for server pages too. Check `driver.serverSession()` before giving the page
+- `OrielScreens.onPageLoad` hooks run for server pages too. Check `driver.serverSession()` before giving the page
   data the server shouldn't have.
-- Keep secrets out of pages and `vellum.data`. The player can read whatever you send, and a resource pack can
+- Keep secrets out of pages and `oriel.data`. The player can read whatever you send, and a resource pack can
   replace any page's scripts.
 - If your page keeps Escape with a `keydown` listener, give it a close button too. Players can leave with
   Shift+Escape or three Escapes, but few know that.
 
 ## Settings
 
-`config/vellum.properties` is read on both sides when the game starts. The first start writes it with every key,
+`config/oriel.properties` is read on both sides when the game starts. The first start writes it with every key,
 its default and a comment, and later starts add keys it lacks. A missing, malformed or out-of-range value falls back
-to its default with a warning in the log; Vellum never fails to start over it. `server.` keys matter on a server
+to its default with a warning in the log; Oriel never fails to start over it. `server.` keys matter on a server
 (a dedicated one, or the one inside a singleplayer world), `client.` keys on a client, and `limits.` keys wherever
 pages run.
 
@@ -115,7 +115,7 @@ What a server sends and accepts:
 | Key | Default | Range | Meaning |
 |---|---|---|---|
 | `server.maxInlineHtmlChars` | 200000 | 1 to 200000 | Largest page `openInline` sends; larger ones throw. |
-| `server.maxDataChars` | 100000 | 1 to 100000 | Largest `vellum.data` `open` and `push` send, as JSON; larger throws. |
+| `server.maxDataChars` | 100000 | 1 to 100000 | Largest `oriel.data` `open` and `push` send, as JSON; larger throws. |
 | `server.maxMessageChars` | 8192 | 1 to 8192 | Longest message accepted from a page; longer ones are dropped. |
 | `server.maxMessageDepth` | 32 | 1 to 255 | Deepest nesting of arrays and objects in a message. |
 | `server.messageBurst` | 40 | 1 to 10000 | Messages a session takes at once. |
@@ -134,7 +134,7 @@ What a client lets pages do:
 | `client.opensPerSecond` | 1 | 0.01 to 1000 | Pages a server may open per second after the burst. |
 | `client.messageBurst` | 20 | 1 to 10000 | Messages a page may send at once, per screen. |
 | `client.messagesPerSecond` | 20 | 0.1 to 10000 | Messages a page may send per second, per screen, across reloads. |
-| `client.forceCloseKey` | `key.keyboard.escape` | a key name | With Shift, closes any Vellum screen. Names as in `options.txt`. |
+| `client.forceCloseKey` | `key.keyboard.escape` | a key name | With Shift, closes any Oriel screen. Names as in `options.txt`. |
 | `client.forceClosePresses` | 3 | 2 to 10 | Escapes within 1.5 s that close a page which keeps Escape. |
 | `client.reopenStrikes` | 3 | 1 to 100 | Reopens in a row that stop a server's pages. |
 | `client.reopenBlockSeconds` | 30 | 1 to 3600 | How long they stay stopped. |
@@ -147,7 +147,7 @@ What a client lets pages do:
 | `client.shapeShader` | `true` | `true`, `false` | Rounded boxes, borders and box-shadows drawn by a shader, with smooth edges and real blur (26.2 and 26.3). `false` draws them as flat quads. |
 
 The engine's caps on every page, a mod's or a server's. Each must be at least 1, and `heapLimitPercent` at most
-100 (100 turns the heap check off). They are fields of `dev.vellum.engine.Limits`, whose `describe` gives each
+100 (100 turns the heap check off). They are fields of `dev.oriel.engine.Limits`, whose `describe` gives each
 key's comment; a host can return its own from `Host.limits()`.
 
 | Key | Default | Meaning |
@@ -183,6 +183,6 @@ key's comment; a host can return its own from `Host.limits()`.
 | `limits.maxCanvasSize` | 2048 | Pixels on each side of a canvas. |
 | `limits.maxCanvasPixels` | 16777216 | Pixels of all of a page's canvases. |
 
-`client.serverPages` defaults to `allow`. Server UIs are what Vellum is for, vanilla lets servers open container
+`client.serverPages` defaults to `allow`. Server UIs are what Oriel is for, vanilla lets servers open container
 screens without asking, and the protections above work without the player's help. Players who want a say can set
 `ask`.

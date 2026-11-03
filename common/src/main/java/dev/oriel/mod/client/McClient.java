@@ -1,0 +1,150 @@
+//? if >=26 {
+package dev.oriel.mod.client;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.ChatComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.component.ResolvableProfile;
+import org.jspecify.annotations.Nullable;
+//? if >=26.3 {
+import org.lwjgl.sdl.SDLEvents;
+//?} else
+//import org.lwjgl.glfw.GLFW;
+
+/**
+ * The client state and input that Oriel reaches differently on each Minecraft version; this is the one for 26.x.
+ * 1.21.1 has its own McClient with the same methods ({@code common/versions/1.21.1/src}).
+ */
+public final class McClient {
+    private McClient() {}
+
+    /** The open screen, or null. */
+    public static @Nullable Screen screen() {
+        return Minecraft.getInstance().gui.screen();
+    }
+
+    /** Opens {@code screen}, or closes the open one with null. */
+    public static void setScreen(@Nullable Screen screen) {
+        Minecraft.getInstance().gui.setScreen(screen);
+    }
+
+    /** Whether a loading overlay (resource reload) covers the screen and takes its input. */
+    public static boolean loadingOverlay() {
+        return Minecraft.getInstance().gui.overlay() != null;
+    }
+
+    /** Whether the player hid the HUD (F1). */
+    public static boolean hudHidden() {
+        return Minecraft.getInstance().gui.hud.isHidden();
+    }
+
+    public static ChatComponent chat() {
+        return Minecraft.getInstance().gui.hud.getChat();
+    }
+
+    /** Shows a message from the client in chat. */
+    public static void systemMessage(Component message) {
+        chat().addClientSystemMessage(message);
+    }
+
+    /** Where the pointer is, in GUI px. */
+    public static double mouseX() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.mouseHandler.getScaledXPos(mc.getWindow());
+    }
+
+    public static double mouseY() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.mouseHandler.getScaledYPos(mc.getWindow());
+    }
+
+    /** The local player's skin texture. */
+    static Identifier localSkin() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.playerSkinRenderCache().getOrDefault(ResolvableProfile.createResolved(mc.getGameProfile())).playerSkin().body().texturePath();
+    }
+
+    /**
+     * Text input (SDL's, which {@code charTyped} needs) on or off for a text field of {@code owner}. On 26.2 GLFW always
+     * sends typed characters, so there is nothing to switch.
+     */
+    static void textInput(Screen owner, boolean on) {
+        //? if >=26.3
+        Minecraft.getInstance().onTextInputFocusChange(owner, on);
+    }
+
+    // ---- Input through Minecraft's own handlers, as a real mouse and keyboard send it (OrielAutomation) ----
+
+    /** A GUI px x coordinate in screen px (window pixels, as the mouse handler has the pointer). */
+    static double screenX(double guiX) {
+        Window w = Minecraft.getInstance().getWindow();
+        return guiX * w.getScreenWidth() / w.getGuiScaledWidth();
+    }
+
+    static double screenY(double guiY) {
+        Window w = Minecraft.getInstance().getWindow();
+        return guiY * w.getScreenHeight() / w.getGuiScaledHeight();
+    }
+
+    /** Moves the pointer to a window point in screen px, as the mouse handler takes a move. */
+    static void moveMouse(double x, double y) {
+        Minecraft mc = Minecraft.getInstance();
+        mc.mouseHandler.setIgnoreFirstMove(); // takes the position without queueing a second move event
+        //? if >=26.3 {
+        mc.mouseHandler.onMove(window(), x, y, 0, 0);
+        //?} else
+        //mc.mouseHandler.onMove(window(), x, y);
+    }
+
+    /**
+     * Shuts the real mouse out: its moves, buttons and wheel, and the window's enter and leave, are dropped where the
+     * platform delivers them (SDL's event queue, GLFW's callbacks before 26.3), so the pointer moves only through these
+     * methods. For the dev autopilot, which owns the pointer for its whole run ({@link DevPointer}); there is no
+     * undoing it.
+     */
+    static void ignoreRealMouse() {
+        //? if >=26.3 {
+        for (int type : new int[] {SDLEvents.SDL_EVENT_MOUSE_MOTION, SDLEvents.SDL_EVENT_MOUSE_BUTTON_DOWN,
+                SDLEvents.SDL_EVENT_MOUSE_BUTTON_UP, SDLEvents.SDL_EVENT_MOUSE_WHEEL,
+                SDLEvents.SDL_EVENT_WINDOW_MOUSE_ENTER, SDLEvents.SDL_EVENT_WINDOW_MOUSE_LEAVE}) {
+            SDLEvents.SDL_SetEventEnabled(type, false);
+        }
+        //?} else {
+        /*GLFW.glfwSetCursorPosCallback(window(), null);
+        GLFW.glfwSetMouseButtonCallback(window(), null);
+        GLFW.glfwSetScrollCallback(window(), null);
+        GLFW.glfwSetCursorEnterCallback(window(), null);
+        *///?}
+    }
+
+    /** Presses or releases DOM button {@code button} (0 left, 1 middle, 2 right) where the pointer is. */
+    static void mouseButton(int button, boolean press) {
+        Minecraft.getInstance().mouseHandler.onButton(window(), new MouseButtonInfo(KeyNames.mcButton(button), 0),
+                press ? InputConstants.PRESS : InputConstants.RELEASE);
+    }
+
+    /** Turns the wheel where the pointer is; positive {@code notches} scroll down. */
+    static void scroll(double notches) {
+        Minecraft.getInstance().mouseHandler.onScroll(window(), 0, -notches);
+    }
+
+    static void key(KeyEvent event, boolean press) {
+        Minecraft.getInstance().keyboardHandler.keyPress(window(), press ? InputConstants.PRESS : InputConstants.RELEASE, event);
+    }
+
+    static void typeChar(int codepoint) {
+        Minecraft.getInstance().keyboardHandler.charTyped(window(), new CharacterEvent(codepoint));
+    }
+
+    private static long window() {
+        return Minecraft.getInstance().getWindow().handle();
+    }
+}
+//?}
