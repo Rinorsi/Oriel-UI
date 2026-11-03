@@ -38,7 +38,7 @@ public final class Particles {
                          float gravity, float sway, int[] colors, Shape shape, String area) {}
 
     private static final Map<String, Preset> PRESETS = Map.of(
-            "embers", new Preset(16, 1.0f, 2.2f, -4, 4, -30, -12, -4, 6,
+            "embers", new Preset(16, 1.6f, 3.2f, -5, 5, -42, -16, -4, 8,
                     argb("#fff3a0", "#ffb23a", "#ff6a1a", "#c0301a", "#5a1a10"), Shape.DOT, "bottom"),
             "sparks", new Preset(0, 0.25f, 0.6f, -110, 110, -140, -30, 260, 0,
                     argb("#ffffff", "#fff0a0", "#ffb030", "#ff6010"), Shape.SPARK, "centre"),
@@ -127,9 +127,11 @@ public final class Particles {
 
         Emitter(Element canvas) {
             this.canvas = canvas;
-            Preset p = PRESETS.getOrDefault(canvas.getAttribute("data-fx"), PRESETS.get("sparks"));
+            String name = canvas.getAttribute("data-fx");
+            Preset p = name == null ? PRESETS.get("sparks") : PRESETS.getOrDefault(name, PRESETS.get("sparks"));
             preset = p;
-            rate = number("data-rate", p.rate());
+            // A canvas without data-fx only shows bursts.
+            rate = name == null ? 0 : number("data-rate", p.rate());
             String c = canvas.getAttribute("data-color");
             colors = c == null || c.isBlank() ? p.colors() : argb(c.split("\\s*,\\s*"));
             String a = canvas.getAttribute("data-area");

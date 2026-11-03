@@ -60,7 +60,7 @@ class ForgePresetTest {
         }
         assertEquals(ForgePreset.STRIKES, forge.model.strikes);
         assertEquals(ForgePreset.STRIKES, doc.querySelectorAll(".pip.perfect, .pip.hit, .pip.miss").size());
-        assertFalse(doc.querySelectorAll(".spark").isEmpty(), "strikes throw sparks");
+        assertTrue(forge.sparkCount() > 0, "strikes throw sparks");
         click(doc, "#quench", 0, Modifiers.NONE, clock);
         assertTrue(doc.getElementById("result").hasClass("on"));
         click(doc, "#again", 0, Modifiers.NONE, clock);
