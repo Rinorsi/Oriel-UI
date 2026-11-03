@@ -188,6 +188,10 @@ public final class DevAutopilot {
             inspector(mc);
             return;
         }
+        if (ONLY.equals("oriel")) {
+            presets(mc);
+            return;
+        }
         serverPages(mc);
         shoot(mc, "canvastest", () -> McClient.setScreen(new CanvasTestScreen()));
         guiScale(mc, 3);
@@ -738,6 +742,72 @@ public final class DevAutopilot {
     private static void open(String what, Runnable open) {
         steps.add(open);
         settle(what, 0);
+    }
+
+    /**
+     * The Oriel UI presets ({@code -Pautopilot=oriel}): the gallery and each preset, before and after some
+     * interaction, screenshotted for acceptance. Animated pages never settle, so the waits are timed.
+     */
+    private static void presets(Minecraft mc) {
+        shoot(mc, "preset_gallery", () -> OrielClientCommands.preset("gallery"));
+        hover(".ore-card[data-page=forge]");
+        pause(8);
+        grab(mc, "preset_gallery_hover", 5);
+
+        shoot(mc, "preset_inventory", () -> OrielClientCommands.preset("inventory"));
+        hover("[data-i='0']");
+        pause(6);
+        grab(mc, "preset_inventory_tooltip", 5);
+        onPage("the inventory drag", p -> p.drag("[data-i='3']", 60, 20));
+        pause(10);
+        grab(mc, "preset_inventory_dragged", 5);
+        onPage("the inventory search", p -> {
+            p.click("#search");
+            p.type("面包");
+        });
+        pause(16);
+        grab(mc, "preset_inventory_search", 5);
+
+        shoot(mc, "preset_forge", () -> OrielClientCommands.preset("forge"));
+        for (int i = 0; i < 3; i++) {
+            onPage("a forge strike", p -> p.key(" "));
+            pause(i < 2 ? 14 : 3);
+        }
+        grab(mc, "preset_forge_strike", 5);
+
+        shoot(mc, "preset_music", () -> OrielClientCommands.preset("music"));
+        onPage("play", p -> p.click("#play"));
+        pause(50);
+        grab(mc, "preset_music_playing", 5);
+        onPage("the playlist drag", p -> p.drag(".row", 0, 44));
+        pause(10);
+        grab(mc, "preset_music_reordered", 5);
+
+        shoot(mc, "preset_settings", () -> OrielClientCommands.preset("settings"));
+        onPage("keyboard focus", p -> {
+            p.key("Tab");
+            p.key("Tab");
+        });
+        pause(6);
+        grab(mc, "preset_settings_focus", 5);
+        onPage("the dropdown", p -> p.click("[data-key=graphics] .value"));
+        pause(8);
+        grab(mc, "preset_settings_dropdown", 5);
+
+        steps.add(() -> {
+            McClient.setScreen(null);
+            OrielClientCommands.togglePotionHud();
+        });
+        pause(30);
+        grab(mc, "preset_hud", 5);
+        pause(200);
+        grab(mc, "preset_hud_later", 5);
+        steps.add(OrielClientCommands::togglePotionHud);
+    }
+
+    /** Waits {@code ticks} ticks before the next step. */
+    private static void pause(int ticks) {
+        steps.add(() -> wait = ticks);
     }
 
     /**
