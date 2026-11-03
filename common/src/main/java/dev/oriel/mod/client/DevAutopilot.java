@@ -753,7 +753,7 @@ public final class DevAutopilot {
      */
     private static void presets(Minecraft mc) {
         shoot(mc, "preset_gallery", () -> OrielClientCommands.preset("gallery"));
-        hover(".ore-card[data-page=forge]");
+        hover(".card[data-go=forge]");
         pause(8);
         grab(mc, "preset_gallery_hover", 5);
 

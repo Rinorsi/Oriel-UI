@@ -95,6 +95,8 @@ if (project.hasProperty('autopilot') || project.hasProperty('tour')) {
     clientRunProperties['oriel.autopilot'] = 'true'
     String only = project.findProperty('autopilot')?.toString()
     if (only && only != 'true') clientRunProperties['oriel.autopilot.only'] = only
+    // The kit presets are judged at the GUI size most players see: 640x360 (1280x720 at GUI scale 2).
+    if (only == 'oriel') clientRunArgs.addAll('--width', '1280', '--height', '720')
 }
 if (project.hasProperty('tour')) {
     clientRunProperties['oriel.tour'] = 'true'

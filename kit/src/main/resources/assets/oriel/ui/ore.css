@@ -243,3 +243,284 @@ input.ore-field::placeholder { color: var(--ore-text-faint); }
 
 /* Scrollbars use the engine's overlay bars in Ore colours. */
 * { scrollbar-color: var(--ore-gray-5) var(--ore-surface-2); }
+
+/* =====================================================================================================================
+ * v2 · the Oriel layer: theme tokens, the app shell, flat tiles, rarity, effects and icons. Rules: docs/zh/design.md.
+ * Three depths only: the backdrop (the world, dimmed), the window (an Ore panel) and tiles on it. A tile never holds
+ * another tile; inside a tile, group with spacing and dividers.
+ * ===================================================================================================================*/
+
+:root {
+    --o-text: #ffffff; --o-text-dim: #c4c5c8; --o-text-faint: #8c8d90; --o-ink: #0f0f10;
+    --o-accent: #6cc349; --o-accent-strong: #86d562; --o-accent-ink: #0b2a05;
+    --o-line: rgba(255, 255, 255, 0.08); --o-line-strong: rgba(0, 0, 0, 0.55);
+    --o-tile: #3a3b3c; --o-tile-hover: #444546; --o-tile-edge: #1e1e1f; --o-tile-hi: rgba(255, 255, 255, 0.08);
+    --o-well: rgba(0, 0, 0, 0.28); --o-bar: #242425; --o-shade: rgba(0, 0, 0, 0.45);
+    --o-ico: #e6e7e9; --o-backdrop-a: rgba(12, 12, 14, 0.40); --o-backdrop-b: rgba(4, 4, 6, 0.86);
+    --tier: #b1b2b5;
+    --o-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); --o-ease-back: cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+[data-theme=light] {
+    --o-text: #2b2b2b; --o-text-dim: #4a4a4a; --o-text-faint: #6f6f6f; --o-ink: #1e1e1f;
+    --o-accent: #2f7d1d; --o-accent-strong: #3c8527; --o-accent-ink: #ffffff;
+    --o-line: rgba(0, 0, 0, 0.14); --o-line-strong: rgba(0, 0, 0, 0.35);
+    --o-tile: #d6d6d6; --o-tile-hover: #e2e2e2; --o-tile-edge: #555555; --o-tile-hi: rgba(255, 255, 255, 0.9);
+    --o-well: rgba(0, 0, 0, 0.10); --o-bar: #b4b4b4; --o-shade: rgba(0, 0, 0, 0.25);
+    --o-ico: #3a3a3a; --o-backdrop-a: rgba(20, 20, 24, 0.25); --o-backdrop-b: rgba(10, 10, 14, 0.70);
+    --ore-text: #2b2b2b; --ore-text-dim: #4a4a4a; --ore-text-faint: #6f6f6f;
+    color: var(--o-text);
+}
+
+/* Light theme: the classic Java inventory greys. */
+[data-theme=light] .ore-panel, [data-theme=light] .o-window { border-image-source: url(../textures/ore/panel_l.png); }
+[data-theme=light] .ore-panel.raised { border-image-source: url(../textures/ore/panel_raised_l.png); }
+[data-theme=light] .ore-inset, [data-theme=light] .ore-slot { border-image-source: url(../textures/ore/slot_l.png); }
+[data-theme=light] .ore-slot:hover { border-image-source: url(../textures/ore/slot_hover_l.png); }
+[data-theme=light] .ore-slot.target { border-image-source: url(../textures/ore/slot_target_l.png); }
+[data-theme=light] input.ore-field, [data-theme=light] .ore-field { border-image-source: url(../textures/ore/field_l.png); color: var(--o-text); }
+[data-theme=light] input.ore-field:focus, [data-theme=light] .ore-field:focus-within { border-image-source: url(../textures/ore/field_focus_l.png); }
+[data-theme=light] .ore-slider .track, [data-theme=light] .ore-progress { border-image-source: url(../textures/ore/track_l.png); }
+[data-theme=light] .ore-toggle { border-image-source: url(../textures/ore/toggle_off_l.png); }
+[data-theme=light] .ore-toggle.on { border-image-source: url(../textures/ore/toggle_on.png); }
+[data-theme=light] .ore-tab { border-image-source: url(../textures/ore/tab_l.png); color: var(--o-text-dim); }
+[data-theme=light] .ore-tab.selected { border-image-source: url(../textures/ore/tab_selected_l.png); color: var(--o-text); }
+[data-theme=light] .ore-btn { border-image-source: url(../textures/ore/button_secondary.png); color: var(--o-text); }
+[data-theme=light] .ore-btn:hover { border-image-source: url(../textures/ore/button_secondary_hover.png); }
+[data-theme=light] .ore-btn:active { border-image-source: url(../textures/ore/button_secondary_pressed.png); }
+[data-theme=light] .ore-btn.hero, [data-theme=light] .ore-btn.primary, [data-theme=light] .ore-btn.destructive { color: #ffffff; }
+[data-theme=light] .ore-btn.hero { border-image-source: url(../textures/ore/button_hero.png); }
+[data-theme=light] .ore-btn.hero:hover { border-image-source: url(../textures/ore/button_hero_hover.png); }
+[data-theme=light] .ore-btn.primary { border-image-source: url(../textures/ore/button_primary.png); }
+[data-theme=light] .ore-btn.primary:hover { border-image-source: url(../textures/ore/button_primary_hover.png); }
+[data-theme=light] .ore-btn.destructive { border-image-source: url(../textures/ore/button_destructive.png); }
+[data-theme=light] .ore-select > .value { border-image-source: url(../textures/ore/button_secondary.png); }
+[data-theme=light] .ore-select > .menu { border-image-source: url(../textures/ore/panel_raised_l.png); }
+[data-theme=light] .ore-select .option:hover, [data-theme=light] .ore-select .option.active { background: #b8b8b8; }
+[data-theme=light] .ore-tooltip { color: #ffffff; }
+[data-theme=light] * { scrollbar-color: #8b8b8b #c6c6c6; }
+
+/* ---- App shell: backdrop › window › title bar, rail and body ---- */
+
+.o-app {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 42%, var(--o-backdrop-a), var(--o-backdrop-b));
+}
+.o-window {
+    position: relative;
+    display: flex; flex-direction: column;
+    width: 620px; max-width: calc(100vw - 12px); height: 344px; max-height: calc(100vh - 12px);
+    border: 2px solid transparent; border-image: url(../textures/ore/panel.png) 2 fill;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 0, 0, 0.5);
+    animation: o-window-in 360ms var(--o-ease-out) both;
+}
+@keyframes o-window-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+
+.o-titlebar {
+    position: relative; flex: none;
+    display: flex; align-items: center; gap: 6px;
+    height: 24px; padding: 0 4px 0 6px;
+    background: linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+    border-bottom: 1px solid var(--o-line-strong);
+    box-shadow: 0 1px 0 var(--o-line);
+}
+.o-titlebar .o-mark { width: 16px; height: 16px; flex: none; }
+.o-titlebar h1 { margin: 0; font-size: 8px; font-weight: normal; color: var(--o-text); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); }
+[data-theme=light] .o-titlebar h1 { text-shadow: none; }
+.o-crumb { color: var(--o-text-faint); }
+.o-titlebar .o-grow { flex: 1; }
+
+.o-body { position: relative; flex: 1; min-height: 0; display: flex; }
+.o-main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6px; gap: 6px; }
+.o-side { flex: none; width: 150px; display: flex; flex-direction: column; gap: 6px; padding: 6px; border-left: 1px solid var(--o-line-strong); box-shadow: inset 1px 0 0 var(--o-line); background: var(--o-well); }
+.o-scroll { overflow-y: auto; min-height: 0; }
+.o-grow { flex: 1; }
+
+/* The rail: vertical icon navigation down the window's left edge. */
+.o-rail {
+    flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    width: 28px; padding: 4px 0;
+    background: var(--o-well); border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line);
+}
+.o-rail .o-nav {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; cursor: pointer;
+    -mc-tint: var(--o-text-faint);
+    transition: background-color 120ms, -mc-tint 120ms;
+}
+.o-rail .o-nav:hover { background: var(--o-line); -mc-tint: var(--o-text); }
+.o-rail .o-nav.on { background: var(--o-line); -mc-tint: var(--o-accent-strong); }
+.o-rail .o-nav.on::before {
+    content: ""; position: absolute; left: -3px; top: 4px; width: 2px; height: 14px;
+    background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent);
+}
+.o-rail .o-sep { width: 14px; height: 1px; margin: 2px 0; background: var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
+
+/* ---- Type ---- */
+
+.o-h1 { font-size: 16px; line-height: 18px; color: var(--o-text); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.55); }
+.o-h2 { color: var(--o-text); }
+.o-label { color: var(--o-text-faint); }
+.o-dim { color: var(--o-text-dim); }
+.o-faint { color: var(--o-text-faint); }
+.o-accent { color: var(--o-accent-strong); }
+.o-num { color: var(--o-text); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
+.o-caps { display: flex; align-items: center; gap: 4px; color: var(--o-text-faint); }
+.o-caps::after { content: ""; flex: 1; height: 1px; background: var(--o-line); }
+[data-theme=light] .o-h1, [data-theme=light] .o-num { text-shadow: none; }
+
+/* ---- Icons: 16x16 white glyphs (tools/gen-icons.mjs) tinted by -mc-tint, which inherits, so a button's colour
+   reaches its icon. .x2 draws one texel as 2px. ---- */
+
+.o-ico { width: 16px; height: 16px; flex: none; -mc-tint: var(--ico, var(--o-ico)); }
+.o-ico.x2 { width: 32px; height: 32px; }
+.o-ico.inherit { -mc-tint: inherit; }
+
+/* ---- Tiles: the one raised surface on a window. Flat, a 1px edge and a lit top row, so they read as pixel
+   objects without nesting bevels. ---- */
+
+.o-tile {
+    position: relative;
+    background: var(--o-tile);
+    border: 1px solid var(--o-tile-edge);
+    box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade);
+}
+.o-tile.hot { cursor: pointer; transition: transform 160ms var(--o-ease-out), border-color 160ms, box-shadow 200ms, background-color 160ms; }
+.o-tile.hot:hover {
+    transform: translateY(-2px); background: var(--o-tile-hover); border-color: var(--tier);
+    box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 3px 0 var(--o-shade), 0 0 8px color-mix(in srgb, var(--tier) 45%, transparent);
+}
+.o-tile.hot:active { transform: translateY(0); }
+.o-tile.sel { border-color: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 0 0 1px var(--o-accent), 0 0 8px color-mix(in srgb, var(--o-accent) 50%, transparent); }
+.o-well { background: var(--o-well); border: 1px solid var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
+
+/* ---- Rarity. Every tier sets --tier; text, frames and glows read it. ---- */
+
+.r-common { --tier: #c9cacd; }
+.r-uncommon { --tier: #6cc349; }
+.r-rare { --tier: #55c8ff; }
+.r-epic { --tier: #c46aff; }
+.r-legendary { --tier: #ffb52b; }
+.r-mythic { --tier: #ff5a6a; }
+.o-tier { color: var(--tier); }
+.o-tile.r-uncommon, .o-tile.r-rare, .o-tile.r-epic, .o-tile.r-legendary, .o-tile.r-mythic { border-color: color-mix(in srgb, var(--tier) 55%, var(--o-tile-edge)); }
+
+/* A gradient frame: a transparent border over two background layers clipped to different boxes. */
+.o-frame {
+    border-color: transparent;
+    background: linear-gradient(var(--o-tile), var(--o-tile)) padding-box,
+        linear-gradient(135deg, #fff3b0, var(--tier) 40%, color-mix(in srgb, var(--tier) 60%, #000000) 70%, #fff3b0) border-box;
+}
+
+/* ---- Effects ---- */
+
+.fx-glow { box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 0 6px color-mix(in srgb, var(--tier) 55%, transparent); }
+.fx-breathe { animation: fx-breathe 2.4s ease-in-out infinite; }
+@keyframes fx-breathe {
+    0%, 100% { box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 0 2px color-mix(in srgb, var(--tier) 30%, transparent); }
+    50% { box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 0 9px color-mix(in srgb, var(--tier) 70%, transparent); }
+}
+/* A pool of the tier's light behind an item or icon. */
+.fx-pool::before {
+    content: ""; position: absolute; left: -40%; top: -40%; width: 180%; height: 180%; pointer-events: none;
+    background: radial-gradient(circle, color-mix(in srgb, var(--tier) 38%, transparent), rgba(0, 0, 0, 0) 62%);
+}
+/* A tilted band of light crossing the element every few seconds (the element clips it). */
+.fx-sweep { overflow: hidden; }
+.fx-sweep::after {
+    content: ""; position: absolute; top: -40px; left: -30px; width: 12px; height: 200px; pointer-events: none;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 248, 210, 0.42), rgba(255, 255, 255, 0));
+    transform: rotate(22deg);
+    animation: fx-sweep 3.2s ease-in-out infinite;
+}
+@keyframes fx-sweep { 0% { transform: translateX(0) rotate(22deg); } 45%, 100% { transform: translateX(420px) rotate(22deg); } }
+/* The enchantment glint: violet stripes drifting across, like an enchanted book. */
+.fx-glint { overflow: hidden; }
+.fx-glint::after {
+    content: ""; position: absolute; top: 0; bottom: 0; left: -64px; right: -64px; pointer-events: none;
+    background: repeating-linear-gradient(115deg, rgba(160, 90, 255, 0) 0 10px, rgba(190, 120, 255, 0.30) 13px 15px,
+        rgba(160, 90, 255, 0) 18px 32px);
+    animation: fx-glint 2.6s linear infinite;
+}
+@keyframes fx-glint { from { transform: translateX(0); } to { transform: translateX(32px); } }
+.fx-float { animation: fx-float 2.4s ease-in-out infinite; }
+@keyframes fx-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+.fx-spin { animation: fx-spin 4s linear infinite; }
+@keyframes fx-spin { to { transform: rotate(360deg); } }
+.fx-pulse { animation: fx-pulse 1.2s ease-in-out infinite; }
+@keyframes fx-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.fx-pop { animation: fx-pop 320ms var(--o-ease-back) both; }
+@keyframes fx-pop { from { opacity: 0; transform: scale(0.85); } }
+.fx-rise { animation: fx-rise 320ms var(--o-ease-out) both; }
+@keyframes fx-rise { from { opacity: 0; transform: translateY(6px); } }
+.fx-shake { animation: fx-shake 260ms linear; }
+@keyframes fx-shake { 20% { transform: translate(-2px, 1px); } 40% { transform: translate(2px, -1px); } 60% { transform: translate(-1px, -1px); } 80% { transform: translate(1px, 1px); } }
+/* Particles (dev.oriel.kit.fx.Particles) fill their box and never take the pointer. */
+canvas.fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* ---- Small parts ---- */
+
+.o-chip {
+    display: inline-flex; align-items: center; gap: 3px; height: 14px; padding: 0 5px 0 3px;
+    background: var(--o-well); border: 1px solid var(--o-line-strong); color: var(--o-text-dim);
+    white-space: nowrap; -mc-tint: var(--o-text-dim);
+}
+.o-chip.hot { cursor: pointer; transition: background-color 120ms, color 120ms, border-color 120ms; }
+.o-chip.hot:hover { color: var(--o-text); border-color: var(--o-text-faint); -mc-tint: var(--o-text); }
+.o-chip.on { color: var(--o-accent-ink); background: var(--o-accent); border-color: var(--o-accent-strong); -mc-tint: var(--o-accent-ink); }
+.o-badge { min-width: 9px; height: 9px; padding: 0 2px; background: var(--o-accent); color: var(--o-accent-ink); text-align: center; line-height: 9px; }
+.o-badge.red { background: #ca3636; color: #ffffff; }
+.o-kbd {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 11px; height: 11px; padding: 0 2px;
+    background: var(--o-tile); border: 1px solid var(--o-tile-edge); box-shadow: 0 1px 0 var(--o-tile-edge);
+    color: var(--o-text-dim);
+}
+.o-hints { display: flex; align-items: center; gap: 8px; color: var(--o-text-faint); }
+.o-hints > span { display: flex; align-items: center; gap: 3px; }
+.o-divider { height: 1px; flex: none; background: var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
+
+/* A segmented meter, like the XP bar: --value 0..1 drives the fill. */
+.o-meter { position: relative; height: 5px; background: var(--o-bar); border: 1px solid var(--o-ink); }
+.o-meter > i {
+    position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--value, 0) * 100%);
+    background: linear-gradient(var(--fill-hi, #b6f08f), var(--fill, #6cc349) 50%, var(--fill-lo, #3c8527));
+    transition: width 220ms var(--o-ease-out);
+}
+.o-meter::after {
+    content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
+    background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 9px, rgba(0, 0, 0, 0.45) 9px 10px);
+}
+.o-stat { display: flex; flex-direction: column; gap: 1px; }
+.o-stat .v { color: var(--o-text); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
+.o-stat .k { color: var(--o-text-faint); }
+
+/* Segmented control. */
+.o-seg { display: flex; background: var(--o-well); border: 1px solid var(--o-line-strong); padding: 1px; gap: 1px; }
+.o-seg > * {
+    display: flex; align-items: center; gap: 3px; height: 14px; padding: 0 6px; cursor: pointer; color: var(--o-text-faint);
+    -mc-tint: var(--o-text-faint); transition: background-color 120ms, color 120ms;
+}
+.o-seg > *:hover { color: var(--o-text); -mc-tint: var(--o-text); }
+.o-seg > .on { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
+
+/* Rows in lists. */
+.o-row { display: flex; align-items: center; gap: 6px; padding: 3px 4px; cursor: pointer; transition: background-color 120ms; }
+.o-row:hover { background: var(--o-line); }
+.o-row.on { background: color-mix(in srgb, var(--o-accent) 22%, transparent); box-shadow: inset 2px 0 0 var(--o-accent-strong); }
+
+/* A toast that slides in at the top right. */
+.o-toast {
+    position: absolute; right: 8px; top: 30px; z-index: 60; display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+    border: 2px solid transparent; border-image: url(../textures/ore/tooltip.png) 2 fill; color: #ffffff;
+    animation: o-toast 2.6s var(--o-ease-out) both; pointer-events: none;
+}
+@keyframes o-toast { 0% { opacity: 0; transform: translateX(16px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateX(8px); } }
+
+/* Icons in buttons: tinted on the icon itself, since -mc-tint on the button would tint its texture too. */
+.ore-btn .o-ico { -mc-tint: #ffffff; }
+.ore-btn.secondary .o-ico { -mc-tint: #1e1e1f; }
+.ore-btn.disabled .o-ico { -mc-tint: #8c8d90; }
+[data-theme=light] .ore-btn .o-ico { -mc-tint: #2b2b2b; }
+[data-theme=light] .ore-btn.hero .o-ico, [data-theme=light] .ore-btn.primary .o-ico, [data-theme=light] .ore-btn.destructive .o-ico { -mc-tint: #ffffff; }
+[data-theme=light] .r-common { --tier: #6f6f6f; }

@@ -1,5 +1,6 @@
 package dev.oriel.preview;
 
+import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.Viewport;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.preview.host.PreviewHost;
@@ -17,7 +18,7 @@ import java.util.Optional;
 /** The standalone previewer: a window that renders a page live, or a headless snapshot to PNG. */
 public final class Preview {
     private static final String USAGE = """
-            Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N]] [--narrate] [--strict]
+            Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N] [--boxes selector]] [--narrate] [--strict]
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
@@ -26,9 +27,10 @@ public final class Preview {
 
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
-                   Path actions, Path out, boolean narrate, boolean strict) {
+                   Path actions, Path out, boolean narrate, boolean strict, String boxes) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
+            String boxes = null;
             boolean canvasTest = false, narrate = false, strict = false;
             int scale = 2, width = CanvasTest.WIDTH, height = CanvasTest.HEIGHT, frames = 1;
             for (int i = 0; i < args.length; i++) {
@@ -43,6 +45,7 @@ public final class Preview {
                     case "--out" -> out = Path.of(value(args, ++i, arg));
                     case "--narrate" -> narrate = true;
                     case "--strict" -> strict = true;
+                    case "--boxes" -> boxes = value(args, ++i, arg);
                     case "--size" -> {
                         String[] size = value(args, ++i, arg).split("x");
                         if (size.length != 2) throw new IllegalArgumentException("--size takes WxH, e.g. 427x240");
@@ -59,7 +62,7 @@ public final class Preview {
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict);
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
@@ -166,6 +169,22 @@ public final class Preview {
         }
         ImageIO.write(image, "png", options.snapshot().toFile());
         System.out.println("Wrote " + options.snapshot().toAbsolutePath());
+        if (options.boxes() != null && scene instanceof PageScene page) printBoxes(page, options.boxes());
         return scene.error() == null ? 0 : 1;
+    }
+
+    /**
+     * Prints the border box of every element matching {@code selector} in GUI px ({@code --boxes}), one line each:
+     * {@code x,y wxh  tag#id.classes}. For finding what pushes a layout around without guessing.
+     */
+    private static void printBoxes(PageScene page, String selector) {
+        for (Element e : page.document().querySelectorAll(selector)) {
+            float[] r = e.getBoundingClientRect();
+            StringBuilder name = new StringBuilder(e.tagName());
+            String id = e.getAttribute("id"), cls = e.getAttribute("class");
+            if (id != null) name.append('#').append(id);
+            if (cls != null && !cls.isBlank()) name.append('.').append(String.join(".", cls.trim().split("\\s+")));
+            System.out.printf("%6.1f,%6.1f %6.1fx%-6.1f %s%n", r[0], r[1], r[2], r[3], name);
+        }
     }
 }

@@ -4,77 +4,195 @@
 <title>优易库 · 预设画廊</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-.gallery { width: 348px; padding: 6px 8px; }
-.logo { width: 20px; height: 20px; }
-.ore-header { margin-bottom: 6px; }
-.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.ore-card { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px 6px; animation: ore-rise var(--ore-slow) var(--ore-ease) both; }
-.ore-card:nth-child(2) { animation-delay: 0.04s; }
-.ore-card:nth-child(3) { animation-delay: 0.08s; }
-.ore-card:nth-child(4) { animation-delay: 0.12s; }
-.ore-card:nth-child(5) { animation-delay: 0.16s; }
-.ore-card:nth-child(6) { animation-delay: 0.20s; }
-.ore-card .top { display: flex; align-items: center; gap: 4px; }
-.ore-card .icon { width: 16px; height: 16px; flex-shrink: 0; transition: transform var(--ore-medium) var(--ore-ease); }
-.ore-card:hover .icon { transform: scale(1.25) rotate(-8deg); }
-.ore-card .name { color: var(--ore-text); }
-.ore-card:hover .name { color: var(--ore-green-3); }
-.ore-card .desc { color: var(--ore-text-dim); line-height: 10px; }
-.ore-card .badge { position: absolute; top: 4px; right: 4px; padding: 0 3px; background: var(--ore-purple); color: var(--ore-text); }
-.about { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; }
-.footer { display: flex; align-items: center; gap: 4px; }
-.footer .ore-btn { min-height: 18px; padding: 0 5px; }
+/* The launcher: a hero banner with the brand and a floating allay, then a tile per preset, each with its block
+   turning on a lit stage. Tiles are coloured by --tier; the forge, music and potion tiles carry their particles. */
+.o-main { gap: 7px; }
+
+.banner {
+    --tier: #c46aff;
+    position: relative; flex: none; display: flex; align-items: center; gap: 10px;
+    height: 104px; padding: 0 12px 0 10px; overflow: hidden;
+    background: linear-gradient(100deg, #2b1d4e, #1e2240 52%, #1a1b1f);
+    border: 1px solid #0f0f10;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+[data-theme=light] .banner {
+    background: linear-gradient(100deg, #e7dcff, #dfe4f7 52%, #d6d6d6);
+    border-color: #555555;
+}
+.banner .emblem { position: relative; width: 64px; height: 64px; flex: none; }
+.banner .emblem img { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+.banner .copy { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
+.banner .o-h1 { color: #ffffff; }
+.banner .o-h1 span { color: #d9b8ff; }
+[data-theme=light] .banner .o-h1 { color: #2b2b2b; }
+[data-theme=light] .banner .o-h1 span { color: #6a35c9; }
+.banner .tagline { color: #c9c3e6; }
+[data-theme=light] .banner .tagline { color: #4a4a4a; }
+.banner .chips { display: flex; gap: 3px; flex-wrap: wrap; }
+.banner .actions { display: flex; gap: 4px; margin-top: 1px; }
+.banner .actions .ore-btn { min-height: 18px; padding: 0 7px; }
+.banner .stage { position: relative; width: 92px; height: 100px; flex: none; }
+.banner .stage entity { position: absolute; left: 6px; top: 4px; width: 80px; height: 90px; animation: turn 10s linear infinite; }
+.banner .stage::before {
+    content: ""; position: absolute; left: 6px; bottom: 6px; width: 80px; height: 14px;
+    background: radial-gradient(ellipse, rgba(120, 220, 255, 0.35), rgba(0, 0, 0, 0) 70%);
+}
+@keyframes turn { from { -mc-yaw: -30deg; } to { -mc-yaw: 330deg; } }
+
+.cards { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 5px; }
+.card { display: flex; gap: 7px; padding: 6px; overflow: hidden; animation: fx-rise 360ms var(--o-ease-out) both; }
+.card:nth-child(2) { animation-delay: 40ms; }
+.card:nth-child(3) { animation-delay: 80ms; }
+.card:nth-child(4) { animation-delay: 120ms; }
+.card:nth-child(5) { animation-delay: 160ms; }
+.card:nth-child(6) { animation-delay: 200ms; }
+.card .pedestal { position: relative; width: 40px; flex: none; display: flex; align-items: center; justify-content: center; }
+.card .pedestal::before {
+    content: ""; position: absolute; left: -10px; top: -6px; width: 60px; height: 60px; pointer-events: none;
+    background: radial-gradient(circle, color-mix(in srgb, var(--tier) 34%, transparent), rgba(0, 0, 0, 0) 64%);
+    transition: opacity 200ms;
+}
+.card .pedestal model { width: 40px; height: 40px; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--o-ease-back); }
+.card:hover .pedestal model { -mc-yaw: 210deg; }
+.card .text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.card .name { display: flex; align-items: center; gap: 4px; color: var(--o-text); }
+.card .name .o-ico { -mc-tint: var(--tier); }
+.card .desc { color: var(--o-text-dim); line-height: 10px; }
+.card .tags { display: flex; gap: 2px; flex-wrap: wrap; margin-top: auto; }
+.card .tags .o-chip { height: 11px; padding: 0 3px; color: var(--o-text-faint); }
+.card .go { position: absolute; right: 4px; top: 5px; opacity: 0; transform: translateX(-3px); transition: opacity 160ms, transform 160ms; -mc-tint: var(--tier); }
+.card:hover .go, .card:focus-visible .go { opacity: 1; transform: none; }
+.card:focus-visible { outline: 1px solid var(--o-text); outline-offset: 1px; }
+.card .new { position: absolute; right: 4px; top: 5px; padding: 0 3px; background: #ca3636; color: #ffffff; }
+.card:hover .new { opacity: 0; }
+
+.foot { flex: none; display: flex; align-items: center; justify-content: space-between; }
+.foot .facts { display: flex; gap: 8px; color: var(--o-text-faint); }
+.foot .facts b { color: var(--o-text-dim); font-weight: normal; }
+
+@media (max-height: 300px) {
+    .banner { height: 70px; }
+    .banner .emblem, .banner .emblem img { width: 32px; height: 32px; }
+    .banner .tagline, .banner .stage, .card .tags, .foot { display: none; }
+}
 </style>
 </head>
 <body>
-<div class="ore-screen">
-  <div class="ore-panel gallery ore-enter">
-    <div class="ore-header">
-      <item class="logo" id="minecraft:amethyst_shard"></item>
-      <div>
-        <div class="ore-title">优易库 · 预设画廊</div>
-        <div class="ore-subtitle">Oriel UI · Ore 像素主题 · 5 个预设界面</div>
+<div class="o-app">
+  <div class="o-window">
+    <div class="o-titlebar">
+      <img class="o-mark" src="../textures/ui/emblem.png">
+      <h1>优易库</h1><span class="o-crumb">/ 预设画廊</span>
+      <div class="o-grow"></div>
+      <div class="o-seg" id="theme-seg">
+        <span class="dark on" data-theme-pick="dark"><img class="o-ico inherit" src="../textures/icons/moon.png">暗色</span>
+        <span class="light" data-theme-pick="light"><img class="o-ico inherit" src="../textures/icons/sun.png">亮色</span>
       </div>
-      <div class="ore-spacer"></div>
-      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+      <div class="ore-btn icon" id="close" data-action="close" tabindex="0"><img class="o-ico inherit" src="../textures/icons/close.png"></div>
     </div>
-    <div class="cards" id="cards">
-      <div class="ore-card" tabindex="0" data-page="inventory">
-        <div class="top"><item class="icon" id="minecraft:chest"></item><div class="name">背包</div></div>
-        <div class="desc">拖拽换位，右键拆分堆叠，悬停提示，搜索时平滑重排。</div>
+    <div class="o-body">
+      <nav class="o-rail">
+        <div class="o-nav on" title="画廊"><img class="o-ico inherit" src="../textures/icons/home.png"></div>
+        <div class="o-sep"></div>
+        <div class="o-nav" data-go="inventory" title="背包"><img class="o-ico inherit" src="../textures/icons/bag.png"></div>
+        <div class="o-nav" data-go="forge" title="锻造台"><img class="o-ico inherit" src="../textures/icons/anvil.png"></div>
+        <div class="o-nav" data-go="music" title="音乐"><img class="o-ico inherit" src="../textures/icons/music.png"></div>
+        <div class="o-nav" data-go="settings" title="设置"><img class="o-ico inherit" src="../textures/icons/gear.png"></div>
+        <div class="o-nav" data-page="potions" title="药水 HUD"><img class="o-ico inherit" src="../textures/icons/flask.png"></div>
+        <div class="o-nav" data-go="editor" title="组件编辑器"><img class="o-ico inherit" src="../textures/icons/layers.png"></div>
+      </nav>
+      <div class="o-main">
+        <div class="banner">
+          <canvas class="fx" data-fx="stars" data-rate="4" data-seed="11"></canvas>
+          <canvas class="fx" data-fx="glint" data-rate="5" data-seed="5"></canvas>
+          <div class="emblem fx-float"><img src="../textures/ui/emblem.png"></div>
+          <div class="copy">
+            <div class="o-h1">优易库 <span>Oriel UI</span></div>
+            <div class="tagline">用 HTML 与 CSS 为 Minecraft 写界面 · 交互逻辑在 Java 控制器 · 26.1 – 26.3</div>
+            <div class="chips">
+              <span class="o-chip"><img class="o-ico" src="../textures/icons/palette.png">像素主题</span>
+              <span class="o-chip"><img class="o-ico" src="../textures/icons/refresh.png">热重载</span>
+              <span class="o-chip"><img class="o-ico" src="../textures/icons/sparkle.png">粒子与光效</span>
+              <span class="o-chip"><img class="o-ico" src="../textures/icons/sun.png">亮 / 暗</span>
+            </div>
+            <div class="actions">
+              <div class="ore-btn hero" data-go="inventory" tabindex="0"><img class="o-ico inherit" src="../textures/icons/play.png">开始体验</div>
+              <div class="ore-btn secondary" data-go="editor" tabindex="0"><img class="o-ico inherit" src="../textures/icons/layers.png">组件编辑器</div>
+            </div>
+          </div>
+          <div class="stage"><entity type="minecraft:allay"></entity></div>
+        </div>
+        <div class="o-caps">预设界面</div>
+        <div class="cards" id="cards">
+          <div class="card o-tile hot r-rare" tabindex="0" data-go="inventory">
+            <div class="pedestal"><model block="minecraft:chest"></model></div>
+            <div class="text">
+              <div class="name"><img class="o-ico" src="../textures/icons/bag.png">背包</div>
+              <div class="desc">分类页签、稀有度光效、3D 玩家与拖拽整理。</div>
+              <div class="tags"><span class="o-chip">拖拽</span><span class="o-chip">搜索</span><span class="o-chip">3D</span></div>
+            </div>
+            <img class="o-ico go" src="../textures/icons/forward.png">
+          </div>
+          <div class="card o-tile hot r-legendary" tabindex="0" data-go="forge">
+            <canvas class="fx" data-fx="embers" data-rate="6" data-seed="2"></canvas>
+            <div class="pedestal"><model block="minecraft:anvil"></model></div>
+            <div class="text">
+              <div class="name"><img class="o-ico" src="../textures/icons/hammer.png">锻造台</div>
+              <div class="desc">控温、踩准节奏敲打，火星四溅，成品出炉。</div>
+              <div class="tags"><span class="o-chip">粒子</span><span class="o-chip">节奏</span><span class="o-chip">震屏</span></div>
+            </div>
+            <img class="o-ico go" src="../textures/icons/forward.png">
+          </div>
+          <div class="card o-tile hot r-epic" tabindex="0" data-go="music">
+            <canvas class="fx" data-fx="notes" data-rate="1.5" data-seed="4"></canvas>
+            <div class="pedestal"><model block="minecraft:jukebox"></model></div>
+            <div class="text">
+              <div class="name"><img class="o-ico" src="../textures/icons/music.png">音乐播放器</div>
+              <div class="desc">转动的唱片、频谱、可拖拽的播放队列。</div>
+              <div class="tags"><span class="o-chip">频谱</span><span class="o-chip">排序</span><span class="o-chip">迷你播放器</span></div>
+            </div>
+            <img class="o-ico go" src="../textures/icons/forward.png">
+          </div>
+          <div class="card o-tile hot r-common" tabindex="0" data-go="settings">
+            <div class="pedestal"><model block="minecraft:comparator"></model></div>
+            <div class="text">
+              <div class="name"><img class="o-ico" src="../textures/icons/gear.png">设置</div>
+              <div class="desc">侧栏分组、开关滑块下拉，改动即时预览。</div>
+              <div class="tags"><span class="o-chip">键盘</span><span class="o-chip">实时预览</span></div>
+            </div>
+            <img class="o-ico go" src="../textures/icons/forward.png">
+          </div>
+          <div class="card o-tile hot r-uncommon" tabindex="0" data-page="potions">
+            <canvas class="fx" data-fx="bubbles" data-rate="2" data-seed="9" data-color="#ffffff,#9fe08a,#3c8527"></canvas>
+            <div class="pedestal"><model block="minecraft:brewing_stand"></model></div>
+            <div class="text">
+              <div class="name"><img class="o-ico" src="../textures/icons/flask.png">药水 HUD</div>
+              <div class="desc">常驻紧凑图标栏，新效果短暂展开，背包里看全部。</div>
+              <div class="tags"><span class="o-chip">HUD</span><span class="o-chip">倒计时</span></div>
+            </div>
+            <img class="o-ico go" src="../textures/icons/forward.png">
+          </div>
+          <div class="card o-tile hot r-mythic" tabindex="0" data-go="editor">
+            <div class="pedestal"><model block="minecraft:crafting_table"></model></div>
+            <div class="text">
+              <div class="name"><img class="o-ico" src="../textures/icons/layers.png">组件编辑器</div>
+              <div class="desc">图层树、属性检查器、拖拽摆放、撤销重做。</div>
+              <div class="tags"><span class="o-chip">所见即所得</span><span class="o-chip">导出 HTML</span></div>
+            </div>
+            <span class="new">新</span>
+            <img class="o-ico go" src="../textures/icons/forward.png">
+          </div>
+        </div>
+        <div class="foot">
+          <div class="o-hints">
+            <span><span class="o-kbd">Tab</span>切换</span>
+            <span><span class="o-kbd">Enter</span>打开</span>
+            <span><span class="o-kbd">T</span>换主题</span>
+          </div>
+          <div class="facts"><span><b>75</b> 图标</span><span><b>8</b> 种粒子</span><span><b>2232</b> 项引擎测试</span></div>
+        </div>
       </div>
-      <div class="ore-card" tabindex="0" data-page="forge">
-        <div class="top"><item class="icon" id="minecraft:anvil"></item><div class="name">锻造台</div></div>
-        <div class="desc">控制炉温，抓准击打时机，火花、震动与发光。</div>
-      </div>
-      <div class="ore-card" tabindex="0" data-page="music">
-        <div class="top"><item class="icon" id="minecraft:jukebox"></item><div class="name">音乐播放器</div></div>
-        <div class="desc">播放暂停，拖动进度，拖拽排序，均衡器律动。</div>
-      </div>
-      <div class="ore-card" tabindex="0" data-page="settings">
-        <div class="top"><item class="icon" id="minecraft:comparator"></item><div class="name">设置面板</div></div>
-        <div class="desc">标签页、开关、滑块、下拉框、文本框，全键盘操作。</div>
-      </div>
-      <div class="ore-card" tabindex="0" data-page="potions">
-        <span class="badge">HUD</span>
-        <div class="top"><item class="icon" id="minecraft:brewing_stand"></item><div class="name">药水 HUD</div></div>
-        <div class="desc">分组、倒计时、折叠展开，新效果滑入，到期淡出。</div>
-      </div>
-      <div class="ore-inset about">
-        <div class="ore-accent">关于</div>
-        <div class="ore-label">界面由 HTML 与 CSS 声明，交互逻辑在 Java 控制器里，没有页面脚本。</div>
-        <div class="ore-faint">Tab 切换焦点 · Enter 打开</div>
-      </div>
-    </div>
-    <div class="ore-divider"></div>
-    <div class="footer">
-      <span class="ore-label">按钮</span>
-      <div class="ore-btn hero" tabindex="0">主操作</div>
-      <div class="ore-btn primary" tabindex="0">确认</div>
-      <div class="ore-btn secondary" tabindex="0">次要</div>
-      <div class="ore-btn destructive" tabindex="0">删除</div>
-      <div class="ore-btn" tabindex="0">普通</div>
-      <div class="ore-btn disabled">禁用</div>
     </div>
   </div>
 </div>
