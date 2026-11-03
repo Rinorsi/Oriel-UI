@@ -1,4 +1,4 @@
-//? if >=26 {
+//? if >=26.2 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;

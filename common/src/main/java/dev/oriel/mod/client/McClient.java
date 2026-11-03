@@ -27,26 +27,41 @@ public final class McClient {
 
     /** The open screen, or null. */
     public static @Nullable Screen screen() {
+        //? if >=26.2 {
         return Minecraft.getInstance().gui.screen();
+        //?} else
+        //return Minecraft.getInstance().screen;
     }
 
     /** Opens {@code screen}, or closes the open one with null. */
     public static void setScreen(@Nullable Screen screen) {
+        //? if >=26.2 {
         Minecraft.getInstance().gui.setScreen(screen);
+        //?} else
+        //Minecraft.getInstance().setScreen(screen);
     }
 
     /** Whether a loading overlay (resource reload) covers the screen and takes its input. */
     public static boolean loadingOverlay() {
+        //? if >=26.2 {
         return Minecraft.getInstance().gui.overlay() != null;
+        //?} else
+        //return Minecraft.getInstance().getOverlay() != null;
     }
 
     /** Whether the player hid the HUD (F1). */
     public static boolean hudHidden() {
+        //? if >=26.2 {
         return Minecraft.getInstance().gui.hud.isHidden();
+        //?} else
+        //return Minecraft.getInstance().options.hideGui;
     }
 
     public static ChatComponent chat() {
+        //? if >=26.2 {
         return Minecraft.getInstance().gui.hud.getChat();
+        //?} else
+        //return Minecraft.getInstance().gui.getChat();
     }
 
     /** Shows a message from the client in chat. */

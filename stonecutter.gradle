@@ -30,11 +30,12 @@ stonecutter.parameters { sc ->
     sc.replacements.regex(modern) { spec ->
         spec.replace('\\.getGameProfile\\(\\)\\.getName\\(\\)', '.getGameProfile().name()', '\\.getGameProfile\\(\\)\\.name\\(\\)', '.getGameProfile().getName()')
     }
-    // 26.x moved the entity type constants from EntityType to EntityTypes. The import keeps a note, so it can go back.
-    sc.replacements.regex(modern) { spec ->
+    // 26.2 moved the entity type constants from EntityType to EntityTypes. The import keeps a note, so it can go back.
+    boolean entityTypes = sc.current.parsed >= '26.2'
+    sc.replacements.regex(entityTypes) { spec ->
         spec.replace('\\bEntityType\\.([A-Z][A-Z0-9_]*)\\b', 'EntityTypes.$1', '\\bEntityTypes\\.([A-Z][A-Z0-9_]*)\\b', 'EntityType.$1')
     }
-    sc.replacements.regex(modern) { spec ->
+    sc.replacements.regex(entityTypes) { spec ->
         spec.replace('import net\\.minecraft\\.world\\.entity\\.EntityType; // EntityTypes', 'import net.minecraft.world.entity.EntityTypes;',
                 'import net\\.minecraft\\.world\\.entity\\.EntityTypes;', 'import net.minecraft.world.entity.EntityType; // EntityTypes')
     }

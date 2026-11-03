@@ -82,8 +82,11 @@ public final class McSurface implements PixelSurface {
         if (dirtyTop >= dirtyBottom) return;
         //? if >=26 {
         int rowBytes = width() * 4, rows = dirtyBottom - dirtyTop;
+        //? if >=26.2 {
         RenderSystem.getDevice().createCommandEncoder().writeToTexture(texture.getTexture(),
                 pixels.getPixelBytes().slice(dirtyTop * rowBytes, rows * rowBytes), 0, 0, 0, dirtyTop, width(), rows);
+        //?} else
+        //RenderSystem.getDevice().createCommandEncoder().writeToTexture(texture.getTexture(), pixels, 0, 0, 0, dirtyTop, width(), rows, 0, dirtyTop);
         //?} else {
         /*texture.bind();
         pixels.upload(0, 0, dirtyTop, 0, dirtyTop, width(), dirtyBottom - dirtyTop, false, false, false, false);

@@ -112,7 +112,7 @@ public final class OrielNeoForgeClient {
         // The dev tour's cursor, over everything: after the screen's tooltips and the overlays above it, else last in the HUD.
         if (DevFlags.TOUR) {
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, (ScreenEvent.Render.Post e) -> {
-                if (e.getScreen() == Minecraft.getInstance().gui.screen()) TourCursor.extractAboveScreen(e.getGuiGraphics());
+                if (e.getScreen() == McClient.screen()) TourCursor.extractAboveScreen(e.getGuiGraphics());
             });
             modBus.addListener((RegisterGuiLayersEvent e) -> e.registerAboveAll(Constants.id("tour_cursor"), TourCursor::extractHud));
         }

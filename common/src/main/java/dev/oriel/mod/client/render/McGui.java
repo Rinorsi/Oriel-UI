@@ -54,10 +54,15 @@ public final class McGui {
      * scale and size change only when the resize event arrives, so for a frame the GUI can reach past the framebuffer.
      */
     ScissorStack drawableArea() {
+        //? if >=26.2 {
         WindowRenderState window = Minecraft.getInstance().gameRenderer.gameRenderState().windowRenderState;
-        int scale = Math.max(1, window.guiScale);
-        int width = Math.min(g.guiWidth(), Math.ceilDiv(window.width, scale));
-        int height = Math.min(g.guiHeight(), Math.ceilDiv(window.height, scale));
+        int scale = Math.max(1, window.guiScale), frameWidth = window.width, frameHeight = window.height;
+        //?} else {
+        /*com.mojang.blaze3d.platform.Window window = Minecraft.getInstance().getWindow();
+        int scale = Math.max(1, window.getGuiScale()), frameWidth = window.getWidth(), frameHeight = window.getHeight();
+        *///?}
+        int width = Math.min(g.guiWidth(), Math.ceilDiv(frameWidth, scale));
+        int height = Math.min(g.guiHeight(), Math.ceilDiv(frameHeight, scale));
         ScreenRectangle outer = g.scissorStack.peek();
         return outer == null ? new ScissorStack(0, 0, width, height) : new ScissorStack(Math.max(0, outer.left()),
                 Math.max(0, outer.top()), Math.min(width, outer.right()), Math.min(height, outer.bottom()));
@@ -124,11 +129,15 @@ public final class McGui {
 
     /** Whether {@link #shape} can draw: the shape shader is compiled. */
     boolean shapesAvailable() {
+        //? if >=26.2 {
         return SdfRenderState.available();
+        //?} else
+        //return false; // 26.1: no shape shader yet; shapes are tessellated
     }
 
     /** Resources reloaded: if the shape shader failed to compile, {@link #shapesAvailable} tries it again. */
     public static void reloadShapes() {
+        //? if >=26.2
         SdfRenderState.reload();
     }
 
@@ -138,6 +147,7 @@ public final class McGui {
      */
     void shape(Matrix3x2fc pose, SmoothShape shape, float edge, short[] radii, int color, ScreenRectangle bounds,
                @Nullable ScreenRectangle scissor) {
+        //? if >=26.2
         g.guiRenderState.addGuiElement(new SdfRenderState(pose, shape, edge, radii, color, scissor, bounds));
     }
 

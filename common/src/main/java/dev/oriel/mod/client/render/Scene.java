@@ -137,7 +137,10 @@ public final class Scene {
     }
 
     void submit(PoseStack pose, SubmitNodeCollector out, GuiSceneRenderState picture) {
+        //? if >=26.2 {
         Minecraft.getInstance().gameRenderer.lighting().setupFor(lighting);
+        //?} else
+        //Minecraft.getInstance().gameRenderer.getLighting().setupFor(lighting);
         drawer.submit(pose, out, picture);
     }
 

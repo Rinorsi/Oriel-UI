@@ -21,6 +21,12 @@ import org.jspecify.annotations.Nullable;
  * size stay the same, so it costs a blit.
  */
 public final class GuiSceneRenderer extends PictureInPictureRenderer<GuiSceneRenderState> {
+    //? if <26.2 {
+    /*// 26.1 renderers draw into the buffers they are made with.
+    public GuiSceneRenderer(net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers) {
+        super(buffers);
+    }
+    *///?}
     /** What the picture holds, or null when it must be drawn again. */
     private record Picture(Object scene, float scale) {}
 
@@ -36,11 +42,23 @@ public final class GuiSceneRenderer extends PictureInPictureRenderer<GuiSceneRen
         return drawn != null && drawn.equals(picture(state));
     }
 
+    //? if >=26.2 {
     @Override
     protected void renderToTexture(GuiSceneRenderState state, PoseStack pose, SubmitNodeCollector out) {
         state.scene().submit(pose, out, state);
         drawn = picture(state);
     }
+    //?} else {
+    /*// 26.1 hands the renderer no collector: submit to the game's feature dispatcher and draw its features.
+    @Override
+    protected void renderToTexture(GuiSceneRenderState state, PoseStack pose) {
+        net.minecraft.client.renderer.feature.FeatureRenderDispatcher features =
+                net.minecraft.client.Minecraft.getInstance().gameRenderer.getFeatureRenderDispatcher();
+        state.scene().submit(pose, features.getSubmitNodeStorage(), state);
+        features.renderAllFeatures();
+        drawn = picture(state);
+    }
+    *///?}
 
     /** As vanilla's blit, multiplied by the state's colour (premultiplied, as the picture is). */
     @Override

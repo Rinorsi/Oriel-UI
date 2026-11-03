@@ -120,7 +120,10 @@ public final class DevAutopilot {
             LevelSettings settings = new LevelSettings(id, GameType.CREATIVE,
                     new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
             mc.createWorldOpenFlows().createFreshLevel(id, settings, new WorldOptions(0, false, false),
+                    //? if >=26.2 {
                     WorldPresets::createTestWorldDimensions, McClient.screen());
+                    //?} else
+                    //WorldPresets::createFlatWorldDimensions, McClient.screen());
             //?} else {
             /*LevelSettings settings = new LevelSettings(id, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
                     new net.minecraft.world.level.GameRules(), WorldDataConfiguration.DEFAULT);
@@ -881,7 +884,10 @@ public final class DevAutopilot {
             McClient.chat().clearMessages(false);
             Constants.LOG.info("Oriel autopilot: {} at {} fps", name, mc.getFps());
             //? if >=26 {
+            //? if >=26.2 {
             Screenshot.grab(mc.gameDirectory, "oriel_" + name + ".png", mc.gameRenderer.mainRenderTarget(), 1,
+            //?} else
+            //Screenshot.grab(mc.gameDirectory, "oriel_" + name + ".png", mc.getMainRenderTarget(), 1,
                     msg -> Constants.LOG.info("Oriel autopilot: {}", msg.getString()));
             //?} else {
             /*Screenshot.grab(mc.gameDirectory, "oriel_" + name + ".png", mc.getMainRenderTarget(),

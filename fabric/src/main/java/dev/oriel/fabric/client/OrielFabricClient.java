@@ -44,7 +44,10 @@ public final class OrielFabricClient implements ClientModInitializer {
         OrielClient.init(ClientPlayNetworking::send);
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) register(c);
         //? if >=26 {
+        //? if >=26.2 {
         PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer());
+        //?} else
+        //PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer(context.bufferSource()));
         HudElementRegistry.attachElementAfter(VanillaHudElements.TITLE_AND_SUBTITLE, Constants.id("hud"), OrielHud::extract);
         //?} else
         //HudRenderCallback.EVENT.register(OrielHud::extract); // 1.21.1 has no HUD layers: after the whole HUD

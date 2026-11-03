@@ -105,10 +105,12 @@ record EntityReach(float radius, float bottom, float top) {
         float radius, bottom = Float.POSITIVE_INFINITY, top = Float.NEGATIVE_INFINITY;
 
         Measure() {
-            //? if >=26.3 {
+            //? if >=26.3
             super(false, new TranslucentFeatureRenderPhase());
-            //?} else
+            //? if >=26.2 <26.3
             //super();
+            //? if <26.2
+            //super(new net.minecraft.client.renderer.SubmitNodeStorage());
         }
 
         @Override

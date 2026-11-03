@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
+//? if >=26.2
 import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -77,7 +78,10 @@ public final class EntityPortrait {
     /** An entity for display only, never added to the world: monsters show in peaceful worlds too. */
     public static @Nullable Entity create(EntityType<?> type, Level level) {
         if (!type.isEnabled(level.enabledFeatures())) return null;
+        //? if >=26.2 {
         Entity entity = type.create(level, new EntitySpawnRequest(EntitySpawnReason.LOAD, true));
+        //?} else
+        //Entity entity = type.create(level, EntitySpawnReason.LOAD);
         if (entity != null) entity.setId(nextDisplayId--);
         return entity;
     }
