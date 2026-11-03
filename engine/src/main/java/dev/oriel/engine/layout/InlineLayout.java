@@ -146,19 +146,25 @@ final class InlineLayout {
                 int piece = p.add(SPACE, itemIndex, i, j, w);
                 p.collapsible[piece] = s.whiteSpace.collapsesSpaces();
             } else {
-                // A word, cut further after zero-width spaces and inner hyphens, and between all characters for
-                // break-all (soft opportunities) and break-word (emergency ones).
+                // A word, cut further after zero-width spaces and inner hyphens, between CJK characters where
+                // kinsoku allows (CjkBreaks), and between all characters for break-all (soft opportunities) and
+                // break-word (emergency ones).
                 while (j < n && text.charAt(j) != ' ') {
                     int cp = text.codePointAt(j);
                     j += Character.charCount(cp);
                     if (breakAll || breakWord || cp == 0x200B
-                            || (cp == '-' && j - 1 > i && j < n && Character.isLetter(text.charAt(j)))) break;
+                            || (cp == '-' && j - 1 > i && j < n && Character.isLetter(text.charAt(j)))
+                            || (wraps && j < n && CjkBreaks.breakBetween(cp, text.codePointAt(j)))) break;
                 }
                 int k = p.add(TEXT, itemIndex, i, j, pass.text.width(text.substring(i, j), font, s));
                 if (k > 0 && p.kind[k - 1] == TEXT && p.item[k - 1] == itemIndex) {
                     char prev = text.charAt(i - 1);
-                    if (breakAll || (wraps && (prev == '​' || prev == '-'))) p.breakBefore[k] = true;
-                    else if (breakWord) p.emergencyBefore[k] = true;
+                    if (breakAll || (wraps && (prev == '​' || prev == '-'
+                            || CjkBreaks.breakBetween(text.codePointBefore(i), text.codePointAt(i))))) {
+                        p.breakBefore[k] = true;
+                    } else if (breakWord) {
+                        p.emergencyBefore[k] = true;
+                    }
                 }
             }
             i = j;

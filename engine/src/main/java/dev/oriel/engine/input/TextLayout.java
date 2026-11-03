@@ -1,6 +1,7 @@
 package dev.oriel.engine.input;
 
 import dev.oriel.engine.host.FontSpec;
+import dev.oriel.engine.layout.CjkBreaks;
 import dev.oriel.engine.layout.SpacedText;
 import dev.oriel.engine.layout.TextMeasure;
 import dev.oriel.engine.style.ComputedStyle;
@@ -107,7 +108,10 @@ final class TextLayout {
         return offset < text.length() && Character.isHighSurrogate(text.charAt(offset)) ? offset + 2 : offset + 1;
     }
 
-    /** Greedy wrapping of the paragraph {@code [start, end)}: break after spaces, or mid-word when a word overflows. */
+    /**
+     * Greedy wrapping of the paragraph {@code [start, end)}: break after spaces or at CJK opportunities, or mid-word
+     * when a word overflows.
+     */
     private void wrap(int start, int end, TextMeasure measure, ComputedStyle s) {
         float[] pos = new float[end - start + 1];
         float bullet = masked ? measure.advance(BULLET.codePointAt(0), font, s) : 0;
@@ -132,7 +136,8 @@ final class TextLayout {
                 breakAt = -1;
                 continue;
             }
-            if (space) breakAt = i + n;
+            // The same opportunities as paragraphs: after spaces, and between CJK characters kinsoku allows.
+            if (space || i + n < end && CjkBreaks.breakBetween(cp, text.codePointAt(i + n))) breakAt = i + n;
             i += n;
         }
         addLine(lineStart, end, pos, start, false, measure, s);
