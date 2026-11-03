@@ -524,3 +524,49 @@ canvas.fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; poin
 [data-theme=light] .ore-btn .o-ico { -mc-tint: #2b2b2b; }
 [data-theme=light] .ore-btn.hero .o-ico, [data-theme=light] .ore-btn.primary .o-ico, [data-theme=light] .ore-btn.destructive .o-ico { -mc-tint: #ffffff; }
 [data-theme=light] .r-common { --tier: #6f6f6f; }
+
+/* ---- Status effects panel (PotionHudPreset): groups that fold, rows with a countdown and a draining bar. Used by
+   the HUD's full panel and by the inventory's effects column. --kind is the group colour. ---- */
+
+.o-effects { display: flex; flex-direction: column; gap: 3px; }
+.o-effects .group { --kind: #6cc349; display: flex; flex-direction: column; gap: 1px; transition: opacity 320ms; }
+.o-effects .group.harmful { --kind: #e25a5a; }
+.o-effects .group.neutral { --kind: #ffb52b; }
+.o-effects .group.empty { display: none; }
+.o-effects .head {
+    display: flex; align-items: center; gap: 3px; height: 13px; padding: 0 3px 0 1px;
+    color: var(--o-text); cursor: pointer; -mc-tint: var(--o-text-faint);
+}
+.o-effects .head:hover { -mc-tint: var(--o-text); }
+.o-effects .head .caret { transition: transform 180ms var(--o-ease-out); }
+.o-effects .group.folded .head .caret { transform: rotate(-90deg); }
+.o-effects .head .dot { width: 5px; height: 5px; background: var(--kind); box-shadow: 0 0 3px var(--kind); }
+.o-effects .head .n { margin-left: auto; color: var(--o-text-faint); }
+.o-effects .list { display: flex; flex-direction: column; gap: 1px; }
+.o-effects .strip { display: none; flex-wrap: wrap; gap: 2px; padding: 2px 3px; }
+.o-effects .group.folded .list, .o-effects .group.folded .more { display: none; }
+.o-effects .group.folded .strip { display: flex; animation: fx-rise 200ms var(--o-ease-out); }
+.o-effects .strip img { width: 16px; height: 16px; }
+.o-effects .eff {
+    position: relative; height: 20px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 5px;
+    background: var(--o-tile); border: 1px solid var(--o-tile-edge); box-shadow: inset 0 1px 0 var(--o-tile-hi);
+    animation: eff-in 420ms var(--o-ease-out) backwards;
+    transition: opacity 600ms ease-out, transform 600ms ease-in;
+}
+.o-effects .eff::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--kind); }
+.o-effects .eff img { width: 16px; height: 16px; flex: none; }
+.o-effects .eff .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--o-text); }
+.o-effects .group.harmful .eff .name { color: color-mix(in srgb, #e25a5a 70%, var(--o-text)); }
+.o-effects .eff .time { color: var(--o-text-dim); }
+.o-effects .eff.low .time { color: #e25a5a; animation: eff-blink 0.8s steps(2) infinite; }
+.o-effects .eff .bar { position: absolute; left: 2px; right: 0; bottom: 0; height: 1px; background: var(--o-line); }
+.o-effects .eff .bar .left { height: 1px; background: var(--kind); box-shadow: 0 0 2px var(--kind); }
+.o-effects .eff.fresh { border-color: #ffb52b; box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 0 6px rgba(255, 181, 43, 0.6); }
+.o-effects .eff.gone { opacity: 0; transform: translateX(16px); }
+.o-effects .more {
+    height: 13px; display: flex; align-items: center; justify-content: center; gap: 2px;
+    background: var(--o-well); border: 1px solid var(--o-line-strong); color: var(--o-text-dim); cursor: pointer;
+}
+.o-effects .more:hover { color: var(--o-text); }
+@keyframes eff-in { from { opacity: 0; transform: translateX(24px); } }
+@keyframes eff-blink { from { opacity: 1; } to { opacity: 0.35; } }

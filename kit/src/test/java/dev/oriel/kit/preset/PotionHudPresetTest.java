@@ -35,6 +35,8 @@ class PotionHudPresetTest {
     void groupsShowThreeRowsAndExpandOrFold() {
         PotionHudPreset hud = new PotionHudPreset();
         Document doc = host.open(OrielKit.POTIONS, hud);
+        click(doc, "#handle", 0, Modifiers.NONE, clock);
+        assertTrue(doc.getElementById("hud").hasClass("full"), "the handle opens the full panel");
         Element buffs = doc.querySelectorAll(".group").getFirst();
         assertEquals(PotionHudPreset.SHOWN, buffs.querySelector(".list").childCount());
         assertEquals("另有 4 个效果 ▾", buffs.querySelector(".more").textContent());
@@ -55,5 +57,27 @@ class PotionHudPresetTest {
         assertTrue(harmful.getFirst().row.hasClass("low"), "8 s left");
         assertEquals("0:08", harmful.getFirst().time.textContent());
         assertEquals("**:**", PotionHudPreset.clock(3600));
+    }
+
+    @Test
+    void theBarShowsATileForEachEffectThatDrains() {
+        PotionHudPreset hud = new PotionHudPreset();
+        Document doc = host.open(OrielKit.POTIONS, hud);
+        assertEquals(PotionHudPreset.BAR_TILES, doc.getElementById("tiles").childCount());
+        assertEquals("+" + (PotionHudPreset.INITIAL.size() - PotionHudPreset.BAR_TILES), doc.getElementById("more-tiles").textContent());
+        for (int i = 0; i < 40; i++) frame(doc, clock, 100);
+        PotionHudPreset.Running regen = hud.groups.get(PotionHudPreset.Kind.BENEFICIAL).stream()
+                .filter(r -> r.effect.id().equals("regeneration")).findFirst().orElseThrow();
+        assertTrue(regen.tileTime.textContent().matches("1[45]s"), "about 14 s left: " + regen.tileTime.textContent());
+        assertTrue(regen.tile.querySelector(".drain").getAttribute("style").contains("height"), "the tile drains");
+    }
+
+    @Test
+    void theInventoryCarriesTheFullPanelFolded() {
+        Document doc = host.open(OrielKit.INVENTORY, new InventoryPreset());
+        var groups = doc.querySelectorAll("#effects .group");
+        assertEquals(3, groups.size());
+        assertTrue(groups.getFirst().hasClass("folded"));
+        assertEquals(7, groups.getFirst().querySelector(".strip").childCount());
     }
 }

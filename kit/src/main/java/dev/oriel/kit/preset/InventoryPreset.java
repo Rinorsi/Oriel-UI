@@ -102,6 +102,8 @@ public final class InventoryPreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
         Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
         for (Element tab : doc.querySelectorAll("[data-cat]")) Shell.activate(tab, () -> category(tab));
+        Element effects = doc.getElementById("effects");
+        if (effects != null) new PotionHudPreset().mountPanel(doc, effects, true);
         ready = true;
         summary();
         showOverview();

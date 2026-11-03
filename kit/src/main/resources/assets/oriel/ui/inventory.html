@@ -32,6 +32,7 @@
 .level { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; }
 .level .row { display: flex; justify-content: space-between; }
 .level .lv { color: #b6f08f; text-shadow: 1px 1px 0 #1d4d13; }
+.effects { flex: 1; min-height: 0; }
 .o-meter.xp { --fill-hi: #d8ff9a; --fill: #8fe04a; --fill-lo: #4c9a1e; }
 
 /* Tabs and search share a toolbar. */
@@ -114,7 +115,7 @@
     .info { width: 120px; }
 }
 @media (max-height: 300px) {
-    .keys, .capacity, .bag .o-caps, .foot .o-hints { display: none; }
+    .effects, .doll .o-caps, .keys, .capacity, .bag .o-caps, .foot .o-hints { display: none; }
     .bag { gap: 3px; }
 }
 @keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.25); } }
@@ -152,6 +153,8 @@
           <div class="row"><span class="o-dim">经验等级</span><span class="lv">32</span></div>
           <div class="o-meter xp" style="--value: 0.64"><i></i></div>
         </div>
+        <div class="o-caps">状态效果</div>
+        <div class="o-effects o-scroll effects" id="effects"></div>
       </div>
       <div class="col bag">
         <div class="bar">

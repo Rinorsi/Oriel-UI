@@ -1,9 +1,10 @@
 package dev.oriel.kit.preset;
 
-import dev.oriel.kit.Dom;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
+import dev.oriel.kit.Dom;
+import dev.oriel.kit.Shell;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -13,25 +14,31 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The potion HUD preset over fixture effects: effects grouped into beneficial, harmful and neutral, each with a
- * countdown and a draining bar. A group shows three rows and a "另有 N 个" chip that expands it; its header folds it
- * to a strip of icons (the HUD takes the pointer while chat is open). Effects slide in when they start, blink in
- * their last ten seconds and fade out when they end; new ones keep arriving from a queue.
+ * The potion HUD over fixture effects, in two forms that share one model:
+ * <ul>
+ *   <li>the HUD page ({@link #attach}): a compact bar of icon tiles at the top right, each draining like an item
+ *   cooldown, with the level and time; a new effect is announced by a card that slides out under the bar and then
+ *   folds away into its tile; the handle (or H) unfolds the full panel;</li>
+ *   <li>the full panel ({@link #mountPanel}), also embedded in the inventory: effects grouped into beneficial,
+ *   harmful and neutral, each with a countdown and a draining bar. A group shows three rows and a "另有 N 个" chip
+ *   that expands it; its header folds it to a strip of icons.</li>
+ * </ul>
+ * Effects blink in their last ten seconds and fade out when they end; new ones keep arriving from a queue.
  */
 public final class PotionHudPreset implements PageControllers.Controller {
-    static final int SHOWN = 3;
-    static final double ARRIVAL_SECONDS = 9, FRESH_SECONDS = 4;
+    static final int SHOWN = 3, BAR_TILES = 9;
+    static final double ARRIVAL_SECONDS = 9, FRESH_SECONDS = 4, ANNOUNCE_SECONDS = 2.6;
 
     enum Kind { BENEFICIAL, HARMFUL, NEUTRAL }
 
     record Effect(String id, String name, int level, Kind kind, double seconds) {}
 
-    /** One running effect: when it ends (in page seconds) and its row. */
+    /** One running effect: when it ends (in page seconds), its panel row and its bar tile. */
     static final class Running {
         final Effect effect;
         final double start, end;
-        Element row, time, left;
-        Dom.Style bar;
+        Element row, time, tile, tileTime;
+        Dom.Style bar, drain;
         int shownSeconds = -1;
         /** Until when (page seconds) it shows even past a group's row limit: arrivals stay in view a moment. */
         double freshUntil;
@@ -73,28 +80,52 @@ public final class PotionHudPreset implements PageControllers.Controller {
             new Effect("absorption", "伤害吸收", 2, Kind.BENEFICIAL, 60));
 
     private static final String[] ROMAN = {"", "", " II", " III", " IV", " V"};
+    private static final String[] GROUP_TITLES = {"增益", "减益", "中性"}, GROUP_CLASSES = {"beneficial", "harmful", "neutral"};
 
     final Map<Kind, List<Running>> groups = new LinkedHashMap<>();
     private final Map<Kind, Element> groupElements = new LinkedHashMap<>();
     private final Map<Kind, Boolean> expanded = new LinkedHashMap<>();
     private final Deque<Effect> queue = new ArrayDeque<>();
     private Document doc;
-    private Element toast;
+    private Element toast, tiles, more, hud;
     private double now, nextArrival = ARRIVAL_SECONDS, toastUntil;
 
+    /** The HUD page: bar, announcements and the folding full panel. */
     @Override
     public void attach(Document document) {
         doc = document;
+        Shell.setup(doc);
+        hud = Dom.byId(doc, "hud");
         toast = Dom.byId(doc, "toast");
-        Element hud = Dom.byId(doc, "hud");
-        String[] titles = {"增益", "减益", "中性"};
+        tiles = Dom.byId(doc, "tiles");
+        more = Dom.byId(doc, "more-tiles");
+        Element handle = Dom.byId(doc, "handle");
+        Shell.activate(handle, this::togglePanel);
+        Dom.onKey(doc, e -> {
+            if (e.key.equalsIgnoreCase("h")) togglePanel();
+        });
+        start(Dom.byId(doc, "panel"));
+    }
+
+    /**
+     * The full panel alone, inside {@code where} of another page (the inventory's effects column); {@code folded}
+     * starts every group folded to its strip of icons.
+     */
+    public void mountPanel(Document document, Element where, boolean folded) {
+        doc = document;
+        start(where);
+        if (folded) for (Element g : groupElements.values()) g.addClass("folded");
+    }
+
+    private void start(Element panel) {
         for (Kind k : Kind.values()) {
             groups.put(k, new ArrayList<>());
             expanded.put(k, false);
-            Element g = Dom.html(doc, "<div class=\"group\"><div class=\"head\"><span class=\"caret\">▾</span>"
-                    + titles[k.ordinal()] + "<span class=\"n\"></span></div><div class=\"list\"></div>"
+            Element g = Dom.html(doc, "<div class=\"group " + GROUP_CLASSES[k.ordinal()] + "\"><div class=\"head\">"
+                    + "<img class=\"o-ico caret\" src=\"../textures/icons/down.png\"><i class=\"dot\"></i>"
+                    + GROUP_TITLES[k.ordinal()] + "<span class=\"n\"></span></div><div class=\"list\"></div>"
                     + "<div class=\"strip\"></div><div class=\"more\"></div></div>");
-            hud.appendChild(g);
+            panel.appendChild(g);
             groupElements.put(k, g);
             Dom.onClick(Dom.query(g, ".head"), e -> {
                 g.toggleClass("folded");
@@ -110,6 +141,10 @@ public final class PotionHudPreset implements PageControllers.Controller {
         doc.scheduler().requestAnimationFrame(t -> frame(t, t));
     }
 
+    private void togglePanel() {
+        if (hud != null) hud.toggleClass("full");
+    }
+
     private void frame(double t, double origin) {
         now = (t - origin) / 1000;
         tick();
@@ -123,19 +158,29 @@ public final class PotionHudPreset implements PageControllers.Controller {
             Effect e = queue.poll();
             add(e, true);
             queue.add(e);
-            say("获得效果：" + e.name() + ROMAN[e.level()]);
+            announce(e);
         }
-        if (now > toastUntil) toast.removeClass("on");
+        if (toast != null && now > toastUntil && toast.hasClass("on")) {
+            toast.removeClass("on");
+            toast.addClass("folding");
+        }
         for (Kind k : Kind.values()) {
             for (Running r : List.copyOf(groups.get(k))) {
                 double left = r.remaining(now);
                 int secs = (int) Math.ceil(left);
                 if (secs != r.shownSeconds) {
                     r.shownSeconds = secs;
-                    Dom.text(r.time, clock(secs));
+                    String text = clock(secs);
+                    Dom.text(r.time, text);
                     r.row.toggleClass("low", secs <= 10 && secs > 0);
+                    if (r.tile != null) {
+                        Dom.text(r.tileTime, shortClock(secs));
+                        r.tile.toggleClass("low", secs <= 10 && secs > 0);
+                    }
                 }
-                r.bar.set("width", Math.round(1000 * left / r.effect.seconds()) / 10.0 + "%").apply();
+                double fraction = left / r.effect.seconds();
+                r.bar.set("width", Math.round(1000 * fraction) / 10.0 + "%").apply();
+                if (r.drain != null) r.drain.set("height", Math.round(1000 * (1 - fraction)) / 10.0 + "%").apply();
                 if (left <= 0 && !r.leaving) leave(k, r);
             }
         }
@@ -147,19 +192,30 @@ public final class PotionHudPreset implements PageControllers.Controller {
         for (Running r : List.copyOf(list)) if (r.effect.id().equals(e.id()) && !r.leaving) remove(e.kind(), r);
         Running r = new Running(e, now);
         r.freshUntil = fresh ? now + FRESH_SECONDS : 0;
-        Element row = Dom.html(doc, "<div class=\"fx\"><img><span class=\"name\"></span><span class=\"time\"></span>"
+        Element row = Dom.html(doc, "<div class=\"eff\"><img><span class=\"name\"></span><span class=\"time\"></span>"
                 + "<div class=\"bar\"><div class=\"left\"></div></div></div>");
-        row.toggleClass("harmful", e.kind() == Kind.HARMFUL);
-        row.toggleClass("neutral", e.kind() == Kind.NEUTRAL);
         Dom.query(row, "img").setAttribute("src", icon(e));
         Dom.text(Dom.query(row, ".name"), e.name() + ROMAN[e.level()]);
         r.row = row;
         r.time = Dom.query(row, ".time");
-        r.left = Dom.query(row, ".left");
-        r.bar = new Dom.Style(r.left);
+        r.bar = new Dom.Style(Dom.query(row, ".left"));
+        if (tiles != null) {
+            Element tile = Dom.html(doc, "<div class=\"tile " + GROUP_CLASSES[e.kind().ordinal()] + "\"><img>"
+                    + "<i class=\"drain\"></i><b class=\"lv\"></b><span class=\"t\"></span></div>");
+            Dom.query(tile, "img").setAttribute("src", icon(e));
+            Dom.text(Dom.query(tile, ".lv"), ROMAN[e.level()].trim());
+            tile.setAttribute("title", e.name() + ROMAN[e.level()]);
+            r.tile = tile;
+            r.tileTime = Dom.query(tile, ".t");
+            r.drain = new Dom.Style(Dom.query(tile, ".drain"));
+        }
         if (fresh) {
             row.addClass("fresh");
-            doc.scheduler().setTimeout(() -> row.removeClass("fresh"), 1600);
+            if (r.tile != null) r.tile.addClass("fresh");
+            doc.scheduler().setTimeout(() -> {
+                row.removeClass("fresh");
+                if (r.tile != null) r.tile.removeClass("fresh");
+            }, 1600);
             doc.scheduler().setTimeout(() -> refresh(e.kind()), FRESH_SECONDS * 1000 + 50);
         }
         // Soonest to end first within a group, so countdowns about to run out are in view.
@@ -172,17 +228,34 @@ public final class PotionHudPreset implements PageControllers.Controller {
     private void leave(Kind k, Running r) {
         r.leaving = true;
         r.row.addClass("gone");
-        say(r.effect.name() + " 已结束");
+        if (r.tile != null) r.tile.addClass("gone");
         doc.scheduler().setTimeout(() -> remove(k, r), 620);
     }
 
     private void remove(Kind k, Running r) {
         groups.get(k).remove(r);
         r.row.remove();
+        if (r.tile != null) r.tile.remove();
         refresh(k);
     }
 
-    /** Rebuilds a group's visible rows, strip and counts. */
+    /** The card under the bar: the new effect's icon, name and duration, folding away after a moment. */
+    private void announce(Effect e) {
+        if (toast == null) return;
+        toast.removeAllChildren();
+        toast.setAttribute("class", "toast " + GROUP_CLASSES[e.kind().ordinal()]);
+        Element img = Dom.el(doc, "img", null, null);
+        img.setAttribute("src", icon(e));
+        toast.appendChild(img);
+        Element text = Dom.el(doc, "div", "text", null);
+        text.appendChild(Dom.el(doc, "div", "name", (e.kind() == Kind.HARMFUL ? "受到 " : "获得 ") + e.name() + ROMAN[e.level()]));
+        text.appendChild(Dom.el(doc, "div", "sub", clock((int) e.seconds()) + " · " + GROUP_TITLES[e.kind().ordinal()]));
+        toast.appendChild(text);
+        doc.scheduler().requestAnimationFrame(t -> toast.addClass("on"));
+        toastUntil = now + ANNOUNCE_SECONDS;
+    }
+
+    /** Rebuilds a group's visible rows, strip and counts, and the bar. */
     void refresh(Kind k) {
         Element g = groupElements.get(k), list = Dom.query(g, ".list"), strip = Dom.query(g, ".strip"), more = Dom.query(g, ".more");
         List<Running> effects = groups.get(k);
@@ -193,12 +266,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             Running r = effects.get(i);
             if (i < limit || now < r.freshUntil) want.add(r.row);
         }
-        // Rows only move when they must: re-inserting one would replay its slide-in.
-        for (Element c : List.copyOf(list.children())) if (!want.contains(c)) c.remove();
-        for (int i = 0; i < want.size(); i++) {
-            Element row = want.get(i);
-            if (i >= list.childCount() || list.childAt(i) != row) list.insertBefore(row, i < list.childCount() ? list.childAt(i) : null);
-        }
+        place(list, want);
         strip.removeAllChildren();
         for (Running r : effects) {
             Element img = Dom.el(doc, "img", null, null);
@@ -210,12 +278,32 @@ public final class PotionHudPreset implements PageControllers.Controller {
         Dom.text(more, expanded.get(k) ? "收起 ▴" : "另有 " + hidden + " 个效果 ▾");
         Dom.text(Dom.query(g, ".n"), Integer.toString(effects.size()));
         g.toggleClass("empty", effects.isEmpty());
+        refreshBar();
     }
 
-    private void say(String text) {
-        Dom.text(toast, text);
-        toast.addClass("on");
-        toastUntil = now + 2.2;
+    /** The bar: beneficial, then neutral, then harmful tiles, soonest first in each, up to {@link #BAR_TILES}. */
+    private void refreshBar() {
+        if (tiles == null) return;
+        List<Element> want = new ArrayList<>();
+        int total = 0;
+        for (Kind k : new Kind[] {Kind.BENEFICIAL, Kind.NEUTRAL, Kind.HARMFUL}) {
+            for (Running r : groups.getOrDefault(k, List.of())) {
+                total++;
+                if (want.size() < BAR_TILES) want.add(r.tile);
+            }
+        }
+        place(tiles, want);
+        Dom.text(more, total > want.size() ? "+" + (total - want.size()) : "");
+        more.toggleClass("none", total <= want.size());
+    }
+
+    /** Puts {@code want} into {@code parent} in order, moving only what must move (re-inserting replays slide-ins). */
+    private static void place(Element parent, List<Element> want) {
+        for (Element c : List.copyOf(parent.children())) if (!want.contains(c)) c.remove();
+        for (int i = 0; i < want.size(); i++) {
+            Element e = want.get(i);
+            if (i >= parent.childCount() || parent.childAt(i) != e) parent.insertBefore(e, i < parent.childCount() ? parent.childAt(i) : null);
+        }
     }
 
     static String icon(Effect e) {
@@ -225,5 +313,11 @@ public final class PotionHudPreset implements PageControllers.Controller {
     static String clock(int seconds) {
         if (seconds >= 3600) return "**:**";
         return seconds / 60 + ":" + String.format("%02d", seconds % 60);
+    }
+
+    /** The bar's short form: seconds under a minute, minutes above. */
+    static String shortClock(int seconds) {
+        if (seconds >= 3600) return "∞";
+        return seconds < 60 ? seconds + "s" : seconds / 60 + "m";
     }
 }

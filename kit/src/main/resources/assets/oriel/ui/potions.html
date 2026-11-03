@@ -1,60 +1,72 @@
 <!doctype html>
 <html>
 <head>
-<title>药水 HUD</title>
+<title>优易库 · 药水 HUD</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-.hud { position: absolute; top: 4px; right: 4px; width: 124px; display: flex; flex-direction: column; gap: 3px; }
-.group { display: flex; flex-direction: column; gap: 1px; transition: opacity var(--ore-slow); }
-.group.empty { opacity: 0; }
-.head {
-    display: flex; align-items: center; gap: 3px; height: 11px; padding: 0 3px;
-    color: var(--ore-text); cursor: pointer; background: rgba(15, 15, 16, 0.62);
-}
-.head .caret { transition: transform var(--ore-medium) var(--ore-ease); }
-.group.folded .head .caret { transform: rotate(-90deg); }
-.head .n { margin-left: auto; color: var(--ore-text-dim); }
-.list { display: flex; flex-direction: column; gap: 1px; }
-.strip { display: none; flex-wrap: wrap; gap: 1px; padding: 2px; background: rgba(15, 15, 16, 0.7); }
-.group.folded .list, .group.folded .more { display: none; }
-.group.folded .strip { display: flex; animation: ore-rise 0.2s var(--ore-ease); }
-.strip img { width: 12px; height: 12px; }
-.fx {
-    position: relative; height: 18px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 4px;
-    background: rgba(30, 30, 31, 0.84); border: 1px solid rgba(0, 0, 0, 0.85);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    animation: slide-in 0.42s var(--ore-ease) backwards;
-    transition: opacity 0.6s ease-out, transform 0.6s ease-in;
-}
-.fx::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--ore-green-3); }
-.fx.harmful::before { background: var(--ore-red-light); }
-.fx.neutral::before { background: #6e9cf2; }
-.fx img { width: 16px; height: 16px; flex-shrink: 0; }
-.fx .name { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fx.harmful .name { color: #ff9a9a; }
-.fx .time { color: var(--ore-text-dim); }
-.fx.low .time { color: var(--ore-red-light); animation: blink 0.8s steps(2) infinite; }
-.fx .bar { position: absolute; left: 2px; right: 0; bottom: 0; height: 1px; background: rgba(255, 255, 255, 0.08); }
-.fx .bar .left { height: 1px; background: var(--ore-green-3); }
-.fx.harmful .bar .left { background: var(--ore-red-light); }
-.fx.neutral .bar .left { background: #6e9cf2; }
-.fx.fresh { outline: 1px solid var(--ore-gold); }
-.fx.gone { opacity: 0; transform: translateX(16px); }
-@keyframes slide-in { from { opacity: 0; transform: translateX(132px); } to { opacity: 1; transform: none; } }
-@keyframes blink { from { opacity: 1; } to { opacity: 0.35; } }
-.more {
-    height: 12px; display: flex; align-items: center; justify-content: center;
-    background: rgba(30, 30, 31, 0.7); border: 1px solid rgba(0, 0, 0, 0.8); color: var(--ore-text-dim); cursor: pointer;
-}
-.more:hover, .head:hover { color: var(--ore-text); }
-.toast { position: absolute; top: 4px; left: 50%; margin-left: -70px; width: 140px; padding: 3px 6px; text-align: center;
-    border: 2px solid transparent; border-image: url(../textures/ore/tooltip.png) 2 fill; opacity: 0;
-    transition: opacity var(--ore-slow); }
-.toast.on { opacity: 1; }
+/* Drawn over the world, so everything sits on glass. The bar is the always-on form: one 22px tile per effect, its
+   dark drain growing from the top as time runs out (like an item cooldown), the level in the corner and the time
+   under it. A new effect's card slides out under the bar and folds back into its tile. The handle opens the full
+   panel (shared with the inventory: .o-effects in ore.css). */
+html, body { background: none; }
+.hud { position: absolute; top: 4px; right: 4px; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+
+.bar { display: flex; align-items: flex-start; gap: 2px; padding: 3px; border: 2px solid transparent; border-image: url(../textures/ore/panel_glass.png) 2 fill; }
+.tiles { display: flex; gap: 2px; }
+.tile { --kind: #6cc349; position: relative; width: 22px; height: 31px; display: flex; flex-direction: column; align-items: center;
+    animation: tile-in 360ms var(--o-ease-back) backwards; transition: opacity 600ms, transform 600ms; }
+.tile.harmful { --kind: #e25a5a; }
+.tile.neutral { --kind: #ffb52b; }
+.tile::before { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; background: rgba(0, 0, 0, 0.42);
+    border: 1px solid color-mix(in srgb, var(--kind) 70%, #000000); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+.tile img { position: relative; margin-top: 3px; width: 16px; height: 16px; }
+.tile .drain { position: absolute; left: 1px; top: 1px; width: 20px; height: 0; background: rgba(0, 0, 0, 0.55); pointer-events: none; }
+.tile .lv { position: absolute; right: 1px; top: 12px; color: #ffffff; text-shadow: 1px 1px 0 #000000; font-weight: normal; }
+.tile .t { margin-top: 2px; color: #e6e7e9; text-shadow: 1px 1px 0 #000000; }
+.tile.low .t { color: #ff8a8a; animation: eff-blink 0.8s steps(2) infinite; }
+.tile.low::before { border-color: #e25a5a; }
+.tile.fresh::before { border-color: #ffd36b; box-shadow: 0 0 6px rgba(255, 200, 80, 0.9); }
+.tile.gone { opacity: 0; transform: translateY(-6px) scale(0.8); }
+@keyframes tile-in { from { opacity: 0; transform: scale(0.4); } }
+.more-tiles { align-self: center; padding: 0 2px; color: #c4c5c8; }
+.more-tiles.none { display: none; }
+.handle { width: 14px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    -mc-tint: #8c8d90; transition: -mc-tint 120ms; }
+.handle:hover { -mc-tint: #ffffff; }
+.handle img { transition: transform 200ms var(--o-ease-out); }
+.hud.full .handle img { transform: rotate(180deg); }
+
+/* The announcement card. */
+.toast { --kind: #6cc349; display: flex; align-items: center; gap: 6px; padding: 4px 8px 4px 5px; min-width: 120px; overflow: hidden;
+    border: 2px solid transparent; border-image: url(../textures/ore/panel_glass.png) 2 fill;
+    box-shadow: inset 2px 0 0 var(--kind); opacity: 0; height: 0; padding-top: 0; padding-bottom: 0;
+    transition: opacity 220ms, height 260ms var(--o-ease-out), padding 260ms var(--o-ease-out), transform 260ms var(--o-ease-out); transform: translateY(-8px); }
+.toast.harmful { --kind: #e25a5a; }
+.toast.neutral { --kind: #ffb52b; }
+.toast.on { opacity: 1; height: 26px; padding-top: 4px; padding-bottom: 4px; transform: none; }
+.toast img { width: 16px; height: 16px; flex: none; }
+.toast .name { color: #ffffff; }
+.toast .sub { color: #a9abb0; }
+
+/* The full panel, on glass. */
+.panel { width: 150px; display: none; padding: 4px; border: 2px solid transparent; border-image: url(../textures/ore/panel_glass.png) 2 fill;
+    --o-tile: rgba(30, 30, 31, 0.8); --o-tile-edge: rgba(0, 0, 0, 0.85); --o-text: #ffffff; --o-text-dim: #c4c5c8; --o-text-faint: #8c8d90; }
+.hud.full .panel { display: flex; animation: fx-rise 220ms var(--o-ease-out); }
+.hint { color: #8c8d90; text-shadow: 1px 1px 0 #000000; animation: hint-out 7s ease-in forwards; }
+@keyframes hint-out { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.hud.full .hint { display: none; }
 </style>
 </head>
 <body>
-<div class="hud" id="hud"></div>
-<div class="toast" id="toast"></div>
+<div class="hud" id="hud">
+  <div class="bar">
+    <div class="tiles" id="tiles"></div>
+    <span class="more-tiles none" id="more-tiles"></span>
+    <div class="handle" id="handle" tabindex="0" title="全部效果 (H)"><img class="o-ico" src="../textures/icons/down.png"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="panel o-effects" id="panel"></div>
+  <div class="hint">打开聊天栏后可展开全部效果</div>
+</div>
 </body>
 </html>
