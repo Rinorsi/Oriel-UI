@@ -24,6 +24,11 @@ public final class Shell {
         return theme;
     }
 
+    /** Sets the theme for the pages opened from now on. */
+    public static void setTheme(String name) {
+        theme = name.equals("light") ? "light" : "dark";
+    }
+
     /** Sets the theme for this page and the pages opened after it. */
     public static void theme(Document doc, String name) {
         theme = name.equals("light") ? "light" : "dark";

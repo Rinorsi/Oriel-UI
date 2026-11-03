@@ -797,6 +797,18 @@ public final class DevAutopilot {
         pause(8);
         grab(mc, "preset_settings_dropdown", 5);
 
+        shoot(mc, "preset_editor", () -> OrielClientCommands.preset("editor"));
+        onPage("an editor selection", p -> p.click(".node[data-id='7']"));
+        pause(6);
+        grab(mc, "preset_editor_selected", 5);
+
+        shoot(mc, "preset_gallery_light", () -> OrielClientCommands.preset("gallery"));
+        onPage("the light theme", p -> p.click("[data-theme-pick=light]"));
+        pause(10);
+        grab(mc, "preset_gallery_light", 5);
+        shoot(mc, "preset_inventory_light", () -> OrielClientCommands.preset("inventory"));
+        steps.add(() -> dev.oriel.kit.Shell.setTheme("dark"));
+
         steps.add(() -> {
             McClient.setScreen(null);
             OrielClientCommands.togglePotionHud();

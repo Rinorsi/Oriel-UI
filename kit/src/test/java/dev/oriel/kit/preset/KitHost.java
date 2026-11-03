@@ -92,9 +92,14 @@ final class KitHost implements Host {
      * as its controller, and runs its first frame.
      */
     Document open(String url, PageControllers.Controller controller) {
+        return open(url, controller, 427, 240);
+    }
+
+    /** {@link #open(String, PageControllers.Controller)} in a viewport of the given GUI size. */
+    Document open(String url, PageControllers.Controller controller, int width, int height) {
         OrielKit.register();
         PageControllers.register(url, () -> controller);
-        Document doc = Document.parse(this, url, loadText(url), null, new Viewport(427, 240, 2));
+        Document doc = Document.parse(this, url, loadText(url), null, new Viewport(width, height, 2));
         doc.frame(0);
         if (doc.error() != null) throw new AssertionError("page stopped", doc.error());
         return doc;
