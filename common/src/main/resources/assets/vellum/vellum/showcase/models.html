@@ -1,0 +1,273 @@
+<!doctype html>
+<html>
+<head>
+  <title>Turntable</title>
+  <link rel="stylesheet" href="showcase.css">
+  <style>
+    /*
+     * TURNTABLE: blocks, items and mobs in 3D. <model> and <entity> are turned by CSS (-mc-yaw, -mc-pitch,
+     * -mc-model-scale), so transitions and @keyframes animate them; `rotatable` lets you drag them around.
+     * The portraits crop entities to their head and shoulders (-mc-entity-focus: eyes, object-position) and watch
+     * the pointer with a softer, capped gaze than the inventory's (-mc-gaze-reach, -mc-gaze-limit).
+     */
+    :root {
+      --ink: #e8f0ff;
+      --muted: #7d8aa6;
+      --line: rgba(160, 190, 255, 0.14);
+      --glow: #7fb0ff;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px 8px;
+      color: var(--ink);
+      background: radial-gradient(ellipse at 50% 120%, #2a3550, rgba(0, 0, 0, 0) 70%), #0d1018;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex: none;
+    }
+
+    h1 {
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 0 #34507a;
+    }
+
+    header span { color: var(--muted); }
+
+    main {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .shelves {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .shelf {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      gap: 3px;
+    }
+
+    /* A display cell: a pedestal glow under the subject and a label at the bottom. */
+    .cell {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+      padding: 2px 2px 10px;
+      background: radial-gradient(ellipse at 50% 85%, rgba(127, 176, 255, 0.22), rgba(127, 176, 255, 0) 60%);
+      border: 1px solid var(--line);
+    }
+
+    .cell label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 1px;
+      color: var(--muted);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cell model, .cell entity, .cell item, .stage model {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Everything on a shelf spins, each a little behind the one before. */
+    .spin model, .spin entity { animation: turn 6s linear infinite; }
+    .cell:nth-child(2) > * { animation-delay: -1s; }
+    .cell:nth-child(3) > * { animation-delay: -2s; }
+    .cell:nth-child(4) > * { animation-delay: -3s; }
+    .cell:nth-child(5) > * { animation-delay: -4s; }
+    .cell:nth-child(6) > * { animation-delay: -5s; }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 0 0 34%;
+      min-width: 0;
+    }
+
+    /* The big stage: turn it by dragging; hovering swings it round and looks from above. */
+    .stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      background:
+        radial-gradient(ellipse at 50% 88%, rgba(127, 176, 255, 0.35), rgba(127, 176, 255, 0) 45%),
+        repeating-linear-gradient(to right, rgba(127, 176, 255, 0.06) 0 1px, transparent 1px 10px),
+        repeating-linear-gradient(to bottom, rgba(127, 176, 255, 0.06) 0 1px, transparent 1px 10px);
+      border: 1px solid var(--line);
+    }
+
+    .stage model {
+      -mc-model-scale: 0.9;
+      transition: -mc-yaw 700ms cubic-bezier(0.3, 1.3, 0.5, 1), -mc-pitch 500ms ease-out;
+    }
+
+    .stage model:hover {
+      -mc-yaw: 180deg;
+      -mc-pitch: 25deg;
+    }
+
+    .stage p {
+      flex: none;
+      margin: 0;
+      padding: 0 4px 4px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Head-and-shoulders portraits in viewfinders; they all watch the pointer, calmly: wherever it goes on the page,
+       they turn their heads at most 30 degrees and tilt them at most 9. */
+    .portraits {
+      flex: none;
+      padding: 3px 4px 4px;
+      background: linear-gradient(to bottom, rgba(127, 176, 255, 0.08), rgba(127, 176, 255, 0));
+      border: 1px solid var(--line);
+    }
+
+    .portraits h2 {
+      margin: 0 0 3px;
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .stage b, .portraits h2 b { color: var(--glow); }
+
+    .faces {
+      display: flex;
+      gap: 4px;
+    }
+
+    .face {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .face .frame {
+      position: relative;
+      width: 100%;
+      background:
+        repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255, 255, 255, 0.03) 2px 3px),
+        radial-gradient(ellipse at 50% 35%, rgba(127, 176, 255, 0.3), rgba(127, 176, 255, 0) 70%),
+        linear-gradient(to bottom, #1b2438, #0a0d14);
+      border: 1px solid rgba(160, 190, 255, 0.25);
+      transition: border-color 150ms;
+    }
+
+    .face entity {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      -mc-entity-focus: eyes;
+      object-position: 50% 40%;
+      -mc-gaze-reach: 80px;
+      -mc-gaze-limit: 30deg 9deg;
+    }
+
+    /* The bust fades out at the bottom of the frame. */
+    .face .frame::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 30%;
+      background: linear-gradient(to bottom, rgba(10, 13, 20, 0), rgba(10, 13, 20, 0.85));
+    }
+
+    .face:hover { color: var(--ink); }
+    .face:hover .frame { border-color: var(--glow); }
+  </style>
+</head>
+<body class="fullscreen">
+  <header>
+    <h1>TURNTABLE</h1>
+    <span>&lt;model&gt; and &lt;entity&gt; in 3D, turned by CSS</span>
+  </header>
+  <main>
+    <div class="shelves">
+      <section class="shelf spin">
+        <div class="cell"><model block="minecraft:chest"></model><label>chest</label></div>
+        <div class="cell"><model block="minecraft:oak_stairs[facing=east]"></model><label>oak_stairs</label></div>
+        <div class="cell"><model block="minecraft:grass_block"></model><label>grass_block</label></div>
+        <div class="cell"><model block="minecraft:lantern[hanging=false]"></model><label>lantern</label></div>
+        <div class="cell"><model block="minecraft:anvil"></model><label>anvil</label></div>
+        <div class="cell"><model block="minecraft:enchanting_table"></model><label>enchanting</label></div>
+      </section>
+      <section class="shelf spin">
+        <div class="cell"><model item="minecraft:diamond_sword"></model><label>diamond_sword</label></div>
+        <div class="cell"><model item="minecraft:bow"></model><label>bow</label></div>
+        <div class="cell"><model item="minecraft:trident"></model><label>trident</label></div>
+        <div class="cell"><model item="minecraft:shield"></model><label>shield</label></div>
+        <div class="cell"><model item="minecraft:golden_apple" components='{"minecraft:enchantment_glint_override":true}'></model><label>glinting</label></div>
+        <div class="cell"><model item="minecraft:clock"></model><label>clock</label></div>
+      </section>
+      <section class="shelf spin">
+        <div class="cell"><entity type="minecraft:enderman"></entity><label>enderman</label></div>
+        <div class="cell"><entity type="minecraft:ghast"></entity><label>ghast</label></div>
+        <div class="cell"><entity type="minecraft:bee"></entity><label>bee</label></div>
+        <div class="cell"><entity type="minecraft:sheep" color="pink"></entity><label>pink sheep</label></div>
+        <div class="cell"><entity type="minecraft:cow" baby></entity><label>baby cow</label></div>
+        <div class="cell"><entity type="minecraft:zombie" walk mainhand="minecraft:iron_sword" head="minecraft:golden_helmet"></entity><label>walking</label></div>
+      </section>
+      <!-- Fixed angles, for comparing with the inventory icons. -->
+      <section class="shelf">
+        <div class="cell"><item id="minecraft:chest"></item><label>&lt;item&gt;</label></div>
+        <div class="cell"><model item="minecraft:chest"></model><label>&lt;model item&gt;</label></div>
+        <div class="cell"><model block="minecraft:chest" style="-mc-yaw: 45deg"></model><label>yaw 45</label></div>
+        <div class="cell"><model block="minecraft:crafting_table" style="-mc-pitch: 60deg"></model><label>pitch +60</label></div>
+        <div class="cell"><entity type="minecraft:fox" variant="snow" style="-mc-yaw: 45deg"></entity><label>snow fox, yaw 45</label></div>
+        <div class="cell"><entity type="minecraft:cat" variant="minecraft:black" style="-mc-pitch: 30deg"></entity><label>black cat, pitch 30</label></div>
+      </section>
+    </div>
+    <div class="side">
+      <section class="stage">
+        <model block="minecraft:chiseled_bookshelf[slot_0_occupied=true,slot_2_occupied=true,slot_3_occupied=true]" rotatable></model>
+        <p><b>Drag</b> to turn it, hover to swing it round.</p>
+      </section>
+      <section class="portraits">
+        <h2 class="truncate"><b>PORTRAITS</b> focus: eyes</h2>
+        <div class="faces">
+          <div class="face"><div class="frame"><entity player follow-mouse></entity></div>you</div>
+          <div class="face"><div class="frame"><entity type="minecraft:villager" follow-mouse></entity></div>villager</div>
+          <div class="face"><div class="frame"><entity type="minecraft:iron_golem" follow-mouse></entity></div>golem</div>
+          <div class="face"><div class="frame"><entity type="minecraft:creeper" follow-mouse></entity></div>creeper</div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

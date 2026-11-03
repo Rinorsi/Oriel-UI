@@ -1,0 +1,412 @@
+package dev.vellum.engine.css;
+
+import dev.vellum.engine.anim.AnimationEngine;
+import dev.vellum.engine.css.RuleIndex.Entry;
+import dev.vellum.engine.css.RuleIndex.Source;
+import dev.vellum.engine.css.Selector.MatchContext;
+import dev.vellum.engine.css.Stylesheet.Keyframe;
+import dev.vellum.engine.css.Stylesheet.KeyframesRule;
+import dev.vellum.engine.dom.Document;
+import dev.vellum.engine.dom.Element;
+import dev.vellum.engine.dom.PseudoElement;
+import dev.vellum.engine.dom.Node;
+import dev.vellum.engine.dom.Text;
+import dev.vellum.engine.host.Host;
+import dev.vellum.engine.style.ComputedStyle;
+import dev.vellum.engine.style.Display;
+import dev.vellum.engine.style.Prop;
+import dev.vellum.engine.style.TimingFunction;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+
+/**
+ * The cascade. Finds the document's stylesheets (the user-agent sheet, {@code <style>} elements and
+ * {@code <link rel="stylesheet">}), matches rules, and computes {@code baseStyle} (plus ::before/::after and
+ * ::placeholder styles) for every element.
+ *
+ * <p>Restyles are full-document but incremental in effect: an element whose matched rules, parent
+ * style and container style are unchanged keeps its previous style objects, so identity comparison is enough
+ * downstream, and a changed style is compared property by property to decide whether layout must run again. When
+ * nothing selectors or stylesheet collection read changed since the last restyle besides hover, active and focus
+ * state ({@link Document#selectorVersion} is unchanged), the stylesheets are not collected again, and elements whose
+ * matching did not read that state (and whose inline style is unchanged) keep their matched rules without matching
+ * again.
+ */
+public final class StyleEngine {
+    private static final Stylesheet USER_AGENT = loadUserAgentSheet();
+    /** {@link #transitionProperties} for {@code all} and by shorthand; callers get copies. */
+    private static final EnumSet<Prop> ALL_TRANSITIONS = allTransitions();
+    private static final Map<String, EnumSet<Prop>> SHORTHAND_TRANSITIONS = shorthandTransitions();
+
+    private final Document document;
+    private final Host host;
+    private final Cascade cascade = new Cascade();
+    private final List<Entry> matched = new ArrayList<>();
+    /** Scratch for {@link #computeUsed}, which runs while a restyle's {@link #matched} is still in use. */
+    private final List<Entry> usedMatches = new ArrayList<>();
+    private RuleIndex index;
+    private List<Source> sources;
+    /** The {@link Document#selectorVersion} the last restyle ran at (and {@link #sources} were collected at). */
+    private int styledVersion;
+    /** Every element matches again this pass: something selectors read, or the rules, changed. */
+    private boolean rematchAll;
+    /** Elements matched against the rules in the last restyle, for tests. */
+    int rematched;
+    private MediaQuery.Environment environment;
+    /** Bumped whenever something every element depends on changes: sheets, media, viewport, root font size. */
+    private int generation;
+    private float rootFontSize = ComputedStyle.DEFAULT_FONT_SIZE;
+    /** Parsed {@code <style>} contents by text, kept while some element still uses them. */
+    private Map<String, Stylesheet> styleSheets = new HashMap<>();
+    /** Linked and imported sheets by URL, for the life of the document. */
+    private final Map<String, Stylesheet> loadedSheets = new HashMap<>();
+    private final Map<String, MediaQuery> mediaAttributes = new HashMap<>();
+
+    public StyleEngine(Document document) {
+        this.document = document;
+        this.host = document.host();
+    }
+
+    /**
+     * Recomputes styles for the whole document. For each element: sets {@code baseStyle}, calls
+     * {@code document.animations().styleChanged(element, oldBase, newBase)} which sets {@code element.style},
+     * and invalidates layout when a layout-affecting property changed.
+     */
+    public void restyle() {
+        Element root = document.documentElement();
+        if (root == null) return;
+        MediaQuery.Environment env = new MediaQuery.Environment(document.viewportWidth(), document.viewportHeight(),
+                document.devicePixelRatio(), host.prefersReducedMotion());
+        boolean selectorsChanged = sources == null || document.selectorVersion() != styledVersion;
+        styledVersion = document.selectorVersion();
+        List<Source> found = sources;
+        if (selectorsChanged) {
+            found = new ArrayList<>();
+            Map<String, Stylesheet> usedStyles = new HashMap<>();
+            collectSheets(document, found, usedStyles);
+            styleSheets = usedStyles;
+        }
+        rematchAll = selectorsChanged;
+        if (index == null || !env.equals(environment) || !found.equals(sources)) {
+            index = RuleIndex.build(USER_AGENT, found, env, this::loadSheet);
+            environment = env;
+            generation++;
+            rematchAll = true;
+            cascade.environment(host, env.width(), env.height(), env.guiScale());
+        }
+        sources = found;
+        rematched = 0;
+        cascade.newPass();
+        restyle(root, null, null, new MatchContext(root));
+    }
+
+    private void restyle(Element el, ComputedStyle parent, ComputedStyle container, MatchContext mc) {
+        ElementState state = ElementState.of(el);
+        matched.clear();
+        boolean rematch = rematchAll || !state.matchesSurviveInteraction();
+        boolean sameMatches = true;
+        if (rematch) {
+            rematched++;
+            mc.interactionRead = false;
+            index.match(el, mc, matched);
+            sameMatches = state.updateMatches(matched, mc.interactionRead);
+        }
+        ComputedStyle old = el.baseStyle, oldBefore = el.beforeBaseStyle, oldAfter = el.afterBaseStyle;
+        ComputedStyle base = old;
+        if (old == null || !sameMatches || !state.sameInputs(parent, container, generation)) {
+            if (!rematch) state.matchesInto(matched);
+            float rem = parent == null ? ComputedStyle.DEFAULT_FONT_SIZE : rootFontSize;
+            base = reuseIfEqual(old, cascade.compute(el, parent, container, rem, matched, PseudoElement.NONE,
+                    state.inline, null));
+            boolean inheritsExplicitly = cascade.inheritedExplicitly();
+            boolean readsAttributes = cascade.readAttributes();
+            el.beforeBaseStyle = pseudo(el, base, rem, PseudoElement.BEFORE, oldBefore);
+            readsAttributes |= cascade.readAttributes();
+            el.afterBaseStyle = pseudo(el, base, rem, PseudoElement.AFTER, oldAfter);
+            readsAttributes |= cascade.readAttributes();
+            el.placeholderStyle = el.isTextControl()
+                    ? pseudo(el, base, rem, PseudoElement.PLACEHOLDER, el.placeholderStyle) : null;
+            state.remember(parent, container, generation, readsAttributes, inheritsExplicitly);
+        }
+        if (parent == null && base.fontSize != rootFontSize) {
+            rootFontSize = base.fontSize; // rem changed: nothing below may be reused
+            generation++;
+        }
+        el.baseStyle = base;
+        AnimationEngine animations = document.animations();
+        animations.styleChanged(el, PseudoElement.NONE, old, base);
+        animations.styleChanged(el, PseudoElement.BEFORE, oldBefore, el.beforeBaseStyle);
+        animations.styleChanged(el, PseudoElement.AFTER, oldAfter, el.afterBaseStyle);
+        ComputedStyle childContainer = base.display == Display.CONTENTS ? container : base;
+        for (int i = 0, n = el.childCount(); i < n; i++) {
+            if (el.childAt(i) instanceof Element child) restyle(child, base, childContainer, mc);
+        }
+    }
+
+    /** A pseudo-element's style, or null when no rule targets it (or, for ::before/::after, it has no content). */
+    private ComputedStyle pseudo(Element el, ComputedStyle style, float rem, PseudoElement which, ComputedStyle old) {
+        ComputedStyle s = null;
+        for (Entry e : matched) {
+            if (e.selector().pseudoElement != which) continue;
+            s = cascade.compute(el, style, style, rem, matched, which, null, null);
+            if (s.content == ComputedStyle.LIST_MARKER) s.content = s.listStyleType.marker;
+            if (which != PseudoElement.PLACEHOLDER && s.content == null) s = null;
+            break;
+        }
+        if (s != null) return reuseIfEqual(old, s);
+        if (old != null) document.invalidateLayout();
+        return null;
+    }
+
+    /**
+     * {@code old} when {@code fresh} computes the same (so unchanged styles keep their identity), else {@code fresh};
+     * invalidates layout when the element is new or a layout-affecting property changed.
+     */
+    private ComputedStyle reuseIfEqual(ComputedStyle old, ComputedStyle fresh) {
+        if (old == null) {
+            document.invalidateLayout();
+            return fresh;
+        }
+        if (!old.sameLayout(fresh)) {
+            document.invalidateLayout();
+            return fresh;
+        }
+        return old.sameBesidesLayout(fresh) ? old : fresh;
+    }
+
+    /**
+     * Whether a change to attribute {@code name} (lower case) can change a style: {@code style}, the attributes the
+     * current rules' selectors read (by name, as a class or id, or through pseudo-classes such as {@code :checked}),
+     * and those {@code attr()} has read. Every attribute can until the first restyle, which reads the stylesheets.
+     */
+    public boolean readsAttribute(String name) {
+        return index == null || name.equals("style") || index.attributes.contains(name) || cascade.hasReadAttribute(name);
+    }
+
+    /**
+     * Whether a change to attribute {@code name} (lower case) of {@code element} can change which rules match or
+     * which stylesheets apply: {@code id} and {@code class}, the attributes the current rules' selectors read, and
+     * those finding the stylesheets reads (a {@code <link>}'s {@code rel}, {@code href} and {@code media}, a
+     * {@code <style>}'s {@code media}). Every attribute can until the first restyle.
+     */
+    public boolean matchingReads(Element element, String name) {
+        if (index == null || name.equals("id") || name.equals("class") || index.attributes.contains(name)) return true;
+        return switch (element.tagName()) {
+            case "link" -> name.equals("rel") || name.equals("href") || name.equals("media");
+            case "style" -> name.equals("media");
+            default -> false;
+        };
+    }
+
+    // ---- Used styles ----
+
+    /**
+     * The style {@code el} (or its {@code which} pseudo-element) has at used-value time: computed from its parent's
+     * used style instead of its base style, so animated inherited values pass down, and with the font-size and
+     * color of {@code own} (its animated values, or null), which {@code em} and {@code currentColor} resolve
+     * against. The base style itself when that computes the same. The animation engine calls this after a restyle,
+     * parents first.
+     */
+    public ComputedStyle computeUsed(Element el, PseudoElement which, ComputedStyle own) {
+        ComputedStyle base = switch (which) {
+            case BEFORE -> el.beforeBaseStyle;
+            case AFTER -> el.afterBaseStyle;
+            default -> el.baseStyle;
+        };
+        if (base == null) return null;
+        Element from = which == PseudoElement.NONE ? el.parentElement() : el;
+        ComputedStyle parent = from == null ? null : from.style, parentBase = from == null ? null : from.baseStyle;
+        ElementState state = ElementState.of(el);
+        boolean parentAnimated = parent != parentBase && parent != null && parentBase != null
+                && !(state.inheritsExplicitly() ? parent.sameAs(parentBase) : parent.sameInherited(parentBase));
+        boolean ownAnimated = own != null && (own.color != base.color || Float.compare(own.fontSize, base.fontSize) != 0);
+        if (!parentAnimated && !ownAnimated) return base;
+        usedMatches.clear();
+        state.matchesInto(usedMatches);
+        float rem = from == null ? ComputedStyle.DEFAULT_FONT_SIZE : rootFontSize;
+        ComputedStyle container = which == PseudoElement.NONE ? container(el) : el.baseStyle;
+        return cascade.compute(el, parent, container, rem, usedMatches, which,
+                which == PseudoElement.NONE ? state.inline : null, own);
+    }
+
+    /** The style blockification reads for {@code el}: its nearest ancestor's that is not {@code display: contents}. */
+    private static ComputedStyle container(Element el) {
+        for (Element p = el.parentElement(); p != null; p = p.parentElement()) {
+            if (p.baseStyle == null || p.baseStyle.display != Display.CONTENTS) return p.baseStyle;
+        }
+        return null;
+    }
+
+    // ---- Stylesheets ----
+
+    /** Finds {@code <style>} and {@code <link rel=stylesheet>} elements in document order (not inside templates). */
+    private void collectSheets(Node node, List<Source> out, Map<String, Stylesheet> usedStyles) {
+        for (int i = 0, n = node.childCount(); i < n; i++) {
+            if (!(node.childAt(i) instanceof Element e)) continue;
+            switch (e.tagName()) {
+                case "style" -> {
+                    String text = styleText(e);
+                    Stylesheet sheet = usedStyles.computeIfAbsent(text, t -> {
+                        Stylesheet cached = styleSheets.get(t);
+                        return cached != null ? cached : Stylesheet.parse(t, document.url(), host, log(document.url()));
+                    });
+                    out.add(new Source(sheet, media(e)));
+                }
+                case "link" -> {
+                    String rel = e.getAttribute("rel"), href = e.getAttribute("href");
+                    if (rel != null && href != null && Selector.hasToken(rel, "stylesheet", true)) {
+                        out.add(new Source(loadSheet(document.resolveUrl(href)), media(e)));
+                    }
+                }
+                default -> {
+                    if (!e.hasInertContent()) collectSheets(e, out, usedStyles);
+                }
+            }
+        }
+    }
+
+    private static String styleText(Element style) {
+        return style.childCount() == 1 && style.childAt(0) instanceof Text t ? t.data() : style.textContent();
+    }
+
+    private MediaQuery media(Element e) {
+        String media = e.getAttribute("media");
+        return media == null || media.isBlank() ? MediaQuery.ALL : mediaAttributes.computeIfAbsent(media, MediaQuery::parse);
+    }
+
+    /** A linked or imported sheet by resolved URL; a missing one is reported once and treated as empty. */
+    private Stylesheet loadSheet(String url) {
+        return loadedSheets.computeIfAbsent(url, u -> {
+            String css = host.loadText(u);
+            if (css == null) host.log(Host.LogLevel.WARN, "Stylesheet not found: " + u);
+            return Stylesheet.parse(css == null ? "" : css, u, host, log(u));
+        });
+    }
+
+    private Consumer<String> log(String url) {
+        return message -> host.log(Host.LogLevel.DEBUG, url + ":" + message);
+    }
+
+    private static Stylesheet loadUserAgentSheet() {
+        try (InputStream in = StyleEngine.class.getResourceAsStream("/vellum/ua.css")) {
+            if (in == null) throw new IllegalStateException("Missing /vellum/ua.css");
+            String css = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            return Stylesheet.parse(css, "vellum:ua.css", null, message -> System.err.println("[vellum] ua.css:" + message));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    // ---- Keyframes and script-provided declarations ----
+
+    /**
+     * The keyframes of the {@code @keyframes} rule named {@code name}, computed for {@code element} (or its
+     * {@code which} pseudo-element) on top of {@code base}, sorted by offset. Missing 0% / 100% keyframes are NOT synthesised (the animation engine uses the
+     * base value there). Returns an empty list when no such rule exists.
+     */
+    public List<ResolvedKeyframe> resolveKeyframes(Element element, PseudoElement which, String name,
+                                                   ComputedStyle base) {
+        KeyframesRule rule = index == null ? null : index.keyframes.get(name);
+        if (rule == null) return List.of();
+        // Blocks with the same offset merge in order (later declarations win).
+        TreeMap<Float, List<Decl>> byOffset = new TreeMap<>();
+        for (Keyframe k : rule.keyframes()) {
+            for (Float offset : k.offsets()) byOffset.computeIfAbsent(offset, o -> new ArrayList<>()).addAll(k.decls());
+        }
+        List<ResolvedKeyframe> out = new ArrayList<>(byOffset.size());
+        byOffset.forEach((offset, decls) -> out.add(keyframe(element, which, base, offset, decls)));
+        return out;
+    }
+
+    /**
+     * Computes the style that results from applying CSS declarations ({@code "opacity: 0; transform: scale(2)"})
+     * to {@code element} on top of {@code base}: used by {@code element.animate()} keyframes from scripts.
+     * Returns the new style and the set of properties the declarations set, as a keyframe at offset 0.
+     */
+    public ResolvedKeyframe computeDeclarations(Element element, String declarations, ComputedStyle base) {
+        return keyframe(element, PseudoElement.NONE, base, 0,
+                Stylesheet.declarations(declarations, document.url(), host, log(document.url())));
+    }
+
+    /**
+     * A keyframe: {@code animation-timing-function} becomes the keyframe's easing; other animation and transition
+     * properties are ignored, as in CSS.
+     */
+    private ResolvedKeyframe keyframe(Element element, PseudoElement which, ComputedStyle base, float offset,
+                                      List<Decl> decls) {
+        TimingFunction timing = null;
+        List<Decl> applied = new ArrayList<>(decls.size());
+        Longhand easing = Properties.longhand("animation-timing-function");
+        for (Decl d : decls) {
+            if (d.property == easing && d.constant instanceof List<?> list && !list.isEmpty()) {
+                timing = (TimingFunction) list.get(0);
+            } else if (d.isCustom() || (d.property.group != ListGroup.ANIMATION
+                    && d.property.group != ListGroup.TRANSITION)) {
+                applied.add(d);
+            }
+        }
+        Element from = which == PseudoElement.NONE ? element.parentElement() : element;
+        ComputedStyle parent = from == null ? null : from.baseStyle;
+        float rem = from == null ? ComputedStyle.DEFAULT_FONT_SIZE : rootFontSize;
+        Set<Prop> props = EnumSet.noneOf(Prop.class);
+        ComputedStyle style = cascade.apply(element, parent, rem, base, applied, props);
+        return new ResolvedKeyframe(offset, timing, style, Collections.unmodifiableSet(props));
+    }
+
+    /**
+     * The computed value of {@code property} (CSS name, longhand or common shorthand) serialised as CSS text, for
+     * {@code getComputedStyle}. Returns "" for unknown properties.
+     */
+    public static String computedValue(ComputedStyle style, String property) {
+        return ComputedValues.serialize(style, property);
+    }
+
+    /**
+     * The properties a {@code transition-property} entry names: for {@code all}, every property that interpolates;
+     * for a shorthand, its longhands that animate ({@code margin}, {@code border}, {@code outline}...); else the
+     * longhand of that name. Empty for names it doesn't know.
+     */
+    public static EnumSet<Prop> transitionProperties(String name) {
+        EnumSet<Prop> set = name.equals("all") ? ALL_TRANSITIONS : SHORTHAND_TRANSITIONS.get(name);
+        if (set != null) return set.clone();
+        set = EnumSet.noneOf(Prop.class);
+        Prop p = Prop.byName(name);
+        if (p != null) set.add(p);
+        return set;
+    }
+
+    /** What {@code transition-property: all} names: every property that interpolates. */
+    private static EnumSet<Prop> allTransitions() {
+        EnumSet<Prop> set = EnumSet.noneOf(Prop.class);
+        for (Prop p : Prop.values()) {
+            if (p.interpolation != Prop.Interp.NONE && p.interpolation != Prop.Interp.DISCRETE) set.add(p);
+        }
+        set.add(Prop.VISIBILITY); // discrete, but CSS interpolates it specially so fades can hide at the end
+        return set;
+    }
+
+    /** What naming each shorthand in {@code transition-property} names: its longhands that animate. */
+    private static Map<String, EnumSet<Prop>> shorthandTransitions() {
+        Map<String, EnumSet<Prop>> out = new HashMap<>();
+        for (Shorthand shorthand : Shorthands.all()) {
+            EnumSet<Prop> set = EnumSet.noneOf(Prop.class);
+            for (Longhand l : shorthand.longhands()) {
+                if (l.prop != null && l.prop.interpolation != Prop.Interp.NONE) set.add(l.prop);
+            }
+            out.put(shorthand.name(), set);
+        }
+        return out;
+    }
+}

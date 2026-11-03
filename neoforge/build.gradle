@@ -1,0 +1,50 @@
+plugins {
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    version = neoforge_version
+    // Common's access transformer, with its Stonecutter comments resolved for this version.
+    accessTransformers.from(stonecutter.process(rootProject.file('common/src/main/resources/META-INF/accesstransformer.cfg'),
+            'build/stonecutter-processed/accesstransformer.cfg'))
+    runs {
+        configureEach {
+            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+        }
+        client {
+            client()
+            gameDirectory = this.mkdir(this.file('runs/client'))
+            // -Pautopilot and -Ptour (multiloader-loader.gradle).
+            clientRunProperties.each { key, value -> systemProperty(key, value) }
+            programArguments.addAll(clientRunArgs)
+        }
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = this.mkdir(this.file('runs/gametest'))
+        }
+        server {
+            server()
+            gameDirectory = this.mkdir(this.file('runs/server'))
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// The mcgradleconventions loader attribute (multiloader-common.gradle) on the jar-in-jar configurations too.
+sourceSets.configureEach {
+    loaderAttributeOn(it.getTaskName(null, 'jarJar'))
+}
+
+// For versions other than the active one, Minecraft's artifacts read the access transformer from the resources
+// Stonecutter generates.
+if (!stonecutter.current.isActive) {
+    tasks.named('createMinecraftArtifacts') {
+        dependsOn(tasks.named('stonecutterGenerate'))
+    }
+}

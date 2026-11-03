@@ -1,0 +1,206 @@
+// Mozilla Rhino (MPL-2.0), built from upstream source with Vellum's patches applied, then relocated to
+// dev.vellum.shadow.rhino so it can never clash with another mod's copy (KubeJS's fork lives in its own package, but
+// other mods jar-in-jar plain org.mozilla:rhino). The relocated classes are copied into the engine consumers' outputs
+// (see multiloader-loader.gradle), not nested as a jar.
+//
+// The upstream source is the GitHub archive of the commit pinned in gradle.properties (rhino_commit), checked against
+// rhino_sha256. It is downloaded once per pin into the Gradle user home. The patches in rhino/patches are applied to
+// its core module (rhino/src/main) in order; see rhino/README.md for how to work on them.
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
+import java.util.zip.ZipFile
+
+plugins {
+    id 'vellum-java'
+    id 'com.gradleup.shadow' version '9.6.1'
+}
+
+def upstreamCommit = rhino_commit
+def upstreamSha256 = rhino_sha256
+def archiveFile = new File(gradle.gradleUserHomeDir, "caches/vellum-rhino/rhino-${upstreamCommit}.zip")
+def patchesDir = layout.projectDirectory.dir('patches')
+def sourceDir = layout.buildDirectory.dir('rhino-src')
+def workDir = layout.projectDirectory.dir('work')
+
+static String sha256(File file) {
+    MessageDigest digest = MessageDigest.getInstance('SHA-256')
+    file.withInputStream { input ->
+        byte[] buffer = new byte[65536]
+        int n
+        while ((n = input.read(buffer)) > 0) digest.update(buffer, 0, n)
+    }
+    return digest.digest().encodeHex().toString()
+}
+
+/** Unpacks the entries of the upstream archive under {@code prefix} (a path inside the repository) into {@code dest}. */
+static void unpack(File archive, String prefix, File dest) {
+    new ZipFile(archive).withCloseable { zip ->
+        zip.entries().each { entry ->
+            int slash = entry.name.indexOf('/')
+            String path = entry.name.substring(slash + 1)
+            if (path.isEmpty() || !path.startsWith(prefix)) return
+            File target = new File(dest, path)
+            if (!target.canonicalPath.startsWith(dest.canonicalPath)) throw new GradleException("Bad archive entry $entry.name")
+            if (entry.isDirectory()) {
+                target.mkdirs()
+            } else {
+                target.parentFile.mkdirs()
+                zip.getInputStream(entry).withCloseable { Files.copy(it, target.toPath(), StandardCopyOption.REPLACE_EXISTING) }
+            }
+        }
+    }
+}
+
+static List<File> patchFiles(File dir) {
+    return (dir.listFiles({ File f -> f.name.endsWith('.patch') } as FileFilter) ?: []).sort { it.name }
+}
+
+/** Runs git in {@code dir}; a failure throws with {@code what} and git's output. */
+def git = { File dir, String what, List<String> args ->
+    def out = new ByteArrayOutputStream()
+    def result = providers.exec {
+        workingDir = dir
+        commandLine(['git', '-c', 'core.autocrlf=false', '-c', 'commit.gpgsign=false'] + args)
+        ignoreExitValue = true
+    }
+    String text = result.standardOutput.asText.get() + result.standardError.asText.get()
+    if (result.result.get().exitValue != 0) throw new GradleException("$what failed:\n$text")
+    return text
+}
+
+tasks.register('fetchRhino') {
+    description = 'Downloads the pinned upstream Rhino source archive, once per pin.'
+    inputs.property('commit', upstreamCommit)
+    inputs.property('sha256', upstreamSha256)
+    outputs.file(archiveFile)
+    doLast {
+        if (archiveFile.isFile() && sha256(archiveFile) == upstreamSha256) return
+        archiveFile.parentFile.mkdirs()
+        File partial = new File(archiveFile.path + '.part')
+        String url = "https://github.com/mozilla/rhino/archive/${upstreamCommit}.zip"
+        logger.lifecycle("Downloading $url")
+        new URI(url).toURL().openStream().withCloseable { Files.copy(it, partial.toPath(), StandardCopyOption.REPLACE_EXISTING) }
+        String actual = sha256(partial)
+        if (actual != upstreamSha256) {
+            partial.delete()
+            throw new GradleException("Rhino archive checksum mismatch for $url: expected $upstreamSha256, got $actual")
+        }
+        Files.move(partial.toPath(), archiveFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+    }
+}
+
+def prepareRhinoSources = tasks.register('prepareRhinoSources') {
+    description = 'Unpacks the core module of the pinned Rhino source and applies rhino/patches.'
+    dependsOn('fetchRhino')
+    inputs.file(archiveFile)
+    inputs.dir(patchesDir)
+    outputs.dir(sourceDir)
+    doLast {
+        File dest = sourceDir.get().asFile
+        project.delete(dest)
+        dest.mkdirs()
+        unpack(archiveFile, 'rhino/src/main/', dest)
+        // Rhino's license and notices ship in the jar, with where the patched source is (MPL-2.0 section 3.2).
+        unpack(archiveFile, 'LICENSE.txt', dest)
+        unpack(archiveFile, 'NOTICE.txt', dest)
+        new File(dest, 'SOURCE.txt').text = """\
+            Vellum includes Mozilla Rhino, relocated to dev.vellum.shadow.rhino and modified. Rhino is licensed under
+            the Mozilla Public License 2.0 (LICENSE.txt); NOTICE.txt lists the other code it contains.
+
+            Source: the upstream commit https://github.com/mozilla/rhino/tree/${upstreamCommit}
+            with the patches in rhino/patches of https://github.com/MaxLeiter/vellum applied in order.
+            """.stripIndent()
+        // A repository of its own, so that git apply never looks at an enclosing one.
+        git(dest, 'git init', ['init', '-q'])
+        patchFiles(patchesDir.asFile).each { File patch ->
+            git(dest, "Applying ${patch.name}", ['apply', '--whitespace=nowarn', '--include=rhino/src/main/*', patch.absolutePath])
+        }
+        project.delete(new File(dest, '.git'))
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir(prepareRhinoSources.map { sourceDir.get().dir('rhino/src/main/java') })
+        java.exclude('module-info.java')
+        // Parts of Rhino Vellum never runs, left out of the jar: the compiler to Java bytecode (scripts are always
+        // interpreted), serialization of scopes, and the CommonJS require() loader (patch 0006 drops its one use).
+        // Code that is not there cannot be reached, even through a sandbox bug. The class file writer stays: the
+        // Java-adapter code the sandbox blocks still compiles against it.
+        java.exclude('org/mozilla/javascript/optimizer/**', 'org/mozilla/javascript/serialize/**',
+                'org/mozilla/javascript/commonjs/**')
+        resources.srcDir(prepareRhinoSources.map { sourceDir.get().dir('rhino/src/main/resources') })
+        // Script errors are for page authors, so they stay in English.
+        resources.exclude { it.name.startsWith('Messages_') && it.name != 'Messages_en.properties' }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Rhino ships with the engine, which also runs on Java 21 (Minecraft 1.21.1).
+    options.release = engine_java_release as int
+    options.compilerArgs += ['-nowarn', '-Xlint:none']
+    // Line numbers for stack traces, no local variable tables.
+    options.debugOptions.debugLevel = 'source,lines'
+}
+
+tasks.named('shadowJar') {
+    archiveClassifier = ''
+    relocate('org.mozilla.javascript', 'dev.vellum.shadow.rhino')
+    relocate('org.mozilla.classfile', 'dev.vellum.shadow.rhino.classfile')
+    mergeServiceFiles()
+    dependsOn(prepareRhinoSources)
+    from(sourceDir) {
+        include('LICENSE.txt', 'NOTICE.txt', 'SOURCE.txt')
+        into('META-INF/licenses/rhino')
+    }
+    exclude('module-info.class', 'META-INF/versions/*/module-info.class', 'META-INF/maven/**')
+}
+
+tasks.named('jar') { enabled = false }
+
+configurations {
+    relocated { canBeResolved = false; canBeConsumed = true }
+}
+artifacts {
+    relocated(tasks.named('shadowJar'))
+}
+
+// Developer workflow, see rhino/README.md.
+
+tasks.register('applyRhinoPatches') {
+    group = 'rhino'
+    description = 'Makes rhino/work, a git repository of the pinned Rhino source with each patch applied as a commit.'
+    dependsOn('fetchRhino')
+    doLast {
+        File work = workDir.asFile
+        if (work.exists()) throw new GradleException("$work exists. Rebuild the patches from it, or delete it to start over.")
+        work.mkdirs()
+        unpack(archiveFile, '', work)
+        git(work, 'git init', ['init', '-q'])
+        git(work, 'git add', ['add', '-A'])
+        git(work, 'Committing upstream', ['-c', 'user.name=Rhino', '-c', 'user.email=rhino@invalid',
+                                           'commit', '-q', '-m', "Upstream Rhino ${upstreamCommit}"])
+        git(work, 'Tagging upstream', ['tag', 'upstream'])
+        patchFiles(patchesDir.asFile).each { File patch ->
+            git(work, "Applying ${patch.name}", ['-c', 'user.name=Vellum', '-c', 'user.email=vellum@invalid',
+                                                 'am', '-q', '--committer-date-is-author-date', patch.absolutePath])
+        }
+        logger.lifecycle("rhino/work is ready: upstream is tagged 'upstream', each patch is a commit on top.")
+    }
+}
+
+tasks.register('rebuildRhinoPatches') {
+    group = 'rhino'
+    description = 'Regenerates rhino/patches (rhino/src/main only) from the commits in rhino/work after the upstream tag.'
+    doLast {
+        File work = workDir.asFile
+        if (!new File(work, '.git').exists()) throw new GradleException("$work is missing; run applyRhinoPatches first.")
+        File dir = patchesDir.asFile
+        dir.mkdirs()
+        patchFiles(dir).each { it.delete() }
+        git(work, 'git format-patch', ['format-patch', '-q', '--zero-commit', '--no-signature', '--no-stat',
+                                       '--abbrev=12', '-N', '-o', dir.absolutePath, 'upstream..HEAD', '--', 'rhino/src/main'])
+        logger.lifecycle("Wrote ${patchFiles(dir).size()} patches to $dir")
+    }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html class="mc-dim">
+<head>
+  <title>Chest</title>
+  <style>
+    /* Vanilla's chest, 176x166 with its slots where Minecraft puts them. The panel, label and slot look are built
+       in (.mc-panel, .mc-label, <slot>); this page only lays them out. */
+    .chest { padding: 3px 4px 4px; }
+    .mc-label { font-size: 8px; line-height: 8px; margin: 0 0 3px 1px; }
+    .grid { display: grid; grid-template-columns: repeat(9, 18px); }
+    .inventory { margin-top: 1px; }
+    .hotbar { margin-top: 4px; }
+  </style>
+</head>
+<body class="mc-center">
+  <div class="mc-panel chest" data-vellum-bounds>
+    <div class="mc-label">{{ title }}</div>
+    <div class="grid"><slot v-for="i in 27" :index="i - 1"></slot></div>
+    <div class="mc-label inventory">{{ inventory }}</div>
+    <div class="grid"><slot v-for="i in 27" :index="i + 26"></slot></div>
+    <div class="grid hotbar"><slot v-for="i in 9" :index="i + 53"></slot></div>
+  </div>
+</body>
+</html>

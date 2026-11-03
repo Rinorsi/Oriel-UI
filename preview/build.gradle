@@ -1,0 +1,39 @@
+// Standalone previewer: renders Vellum documents with Java2D using Minecraft's real font and GUI sprites (read from
+// the user's Minecraft client jar), reloads on save, and has an inspector. Also the snapshot-test harness.
+// A development tool: never shipped in the mod, so it may use the full toolchain release.
+plugins {
+    id 'application'
+    id 'vellum-java'
+}
+
+dependencies {
+    implementation(project(':engine'))
+    implementation(project(path: ':rhino', configuration: 'relocated'))
+    // The engine only compiles against Gson (Minecraft provides it in game).
+    implementation("com.google.code.gson:gson:${gson_version}")
+}
+
+application {
+    mainClass = 'dev.vellum.preview.Preview'
+}
+
+tasks.named('run', JavaExec) {
+    // Page paths in --args are typed relative to the repository root.
+    workingDir = rootProject.projectDir
+}
+
+tasks.named('test', Test) {
+    systemProperty('java.awt.headless', 'true')
+    // The goldens, read from the project directory (Snapshots.java); the diffs go to build/snapshots.
+    inputs.dir('src/test/snapshots').withPathSensitivity(PathSensitivity.RELATIVE)
+    // -Dvellum.updateSnapshots=true rewrites goldens; -Dvellum.mcJar=... picks the Minecraft jar.
+    ['vellum.updateSnapshots', 'vellum.mcJar'].each { key ->
+        String value = System.getProperty(key)
+        if (value != null) systemProperty(key, value)
+    }
+    if (System.getProperty('vellum.updateSnapshots') != null) outputs.upToDateWhen { false }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
+}

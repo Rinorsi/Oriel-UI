@@ -1,0 +1,116 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+// Applied to the Stonecutter version subprojects (:common:26.3, :neoforge:1.21.1...): the parent project is the
+// loader (or common), and the project's own name is the Minecraft version.
+def platform = project.parent.name
+// The published group (gradle.properties `group`).
+def mavenGroup = project.group.toString()
+// Every version subproject of every branch is named after its Minecraft version, and Gradle takes projects with the
+// same group, name and version for the same module, so each branch gets a group of its own. Publications keep
+// mavenGroup.
+group = "${mavenGroup}.${platform}"
+
+base {
+    archivesName = "${mod_id}-${platform}-${minecraft_version}"
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    withSourcesJar()
+}
+
+tasks.withType(Jar).configureEach {
+    from(rootProject.file('LICENSE')) {
+        rename { "${it}_${mod_name}" }
+    }
+}
+
+jar {
+
+    manifest {
+        attributes([
+                'Specification-Title'   : mod_name,
+                'Specification-Vendor'  : mod_author,
+                'Specification-Version' : project.jar.archiveVersion,
+                'Implementation-Title'  : platform,
+                'Implementation-Version': project.jar.archiveVersion,
+                'Implementation-Vendor' : mod_author,
+                'Built-On-Minecraft'    : minecraft_version
+        ])
+    }
+}
+
+processResources {
+    var expandProps = [
+            'version'                      : version,
+            'minecraft_version_range'      : minecraft_version_range,
+            'fabric_minecraft_version'     : fabric_minecraft_version,
+            'fabric_loader_version'        : fabric_loader_version,
+            'mod_name'                     : mod_name,
+            'mod_author'                   : mod_author,
+            'mod_id'                       : mod_id,
+            'license'                      : license,
+            'description'                  : project.description,
+            'neoforge_version'             : neoforge_version,
+            'neoforge_loader_version_range': neoforge_loader_version_range,
+            'neoforge_logo_key'            : neoforge_logo_key,
+            'credits'                      : credits,
+            'java_version'                 : java_version
+    ]
+
+    var jsonExpandProps = expandProps.collectEntries {
+        key, value -> [(key): value instanceof String ? value.replace('\n', '\\\\n') : value]
+    }
+
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand expandProps
+    }
+
+    filesMatching(['pack.mcmeta', 'fabric.mod.json']) {
+        expand jsonExpandProps
+    }
+
+    inputs.properties(expandProps)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    // Line numbers for stack traces, no local variable tables: about 5% of the jar.
+    options.debugOptions.debugLevel = 'source,lines'
+}
+
+// The mcgradleconventions loader attribute (common, neoforge or fabric) on the published variants and the classpaths.
+// A loader's build script adds its own configurations with loaderAttributeOn(...).
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+def loaderAttributeOn = { String... names ->
+    names.each { name ->
+        configurations.named(name) {
+            attributes {
+                attribute(loaderAttribute, platform)
+            }
+        }
+    }
+}
+ext.loaderAttributeOn = loaderAttributeOn
+loaderAttributeOn('apiElements', 'runtimeElements', 'sourcesElements')
+sourceSets.configureEach {
+    loaderAttributeOn(it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName)
+}
+
+dependencies {
+    // 26.x ships JSpecify with Minecraft; older versions don't.
+    if (stonecutter.current.parsed < '26') compileOnly('org.jspecify:jspecify:1.0.0')
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            groupId = mavenGroup
+            artifactId base.archivesName.get()
+            from components.java
+        }
+    }
+}

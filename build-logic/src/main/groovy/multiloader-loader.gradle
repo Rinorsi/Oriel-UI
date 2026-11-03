@@ -1,0 +1,100 @@
+plugins {
+    id 'multiloader-common'
+    id 'multiloader-publish'
+}
+
+configurations {
+    commonJava {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    commonResources {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    // The engine's sources, for javadoc.
+    engineJava {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    // The engine's compiled classes and resources.
+    engineClasses {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    rhinoRelocated {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+// The common subproject for the same Minecraft version.
+def common = ":common:${project.name}"
+
+dependencies {
+    compileOnly(project(common)) {
+        def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+    commonJava(project(path: common, configuration: 'commonJava'))
+    commonResources(project(path: common, configuration: 'commonResources'))
+    // The engine is compiled once, by :engine. The loaders compile against it and copy its classes (processResources).
+    compileOnly(project(':engine'))
+    engineJava(project(path: ':engine', configuration: 'engineJava'))
+    engineClasses(project(path: ':engine', configuration: 'engineClasses'))
+    rhinoRelocated(project(path: ':rhino', configuration: 'relocated'))
+    compileOnly(project(path: ':rhino', configuration: 'relocated'))
+}
+
+tasks.named('compileJava', JavaCompile) {
+    source(configurations.commonJava)
+}
+
+processResources {
+    // The engine's classes and the relocated Rhino classes ship inside the mod itself (dev and jar), so there is no
+    // nested jar to resolve. Both are compiled once, in their own projects, for every Minecraft version and loader.
+    dependsOn(configurations.rhinoRelocated)
+    from({ configurations.rhinoRelocated.collect { zipTree(it) } }) {
+        exclude('META-INF/MANIFEST.MF')
+    }
+    from(configurations.commonResources)
+    from(configurations.engineClasses)
+    // Test instances are data from 26.x on; before, GameTests are code (common's GameTests).
+    if (stonecutter.current.parsed < '26') exclude('data/*/test_instance/**')
+}
+
+tasks.named('javadoc', Javadoc).configure {
+    source(configurations.commonJava)
+    source(configurations.engineJava)
+    failOnError = false
+}
+
+tasks.named('sourcesJar', Jar) {
+    from(configurations.commonJava)
+    from(configurations.commonResources)
+}
+
+// The client run's system properties and program arguments, which each loader's build script sets with its own run DSL.
+// `./gradlew :neoforge:26.3:runClient -Pautopilot` (or :fabric:1.21.1...) opens the Vellum demo screens, screenshots
+// them and quits; `-Pautopilot=scene` runs only the scene showcase's steps. `-Ptour [-PtourGo=<file>] [-PtourShots]`: the scripted showcase tour for demo videos, in a 1280x720
+// window (tools/record creates the go-file once it is recording); tourShots saves a screenshot at each beat, and
+// `-Ptour=scene,shop` plays only those beats (title, mobdex, turntable, shop, scene, end).
+def clientRunProperties = [:]
+def clientRunArgs = []
+if (project.hasProperty('autopilot') || project.hasProperty('tour')) {
+    clientRunProperties['vellum.autopilot'] = 'true'
+    String only = project.findProperty('autopilot')?.toString()
+    if (only && only != 'true') clientRunProperties['vellum.autopilot.only'] = only
+}
+if (project.hasProperty('tour')) {
+    clientRunProperties['vellum.tour'] = 'true'
+    String beats = project.findProperty('tour')?.toString()
+    if (beats && beats != 'true') clientRunProperties['vellum.tour.only'] = beats
+    if (project.hasProperty('tourGo')) clientRunProperties['vellum.tour.go'] = project.property('tourGo').toString()
+    if (project.hasProperty('tourShots')) clientRunProperties['vellum.tour.shots'] = 'true'
+    clientRunArgs.addAll('--width', '1280', '--height', '720')
+}
+ext.clientRunProperties = clientRunProperties
+ext.clientRunArgs = clientRunArgs

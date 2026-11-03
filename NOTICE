@@ -1,0 +1,28 @@
+Oriel UI (优易库)
+Copyright (c) 2026 Oriel UI contributors
+
+This project is a hard fork of Vellum (https://github.com/MaxLeiter/vellum),
+imported from upstream commit dabde9899c74eeea75e597d67c5f13cc57c05312 (Vellum 0.9.0).
+Vellum is licensed under the MIT License:
+
+    Copyright (c) 2026 Max Leiter
+
+The full MIT license text is in LICENSE. Code derived from Vellum remains under
+that license and keeps its copyright notice.
+
+Third-party components
+----------------------
+
+Mozilla Rhino (https://github.com/mozilla/rhino), MPL-2.0.
+  The build downloads the source of upstream commit
+  8527ebbf6d0b1599f819b5001af06e5dd9147013 (Rhino 1.9.1), verifies its SHA-256,
+  applies the patches in rhino/patches (written for Vellum; they modify Rhino's
+  core module and stay under MPL-2.0), and relocates the classes into a shadow
+  package. Distributed jars carry Rhino's LICENSE, NOTICE and a SOURCE note under
+  META-INF/licenses/rhino/. The patch series in this repository is the source
+  form of those modifications.
+
+Taffy layout test fixtures (https://github.com/DioxusLabs/taffy), MIT.
+  engine/src/test/resources/taffy/ holds Chrome-generated layout fixtures from
+  Taffy; their license is in that directory. They are test data only and are not
+  shipped in any jar.

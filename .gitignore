@@ -20,3 +20,16 @@ run/
 # OS
 .DS_Store
 Thumbs.db
+
+# From upstream Vellum
+*.ipr
+*.iws
+.idea/*
+!.idea/scopes
+eclipse
+runs/
+*.hprof
+.ws/
+# Rhino working copy, see rhino/README.md
+rhino/work/
+media/
