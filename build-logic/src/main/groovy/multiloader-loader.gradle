@@ -98,3 +98,12 @@ if (project.hasProperty('tour')) {
 }
 ext.clientRunProperties = clientRunProperties
 ext.clientRunArgs = clientRunArgs
+
+// Game run directories never live in the repository. They go under -Poriel_run_dir or the ORIEL_RUN_DIR environment
+// variable when one is set, else under the root project's build directory, one directory per subproject and run:
+// <root>/fabric-26.3/client and so on. The runs get the subproject's directory as vellum.sourceRoot, where dev hot
+// reload starts looking for asset source trees (VellumResources), since the working directory is elsewhere.
+def configuredRunRoot = findProperty('oriel_run_dir') ?: System.getenv('ORIEL_RUN_DIR')
+def runRoot = configuredRunRoot ? file(configuredRunRoot) : rootProject.layout.buildDirectory.dir('runs').get().asFile
+ext.orielRunDir = { String run -> new File(runRoot, "${project.parent.name}-${project.name}/${run}") }
+clientRunProperties['vellum.sourceRoot'] = project.projectDir.absolutePath

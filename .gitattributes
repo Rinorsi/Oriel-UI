@@ -1,0 +1,5 @@
+# Patches are applied to LF sources by the build and must keep LF on every checkout.
+*.patch text eol=lf
+# Shell scripts and the Gradle wrapper run under sh.
+*.sh text eol=lf
+gradlew text eol=lf

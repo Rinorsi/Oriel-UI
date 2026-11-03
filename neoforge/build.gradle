@@ -15,18 +15,18 @@ neoForge {
         }
         client {
             client()
-            gameDirectory = this.mkdir(this.file('runs/client'))
+            gameDirectory = this.mkdir(orielRunDir('client'))
             // -Pautopilot and -Ptour (multiloader-loader.gradle).
             clientRunProperties.each { key, value -> systemProperty(key, value) }
             programArguments.addAll(clientRunArgs)
         }
         gameTestServer {
             type = 'gameTestServer'
-            gameDirectory = this.mkdir(this.file('runs/gametest'))
+            gameDirectory = this.mkdir(orielRunDir('gametest'))
         }
         server {
             server()
-            gameDirectory = this.mkdir(this.file('runs/server'))
+            gameDirectory = this.mkdir(orielRunDir('server'))
         }
     }
     mods {

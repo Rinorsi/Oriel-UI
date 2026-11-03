@@ -116,12 +116,15 @@ public final class VellumResources {
     }
 
     /**
-     * Dev runs use a directory such as {@code runs/client} or {@code <loader>/runs/client} as the working directory:
-     * the asset source trees from there up to the project root, nearest first.
+     * The asset source trees from the dev run's source root up to the project root, nearest first. The build passes
+     * the loader subproject's directory as {@code vellum.sourceRoot}, because run directories live outside the
+     * repository; without it the search starts at the working directory.
      */
     private static List<Path> findSourceAssets() {
         List<Path> roots = new ArrayList<>();
-        for (Path dir = Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
+        String sourceRoot = System.getProperty("vellum.sourceRoot");
+        Path start = sourceRoot != null ? Path.of(sourceRoot) : Path.of("");
+        for (Path dir = start.toAbsolutePath(); dir != null; dir = dir.getParent()) {
             for (String tree : List.of("src/main/resources/assets", "common/src/main/resources/assets")) {
                 Path candidate = dir.resolve(tree);
                 if (Files.isDirectory(candidate)) roots.add(candidate);
