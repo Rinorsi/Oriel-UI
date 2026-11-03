@@ -12,6 +12,7 @@ neoForge {
 
 dependencies {
     implementation(project(':engine'))
+    implementation(project(':kit'))
     compileOnly(project(path: ':rhino', configuration: 'relocated'))
 }
 

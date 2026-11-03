@@ -1,6 +1,7 @@
 package dev.oriel.preview;
 
 import dev.oriel.engine.dom.Viewport;
+import dev.oriel.kit.OrielKit;
 import dev.oriel.preview.host.PreviewHost;
 import dev.oriel.preview.render.MinecraftAssets;
 import dev.oriel.preview.render.MinecraftFont;
@@ -89,6 +90,8 @@ public final class Preview {
     private Preview() {}
 
     public static void main(String[] args) throws IOException {
+        // The Ore presets' Java controllers attach to their pages as they load.
+        OrielKit.register();
         Options options;
         try {
             options = Options.parse(args);

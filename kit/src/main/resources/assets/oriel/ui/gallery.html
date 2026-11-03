@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+<title>优易库 · 预设画廊</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+.gallery { width: 348px; padding: 6px 8px; }
+.logo { width: 20px; height: 20px; }
+.ore-header { margin-bottom: 6px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.ore-card { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px 6px; animation: ore-rise var(--ore-slow) var(--ore-ease) both; }
+.ore-card:nth-child(2) { animation-delay: 0.04s; }
+.ore-card:nth-child(3) { animation-delay: 0.08s; }
+.ore-card:nth-child(4) { animation-delay: 0.12s; }
+.ore-card:nth-child(5) { animation-delay: 0.16s; }
+.ore-card:nth-child(6) { animation-delay: 0.20s; }
+.ore-card .top { display: flex; align-items: center; gap: 4px; }
+.ore-card .icon { width: 16px; height: 16px; flex-shrink: 0; transition: transform var(--ore-medium) var(--ore-ease); }
+.ore-card:hover .icon { transform: scale(1.25) rotate(-8deg); }
+.ore-card .name { color: var(--ore-text); }
+.ore-card:hover .name { color: var(--ore-green-3); }
+.ore-card .desc { color: var(--ore-text-dim); line-height: 10px; }
+.ore-card .badge { position: absolute; top: 4px; right: 4px; padding: 0 3px; background: var(--ore-purple); color: var(--ore-text); }
+.about { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; }
+.footer { display: flex; align-items: center; gap: 4px; }
+.footer .ore-btn { min-height: 18px; padding: 0 5px; }
+</style>
+</head>
+<body>
+<div class="ore-screen">
+  <div class="ore-panel gallery ore-enter">
+    <div class="ore-header">
+      <item class="logo" id="minecraft:amethyst_shard"></item>
+      <div>
+        <div class="ore-title">优易库 · 预设画廊</div>
+        <div class="ore-subtitle">Oriel UI · Ore 像素主题 · 5 个预设界面</div>
+      </div>
+      <div class="ore-spacer"></div>
+      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+    </div>
+    <div class="cards" id="cards">
+      <div class="ore-card" tabindex="0" data-page="inventory">
+        <div class="top"><item class="icon" id="minecraft:chest"></item><div class="name">背包</div></div>
+        <div class="desc">拖拽换位，右键拆分堆叠，悬停提示，搜索时平滑重排。</div>
+      </div>
+      <div class="ore-card" tabindex="0" data-page="forge">
+        <div class="top"><item class="icon" id="minecraft:anvil"></item><div class="name">锻造台</div></div>
+        <div class="desc">控制炉温，抓准击打时机，火花、震动与发光。</div>
+      </div>
+      <div class="ore-card" tabindex="0" data-page="music">
+        <div class="top"><item class="icon" id="minecraft:jukebox"></item><div class="name">音乐播放器</div></div>
+        <div class="desc">播放暂停，拖动进度，拖拽排序，均衡器律动。</div>
+      </div>
+      <div class="ore-card" tabindex="0" data-page="settings">
+        <div class="top"><item class="icon" id="minecraft:comparator"></item><div class="name">设置面板</div></div>
+        <div class="desc">标签页、开关、滑块、下拉框、文本框，全键盘操作。</div>
+      </div>
+      <div class="ore-card" tabindex="0" data-page="potions">
+        <span class="badge">HUD</span>
+        <div class="top"><item class="icon" id="minecraft:brewing_stand"></item><div class="name">药水 HUD</div></div>
+        <div class="desc">分组、倒计时、折叠展开，新效果滑入，到期淡出。</div>
+      </div>
+      <div class="ore-inset about">
+        <div class="ore-accent">关于</div>
+        <div class="ore-label">界面由 HTML 与 CSS 声明，交互逻辑在 Java 控制器里，没有页面脚本。</div>
+        <div class="ore-faint">Tab 切换焦点 · Enter 打开</div>
+      </div>
+    </div>
+    <div class="ore-divider"></div>
+    <div class="footer">
+      <span class="ore-label">按钮</span>
+      <div class="ore-btn hero" tabindex="0">主操作</div>
+      <div class="ore-btn primary" tabindex="0">确认</div>
+      <div class="ore-btn secondary" tabindex="0">次要</div>
+      <div class="ore-btn destructive" tabindex="0">删除</div>
+      <div class="ore-btn" tabindex="0">普通</div>
+      <div class="ore-btn disabled">禁用</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -125,7 +125,7 @@ public final class OrielResources {
         String sourceRoot = System.getProperty("oriel.sourceRoot");
         Path start = sourceRoot != null ? Path.of(sourceRoot) : Path.of("");
         for (Path dir = start.toAbsolutePath(); dir != null; dir = dir.getParent()) {
-            for (String tree : List.of("src/main/resources/assets", "common/src/main/resources/assets")) {
+            for (String tree : List.of("src/main/resources/assets", "common/src/main/resources/assets", "kit/src/main/resources/assets")) {
                 Path candidate = dir.resolve(tree);
                 if (Files.isDirectory(candidate)) roots.add(candidate);
             }

@@ -1,0 +1,245 @@
+/*
+ * Oriel UI · Ore theme. Pixel-bevel look after Bedrock's Ore UI (community-documented tokens, planning/03; not an
+ * official spec). Every texture is drawn by tools/gen-ore-textures.mjs: one texel is one GUI px, and each component
+ * slices its texture with border-image, so the bevels stay crisp at any GUI scale.
+ */
+
+:root {
+    --ore-green-1: #a0e081; --ore-green-2: #86d562; --ore-green-3: #6cc349; --ore-green-4: #52a535;
+    --ore-green: #3c8527; --ore-green-6: #2a641c; --ore-green-7: #1d4d13;
+    --ore-gray-0: #f4f6f9; --ore-gray-1: #ecedee; --ore-gray-2: #d0d1d4; --ore-gray-3: #b1b2b5;
+    --ore-gray-4: #8c8d90; --ore-gray-5: #58585a; --ore-gray-6: #48494a; --ore-gray-7: #3a3b3c;
+    --ore-surface-1: #313233; --ore-surface-2: #242425; --ore-surface-3: #1e1e1f; --ore-ink: #0f0f10;
+    --ore-red: #ca3636; --ore-red-light: #e25a5a; --ore-gold: #f8af2b; --ore-yellow: #e5c317;
+    --ore-orange: #d3791f; --ore-blue: #2e6be5; --ore-purple: #7345e5;
+    --ore-text: #ffffff; --ore-text-dim: #b1b2b5; --ore-text-faint: #8c8d90; --ore-text-dark: #1e1e1f;
+    --ore-focus: #ffffff;
+    --ore-space-1: 2px; --ore-space-2: 4px; --ore-space-3: 6px; --ore-space-4: 8px; --ore-space-5: 12px;
+    --ore-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --ore-fast: 0.08s; --ore-medium: 0.18s; --ore-slow: 0.32s;
+}
+
+html { color: var(--ore-text); }
+
+/* ---- Screen and panels ---- */
+
+.ore-screen {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15, 15, 16, 0.62);
+}
+
+.ore-panel {
+    border: 2px solid transparent;
+    border-image: url(../textures/ore/panel.png) 2 fill;
+    padding: var(--ore-space-4);
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+}
+.ore-panel.raised { border-image-source: url(../textures/ore/panel_raised.png); }
+.ore-panel.light { border-image-source: url(../textures/ore/panel_light.png); color: var(--ore-text-dark); }
+
+.ore-inset {
+    border: 2px solid transparent;
+    border-image: url(../textures/ore/slot.png) 2 fill;
+}
+
+.ore-header {
+    display: flex; align-items: center; gap: var(--ore-space-4);
+    margin: 0 0 var(--ore-space-4);
+}
+.ore-title { font-size: 16px; line-height: 16px; color: var(--ore-text); }
+.ore-subtitle { color: var(--ore-text-dim); }
+.ore-spacer { flex-grow: 1; }
+.ore-divider { height: 1px; background: var(--ore-surface-3); margin: var(--ore-space-3) 0; box-shadow: 0 1px 0 var(--ore-gray-6); }
+.ore-label { color: var(--ore-text-dim); }
+.ore-faint { color: var(--ore-text-faint); }
+.ore-accent { color: var(--ore-green-3); }
+.ore-gold { color: var(--ore-gold); }
+.ore-danger { color: var(--ore-red-light); }
+
+/* ---- Buttons: texture per variant and state. The pressed texture sinks 2px: its top border grows by 2 and its
+   bottom one shrinks by 2, which moves the label down with it. ---- */
+
+.ore-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--ore-space-2);
+    min-height: 20px; padding: 0 var(--ore-space-4);
+    border: solid transparent; border-width: 2px 2px 4px 2px;
+    border-image: url(../textures/ore/button_neutral.png) 2 2 4 2 fill;
+    color: var(--ore-text); cursor: pointer; white-space: nowrap;
+}
+.ore-btn:hover { border-image-source: url(../textures/ore/button_neutral_hover.png); }
+.ore-btn:active {
+    border-width: 4px 2px 2px 2px;
+    border-image: url(../textures/ore/button_neutral_pressed.png) 4 2 2 2 fill;
+}
+.ore-btn.hero { border-image-source: url(../textures/ore/button_hero.png); }
+.ore-btn.hero:hover { border-image-source: url(../textures/ore/button_hero_hover.png); }
+.ore-btn.hero:active { border-image-source: url(../textures/ore/button_hero_pressed.png); }
+.ore-btn.primary { border-image-source: url(../textures/ore/button_primary.png); }
+.ore-btn.primary:hover { border-image-source: url(../textures/ore/button_primary_hover.png); }
+.ore-btn.primary:active { border-image-source: url(../textures/ore/button_primary_pressed.png); }
+.ore-btn.secondary { border-image-source: url(../textures/ore/button_secondary.png); color: var(--ore-text-dark); }
+.ore-btn.secondary:hover { border-image-source: url(../textures/ore/button_secondary_hover.png); }
+.ore-btn.secondary:active { border-image-source: url(../textures/ore/button_secondary_pressed.png); }
+.ore-btn.destructive { border-image-source: url(../textures/ore/button_destructive.png); }
+.ore-btn.destructive:hover { border-image-source: url(../textures/ore/button_destructive_hover.png); }
+.ore-btn.destructive:active { border-image-source: url(../textures/ore/button_destructive_pressed.png); }
+.ore-btn.disabled, .ore-btn.disabled:hover, .ore-btn.disabled:active {
+    border-width: 2px 2px 4px 2px;
+    border-image: url(../textures/ore/button_disabled.png) 2 2 4 2 fill;
+    color: var(--ore-text-faint); cursor: default;
+}
+.ore-btn.icon { min-width: 20px; padding: 0; }
+.ore-btn.big { min-height: 26px; padding: 0 var(--ore-space-5); font-size: 16px; }
+
+/* Keyboard focus: a white ring a pixel outside, as Ore UI draws it. */
+.ore-btn:focus-visible, .ore-toggle:focus-visible, .ore-slider:focus-visible, .ore-select:focus-visible,
+.ore-tab:focus-visible, .ore-card:focus-visible, .ore-row:focus-visible {
+    outline: 1px solid var(--ore-focus); outline-offset: 1px;
+}
+
+/* ---- Tabs ---- */
+
+.ore-tabs { display: flex; gap: var(--ore-space-1); align-items: flex-end; }
+.ore-tab {
+    padding: 2px var(--ore-space-4) 3px;
+    border: solid transparent; border-width: 3px 2px 2px 2px;
+    border-image: url(../textures/ore/tab.png) 3 2 2 2 fill;
+    color: var(--ore-text-dim); cursor: pointer;
+    transition: color var(--ore-fast);
+}
+.ore-tab:hover { color: var(--ore-text); }
+.ore-tab.selected {
+    border-width: 2px 2px 0 2px; padding-bottom: 6px;
+    border-image: url(../textures/ore/tab_selected.png) 2 2 0 2 fill;
+    color: var(--ore-text);
+}
+
+/* ---- Slots ---- */
+
+.ore-slot {
+    width: 20px; height: 20px; padding: 0;
+    border: 2px solid transparent;
+    border-image: url(../textures/ore/slot.png) 2 fill;
+    position: relative;
+}
+.ore-slot:hover { border-image-source: url(../textures/ore/slot_hover.png); }
+.ore-slot.target { border-image-source: url(../textures/ore/slot_target.png); }
+
+/* ---- Text field ---- */
+
+input.ore-field, .ore-field {
+    height: 18px; padding: 0 var(--ore-space-3);
+    border: 2px solid transparent;
+    border-image: url(../textures/ore/field.png) 2 fill;
+    background: none; color: var(--ore-text);
+}
+input.ore-field:focus, .ore-field:focus-within { border-image-source: url(../textures/ore/field_focus.png); }
+input.ore-field::placeholder { color: var(--ore-text-faint); }
+
+/* ---- Toggle ---- */
+
+.ore-toggle {
+    position: relative; display: inline-block; flex-shrink: 0;
+    width: 28px; height: 14px;
+    border: 2px solid transparent;
+    border-image: url(../textures/ore/toggle_off.png) 2 fill;
+    cursor: pointer;
+}
+.ore-toggle::after {
+    content: ""; position: absolute; top: -1px; left: -1px; width: 10px; height: 12px;
+    border: solid transparent; border-width: 2px 2px 4px 2px;
+    border-image: url(../textures/ore/button_secondary.png) 2 2 4 2 fill;
+    transition: transform var(--ore-medium) var(--ore-ease);
+}
+.ore-toggle.on { border-image-source: url(../textures/ore/toggle_on.png); }
+.ore-toggle.on::after { transform: translateX(14px); }
+
+/* ---- Slider ---- */
+
+.ore-slider { position: relative; height: 14px; flex-grow: 1; cursor: pointer; }
+.ore-slider .track {
+    position: absolute; left: 0; right: 0; top: 4px; height: 6px;
+    border: 2px solid transparent; border-image: url(../textures/ore/track.png) 2 fill;
+}
+.ore-slider .fill {
+    position: absolute; left: 0; top: 4px; height: 6px;
+    border: solid transparent; border-width: 1px 0;
+    border-image: url(../textures/ore/fill_green.png) 1 0 fill;
+}
+.ore-slider .thumb {
+    position: absolute; top: -1px; width: 8px; height: 14px; margin-left: -4px;
+    border: solid transparent; border-width: 2px 2px 4px 2px;
+    border-image: url(../textures/ore/button_secondary.png) 2 2 4 2 fill;
+}
+.ore-slider:hover .thumb, .ore-slider.dragging .thumb { border-image-source: url(../textures/ore/button_secondary_hover.png); }
+
+/* ---- Progress ---- */
+
+.ore-progress {
+    position: relative; height: 8px;
+    border: 2px solid transparent; border-image: url(../textures/ore/track.png) 2 fill;
+}
+.ore-progress > .fill {
+    height: 100%;
+    border: solid transparent; border-width: 1px 0;
+    border-image: url(../textures/ore/fill_green.png) 1 0 fill;
+}
+.ore-progress.gold > .fill { border-image-source: url(../textures/ore/fill_gold.png); }
+.ore-progress.red > .fill { border-image-source: url(../textures/ore/fill_red.png); }
+.ore-progress.blue > .fill { border-image-source: url(../textures/ore/fill_blue.png); }
+
+/* ---- Dropdown ---- */
+
+.ore-select { position: relative; min-width: 72px; }
+.ore-select > .value {
+    display: flex; align-items: center; height: 18px; padding: 0 var(--ore-space-3);
+    border: solid transparent; border-width: 2px 2px 4px 2px;
+    border-image: url(../textures/ore/button_neutral.png) 2 2 4 2 fill; cursor: pointer;
+}
+.ore-select > .value:hover { border-image-source: url(../textures/ore/button_neutral_hover.png); }
+.ore-select > .value::after { content: "▾"; margin-left: auto; padding-left: var(--ore-space-3); color: var(--ore-text-dim); }
+.ore-select > .menu {
+    position: absolute; left: 0; right: 0; top: 22px; z-index: 20;
+    border: 2px solid transparent; border-image: url(../textures/ore/panel_raised.png) 2 fill;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+    display: none;
+}
+.ore-select.open > .menu { display: block; animation: ore-drop var(--ore-medium) var(--ore-ease); }
+.ore-select .option { padding: 3px var(--ore-space-3); cursor: pointer; }
+.ore-select .option:hover, .ore-select .option.active { background: var(--ore-gray-5); }
+.ore-select .option.chosen { color: var(--ore-green-3); }
+
+/* ---- Tooltip ---- */
+
+.ore-tooltip {
+    position: absolute; z-index: 50; max-width: 140px;
+    padding: 3px var(--ore-space-3) 4px;
+    border: 2px solid transparent; border-image: url(../textures/ore/tooltip.png) 2 fill;
+    pointer-events: none;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+.ore-tooltip.rare { border-image-source: url(../textures/ore/tooltip_rare.png); }
+
+/* ---- Cards (gallery) ---- */
+
+.ore-card {
+    position: relative;
+    border: 2px solid transparent; border-image: url(../textures/ore/panel_raised.png) 2 fill;
+    padding: var(--ore-space-4);
+    cursor: pointer;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+    transition: transform var(--ore-medium) var(--ore-ease), box-shadow var(--ore-medium) var(--ore-ease);
+}
+.ore-card:hover { transform: translateY(-2px); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45); outline: 1px solid var(--ore-green-3); }
+.ore-card:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
+
+/* ---- Motion ---- */
+
+@keyframes ore-drop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes ore-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes ore-pop { 0% { transform: scale(0.9); opacity: 0; } 60% { transform: scale(1.03); opacity: 1; } 100% { transform: none; } }
+.ore-enter { animation: ore-rise var(--ore-slow) var(--ore-ease) both; }
+
+/* Scrollbars use the engine's overlay bars in Ore colours. */
+* { scrollbar-color: var(--ore-gray-5) var(--ore-surface-2); }

@@ -1,0 +1,30 @@
+// The Ore theme (stylesheet and textures) and the preset screens: pages under assets/oriel/ui and their Java
+// controllers. Pure Java on top of the engine, like it: no Minecraft classes, so the previewer and tests run them.
+plugins {
+    id 'java-library'
+    id 'oriel-java'
+}
+
+dependencies {
+    implementation(project(':engine'))
+    testImplementation(project(path: ':rhino', configuration: 'relocated'))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = engine_java_release as int
+    options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
+}
+
+// The loaders copy the kit's classes and resources into the mod, as they do the engine's.
+configurations {
+    kitClasses {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+artifacts {
+    kitClasses(tasks.named('compileJava').flatMap { it.destinationDirectory })
+    kitClasses(sourceSets.main.output.resourcesDir) {
+        builtBy(tasks.named('processResources'))
+    }
+}

@@ -26,6 +26,11 @@ configurations {
         canBeResolved = true
         canBeConsumed = false
     }
+    // The kit's (Ore theme and presets) compiled classes and resources.
+    kitClasses {
+        canBeResolved = true
+        canBeConsumed = false
+    }
 }
 
 // The common subproject for the same Minecraft version.
@@ -44,6 +49,8 @@ dependencies {
     compileOnly(project(':engine'))
     engineJava(project(path: ':engine', configuration: 'engineJava'))
     engineClasses(project(path: ':engine', configuration: 'engineClasses'))
+    compileOnly(project(':kit'))
+    kitClasses(project(path: ':kit', configuration: 'kitClasses'))
     rhinoRelocated(project(path: ':rhino', configuration: 'relocated'))
     compileOnly(project(path: ':rhino', configuration: 'relocated'))
 }
@@ -61,6 +68,7 @@ processResources {
     }
     from(configurations.commonResources)
     from(configurations.engineClasses)
+    from(configurations.kitClasses)
     // Test instances are data from 26.x on; before, GameTests are code (common's GameTests).
     if (stonecutter.current.parsed < '26') exclude('data/*/test_instance/**')
 }
@@ -107,3 +115,12 @@ def configuredRunRoot = findProperty('oriel_run_dir') ?: System.getenv('ORIEL_RU
 def runRoot = configuredRunRoot ? file(configuredRunRoot) : rootProject.layout.buildDirectory.dir('runs').get().asFile
 ext.orielRunDir = { String run -> new File(runRoot, "${project.parent.name}-${project.name}/${run}") }
 clientRunProperties['oriel.sourceRoot'] = project.projectDir.absolutePath
+
+// -Poriel_release builds the jar players get: the dev autopilot and scripted tour (classes and pages) stay out. Code
+// elsewhere only reaches them through DevFlags, which is false outside dev runs.
+if (project.hasProperty('oriel_release')) {
+    tasks.named('jar', Jar) {
+        ['DevAutopilot', 'DevTour', 'DevPointer', 'TourCursor', 'TourPointer', 'CursorArt'].each { exclude("dev/oriel/mod/client/${it}*.class") }
+        exclude { it.path.startsWith('assets/oriel/oriel/dev/') && it.name != 'inspector.html' }
+    }
+}
