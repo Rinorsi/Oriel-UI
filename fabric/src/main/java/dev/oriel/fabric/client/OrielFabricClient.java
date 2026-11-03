@@ -2,6 +2,7 @@ package dev.oriel.fabric.client;
 
 import dev.oriel.mod.Constants;
 import dev.oriel.mod.client.DevAutopilot;
+import dev.oriel.mod.client.DevFlags;
 import dev.oriel.mod.client.DevPointer;
 import dev.oriel.mod.client.TourCursor;
 import dev.oriel.mod.client.OrielClient;
@@ -52,7 +53,7 @@ public final class OrielFabricClient implements ClientModInitializer {
             //? if >=26 {
             ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> OrielHud.extractAboveScreen(g, a));
             // The dev tour's cursor, over everything: after the screen's tooltips and the overlays above it.
-            if (TourCursor.ENABLED) ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> TourCursor.extractAboveScreen(g));
+            if (DevFlags.TOUR) ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> TourCursor.extractAboveScreen(g));
             ScreenMouseEvents.allowMouseClick(screen).register((s, e) -> !OrielHud.mouseClicked(e));
             ScreenMouseEvents.allowMouseRelease(screen).register((s, e) -> !OrielHud.mouseReleased(e));
             ScreenMouseEvents.allowMouseDrag(screen).register((s, e, dx, dy) -> !OrielHud.mouseDragged(e));
@@ -85,7 +86,7 @@ public final class OrielFabricClient implements ClientModInitializer {
         *///?}
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, context) -> dispatcher.register(OrielClientCommands.create()));
         ClientTickEvents.END_CLIENT_TICK.register(client -> OrielClient.tick());
-        if (DevAutopilot.ENABLED) {
+        if (DevFlags.AUTOPILOT) {
             ClientTickEvents.END_CLIENT_TICK.register(DevAutopilot::tick);
             ScreenEvents.BEFORE_INIT.register((client, screen, width, height) -> {
                 DevPointer.beforeScreenChange();
@@ -93,7 +94,7 @@ public final class OrielFabricClient implements ClientModInitializer {
             });
         }
         //? if >=26
-        if (TourCursor.ENABLED) HudElementRegistry.addLast(Constants.id("tour_cursor"), TourCursor::extractHud);
+        if (DevFlags.TOUR) HudElementRegistry.addLast(Constants.id("tour_cursor"), TourCursor::extractHud);
     }
 
     private static <T extends CustomPacketPayload> void register(OrielNetwork.Clientbound<T> c) {

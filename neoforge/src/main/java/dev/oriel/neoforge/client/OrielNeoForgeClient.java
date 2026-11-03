@@ -2,6 +2,7 @@ package dev.oriel.neoforge.client;
 
 import dev.oriel.mod.Constants;
 import dev.oriel.mod.client.DevAutopilot;
+import dev.oriel.mod.client.DevFlags;
 import dev.oriel.mod.client.DevPointer;
 import dev.oriel.mod.client.McClient;
 import dev.oriel.mod.client.TourCursor;
@@ -102,14 +103,14 @@ public final class OrielNeoForgeClient {
             if (OrielHud.mouseScrolled(e.getMouseX(), e.getMouseY(), e.getScrollDeltaX(), e.getScrollDeltaY())) e.setCanceled(true);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> OrielClient.tick());
-        if (DevAutopilot.ENABLED) {
+        if (DevFlags.AUTOPILOT) {
             NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> DevAutopilot.tick(Minecraft.getInstance()));
             NeoForge.EVENT_BUS.addListener((ScreenEvent.Init.Pre e) -> DevPointer.beforeScreenChange());
             NeoForge.EVENT_BUS.addListener((ScreenEvent.Closing e) -> DevPointer.beforeScreenChange());
         }
         //? if >=26 {
         // The dev tour's cursor, over everything: after the screen's tooltips and the overlays above it, else last in the HUD.
-        if (TourCursor.ENABLED) {
+        if (DevFlags.TOUR) {
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, (ScreenEvent.Render.Post e) -> {
                 if (e.getScreen() == Minecraft.getInstance().gui.screen()) TourCursor.extractAboveScreen(e.getGuiGraphics());
             });
