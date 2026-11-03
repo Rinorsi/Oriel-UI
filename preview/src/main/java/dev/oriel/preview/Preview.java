@@ -21,6 +21,7 @@ public final class Preview {
             Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N] [--boxes selector]] [--narrate] [--strict]
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
+                   preview --check <dir or page.html>   (every page at 640x360 and 427x240: errors, missing images, CSS)
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             Diagnostics (CSS the engine did not take as written) go to stderr; with --strict a warning fails the run
             (exit code 3).""";
@@ -98,6 +99,11 @@ public final class Preview {
     public static void main(String[] args) throws IOException {
         // The Ore presets' Java controllers attach to their pages as they load.
         OrielKit.register();
+        if (args.length == 2 && args[0].equals("--check")) {
+            System.setProperty("java.awt.headless", "true");
+            System.exit(Check.run(java.nio.file.Path.of(args[1])));
+            return;
+        }
         Options options;
         try {
             options = Options.parse(args);

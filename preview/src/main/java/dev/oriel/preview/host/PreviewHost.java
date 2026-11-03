@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.IllegalFormatException;
 import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -134,8 +135,29 @@ public final class PreviewHost implements Host {
 
     @Override
     public float[] imageSize(String url) {
-        return known(imageSizes.computeIfAbsent(url, u -> size(assets.texture(u))));
+        float[] size = known(imageSizes.computeIfAbsent(url, u -> size(assets.texture(u))));
+        if (size == null) missing.add(url);
+        return size;
     }
+
+    /** Images asked for that did not resolve, in order ({@code --check}). */
+    public java.util.Set<String> missingImages() {
+        return missing;
+    }
+
+    /** Every diagnostic so far, formatted ({@code --check}). */
+    public List<String> diagnosticLines() {
+        return diagnosticLines;
+    }
+
+    /** Quiet: diagnostics and info logs are kept, not printed ({@code --check} prints its own report). */
+    public void quiet(boolean on) {
+        quiet = on;
+    }
+
+    private final java.util.Set<String> missing = new java.util.LinkedHashSet<>();
+    private final List<String> diagnosticLines = new java.util.ArrayList<>();
+    private boolean quiet;
 
     @Override
     public float[] spriteSize(String id) {
@@ -178,7 +200,8 @@ public final class PreviewHost implements Host {
 
     @Override
     public void diagnostic(Diagnostic d) {
-        System.err.println("[diagnostic] " + d.format());
+        diagnosticLines.add(d.format());
+        if (!quiet) System.err.println("[diagnostic] " + d.format());
         if (d.severity() != Diagnostic.Severity.INFO) problems++;
     }
 
@@ -188,6 +211,7 @@ public final class PreviewHost implements Host {
 
     @Override
     public void log(LogLevel level, String message) {
+        if (quiet && level != LogLevel.ERROR) return;
         System.out.println("[oriel " + level.name().toLowerCase() + "] " + message);
     }
 

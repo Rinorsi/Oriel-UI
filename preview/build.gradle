@@ -39,3 +39,16 @@ tasks.named('test', Test) {
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
 }
+
+// `./gradlew :preview:checkUi [-Pui=<dir or page>]`: loads every kit page (or the given ones) headless with its
+// controller at 640x360 and 427x240, and fails on an engine or controller error or a missing image; CSS the engine
+// did not take as written is listed. The gate to run after editing a page.
+tasks.register('checkUi', JavaExec) {
+    group = 'verification'
+    description = 'Checks every UI page for errors, missing images and CSS diagnostics'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.oriel.preview.Preview'
+    workingDir = rootProject.projectDir
+    systemProperty('java.awt.headless', 'true')
+    args('--check', project.findProperty('ui') ?: 'kit/src/main/resources/assets/oriel/ui')
+}

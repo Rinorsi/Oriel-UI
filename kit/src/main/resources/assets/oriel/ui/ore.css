@@ -571,3 +571,8 @@ canvas.fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; poin
 @keyframes eff-in { from { opacity: 0; transform: translateX(24px); } }
 @keyframes eff-blink { from { opacity: 1; } to { opacity: 0.35; } }
 canvas.fx.off { display: none; }
+[data-theme=light] .r-uncommon { --tier: #2f7d1d; }
+[data-theme=light] .r-rare { --tier: #1478b8; }
+[data-theme=light] .r-epic { --tier: #8a3ad0; }
+[data-theme=light] .r-legendary { --tier: #b86e00; }
+[data-theme=light] .r-mythic { --tier: #c42e3e; }

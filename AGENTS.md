@@ -64,6 +64,17 @@ D:\Minecraft\project\Mods\
 | 其他 | Git 2.55、Node 24（仅开发期可能用到）、Windows、无管理员权限 |
 | 注意 | Git Bash 下路径含空格要加引号；没有 `python` 时用 node 或 bash 代替 |
 
-## 当前状态
+## UI 工作流（AI 快速入口）
 
-见 `..\Oriel-UI-Workspace\planning\TASK-01-overnight.md`（首轮夜间自主开发任务）与当天的 `daily\<日期>\reports\`。
+1. 规则：`docs/zh/design.md`（尺寸 640×360 / 427×240、三层层级、稀有度光效、粒子、图标）。流程：`docs/zh/making-a-page.md`。
+2. 新页面：`node tools/new-page.mjs <名字> "<标题>"`（页面 + 控制器 + 测试 + 登记）。
+3. 页面只写 HTML/CSS（`kit/src/main/resources/assets/oriel/ui/`，样式库 `ore.css`）；交互在 Java 控制器（`kit/.../preset/*Preset.java`），共用件在 `kit/.../kit/`（`Shell`、`Dom`、`Flip`、`Slider`、`fx/Particles`）。
+4. 每次改完：`./gradlew :kit:test :preview:checkUi`。排查布局：预览器 `--snapshot out.png --frames 60 --boxes "<选择器>"`。
+5. 进游戏验收：`./gradlew :fabric:26.1:runClient -Pautopilot=oriel`（自动打开每个界面并截图，1280×720）。截图、日志放工作区 `daily/<日期>/`。
+
+## 当前状态（2026-11-04 实测）
+
+- 构建与运行：MC 26.1.2 / 26.2 / 26.3，Fabric 与 NeoForge 均可构建；Fabric 26.1 与 26.3 客户端实测通过。26.1 是主验收版本。
+- kit：画廊、背包、锻造台、音乐、设置、药水 HUD、组件编辑器 7 个界面；亮/暗主题；75 个像素图标；8 种粒子预设。
+- 本环境调用 Sonnet 子代理失败（模型不可用），2026-11-04 起未派子代理，全部由主会话完成。
+- 任务记录：`..\Oriel-UI-Workspace\planning\TASK-01-overnight.md`、`TASK-02.md` 与当天的 `daily\<日期>\reports\`。
