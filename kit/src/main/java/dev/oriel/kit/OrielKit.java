@@ -1,6 +1,7 @@
 package dev.oriel.kit;
 
 import dev.oriel.kit.preset.GalleryPreset;
+import dev.oriel.kit.preset.InventoryPreset;
 import dev.oriel.engine.host.PageControllers;
 
 import java.util.List;
@@ -35,5 +36,6 @@ public final class OrielKit {
         if (registered) return;
         registered = true;
         PageControllers.register(GALLERY, GalleryPreset::new);
+        PageControllers.register(INVENTORY, InventoryPreset::new);
     }
 }

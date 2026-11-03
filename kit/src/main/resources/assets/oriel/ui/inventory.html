@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+<title>背包</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+.inventory { width: 330px; }
+.body { display: flex; gap: 8px; }
+.column { display: flex; flex-direction: column; gap: 3px; }
+.equip { display: flex; flex-direction: column; }
+.grid { display: flex; flex-wrap: wrap; width: 180px; }
+.hotbar { display: flex; width: 180px; margin-top: 4px; }
+.ore-slot item { position: absolute; left: 0; top: 0; width: 16px; height: 16px; }
+.ore-slot { transition: opacity var(--ore-medium); }
+.ore-slot.dim { opacity: 0.28; }
+.ore-slot.match { outline: 1px solid var(--ore-green-3); outline-offset: -1px; }
+.ore-slot .hint { position: absolute; left: 0; top: 0; width: 16px; height: 16px; opacity: 0.22; }
+.ore-slot.landed item { animation: ore-pop 0.22s var(--ore-ease); }
+.ore-slot.reject { animation: shake 0.25s linear; }
+@keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+.ghost {
+    position: absolute; width: 20px; height: 20px; z-index: 40; pointer-events: none;
+    transform: rotate(-10deg) scale(1.2); display: none;
+}
+.ghost.on { display: block; animation: lift 0.16s var(--ore-ease); }
+.ghost .shadow { position: absolute; left: 4px; top: 7px; width: 16px; height: 16px; background: rgba(0, 0, 0, 0.35); }
+.ghost item { position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; }
+@keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.2); } }
+.details { width: 110px; display: flex; flex-direction: column; gap: 4px; padding: 6px; }
+.details .big { width: 32px; height: 32px; }
+.details .name { line-height: 10px; }
+.details .lore { color: var(--ore-text-dim); line-height: 10px; }
+.details .enchant { color: #a98cff; line-height: 10px; }
+.details .attr { color: var(--ore-green-3); line-height: 10px; }
+.tip-name { line-height: 10px; }
+.tip-line { color: var(--ore-text-dim); line-height: 10px; }
+.tip-enchant { color: #a98cff; line-height: 10px; }
+.tip-attr { color: var(--ore-green-3); line-height: 10px; }
+.rarity-common { color: var(--ore-text); }
+.rarity-uncommon { color: var(--ore-yellow); }
+.rarity-rare { color: #6ad9f5; }
+.rarity-epic { color: #d77bff; }
+.search { width: 104px; }
+.foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.foot .ore-btn { min-height: 18px; }
+</style>
+</head>
+<body>
+<div class="ore-screen" id="screen">
+  <div class="ore-panel inventory ore-enter">
+    <div class="ore-header">
+      <div class="ore-btn icon" id="back" tabindex="0">‹</div>
+      <div class="ore-title">背包</div>
+      <div class="ore-spacer"></div>
+      <input class="ore-field search" id="search" placeholder="搜索物品…">
+      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+    </div>
+    <div class="body">
+      <div class="column">
+        <div class="ore-label">装备</div>
+        <div class="equip" id="equip"></div>
+      </div>
+      <div class="column">
+        <div class="ore-label">物品栏</div>
+        <div class="grid" id="main"></div>
+        <div class="hotbar" id="hotbar"></div>
+      </div>
+      <div class="ore-inset details" id="details">
+        <div class="ore-faint">把鼠标移到物品上查看详情</div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="ore-btn primary" id="sort" tabindex="0">整理</div>
+      <span class="ore-faint" id="status">左键拖动换位 · 右键拿起一半 · Shift+点击快速移动</span>
+    </div>
+  </div>
+  <div class="ghost" id="ghost"><div class="shadow"></div></div>
+  <div class="ore-tooltip" id="tip" style="display: none"></div>
+</div>
+</body>
+</html>
