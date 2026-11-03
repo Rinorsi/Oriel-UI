@@ -1,92 +1,172 @@
 <!doctype html>
 <html>
 <head>
-<title>音乐播放器</title>
+<title>优易库 · 音乐播放器</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-.player { width: 360px; }
-.body { display: flex; gap: 8px; }
-.now { width: 180px; display: flex; flex-direction: column; gap: 6px; }
-.deck { display: flex; gap: 8px; align-items: center; }
-.disc-box { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
-.disc { width: 32px; height: 32px; }
-.track-title { line-height: 10px; }
-.track-meta { color: var(--ore-text-dim); line-height: 10px; }
-.eq { display: flex; align-items: flex-end; gap: 1px; height: 36px; padding: 2px 4px; }
-.eq .bar { position: relative; width: 9px; }
-.eq .bar .lvl { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #2a641c, #52a535 50%, #a0e081); }
-.eq .bar .cap { position: absolute; left: 0; right: 0; height: 1px; background: #ecedee; }
-.progress { display: flex; align-items: center; gap: 4px; }
-.time { width: 22px; color: var(--ore-text-dim); }
-.time.right { text-align: right; }
-.controls { display: flex; align-items: center; gap: 4px; }
-.controls .ore-btn { min-width: 24px; padding: 0 4px; }
-.play-icon { width: 0; height: 0; border-left: 7px solid #fff; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
-.pause-icon { display: flex; gap: 2px; }
-.pause-icon div { width: 2px; height: 8px; background: #fff; }
-.volume { display: flex; align-items: center; gap: 4px; flex-grow: 1; }
-.list { width: 164px; display: flex; flex-direction: column; }
-.list-head { display: flex; justify-content: space-between; margin-bottom: 3px; }
-.rows { position: relative; height: 132px; padding: 2px; }
-.row {
-    position: absolute; left: 2px; right: 2px; height: 20px;
-    display: flex; align-items: center; gap: 4px; padding: 0 4px;
-    cursor: pointer;
-    transition: transform 0.18s var(--ore-ease), background-color var(--ore-fast);
+/* The deck: a vinyl that spins while playing (the tonearm swings onto it and notes rise off it), the track, a
+   24-band LED spectrum with its reflection, and the transport. The queue is on the right; rows drag to reorder.
+   "迷你" folds the window into the HUD form: a small bar at the bottom right that keeps playing. */
+.o-main { flex-direction: row; gap: 10px; padding: 10px 10px 8px; }
+.deck { position: relative; width: 132px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.platter { position: relative; width: 124px; height: 124px; }
+.vinyl {
+    position: absolute; left: 6px; top: 6px; width: 112px; height: 112px; border-radius: 56px;
+    background: radial-gradient(circle, #1a1a1c 0 19px, #0b0b0c 20px 21px, #19191b 22px 26px, #0e0e0f 27px, #1b1b1d 28px 32px,
+        #0e0e0f 33px, #19191b 34px 39px, #0e0e0f 40px, #1c1c1e 41px 46px, #0e0e0f 47px, #19191b 48px 53px, #050505 54px 56px);
+    box-shadow: 0 0 0 1px #000000, 0 3px 0 rgba(0, 0, 0, 0.5), 0 0 14px color-mix(in srgb, var(--disc, #c46aff) 35%, transparent);
+    animation: fx-spin 3.2s linear infinite; animation-play-state: paused;
 }
-.row:hover { background: var(--ore-gray-7); }
-.row .grip { color: var(--ore-text-faint); }
-.row item { width: 16px; height: 16px; flex-shrink: 0; }
-.row .name { flex-grow: 1; line-height: 10px; }
-.row .len { color: var(--ore-text-faint); }
-.row.current .name { color: var(--ore-green-3); }
-.row.dragging { z-index: 10; transition: background-color var(--ore-fast); background: var(--ore-gray-6);
-    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45); outline: 1px solid var(--ore-green-3); }
-.hint { margin-top: 4px; }
+.playing .vinyl { animation-play-state: running; }
+.vinyl::before { content: ""; position: absolute; left: 14px; top: 10px; width: 40px; height: 24px; border-radius: 20px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 70%); }
+.vinyl .label { position: absolute; left: 36px; top: 36px; width: 40px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle, #f4f6f9 0 2px, color-mix(in srgb, var(--disc, #c46aff) 80%, #ffffff) 3px 15px, var(--disc, #c46aff) 16px); }
+.vinyl .label item { display: none; }
+.arm { position: absolute; right: -2px; top: -2px; width: 8px; height: 76px; transform-origin: 4px 4px; transform: rotate(-30deg);
+    transition: transform 600ms var(--o-ease-back); pointer-events: none; }
+.playing .arm { transform: rotate(4deg); }
+.arm::before { content: ""; position: absolute; left: 0; top: 0; width: 8px; height: 8px; background: #8c8d90; border: 1px solid #1e1e1f; }
+.arm::after { content: ""; position: absolute; left: 3px; top: 8px; width: 2px; height: 60px; background: linear-gradient(#d0d1d4, #8c8d90); box-shadow: 1px 0 0 #1e1e1f; }
+.arm i { position: absolute; left: 0; bottom: 0; width: 8px; height: 9px; background: #58585a; border: 1px solid #1e1e1f; }
+
+.now { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.track .o-h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track .who { display: flex; align-items: center; gap: 4px; color: var(--o-text-dim); }
+.track .who .o-ico { -mc-tint: var(--o-text-faint); }
+.state { display: flex; align-items: center; gap: 3px; color: var(--o-text-faint); }
+.playing .state { color: var(--o-accent-strong); }
+.state i { width: 5px; height: 5px; background: var(--o-text-faint); }
+.playing .state i { background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); animation: fx-pulse 1s ease-in-out infinite; }
+
+.spectrum { position: relative; flex: 1; min-height: 50px; display: flex; flex-direction: column; }
+.eq { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; padding: 0 2px; }
+.eq .bar { position: relative; flex: 1; height: 100%; }
+.eq .lvl { position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+    background: repeating-linear-gradient(to top, var(--c) 0 2px, rgba(0, 0, 0, 0) 2px 3px);
+    box-shadow: 0 0 4px color-mix(in srgb, var(--c) 50%, transparent); }
+.eq .cap { position: absolute; left: 0; right: 0; height: 1px; bottom: 1px; background: #ffffff; opacity: 0.85; }
+.floor { height: 1px; background: var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
+.mirror { height: 14px; display: flex; gap: 2px; padding: 0 2px; opacity: 0.22; }
+.mirror .bar { flex: 1; position: relative; }
+.mirror .lvl { position: absolute; left: 0; right: 0; top: 0; background: var(--c); }
+
+.progress { display: flex; align-items: center; gap: 6px; }
+.progress .time { width: 24px; color: var(--o-text-dim); }
+.progress .time.right { text-align: right; }
+.controls { display: flex; align-items: center; gap: 3px; }
+.controls .ore-btn { min-height: 20px; }
+.controls .ore-btn.big { min-width: 34px; min-height: 22px; }
+.controls .toggle.on .o-ico { -mc-tint: var(--o-accent-strong); }
+.volume { display: flex; align-items: center; gap: 4px; margin-left: auto; width: 110px; }
+.volume .o-ico { -mc-tint: var(--o-text-dim); }
+
+/* The queue. */
+.o-side { width: 176px; padding: 6px 6px 4px; }
+.queue-head { display: flex; align-items: center; gap: 4px; }
+.queue-head .n { margin-left: auto; color: var(--o-text-faint); }
+.rows { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.row { position: absolute; left: 0; right: 0; top: 0; height: 20px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 2px;
+    border: 1px solid rgba(0, 0, 0, 0); cursor: grab; transition: transform 160ms var(--o-ease-out), background-color 120ms; }
+.row:hover { background: var(--o-line); }
+.row .grip { -mc-tint: var(--o-text-faint); width: 16px; height: 16px; }
+.row item { width: 16px; height: 16px; flex: none; }
+.row .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--o-text-dim); }
+.row .len { color: var(--o-text-faint); }
+.row.current { background: color-mix(in srgb, var(--o-accent) 20%, transparent); border-color: color-mix(in srgb, var(--o-accent) 55%, transparent); }
+.row.current .name { color: var(--o-text); }
+.row .mini-eq { display: none; gap: 1px; align-items: flex-end; height: 7px; }
+.row.current .mini-eq { display: flex; }
+.row .mini-eq i { width: 2px; height: 3px; background: var(--o-accent-strong); }
+.playing .row.current .mini-eq i { animation: mini-eq 0.6s ease-in-out infinite alternate; }
+.playing .row.current .mini-eq i:nth-child(2) { animation-delay: -0.2s; }
+.playing .row.current .mini-eq i:nth-child(3) { animation-delay: -0.4s; }
+@keyframes mini-eq { from { height: 2px; } to { height: 7px; } }
+.row.dragging { z-index: 5; transition: none; background: var(--o-tile-hover); border-color: var(--o-accent-strong); box-shadow: 0 3px 0 var(--o-shade), 0 0 6px color-mix(in srgb, var(--o-accent) 40%, transparent); cursor: grabbing; }
+
+.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
+
+/* The mini player: the window folds away and a small bar plays on at the bottom right. */
+.mini-bar { position: absolute; right: 8px; bottom: 8px; width: 200px; display: none; align-items: center; gap: 6px; padding: 4px 6px 6px 4px;
+    border: 2px solid transparent; border-image: url(../textures/ore/panel_glass.png) 2 fill; color: #ffffff; }
+.o-app.mini { background: none; }
+.o-app.mini .o-window { display: none; }
+.o-app.mini .mini-bar { display: flex; animation: fx-rise 260ms var(--o-ease-out); }
+.mini-bar .vinyl { position: relative; left: 0; top: 0; width: 26px; height: 26px; border-radius: 13px; flex: none;
+    background: radial-gradient(circle, var(--disc, #c46aff) 0 5px, #0c0c0d 6px 7px, #19191b 8px 9px, #101011 10px 11px, #19191b 12px); }
+.mini-bar .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mini-bar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-bar .line { position: relative; height: 2px; background: rgba(255, 255, 255, 0.15); }
+.mini-bar .line i { position: absolute; left: 0; top: 0; bottom: 0; background: #86d562; }
+.mini-bar .ore-btn { min-height: 18px; }
 </style>
 </head>
 <body>
-<div class="ore-screen">
-  <div class="ore-panel player ore-enter">
-    <div class="ore-header">
-      <div class="ore-btn icon" id="back" tabindex="0">‹</div>
-      <div class="ore-title">音乐播放器</div>
-      <div class="ore-spacer"></div>
-      <div class="ore-faint">空格 播放/暂停</div>
-      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+<div class="o-app" id="screen">
+  <div class="o-window">
+    <div class="o-titlebar">
+      <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
+      <img class="o-mark" src="../textures/icons/music.png">
+      <h1>音乐播放器</h1><span class="o-crumb">/ 唱片机</span>
+      <div class="o-grow"></div>
+      <div class="ore-btn" id="mini" tabindex="0"><img class="o-ico" src="../textures/icons/down.png">迷你</div>
+      <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
-    <div class="body">
-      <div class="now">
+    <div class="o-body">
+      <div class="o-main">
         <div class="deck">
-          <div class="ore-inset disc-box"><item class="disc" id="minecraft:music_disc_cat"></item></div>
-          <div>
-            <div class="track-title" id="title">-</div>
-            <div class="track-meta" id="meta">-</div>
-            <div class="track-meta" id="state">已暂停</div>
+          <div class="platter">
+            <canvas class="fx" id="notes" data-fx="notes" data-rate="0" data-area="centre" data-seed="4"></canvas>
+            <div class="vinyl" id="vinyl"><div class="label"><item class="disc" id="minecraft:music_disc_cat"></item></div></div>
+            <div class="arm"><i></i></div>
           </div>
+          <div class="state" id="state"><i></i><span id="state-text">已暂停</span></div>
         </div>
-        <div class="ore-inset eq" id="eq"></div>
-        <div class="progress">
-          <div class="time" id="elapsed">0:00</div>
-          <div class="ore-slider" id="seek" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
-          <div class="time right" id="length">0:00</div>
-        </div>
-        <div class="controls">
-          <div class="ore-btn" id="prev" tabindex="0">◀◀</div>
-          <div class="ore-btn primary" id="play" tabindex="0"><div class="play-icon"></div></div>
-          <div class="ore-btn" id="next" tabindex="0">▶▶</div>
-          <div class="volume">
-            <div class="ore-label" id="vol-label">音量</div>
-            <div class="ore-slider" id="volume" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+        <div class="now">
+          <div class="track">
+            <div class="o-h1" id="title">-</div>
+            <div class="who"><img class="o-ico" src="../textures/icons/user.png"><span id="meta">-</span></div>
+          </div>
+          <div class="spectrum">
+            <div class="eq" id="eq"></div>
+            <div class="floor"></div>
+            <div class="mirror" id="mirror"></div>
+          </div>
+          <div class="progress">
+            <div class="time" id="elapsed">0:00</div>
+            <div class="ore-slider" id="seek" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+            <div class="time right" id="length">0:00</div>
+          </div>
+          <div class="controls">
+            <div class="ore-btn icon toggle" id="shuffle" tabindex="0" title="随机"><img class="o-ico" src="../textures/icons/shuffle.png"></div>
+            <div class="ore-btn icon" id="prev" tabindex="0" title="上一首"><img class="o-ico" src="../textures/icons/prev.png"></div>
+            <div class="ore-btn hero big" id="play" tabindex="0" title="播放 (空格)"><img class="o-ico" id="play-icon" src="../textures/icons/play.png"></div>
+            <div class="ore-btn icon" id="next" tabindex="0" title="下一首"><img class="o-ico" src="../textures/icons/next.png"></div>
+            <div class="ore-btn icon toggle on" id="repeat" tabindex="0" title="列表循环"><img class="o-ico" src="../textures/icons/repeat.png"></div>
+            <div class="volume">
+              <img class="o-ico" id="vol-icon" src="../textures/icons/volume.png">
+              <div class="ore-slider" id="volume" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="list">
-        <div class="list-head"><span class="ore-label">播放列表</span><span class="ore-faint" id="count"></span></div>
-        <div class="ore-inset rows" id="rows"></div>
-        <div class="ore-faint hint">拖动曲目调整顺序 · 点击播放</div>
+      <div class="o-side">
+        <div class="queue-head"><img class="o-ico" src="../textures/icons/list.png"><span>播放队列</span><span class="n" id="count"></span></div>
+        <div class="rows" id="rows"></div>
+        <div class="o-faint">拖动排序 · Enter 播放</div>
       </div>
     </div>
+    <div class="foot">
+      <div class="o-hints"><span><span class="o-kbd">空格</span>播放 / 暂停</span><span><span class="o-kbd">←</span><span class="o-kbd">→</span>切歌</span></div>
+      <div class="o-grow"></div>
+      <span class="o-faint" id="vol-label">音量 70%</span>
+    </div>
+  </div>
+  <div class="mini-bar" id="mini-bar">
+    <div class="vinyl"></div>
+    <div class="info"><span class="t" id="mini-title">-</span><div class="line"><i id="mini-line"></i></div></div>
+    <div class="ore-btn icon" id="mini-play" tabindex="0"><img class="o-ico" id="mini-play-icon" src="../textures/icons/play.png"></div>
+    <div class="ore-btn icon" id="expand" tabindex="0"><img class="o-ico" src="../textures/icons/up.png"></div>
   </div>
 </div>
 </body>

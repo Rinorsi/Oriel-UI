@@ -1,6 +1,9 @@
 package dev.oriel.kit.preset;
 
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.OrielKit;
+import dev.oriel.kit.Shell;
+import dev.oriel.kit.fx.Particles;
 import dev.oriel.kit.Slider;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
@@ -18,7 +21,7 @@ import java.util.Random;
  */
 public final class MusicPreset implements PageControllers.Controller {
     static final float ROW = 21;
-    static final int BARS = 14;
+    static final int BARS = 24;
 
     record Track(String title, String artist, String disc, int seconds) {}
 
@@ -39,7 +42,11 @@ public final class MusicPreset implements PageControllers.Controller {
     private Slider seek, volumeSlider;
     private Element title, meta, state, elapsed, length, disc, play, rowsBox;
     private final float[] levels = new float[BARS], caps = new float[BARS], targets = new float[BARS];
-    private final List<Dom.Style> levelStyles = new ArrayList<>(), capStyles = new ArrayList<>();
+    private final List<Dom.Style> levelStyles = new ArrayList<>(), capStyles = new ArrayList<>(), mirrorStyles = new ArrayList<>();
+    private Element screen, playIcon, miniPlayIcon, miniTitle;
+    private Dom.Style miniLine;
+    private Particles.Emitter notes;
+    private boolean shuffle;
     private final Random random = new Random(3);
     private double last = -1, retarget;
     // Row dragging.
@@ -51,6 +58,12 @@ public final class MusicPreset implements PageControllers.Controller {
     @Override
     public void attach(Document document) {
         doc = document;
+        notes = Shell.setup(doc).emitter("notes");
+        screen = Dom.byId(doc, "screen");
+        playIcon = Dom.byId(doc, "play-icon");
+        miniPlayIcon = Dom.byId(doc, "mini-play-icon");
+        miniTitle = Dom.byId(doc, "mini-title");
+        miniLine = new Dom.Style(Dom.byId(doc, "mini-line"));
         title = Dom.byId(doc, "title");
         meta = Dom.byId(doc, "meta");
         state = Dom.byId(doc, "state");
@@ -59,15 +72,21 @@ public final class MusicPreset implements PageControllers.Controller {
         disc = Dom.query(doc, ".disc");
         play = Dom.byId(doc, "play");
         rowsBox = Dom.byId(doc, "rows");
-        Element eq = Dom.byId(doc, "eq");
+        Element eq = Dom.byId(doc, "eq"), mirror = Dom.byId(doc, "mirror");
         for (int i = 0; i < BARS; i++) {
+            String colour = "--c: " + bandColour(i / (float) (BARS - 1));
             Element bar = Dom.el(doc, "div", "bar", null), lvl = Dom.el(doc, "div", "lvl", null), cap = Dom.el(doc, "div", "cap", null);
-            bar.setAttribute("style", "height: 32px");
+            bar.setAttribute("style", colour);
             bar.appendChild(lvl);
             bar.appendChild(cap);
             eq.appendChild(bar);
             levelStyles.add(new Dom.Style(lvl));
             capStyles.add(new Dom.Style(cap));
+            Element mb = Dom.el(doc, "div", "bar", null), ml = Dom.el(doc, "div", "lvl", null);
+            mb.setAttribute("style", colour);
+            mb.appendChild(ml);
+            mirror.appendChild(mb);
+            mirrorStyles.add(new Dom.Style(ml));
         }
         seek = new Slider(doc, Dom.byId(doc, "seek"), 0).onInput(v -> {
             position = v * track().seconds();
@@ -75,7 +94,8 @@ public final class MusicPreset implements PageControllers.Controller {
         });
         volumeSlider = new Slider(doc, Dom.byId(doc, "volume"), 20).onInput(v -> {
             volume = v;
-            Dom.text(Dom.byId(doc, "vol-label"), volume == 0 ? "静音" : "音量");
+            Dom.text(Dom.byId(doc, "vol-label"), volume == 0 ? "静音" : "音量 " + Math.round(volume * 100) + "%");
+            Dom.attr(Dom.byId(doc, "vol-icon"), "src", "../textures/icons/" + (volume == 0 ? "mute" : "volume") + ".png");
         });
         volumeSlider.set(volume);
         for (int i = 0; i < playlist.size(); i++) rows.add(row(playlist.get(i)));
@@ -86,11 +106,22 @@ public final class MusicPreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "prev"), e -> skip(-1));
         Dom.onClick(Dom.byId(doc, "next"), e -> skip(1));
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate("gallery.html"));
+        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
+        Shell.activate(Dom.byId(doc, "mini-play"), this::toggle);
+        Shell.activate(Dom.byId(doc, "mini"), () -> screen.addClass("mini"));
+        Shell.activate(Dom.byId(doc, "expand"), () -> screen.removeClass("mini"));
+        Element shuffleButton = Dom.byId(doc, "shuffle"), repeat = Dom.byId(doc, "repeat");
+        Shell.activate(shuffleButton, () -> shuffleButton.toggleClass("on", shuffle = !shuffle));
+        Shell.activate(repeat, () -> repeat.toggleClass("on"));
         Dom.onKey(doc, e -> {
-            if (e.code.equals("Space") && !(doc.focusedElement() != null && doc.focusedElement().isTextControl())) {
+            if (doc.focusedElement() != null && doc.focusedElement().isTextControl()) return;
+            if (e.code.equals("Space")) {
                 e.preventDefault();
                 toggle();
+            } else if (e.key.equals("ArrowRight")) {
+                skip(1);
+            } else if (e.key.equals("ArrowLeft")) {
+                skip(-1);
             }
         });
         Dom.onMouse(doc, "mousemove", this::dragMove);
@@ -105,20 +136,18 @@ public final class MusicPreset implements PageControllers.Controller {
 
     void toggle() {
         playing = !playing;
-        play.removeAllChildren();
-        if (playing) {
-            Element pause = Dom.el(doc, "div", "pause-icon", null);
-            pause.appendChild(Dom.el(doc, "div", null, null));
-            pause.appendChild(Dom.el(doc, "div", null, null));
-            play.appendChild(pause);
-        } else {
-            play.appendChild(Dom.el(doc, "div", "play-icon", null));
-        }
-        Dom.text(state, playing ? "正在播放" : "已暂停");
+        String icon = "../textures/icons/" + (playing ? "pause" : "play") + ".png";
+        Dom.attr(playIcon, "src", icon);
+        Dom.attr(miniPlayIcon, "src", icon);
+        screen.toggleClass("playing", playing);
+        notes.rate(playing ? 2.5f : 0);
+        Dom.text(Dom.byId(doc, "state-text"), playing ? "正在播放" : "已暂停");
     }
 
     void skip(int delta) {
-        select(Math.floorMod(current + delta, playlist.size()), true);
+        int next = shuffle && playlist.size() > 1 ? Math.floorMod(current + 1 + random.nextInt(playlist.size() - 1), playlist.size())
+                : Math.floorMod(current + delta, playlist.size());
+        select(next, true);
     }
 
     void select(int index, boolean restart) {
@@ -128,6 +157,8 @@ public final class MusicPreset implements PageControllers.Controller {
         Dom.text(title, t.title());
         Dom.text(meta, t.artist());
         Dom.attr(disc, "id", t.disc());
+        Dom.text(miniTitle, t.title() + " · " + t.artist());
+        new Dom.Style(screen).set("--disc", discColour(t.disc())).apply();
         Dom.text(length, time(t.seconds()));
         for (int i = 0; i < rows.size(); i++) rows.get(i).toggleClass("current", i == current);
         renderTime();
@@ -155,8 +186,9 @@ public final class MusicPreset implements PageControllers.Controller {
             float k = (float) (1 - Math.pow(playing ? 0.0005 : 0.02, dt));
             levels[i] += (targets[i] - levels[i]) * k;
             caps[i] = Math.max(levels[i], caps[i] - (float) dt * 0.35f);
-            levelStyles.get(i).px("height", 30 * levels[i]).apply();
-            capStyles.get(i).px("bottom", 30 * caps[i] + 1).apply();
+            levelStyles.get(i).set("height", Math.round(levels[i] * 1000) / 10f + "%").apply();
+            capStyles.get(i).set("bottom", Math.round(caps[i] * 1000) / 10f + "%").apply();
+            mirrorStyles.get(i).set("height", Math.round(levels[i] * 1000) / 10f + "%").apply();
         }
         doc.scheduler().requestAnimationFrame(this::frame);
     }
@@ -164,6 +196,31 @@ public final class MusicPreset implements PageControllers.Controller {
     private void renderTime() {
         Dom.text(elapsed, time((int) position));
         if (!seek.dragging()) seek.set(position / track().seconds());
+        miniLine.set("width", Math.round(1000 * position / track().seconds()) / 10f + "%").apply();
+    }
+
+    /** The spectrum's colour across the bands: cyan, violet, pink. */
+    static String bandColour(float t) {
+        int[][] stops = {{85, 200, 255}, {196, 106, 255}, {255, 90, 154}};
+        float f = t * 2;
+        int i = Math.min(1, (int) f);
+        float k = f - i;
+        int[] a = stops[i], b = stops[i + 1];
+        return String.format("#%02x%02x%02x", Math.round(a[0] + (b[0] - a[0]) * k), Math.round(a[1] + (b[1] - a[1]) * k),
+                Math.round(a[2] + (b[2] - a[2]) * k));
+    }
+
+    /** Each disc's label colour, after its item. */
+    static String discColour(String disc) {
+        return switch (disc.substring(disc.lastIndexOf('_') + 1)) {
+            case "cat" -> "#6cc349";
+            case "13" -> "#ffd36b";
+            case "pigstep" -> "#e25a5a";
+            case "chirp" -> "#ff8a3a";
+            case "mellohi" -> "#c46aff";
+            case "otherside" -> "#55c8ff";
+            default -> "#c46aff";
+        };
     }
 
     static String time(int seconds) {
@@ -175,11 +232,16 @@ public final class MusicPreset implements PageControllers.Controller {
     private Element row(Track t) {
         Element row = Dom.el(doc, "div", "row", null);
         row.setAttribute("tabindex", "0");
-        row.appendChild(Dom.el(doc, "span", "grip", "≡"));
+        Element grip = Dom.el(doc, "img", "o-ico grip", null);
+        grip.setAttribute("src", "../textures/icons/drag.png");
+        row.appendChild(grip);
         Element icon = Dom.el(doc, "item", null, null);
         icon.setAttribute("id", t.disc());
         row.appendChild(icon);
         row.appendChild(Dom.el(doc, "span", "name", t.title()));
+        Element eq = Dom.el(doc, "span", "mini-eq", null);
+        for (int i = 0; i < 3; i++) eq.appendChild(Dom.el(doc, "i", null, null));
+        row.appendChild(eq);
         row.appendChild(Dom.el(doc, "span", "len", time(t.seconds())));
         rowsBox.appendChild(row);
         Dom.onMouse(row, "mousedown", e -> dragStart(row, e));
