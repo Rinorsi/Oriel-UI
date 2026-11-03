@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+<title>音乐播放器</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+.player { width: 360px; }
+.body { display: flex; gap: 8px; }
+.now { width: 180px; display: flex; flex-direction: column; gap: 6px; }
+.deck { display: flex; gap: 8px; align-items: center; }
+.disc-box { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.disc { width: 32px; height: 32px; }
+.track-title { line-height: 10px; }
+.track-meta { color: var(--ore-text-dim); line-height: 10px; }
+.eq { display: flex; align-items: flex-end; gap: 1px; height: 36px; padding: 2px 4px; }
+.eq .bar { position: relative; width: 9px; }
+.eq .bar .lvl { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #2a641c, #52a535 50%, #a0e081); }
+.eq .bar .cap { position: absolute; left: 0; right: 0; height: 1px; background: #ecedee; }
+.progress { display: flex; align-items: center; gap: 4px; }
+.time { width: 22px; color: var(--ore-text-dim); }
+.time.right { text-align: right; }
+.controls { display: flex; align-items: center; gap: 4px; }
+.controls .ore-btn { min-width: 24px; padding: 0 4px; }
+.play-icon { width: 0; height: 0; border-left: 7px solid #fff; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+.pause-icon { display: flex; gap: 2px; }
+.pause-icon div { width: 2px; height: 8px; background: #fff; }
+.volume { display: flex; align-items: center; gap: 4px; flex-grow: 1; }
+.list { width: 164px; display: flex; flex-direction: column; }
+.list-head { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.rows { position: relative; height: 132px; padding: 2px; }
+.row {
+    position: absolute; left: 2px; right: 2px; height: 20px;
+    display: flex; align-items: center; gap: 4px; padding: 0 4px;
+    cursor: pointer;
+    transition: transform 0.18s var(--ore-ease), background-color var(--ore-fast);
+}
+.row:hover { background: var(--ore-gray-7); }
+.row .grip { color: var(--ore-text-faint); }
+.row item { width: 16px; height: 16px; flex-shrink: 0; }
+.row .name { flex-grow: 1; line-height: 10px; }
+.row .len { color: var(--ore-text-faint); }
+.row.current .name { color: var(--ore-green-3); }
+.row.dragging { z-index: 10; transition: background-color var(--ore-fast); background: var(--ore-gray-6);
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45); outline: 1px solid var(--ore-green-3); }
+.hint { margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="ore-screen">
+  <div class="ore-panel player ore-enter">
+    <div class="ore-header">
+      <div class="ore-btn icon" id="back" tabindex="0">‹</div>
+      <div class="ore-title">音乐播放器</div>
+      <div class="ore-spacer"></div>
+      <div class="ore-faint">空格 播放/暂停</div>
+      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+    </div>
+    <div class="body">
+      <div class="now">
+        <div class="deck">
+          <div class="ore-inset disc-box"><item class="disc" id="minecraft:music_disc_cat"></item></div>
+          <div>
+            <div class="track-title" id="title">-</div>
+            <div class="track-meta" id="meta">-</div>
+            <div class="track-meta" id="state">已暂停</div>
+          </div>
+        </div>
+        <div class="ore-inset eq" id="eq"></div>
+        <div class="progress">
+          <div class="time" id="elapsed">0:00</div>
+          <div class="ore-slider" id="seek" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+          <div class="time right" id="length">0:00</div>
+        </div>
+        <div class="controls">
+          <div class="ore-btn" id="prev" tabindex="0">◀◀</div>
+          <div class="ore-btn primary" id="play" tabindex="0"><div class="play-icon"></div></div>
+          <div class="ore-btn" id="next" tabindex="0">▶▶</div>
+          <div class="volume">
+            <div class="ore-label" id="vol-label">音量</div>
+            <div class="ore-slider" id="volume" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="list-head"><span class="ore-label">播放列表</span><span class="ore-faint" id="count"></span></div>
+        <div class="ore-inset rows" id="rows"></div>
+        <div class="ore-faint hint">拖动曲目调整顺序 · 点击播放</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

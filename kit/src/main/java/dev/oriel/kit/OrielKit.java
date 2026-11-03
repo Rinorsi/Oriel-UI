@@ -3,6 +3,7 @@ package dev.oriel.kit;
 import dev.oriel.kit.preset.ForgePreset;
 import dev.oriel.kit.preset.GalleryPreset;
 import dev.oriel.kit.preset.InventoryPreset;
+import dev.oriel.kit.preset.MusicPreset;
 import dev.oriel.engine.host.PageControllers;
 
 import java.util.List;
@@ -39,5 +40,6 @@ public final class OrielKit {
         PageControllers.register(GALLERY, GalleryPreset::new);
         PageControllers.register(INVENTORY, InventoryPreset::new);
         PageControllers.register(FORGE, ForgePreset::new);
+        PageControllers.register(MUSIC, MusicPreset::new);
     }
 }
