@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+<title>锻造台</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+.forge { width: 372px; position: relative; }
+.body { display: flex; gap: 8px; }
+.heat { width: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gauge { position: relative; width: 18px; height: 112px; overflow: hidden; }
+.gauge .level { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; }
+.gauge .grad { position: absolute; left: 0; right: 0; bottom: 0; height: 108px;
+    background: linear-gradient(to top, #4a0f0f, #b32e2e 30%, #d3791f 55%, #f8af2b 78%, #fff1c2); }
+.gauge .ideal { position: absolute; left: 0; right: 0; border-top: 1px solid var(--ore-green-3);
+    border-bottom: 1px solid var(--ore-green-3); background: rgba(108, 195, 73, 0.16); }
+.temp { color: var(--ore-gold); }
+.temp.cold { color: #6ad9f5; }
+.temp.hot { color: var(--ore-red-light); }
+.bellows { min-height: 18px; padding: 0 4px; }
+.stage { position: relative; width: 210px; height: 128px; overflow: hidden; background: #161617; }
+.stage .glow { position: absolute; left: 25px; top: 10px; width: 160px; height: 120px;
+    background: radial-gradient(circle, rgba(255, 170, 60, 0.9), rgba(255, 120, 30, 0.35) 35%, rgba(255, 90, 20, 0) 70%); }
+.stage .anvil { position: absolute; left: 73px; top: 60px; width: 64px; height: 64px; }
+.stage .ingot { position: absolute; top: 62px; height: 7px; border: 1px solid rgba(0, 0, 0, 0.6); }
+.stage .hammer { position: absolute; left: 128px; top: 14px; width: 40px; height: 40px; transform-origin: 80% 80%;
+    transform: rotate(18deg); }
+.stage .hammer.swing-a { animation: swing-a 0.24s cubic-bezier(0.5, 0, 0.75, 0); }
+.stage .hammer.swing-b { animation: swing-b 0.24s cubic-bezier(0.5, 0, 0.75, 0); }
+@keyframes swing-a { 0% { transform: rotate(18deg); } 45% { transform: rotate(-38deg) translate(-6px, 12px); } 100% { transform: rotate(18deg); } }
+@keyframes swing-b { 0% { transform: rotate(18deg); } 45% { transform: rotate(-38deg) translate(-6px, 12px); } 100% { transform: rotate(18deg); } }
+.stage .flash { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #fff3c4; opacity: 0; pointer-events: none; }
+.stage .flash.on-a { animation: flash-a 0.3s ease-out; }
+.stage .flash.on-b { animation: flash-b 0.3s ease-out; }
+@keyframes flash-a { from { opacity: 0.55; } to { opacity: 0; } }
+@keyframes flash-b { from { opacity: 0.55; } to { opacity: 0; } }
+.stage .spark { position: absolute; left: 0; top: 0; width: 2px; height: 2px; }
+.stage .verdict { position: absolute; left: 0; right: 0; top: 30px; text-align: center; font-size: 16px; opacity: 0; }
+.stage .verdict.pop-a { animation: verdict-a 0.9s var(--ore-ease); }
+.stage .verdict.pop-b { animation: verdict-b 0.9s var(--ore-ease); }
+@keyframes verdict-a { 0% { opacity: 0; transform: translateY(6px) scale(0.8); } 15% { opacity: 1; transform: scale(1.1); } 70% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; transform: translateY(-10px); } }
+@keyframes verdict-b { 0% { opacity: 0; transform: translateY(6px) scale(0.8); } 15% { opacity: 1; transform: scale(1.1); } 70% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; transform: translateY(-10px); } }
+.stage.shake-a { animation: shake-a 0.22s linear; }
+.stage.shake-b { animation: shake-b 0.22s linear; }
+@keyframes shake-a { 0%, 100% { transform: none; } 20% { transform: translate(-3px, 1px); } 40% { transform: translate(3px, -1px); } 60% { transform: translate(-2px, 0); } 80% { transform: translate(1px, 1px); } }
+@keyframes shake-b { 0%, 100% { transform: none; } 20% { transform: translate(-3px, 1px); } 40% { transform: translate(3px, -1px); } 60% { transform: translate(-2px, 0); } 80% { transform: translate(1px, 1px); } }
+.side { width: 92px; display: flex; flex-direction: column; gap: 4px; }
+.quality { font-size: 16px; line-height: 16px; }
+.grade { line-height: 10px; }
+.pips { display: flex; gap: 2px; }
+.pip { width: 8px; height: 8px; background: var(--ore-surface-3); border: 1px solid var(--ore-gray-6); }
+.pip.perfect { background: var(--ore-gold); }
+.pip.hit { background: var(--ore-green-3); }
+.pip.miss { background: var(--ore-red); }
+.log { display: flex; flex-direction: column; gap: 1px; }
+.log div { line-height: 10px; animation: ore-rise 0.25s var(--ore-ease); }
+.timing { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.meter { position: relative; flex-grow: 1; height: 14px; }
+.meter .zone { position: absolute; top: 0; bottom: 0; background: rgba(82, 165, 53, 0.55);
+    border-left: 1px solid var(--ore-green-3); border-right: 1px solid var(--ore-green-3);
+    transition: left 0.25s var(--ore-ease), width 0.25s var(--ore-ease); }
+.meter .core { position: absolute; top: 0; bottom: 0; background: var(--ore-gold);
+    transition: left 0.25s var(--ore-ease), width 0.25s var(--ore-ease); }
+.meter .marker { position: absolute; top: -3px; width: 2px; height: 16px; margin-left: -1px; background: #fff;
+    box-shadow: 0 0 0 1px #000; }
+.result { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center;
+    justify-content: center; background: rgba(15, 15, 16, 0.7); z-index: 30; }
+.result.on { display: flex; }
+.result .ore-panel { display: flex; flex-direction: column; align-items: center; gap: 6px; animation: ore-pop 0.3s var(--ore-ease); }
+.result .big { width: 32px; height: 32px; }
+</style>
+</head>
+<body>
+<div class="ore-screen">
+  <div class="ore-panel forge ore-enter">
+    <div class="ore-header">
+      <div class="ore-btn icon" id="back" tabindex="0">‹</div>
+      <div class="ore-title">锻造台</div>
+      <div class="ore-subtitle">· 铁剑</div>
+      <div class="ore-spacer"></div>
+      <div class="ore-faint">空格 击打 · 按住 B 鼓风</div>
+      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+    </div>
+    <div class="body">
+      <div class="heat">
+        <div class="ore-label">炉温</div>
+        <div class="ore-inset gauge" id="gauge">
+          <div class="ideal" id="ideal"></div>
+          <div class="level" id="level"><div class="grad"></div></div>
+        </div>
+        <div class="temp" id="temp">900°</div>
+        <div class="ore-btn bellows" id="bellows" tabindex="0">鼓风</div>
+      </div>
+      <div class="ore-inset stage" id="stage">
+        <div class="glow" id="glow"></div>
+        <item class="anvil" id="minecraft:anvil"></item>
+        <div class="ingot" id="ingot"></div>
+        <item class="hammer" id="minecraft:mace"></item>
+        <div id="sparks"></div>
+        <div class="flash" id="flash"></div>
+        <div class="verdict" id="verdict"></div>
+      </div>
+      <div class="side">
+        <div class="ore-label">品质</div>
+        <div class="quality" id="quality">0%</div>
+        <div class="ore-progress gold"><div class="fill" id="quality-bar" style="width: 0%"></div></div>
+        <div class="grade ore-faint" id="grade">粗糙</div>
+        <div class="ore-label">击打</div>
+        <div class="pips" id="pips"></div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+    <div class="timing">
+      <div class="ore-label">时机</div>
+      <div class="ore-inset meter" id="meter">
+        <div class="zone" id="zone"></div>
+        <div class="core" id="core"></div>
+        <div class="marker" id="marker"></div>
+      </div>
+      <div class="ore-btn hero" id="strike" tabindex="0">击打</div>
+      <div class="ore-btn secondary" id="quench" tabindex="0">淬火</div>
+    </div>
+    <div class="result" id="result">
+      <div class="ore-panel">
+        <item class="big" id="minecraft:iron_sword"></item>
+        <div class="ore-title" id="result-title">精良 铁剑</div>
+        <div class="ore-label" id="result-text">品质 78%</div>
+        <div class="ore-btn primary" id="again" tabindex="0">再锻一把</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

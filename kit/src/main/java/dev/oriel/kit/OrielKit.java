@@ -1,5 +1,6 @@
 package dev.oriel.kit;
 
+import dev.oriel.kit.preset.ForgePreset;
 import dev.oriel.kit.preset.GalleryPreset;
 import dev.oriel.kit.preset.InventoryPreset;
 import dev.oriel.engine.host.PageControllers;
@@ -37,5 +38,6 @@ public final class OrielKit {
         registered = true;
         PageControllers.register(GALLERY, GalleryPreset::new);
         PageControllers.register(INVENTORY, InventoryPreset::new);
+        PageControllers.register(FORGE, ForgePreset::new);
     }
 }
