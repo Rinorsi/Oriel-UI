@@ -141,6 +141,20 @@ public final class SettingsPreset implements PageControllers.Controller {
         show(tab, false);
     }
 
+    private record State(Map<String, Object> values, String tab) {}
+
+    @Override
+    public Object saveState() {
+        return new State(new LinkedHashMap<>(values), tab);
+    }
+
+    @Override
+    public void restoreState(Object state) {
+        if (!(state instanceof State s)) return;
+        values.putAll(s.values());
+        show(TABS.containsKey(s.tab()) ? s.tab() : tab, false);
+    }
+
     private static void activate(KeyboardEvent e, Runnable action) {
         if (e.key.equals("Enter") || e.key.equals(" ")) {
             e.preventDefault();

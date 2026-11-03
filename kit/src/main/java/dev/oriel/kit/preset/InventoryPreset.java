@@ -109,6 +109,28 @@ public final class InventoryPreset implements PageControllers.Controller {
         showOverview();
     }
 
+    private record State(Stack[] slots, String query, String category) {}
+
+    @Override
+    public Object saveState() {
+        if (held != null) putBack();
+        return new State(slots.clone(), query, category);
+    }
+
+    @Override
+    public void restoreState(Object state) {
+        if (!(state instanceof State s)) return;
+        System.arraycopy(s.slots(), 0, slots, 0, SLOTS);
+        for (int i = 0; i < SLOTS; i++) render(i);
+        for (Element t : doc.querySelectorAll("[data-cat]")) if (t.getAttribute("data-cat").equals(s.category())) category(t);
+        if (!s.query().isEmpty()) {
+            Dom.byId(doc, "search").setValue(s.query());
+            filter(s.query());
+        }
+        overviewShown = false;
+        showOverview();
+    }
+
     private void category(Element tab) {
         for (Element t : doc.querySelectorAll("[data-cat]")) t.toggleClass("on", t == tab);
         category = tab.getAttribute("data-cat");

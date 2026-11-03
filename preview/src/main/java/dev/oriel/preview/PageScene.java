@@ -68,6 +68,8 @@ final class PageScene implements Scene {
     }
 
     void reload() {
+        // Like the game: a reload hands the controller's state to the new page's controller.
+        Object state = document != null && document.controller() != null ? document.controller().saveState() : null;
         if (document != null) document.close();
         document = null;
         titleNarrated = false;
@@ -76,6 +78,7 @@ final class PageScene implements Scene {
         if (html != null) {
             loadError = null;
             document = Document.parse(host, url, html, data, viewport);
+            if (state != null && document.controller() != null) document.controller().restoreState(state);
         } else {
             loadError = new IllegalArgumentException("Page not found: " + url);
             host.log(Host.LogLevel.ERROR, loadError.getMessage());

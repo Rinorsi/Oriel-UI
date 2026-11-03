@@ -17,6 +17,17 @@ public final class PageControllers {
     @FunctionalInterface
     public interface Controller {
         void attach(Document document);
+
+        /**
+         * What a hot reload of the same page should carry over (the model, not the DOM), or null to start fresh.
+         * Called on the old controller just before its page is thrown away.
+         */
+        default Object saveState() {
+            return null;
+        }
+
+        /** Takes over {@link #saveState()} of the controller this one replaces; called after {@link #attach}. */
+        default void restoreState(Object state) {}
     }
 
     private static final Map<String, Supplier<? extends Controller>> BY_URL = new ConcurrentHashMap<>();
@@ -35,6 +46,9 @@ public final class PageControllers {
     /** Attaches the controller registered for the document's URL, if there is one. */
     public static void attach(Document document) {
         Supplier<? extends Controller> factory = BY_URL.get(document.url());
-        if (factory != null) factory.get().attach(document);
+        if (factory == null) return;
+        Controller controller = factory.get();
+        document.setController(controller);
+        controller.attach(document);
     }
 }

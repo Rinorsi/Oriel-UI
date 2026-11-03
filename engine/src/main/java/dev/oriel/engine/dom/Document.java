@@ -155,6 +155,14 @@ public final class Document extends Node {
     public Limits limits() { return limits; }
     public String url() { return url; }
     public Scheduler scheduler() { return scheduler; }
+
+    private PageControllers.Controller controller;
+
+    /** The Java controller attached to this page ({@link PageControllers}), or null. */
+    public PageControllers.Controller controller() { return controller; }
+
+    /** Set by {@link PageControllers#attach}. */
+    public void setController(PageControllers.Controller controller) { this.controller = controller; }
     public Scrolling scrolling() { return scrolling; }
     public StyleEngine styleEngine() { return styleEngine; }
     public LayoutEngine layoutEngine() { return layoutEngine; }

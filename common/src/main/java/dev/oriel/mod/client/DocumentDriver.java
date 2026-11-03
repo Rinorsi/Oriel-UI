@@ -238,6 +238,16 @@ public final class DocumentDriver {
     }
 
     private void load() {
+        // A reload of the same page keeps its controller's state (hot reload in dev keeps what you were doing).
+        Object state = null;
+        String previousUrl = document == null ? null : document.url();
+        if (document != null && document.controller() != null) {
+            try {
+                state = document.controller().saveState();
+            } catch (RuntimeException e) {
+                Constants.LOG.warn("Oriel: saving the state of {} failed; reloading fresh", name(), e);
+            }
+        }
         disposeDocument();
         LIVE.add(this);
         error = null;
@@ -250,6 +260,13 @@ public final class DocumentDriver {
             return;
         }
         document = Document.parse(host, url, source, data.json(), viewport());
+        if (state != null && document.controller() != null && url.equals(previousUrl)) {
+            try {
+                document.controller().restoreState(state);
+            } catch (RuntimeException e) {
+                Constants.LOG.warn("Oriel: restoring the state of {} failed", name(), e);
+            }
+        }
     }
 
     private void applyViewport(@Nullable Document doc) {

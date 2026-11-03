@@ -128,6 +128,28 @@ public final class EditorPreset implements PageControllers.Controller {
         render();
     }
 
+    private record State(List<Part> parts, Set<Integer> selection, Deque<List<Part>> undo, Deque<List<Part>> redo, int nextId) {}
+
+    @Override
+    public Object saveState() {
+        return new State(snapshot(), new LinkedHashSet<>(selection), new ArrayDeque<>(undo), new ArrayDeque<>(redo), nextId);
+    }
+
+    @Override
+    public void restoreState(Object state) {
+        if (!(state instanceof State s)) return;
+        parts.clear();
+        parts.addAll(s.parts());
+        selection.clear();
+        selection.addAll(s.selection());
+        undo.clear();
+        undo.addAll(s.undo());
+        redo.clear();
+        redo.addAll(s.redo());
+        nextId = s.nextId();
+        render();
+    }
+
     /** A starting screen: a shop card, so there is something to edit. */
     private void sample() {
         add("panel", 8, 8, 248, 156).name = "背景面板";

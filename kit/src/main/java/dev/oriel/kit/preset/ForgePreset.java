@@ -148,6 +148,27 @@ public final class ForgePreset implements PageControllers.Controller {
         render();
     }
 
+    private record State(float temp, float quality, int strikes, List<String> verdicts) {}
+
+    @Override
+    public Object saveState() {
+        return model.done ? null : new State(model.temp, model.quality, model.strikes, List.copyOf(model.verdicts));
+    }
+
+    @Override
+    public void restoreState(Object state) {
+        if (!(state instanceof State s)) return;
+        model.temp = s.temp();
+        model.quality = s.quality();
+        model.strikes = s.strikes();
+        model.verdicts.addAll(s.verdicts());
+        for (int i = 0; i < s.verdicts().size() && i < pips.childCount(); i++) {
+            String v = s.verdicts().get(i);
+            pips.children().get(i).addClass(v.equals("perfect") ? "perfect" : v.equals("hit") ? "hit" : "miss");
+        }
+        render();
+    }
+
     private void key(KeyboardEvent e) {
         if (e.code.equals("Space") && !e.repeat) {
             e.preventDefault();

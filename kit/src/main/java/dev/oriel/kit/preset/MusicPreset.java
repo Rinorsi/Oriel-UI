@@ -130,6 +130,23 @@ public final class MusicPreset implements PageControllers.Controller {
         doc.scheduler().requestAnimationFrame(this::frame);
     }
 
+    private record State(List<Track> playlist, int current, double position, boolean playing, double volume) {}
+
+    @Override
+    public Object saveState() {
+        return new State(List.copyOf(playlist), current, position, playing, volume);
+    }
+
+    @Override
+    public void restoreState(Object state) {
+        if (!(state instanceof State s) || !s.playlist().containsAll(playlist)) return;
+        for (int i = 0; i < s.playlist().size(); i++) move(playlist.indexOf(s.playlist().get(i)), i);
+        volumeSlider.set(volume = s.volume());
+        select(s.current(), false);
+        position = s.position();
+        if (s.playing() != playing) toggle();
+    }
+
     Track track() {
         return playlist.get(current);
     }
