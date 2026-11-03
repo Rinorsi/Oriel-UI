@@ -777,6 +777,9 @@ public final class DevAutopilot {
             pause(i < 2 ? 14 : 3);
         }
         grab(mc, "preset_forge_strike", 5);
+        onPage("the quench", p -> p.click("#quench"));
+        pause(30);
+        grab(mc, "preset_forge_result", 5);
 
         shoot(mc, "preset_music", () -> OrielClientCommands.preset("music"));
         onPage("play", p -> p.click("#play"));
@@ -815,7 +818,8 @@ public final class DevAutopilot {
         });
         pause(30);
         grab(mc, "preset_hud", 5);
-        pause(200);
+        // The first arrival comes 9 s in; its card shows for 2.6 s.
+        pause(165);
         grab(mc, "preset_hud_later", 5);
         steps.add(OrielClientCommands::togglePotionHud);
     }
