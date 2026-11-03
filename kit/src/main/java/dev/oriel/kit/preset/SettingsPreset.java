@@ -1,6 +1,8 @@
 package dev.oriel.kit.preset;
 
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.OrielKit;
+import dev.oriel.kit.Shell;
 import dev.oriel.kit.Slider;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
@@ -16,7 +18,8 @@ import java.util.Map;
  * The settings preset: four tabs of toggles, sliders, dropdowns and text fields over a fixture schema. Everything
  * works from the keyboard: Tab moves focus (with the Ore focus ring), the arrow keys switch tabs and move sliders,
  * Space and Enter flip toggles and open dropdowns, Escape closes an open dropdown. Changed settings get a dot and
- * a count; "恢复默认" resets the shown tab.
+ * a count; "恢复默认" resets the shown tab. The side pane previews the render distance and brightness and lists the
+ * changes; the 外观 tab's theme applies at once (and to the pages opened after).
  */
 public final class SettingsPreset implements PageControllers.Controller {
     enum Kind { TOGGLE, SLIDER, SELECT, TEXT }
@@ -72,25 +75,54 @@ public final class SettingsPreset implements PageControllers.Controller {
                 Setting.slider("textbg", "文本背景不透明度", 50, 0, 100, 10, "%", "显示"),
                 Setting.toggle("motion", "减少动效", false, "显示"),
                 Setting.slider("tooltip", "提示延迟", 500, 0, 2000, 100, " ms", "显示")));
+        TABS.put("外观", List.of(
+                Setting.select("theme", "界面主题", "暗色", List.of("暗色", "亮色"), "主题"),
+                Setting.toggle("particles", "粒子与光效", true, "效果")));
     }
+
+    static final Map<String, String> ICONS = Map.of("视频", "monitor", "声音", "volume", "控制", "mouse", "辅助功能",
+            "accessibility", "外观", "palette");
+    static final Map<String, String> HELP = Map.ofEntries(Map.entry("render", "能看见多远的区块"),
+            Map.entry("fps", "越高越流畅"), Map.entry("graphics", "影响树叶与云"), Map.entry("gamma", "暗处的可见度"),
+            Map.entry("master", "所有声音"), Map.entry("sensitivity", "视角转动速度"), Map.entry("name", "最多 24 个字"),
+            Map.entry("narrator", "朗读界面文字"), Map.entry("theme", "立即生效"), Map.entry("particles", "本页的粒子"),
+            Map.entry("textbg", "聊天与字幕背后"));
 
     final Map<String, Object> values = new LinkedHashMap<>();
     String tab = "视频";
     private Document doc;
-    private Element tabs, rows, status;
+    private Element tabs, rows, status, crumb, chunks, dark, changesBox;
+    private final List<Element> chunkCells = new ArrayList<>();
     private final List<Element> tabElements = new ArrayList<>();
     private Element openSelect;
 
     @Override
     public void attach(Document document) {
         doc = document;
+        Shell.setup(doc);
         for (List<Setting> list : TABS.values()) for (Setting s : list) values.put(s.key(), s.initial());
+        values.put("theme", Shell.theme().equals("light") ? "亮色" : "暗色");
+        crumb = Dom.byId(doc, "crumb");
+        chunks = Dom.byId(doc, "chunks");
+        dark = Dom.byId(doc, "dark");
+        changesBox = Dom.byId(doc, "changes");
+        for (int i = 0; i < 121; i++) {
+            Element cell = Dom.el(doc, "i", null, null);
+            chunks.appendChild(cell);
+            chunkCells.add(cell);
+        }
         tabs = Dom.byId(doc, "tabs");
         rows = Dom.byId(doc, "rows");
         status = Dom.byId(doc, "status");
         for (String name : TABS.keySet()) {
-            Element t = Dom.el(doc, "div", "ore-tab", name);
+            Element t = Dom.el(doc, "div", "ore-tab", null);
             t.setAttribute("tabindex", "0");
+            t.setAttribute("data-tab", name);
+            Element icon = Dom.el(doc, "img", "o-ico", null);
+            icon.setAttribute("src", "../textures/icons/" + ICONS.getOrDefault(name, "gear") + ".png");
+            t.appendChild(icon);
+            t.appendChild(Dom.el(doc, "span", null, name));
+            t.appendChild(Dom.el(doc, "span", "o-badge", "0"));
             Dom.onClick(t, e -> show(name, false));
             Dom.onKey(t, e -> tabKey(e, name));
             tabs.appendChild(t);
@@ -101,7 +133,7 @@ public final class SettingsPreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "done"), e -> doc.host().close());
         Dom.onClick(Dom.byId(doc, "cancel"), e -> doc.host().close());
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate("gallery.html"));
+        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
         // A press outside an open dropdown closes it.
         Dom.onMouse(doc, "mousedown", e -> {
             if (openSelect != null && Dom.closest(e, ".ore-select") != openSelect) closeSelect();
@@ -134,12 +166,13 @@ public final class SettingsPreset implements PageControllers.Controller {
         List<String> names = new ArrayList<>(TABS.keySet());
         for (int i = 0; i < tabElements.size(); i++) tabElements.get(i).toggleClass("selected", names.get(i).equals(name));
         if (focusTab) tabElements.get(names.indexOf(name)).focus();
+        Dom.text(crumb, "/ " + name);
         rows.removeAllChildren();
         String section = null;
         for (Setting s : TABS.get(name)) {
             if (!s.section().equals(section)) {
                 section = s.section();
-                rows.appendChild(Dom.el(doc, "div", "section", section));
+                rows.appendChild(Dom.el(doc, "div", "section o-caps", section));
             }
             rows.appendChild(row(s));
         }
@@ -151,8 +184,11 @@ public final class SettingsPreset implements PageControllers.Controller {
     private Element row(Setting s) {
         Element row = Dom.el(doc, "div", "ore-row", null);
         row.setAttribute("data-key", s.key());
-        Element label = Dom.el(doc, "div", "label", s.label());
-        label.appendChild(Dom.el(doc, "span", "dot", "●"));
+        Element label = Dom.el(doc, "div", "label", null);
+        Element title = Dom.el(doc, "div", "t", s.label());
+        title.appendChild(Dom.el(doc, "span", "dot", null));
+        label.appendChild(title);
+        if (HELP.containsKey(s.key())) label.appendChild(Dom.el(doc, "div", "h", HELP.get(s.key())));
         row.appendChild(label);
         Element control = Dom.el(doc, "div", "control", null);
         row.appendChild(control);
@@ -292,6 +328,10 @@ public final class SettingsPreset implements PageControllers.Controller {
 
     void set(Setting s, Object value) {
         values.put(s.key(), value);
+        if (s.key().equals("theme")) Shell.theme(doc, value.equals("亮色") ? "light" : "dark");
+        if (s.key().equals("particles")) {
+            for (Element c : doc.querySelectorAll("canvas.fx")) c.toggleClass("off", !(Boolean) value);
+        }
         for (Element row : rows.querySelectorAll(".ore-row")) {
             if (row.getAttribute("data-key").equals(s.key())) row.toggleClass("changed", !value.equals(s.initial()));
         }
@@ -307,6 +347,49 @@ public final class SettingsPreset implements PageControllers.Controller {
     private void updateStatus() {
         int n = changes();
         Dom.text(status, n == 0 ? "没有修改" : "已修改 " + n + " 项");
+        List<String> names = new ArrayList<>(TABS.keySet());
+        for (int i = 0; i < tabElements.size(); i++) {
+            int dirty = 0;
+            for (Setting s : TABS.get(names.get(i))) if (!values.get(s.key()).equals(s.initial())) dirty++;
+            tabElements.get(i).toggleClass("dirty", dirty > 0);
+            Dom.text(Dom.query(tabElements.get(i), ".o-badge"), Integer.toString(dirty));
+        }
+        preview();
+    }
+
+    /** The side pane: chunks within the render distance, the brightness, and what has changed. */
+    private void preview() {
+        if (chunks == null) return;
+        float render = (Float) values.get("render");
+        float radius = 5 * render / 32f + 0.5f;
+        for (int y = 0; y < 11; y++) {
+            for (int x = 0; x < 11; x++) {
+                Element cell = chunkCells.get(y * 11 + x);
+                double d = Math.hypot(x - 5, y - 5);
+                cell.setAttribute("class", x == 5 && y == 5 ? "me" : d <= radius - 1 ? "on" : d <= radius ? "edge" : "");
+            }
+        }
+        float gamma = (Float) values.get("gamma");
+        new Dom.Style(dark).set("opacity", Float.toString(Math.round((100 - gamma) * 0.7f) / 100f)).apply();
+        changesBox.removeAllChildren();
+        int shown = 0;
+        for (List<Setting> list : TABS.values()) {
+            for (Setting s : list) {
+                Object v = values.get(s.key());
+                if (v.equals(s.initial()) || shown >= 6) continue;
+                shown++;
+                Element c = Dom.el(doc, "div", "c", s.label() + " ");
+                c.appendChild(Dom.el(doc, "b", null, show(v) + (s.kind() == Kind.SLIDER ? s.unit().trim() : "")));
+                changesBox.appendChild(c);
+            }
+        }
+        if (shown == 0) changesBox.appendChild(Dom.el(doc, "div", "c", "还没有修改"));
+    }
+
+    private static String show(Object v) {
+        if (v instanceof Boolean b) return b ? "开" : "关";
+        if (v instanceof Float f) return format(f);
+        return String.valueOf(v);
     }
 
     void resetTab() {
@@ -315,6 +398,7 @@ public final class SettingsPreset implements PageControllers.Controller {
             if (!values.get(s.key()).equals(s.initial())) changed.add(s.key());
             values.put(s.key(), s.initial());
         }
+        if (changed.contains("theme")) Shell.theme(doc, "dark");
         show(tab, false);
         for (Element row : rows.querySelectorAll(".ore-row")) if (changed.contains(row.getAttribute("data-key"))) row.addClass("flash");
     }

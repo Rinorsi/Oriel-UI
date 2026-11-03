@@ -1,48 +1,93 @@
 <!doctype html>
 <html>
 <head>
-<title>设置</title>
+<title>优易库 · 设置</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-.settings { width: 360px; }
-.ore-tabs { margin-bottom: -2px; position: relative; z-index: 1; padding-left: 4px; }
-.content { height: 148px; overflow-y: auto; padding: 4px; }
-.rows { display: flex; flex-direction: column; gap: 2px; }
-.ore-row { display: flex; align-items: center; gap: 8px; min-height: 22px; padding: 0 4px; transition: background-color var(--ore-fast); }
-.ore-row:hover { background: rgba(255, 255, 255, 0.05); }
-.ore-row .label { width: 104px; flex-shrink: 0; display: flex; gap: 3px; align-items: center; }
-.ore-row .label .dot { color: var(--ore-green-3); opacity: 0; transition: opacity var(--ore-medium); }
+/* Sidebar navigation with icons and change counts, flat rows with help text, and a live preview pane: the render
+   distance as lit chunks, the brightness as a lit hillside, and the list of changes so far. The 外观 tab switches
+   the theme on the spot. */
+.nav { flex: none; width: 112px; display: flex; flex-direction: column; gap: 1px; padding: 6px 4px; background: var(--o-well);
+    border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
+.nav .ore-tab {
+    position: relative; display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 5px; border: none; border-image: none;
+    color: var(--o-text-dim); -mc-tint: var(--o-text-faint); cursor: pointer; transition: background-color 120ms, color 120ms;
+}
+.nav .ore-tab:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); }
+.nav .ore-tab.selected { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong);
+    box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); padding-bottom: 0; }
+.nav .ore-tab.selected::before { content: ""; position: absolute; left: -4px; top: 4px; width: 2px; height: 14px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
+.nav .ore-tab .o-badge { margin-left: auto; display: none; }
+.nav .ore-tab.dirty .o-badge { display: block; }
+.nav .search { margin-top: auto; color: var(--o-text-faint); }
+
+.content { flex: 1; min-width: 0; padding: 6px 8px; overflow-y: auto; }
+.rows { display: flex; flex-direction: column; gap: 1px; }
+.rows.swap { animation: fx-rise 220ms var(--o-ease-out); }
+.section { margin: 6px 0 2px; }
+.section:first-child { margin-top: 0; }
+.ore-row { display: flex; align-items: center; gap: 8px; min-height: 26px; padding: 2px 4px; transition: background-color 120ms; }
+.ore-row:hover { background: var(--o-line); }
+.ore-row .label { width: 118px; flex: none; display: flex; flex-direction: column; gap: 1px; }
+.ore-row .label .t { display: flex; align-items: center; gap: 3px; color: var(--o-text); }
+.ore-row .label .dot { width: 4px; height: 4px; background: var(--o-accent-strong); box-shadow: 0 0 3px var(--o-accent); opacity: 0; transition: opacity 180ms; }
 .ore-row.changed .label .dot { opacity: 1; }
-.ore-row .control { flex-grow: 1; display: flex; align-items: center; gap: 6px; }
-.ore-row .val { width: 44px; text-align: right; color: var(--ore-text-dim); }
-.ore-row .help { color: var(--ore-text-faint); }
-.ore-row input.ore-field { flex-grow: 1; }
-.ore-row .ore-select { flex-grow: 1; }
-.section { color: var(--ore-text-faint); margin: 4px 4px 1px; }
-.rows.swap { animation: ore-rise 0.22s var(--ore-ease); }
-.ore-row.flash { animation: flash 0.5s ease-out; }
+.ore-row .label .h { color: var(--o-text-faint); line-height: 9px; }
+.ore-row .control { flex: 1; display: flex; align-items: center; gap: 6px; }
+.ore-row .val { width: 46px; text-align: right; color: var(--o-text-dim); }
+.ore-row .help { color: var(--o-text-faint); }
+.ore-row input.ore-field { flex: 1; }
+.ore-row .ore-select { flex: 1; }
+.ore-row.flash { animation: flash 500ms ease-out; }
 @keyframes flash { from { background-color: rgba(108, 195, 73, 0.35); } to { background-color: rgba(108, 195, 73, 0); } }
-.foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+
+.o-side { width: 146px; }
+.chunks { display: grid; grid-template-columns: repeat(11, 1fr); gap: 1px; padding: 4px; }
+.chunks i { height: 8px; background: rgba(0, 0, 0, 0.35); transition: background-color 200ms; }
+.chunks i.on { background: #4f8f3a; }
+.chunks i.edge { background: #6cc349; box-shadow: 0 0 3px rgba(108, 195, 73, 0.7); }
+.chunks i.me { background: #ffd36b; }
+.view { position: relative; height: 46px; overflow: hidden; border: 1px solid var(--o-line-strong);
+    background: linear-gradient(#7fb4ff, #b9dcff 55%, #6cc349 55%, #3c8527 72%, #6b4a2f 72%, #4a3220); }
+.view .sun { position: absolute; right: 16px; top: 6px; width: 10px; height: 10px; background: #fff3b0; box-shadow: 0 0 6px #ffe080; }
+.view .dark { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #000000; transition: opacity 200ms; }
+.changes { display: flex; flex-direction: column; gap: 2px; }
+.changes .c { display: flex; gap: 3px; color: var(--o-text-dim); line-height: 10px; }
+.changes .c b { font-weight: normal; color: var(--o-accent-strong); }
+
+.foot { flex: none; display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
+.foot .ore-btn { min-height: 18px; padding: 0 7px; }
 </style>
 </head>
 <body>
-<div class="ore-screen">
-  <div class="ore-panel settings ore-enter">
-    <div class="ore-header">
-      <div class="ore-btn icon" id="back" tabindex="0">‹</div>
-      <div class="ore-title">设置</div>
-      <div class="ore-spacer"></div>
-      <div class="ore-faint">Tab 切换焦点 · 方向键调整</div>
-      <div class="ore-btn icon" id="close" tabindex="0">×</div>
+<div class="o-app">
+  <div class="o-window">
+    <div class="o-titlebar">
+      <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
+      <img class="o-mark" src="../textures/icons/gear.png">
+      <h1>设置</h1><span class="o-crumb" id="crumb">/ 视频</span>
+      <div class="o-grow"></div>
+      <div class="o-hints"><span><span class="o-kbd">Tab</span>焦点</span><span><span class="o-kbd">←</span><span class="o-kbd">→</span>调整</span></div>
+      <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
-    <div class="ore-tabs" id="tabs"></div>
-    <div class="ore-panel content" id="content"><div class="rows" id="rows"></div></div>
+    <div class="o-body">
+      <div class="nav" id="tabs"></div>
+      <div class="content"><div class="rows" id="rows"></div></div>
+      <div class="o-side">
+        <div class="o-caps">渲染距离</div>
+        <div class="chunks o-well" id="chunks"></div>
+        <div class="o-caps">亮度</div>
+        <div class="view"><div class="sun"></div><div class="dark" id="dark"></div></div>
+        <div class="o-caps">本次修改</div>
+        <div class="changes" id="changes"></div>
+      </div>
+    </div>
     <div class="foot">
-      <div class="ore-btn destructive" id="reset" tabindex="0">恢复默认</div>
-      <span class="ore-faint" id="status">没有修改</span>
-      <div class="ore-spacer"></div>
+      <div class="ore-btn destructive" id="reset" tabindex="0"><img class="o-ico" src="../textures/icons/undo.png">恢复默认</div>
+      <span class="o-faint" id="status">没有修改</span>
+      <div class="o-grow"></div>
       <div class="ore-btn" id="cancel" tabindex="0">取消</div>
-      <div class="ore-btn primary" id="done" tabindex="0">完成</div>
+      <div class="ore-btn primary" id="done" tabindex="0"><img class="o-ico" src="../textures/icons/check.png">完成</div>
     </div>
   </div>
 </div>
