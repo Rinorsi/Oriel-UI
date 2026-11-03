@@ -8,6 +8,7 @@ import dev.oriel.engine.event.CustomEvent;
 import dev.oriel.engine.event.Event;
 import dev.oriel.engine.event.FocusEvent;
 import dev.oriel.engine.host.Host;
+import dev.oriel.engine.host.PageControllers;
 import dev.oriel.engine.host.ReplacedContent;
 import dev.oriel.engine.html.HtmlParser;
 import dev.oriel.engine.input.InputHandler;
@@ -253,6 +254,7 @@ public final class Document extends Node {
         if (scripts != null && initialData != null) scripts.receive("data", initialData);
         for (Element script : getElementsByTagName("script")) runScript(script);
         if (scripts != null) scripts.documentLoaded();
+        PageControllers.attach(this);
         dispatchEvent(new Event("DOMContentLoaded", true, false));
         readyState = "complete";
         dispatchEvent(new Event("load", false, false));
