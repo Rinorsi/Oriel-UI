@@ -21,6 +21,9 @@ class CatalogPresetTest {
         Document doc = host.open(OrielKit.CATALOG, catalog, 640, 360);
         assertEquals(catalog.sections.size(), doc.querySelectorAll("#list .item").size());
         assertTrue(catalog.sections.size() >= 10);
+        doc.querySelector("#list .item[data-sec=motion]").scrollIntoView(dev.oriel.engine.dom.Element.ScrollAlign.NEAREST,
+                dev.oriel.engine.dom.Element.ScrollAlign.NEAREST, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+        frame(doc, clock, 16);
         click(doc, "#list .item[data-sec=motion]", 0, Modifiers.NONE, clock);
         assertTrue(doc.querySelector(".sec[data-sec=motion]").hasClass("on"));
         for (int i = 0; i < 40; i++) frame(doc, clock, 16);

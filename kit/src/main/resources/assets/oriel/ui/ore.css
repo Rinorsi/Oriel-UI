@@ -688,13 +688,7 @@ canvas.fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; poin
 .o-row:hover { background: var(--o-line); }
 .o-row.on { background: color-mix(in srgb, var(--o-accent) 22%, transparent); box-shadow: inset 2px 0 0 var(--o-accent-strong); }
 
-/* A toast that slides in at the top right. */
-.o-toast {
-    position: absolute; right: 8px; top: 30px; z-index: 60; display: flex; align-items: center; gap: 6px; padding: 5px 8px;
-    border: 2px solid transparent; border-image: url(../textures/ore/tooltip.png) 2 fill; color: #ffffff;
-    animation: o-toast 2.6s var(--o-ease-out) both; pointer-events: none;
-}
-@keyframes o-toast { 0% { opacity: 0; transform: translateX(16px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateX(8px); } }
+/* Toasts: see Notices below (Notice.toast). */
 
 /* Icons in buttons: tinted on the icon itself, since -mc-tint on the button would tint its texture too. */
 .ore-btn .o-ico { -mc-tint: #ffffff; }
@@ -988,3 +982,101 @@ canvas.fx.off { display: none; }
     background: radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--deco-c) 22%, transparent), rgba(0, 0, 0, 0) 60%),
         repeating-linear-gradient(to right, var(--deco-line) 0 1px, rgba(0, 0, 0, 0) 1px 10px); }
 [data-motion=reduced] .deco.shine::before, [data-motion=reduced] .deco.aurora { animation: none; }
+
+/* =====================================================================================================================
+   Text: fonts, Minecraft formatting codes, the formatted text field, notices
+   ===================================================================================================================== */
+
+/* ---- Fonts (Fonts.java): data-font on <html> sets every page's font (Shell.font); f-* classes set one element's.
+   Bundled fonts are OFL (META-INF/licenses/fonts); a resource pack's font is font-family: <ns>:<id>. ---- */
+[data-font=unifont] { font-family: minecraft:uniform; }
+[data-font=pixel] { font-family: oriel:pixel; }
+[data-font=pixel_12] { font-family: oriel:pixel_12; }
+[data-font=cubic] { font-family: oriel:cubic; }
+[data-font=sans] { font-family: oriel:sans; }
+[data-font=kai] { font-family: oriel:kai; }
+[data-font=smiley] { font-family: oriel:smiley; }
+[data-font=kuaile] { font-family: oriel:kuaile; }
+.f-mc { font-family: minecraft:default; }
+.f-unifont { font-family: minecraft:uniform; }
+.f-alt { font-family: minecraft:alt; }
+.f-pixel { font-family: oriel:pixel; }
+.f-pixel-12 { font-family: oriel:pixel_12; }
+.f-cubic { font-family: oriel:cubic; }
+.f-sans { font-family: oriel:sans; }
+.f-kai { font-family: oriel:kai; }
+.f-smiley { font-family: oriel:smiley; }
+.f-kuaile { font-family: oriel:kuaile; }
+
+/* ---- Minecraft's formatting codes as classes (McFormat writes the same as inline styles): §0–§f and §k §l §m §n §o.
+   The colours are the game's; they are made for dark grounds, like chat. ---- */
+.mc-0 { color: #000000; } .mc-1 { color: #0000aa; } .mc-2 { color: #00aa00; } .mc-3 { color: #00aaaa; }
+.mc-4 { color: #aa0000; } .mc-5 { color: #aa00aa; } .mc-6 { color: #ffaa00; } .mc-7 { color: #aaaaaa; }
+.mc-8 { color: #555555; } .mc-9 { color: #5555ff; } .mc-a { color: #55ff55; } .mc-b { color: #55ffff; }
+.mc-c { color: #ff5555; } .mc-d { color: #ff55ff; } .mc-e { color: #ffff55; } .mc-f { color: #ffffff; }
+.mc-k { -mc-obfuscated: on; }
+.mc-l { font-weight: bold; }
+.mc-m { -oriel-line-through: line-through; }
+.mc-n { -oriel-underline: underline; }
+.mc-o { font-style: italic; }
+/* A dark well that shows formatted text as the game would (chat, signs, item names). */
+.o-mctext { display: inline-flex; flex-wrap: wrap; padding: 3px 5px; background: rgba(0, 0, 0, 0.55); color: #ffffff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); }
+
+/* ---- Formatted text field (McField): a colour and style bar over the field, the result under it ---- */
+.o-mcfield { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.o-mcfield > input, .o-mcfield > textarea { width: auto; align-self: stretch; }
+.o-mcbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.o-mcswatches { display: flex; flex-wrap: wrap; gap: 2px; }
+.o-mcswatches .sw { position: relative; width: 10px; height: 10px; border: 1px solid var(--o-line-strong); cursor: pointer;
+    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.25), inset -1px -1px 0 rgba(0, 0, 0, 0.3); transition: transform 90ms; }
+.o-mcswatches .sw:hover { transform: translateY(-1px); border-color: var(--o-text); }
+.o-mcswatches .sw.custom { width: 14px; display: flex; align-items: center; justify-content: center; background: var(--o-tile);
+    background-image: linear-gradient(90deg, #ff5555, #ffff55, #55ff55, #55ffff, #5555ff, #ff55ff); }
+.o-mcswatches .sw.custom .o-ico { width: 8px; height: 8px; }
+.o-mcswatches .sw.custom.on { border-color: var(--o-accent-strong); }
+.o-mcfmts { display: flex; gap: 1px; background: var(--o-well); border: 1px solid var(--o-line-strong); padding: 1px; }
+.o-mcfmts > span { min-width: 14px; height: 14px; padding: 0 3px; display: flex; align-items: center; justify-content: center;
+    color: var(--o-text-dim); cursor: pointer; }
+.o-mcfmts > span:hover { background: var(--o-tile); color: var(--o-text); }
+.o-mcfmts > .reset { color: var(--o-text-faint); border-left: 1px solid var(--o-line); }
+.o-mchex { display: flex; align-items: center; gap: 4px; }
+.o-mchex input { width: 70px; }
+.o-mchex input.bad { color: #ff7070; }
+.o-mchex .sw { width: 14px; height: 14px; border: 1px solid var(--o-line-strong); background: var(--o-well); }
+.o-mcpreview { min-height: 15px; padding: 3px 5px; background: rgba(0, 0, 0, 0.55); color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--o-line); white-space: pre-wrap; }
+.o-mcpreview.empty::before { content: "预览"; color: #8a8a8a; }
+[data-style=smooth] .o-mcfmts, [data-style=smooth] .o-mcpreview, [data-style=smooth] .o-mcswatches .sw { border-radius: 4px; }
+
+/* ---- Notices: a bar along the bottom of a window (o-notice: what happened, an action, a close), and toasts that
+   stack in a corner and leave by themselves (Notice.java). Kinds: info (default), success, warn, error. ---- */
+.o-notice { position: absolute; left: 0; right: 0; bottom: 0; z-index: 96; display: flex; align-items: center; gap: 6px; min-height: 24px;
+    padding: 0 6px; background: var(--o-tile); border-top: 1px solid var(--o-kind, var(--o-accent-strong)); color: var(--o-text);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4), inset 3px 0 0 var(--o-kind, var(--o-accent-strong)); -mc-tint: var(--o-kind, var(--o-accent-strong));
+    animation: fx-rise 220ms var(--o-ease-out) both; }
+.o-notice.inline { position: relative; z-index: auto; border: 1px solid var(--o-line-strong); border-left: 0; animation: none; box-shadow: inset 3px 0 0 var(--o-kind, var(--o-accent-strong)); }
+.o-notice .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.o-notice .ore-btn { flex: none; }
+.o-notice .x, .o-toast .x { flex: none; width: 14px; text-align: center; color: var(--o-text-faint); cursor: pointer; }
+.o-notice .x:hover, .o-toast .x:hover { color: var(--o-text); }
+.o-notice.success, .o-toast.success { --o-kind: #4fc46a; }
+.o-notice.warn, .o-toast.warn { --o-kind: #e8b04a; }
+.o-notice.error, .o-toast.error { --o-kind: #e25a5a; }
+/* The stack spans the window between the title bar and the bottom bar's row; toasts sit at its bottom (.top: its top). */
+.o-toasts { position: absolute; right: 8px; top: 30px; bottom: 32px; z-index: 98; display: flex; flex-direction: column;
+    justify-content: flex-end; gap: 4px; width: 170px; pointer-events: none; }
+.o-toasts.top { justify-content: flex-start; }
+.o-toast { pointer-events: auto; display: flex; align-items: flex-start; gap: 5px; padding: 5px 6px; background: var(--o-tile);
+    border: 1px solid var(--o-line-strong); color: var(--o-text); -mc-tint: var(--o-kind, var(--o-accent-strong));
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 2px 0 0 var(--o-kind, var(--o-accent-strong)); animation: o-toast-in 240ms var(--o-ease-out) both; }
+.o-toast .b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.o-toast .b .s { color: var(--o-text-dim); }
+.o-toast .life { position: absolute; left: 0; bottom: 0; height: 1px; background: var(--o-kind, var(--o-accent-strong)); }
+.o-toast.leaving { animation: o-toast-out 200ms ease-in both; }
+@keyframes o-toast-in { from { opacity: 0; transform: translateX(14px); } }
+@keyframes o-toast-out { to { opacity: 0; transform: translateX(14px); } }
+[data-style=smooth] .o-toast { border-radius: 6px; }
+.o-toast { position: relative; }
+.o-toast .life { width: 100%; animation: o-toast-life var(--life, 3000ms) linear both; }
+@keyframes o-toast-life { from { width: 100%; } to { width: 0%; } }

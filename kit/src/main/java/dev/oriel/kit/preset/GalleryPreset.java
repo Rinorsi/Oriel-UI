@@ -10,27 +10,16 @@ import dev.oriel.kit.Shell;
 /**
  * The launcher. The shared markup ({@link Shell}) opens the presets and closes the screen; this adds the potion HUD
  * tile, which asks the host to show the HUD over the game ({@code oriel} message {@code "hud"}) and opens its page
- * when the host declines (the previewer, tests), and the theme switch (the segmented control, or T).
+ * when the host declines (the previewer, tests), and T for the theme (the title bar button is Shell's, as on every page).
  */
 public final class GalleryPreset implements PageControllers.Controller {
     @Override
     public void attach(Document doc) {
         Shell.setup(doc);
         for (Element e : doc.querySelectorAll("[data-page=potions]")) Shell.activate(e, () -> openHud(doc));
-        for (Element pick : doc.querySelectorAll("[data-theme-pick]")) {
-            Shell.activate(pick, () -> theme(doc, pick.getAttribute("data-theme-pick")));
-        }
         Dom.onKey(doc, e -> {
-            if (e.key.equalsIgnoreCase("t") && !e.defaultPrevented()) theme(doc, Shell.theme().equals("light") ? "dark" : "light");
+            if (e.key.equalsIgnoreCase("t") && !e.defaultPrevented()) Shell.theme(doc, Shell.theme().equals("light") ? "dark" : "light");
         });
-        theme(doc, Shell.theme());
-    }
-
-    private static void theme(Document doc, String name) {
-        Shell.theme(doc, name);
-        for (Element pick : doc.querySelectorAll("[data-theme-pick]")) {
-            pick.toggleClass("on", pick.getAttribute("data-theme-pick").equals(Shell.theme()));
-        }
     }
 
     private static void openHud(Document doc) {

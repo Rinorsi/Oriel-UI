@@ -1,0 +1,18 @@
+{
+  "providers": [
+    {
+      "type": "ttf",
+      "file": "oriel:smiley_sans_oblique.ttf",
+      "size": 9,
+      "oversample": 6,
+      "shift": [
+        0,
+        0.5
+      ]
+    },
+    {
+      "type": "reference",
+      "id": "minecraft:default"
+    }
+  ]
+}

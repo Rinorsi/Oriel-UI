@@ -4,6 +4,7 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.Notice;
 import dev.oriel.kit.Lazy;
 import dev.oriel.kit.Motion;
 import dev.oriel.kit.Shell;
@@ -132,9 +133,7 @@ public final class CatalogPreset implements PageControllers.Controller {
                 doc.scheduler().setTimeout(() -> Lazy.ready(doc), 1600);
             }
             case "toast" -> {
-                Element toast = Dom.el(doc, "div", "o-toast", "已保存 · 3 项修改");
-                Dom.byId(doc, "app").appendChild(toast);
-                doc.scheduler().setTimeout(toast::remove, 2700);
+                Notice.toast(doc, "success", "已保存", "3 项修改", 2700);
             }
             default -> { }
         }

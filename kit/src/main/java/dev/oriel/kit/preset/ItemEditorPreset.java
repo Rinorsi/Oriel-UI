@@ -11,6 +11,7 @@ import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.KeyboardEvent;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.Notice;
 import dev.oriel.kit.Motion;
 import dev.oriel.kit.Shell;
 import dev.oriel.kit.Slider;
@@ -540,9 +541,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     }
 
     private void toast(String text) {
-        Element t = Dom.el(doc, "div", "o-toast", text);
-        Dom.byId(doc, "app").appendChild(t);
-        doc.scheduler().setTimeout(t::remove, 2700);
+        Notice.toast(doc, "success", text, null, 2700);
     }
 
     private Element iconButton(String icon, String title) {

@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
  * dragged, starting from its {@code .fill} width, and a select ({@code .ore-select} with {@code .value} and a {@code .menu}
  * of {@code .option}s) opens, picks (the arrow keys and Enter too) and closes (Escape, or a press elsewhere), and a
  * menu bar ({@code .o-menubar}) opens its menus, {@code data-context} opens a right-click menu, a drawer's
- * {@code .o-drawer-handle} folds the {@code .o-drawer} and {@code data-pop} opens a popover. A {@code .m-indicator} inside a tab or segment group glides under
+ * {@code .o-drawer-handle} folds the {@code .o-drawer}, {@code data-pop} opens a popover and an {@code .o-mcfield} gets
+ * its Minecraft formatting bar ({@link McField}). A {@code .m-indicator} inside a tab or segment group glides under
  * the selected one.
  *
  * <p>Toggles, chips and sliders with an {@code id} are left to the page's controller (it wires them itself, from its
@@ -62,6 +63,7 @@ public final class Widgets {
                 }
             });
         }
+        McField.attach(doc);
         for (Element sel : doc.querySelectorAll(".ore-select")) {
             if (!sel.hasAttribute("id") && sel.querySelector(".value") != null && sel.querySelector(".menu") != null) select(doc, sel);
         }
@@ -190,6 +192,7 @@ public final class Widgets {
             for (Element c : options) c.toggleClass("chosen", c == o);
             Dom.text(value, o.textContent());
             close.run();
+            o.click(); // the page's own listener on the option (a data-font-pick, say) acts on the choice
         };
         Dom.onMouse(value, "mousedown", e -> {
             boolean open = !sel.hasClass("open");
@@ -266,6 +269,6 @@ public final class Widgets {
 
     private static boolean claimed(Element e) {
         return e.hasAttribute("data-go") || e.hasAttribute("data-action") || e.hasAttribute("data-style-pick")
-                || e.hasAttribute("data-theme-pick") || e.hasAttribute("data-icons-pick");
+                || e.hasAttribute("data-theme-pick") || e.hasAttribute("data-icons-pick") || e.hasAttribute("data-font-pick");
     }
 }

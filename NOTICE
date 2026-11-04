@@ -26,3 +26,23 @@ Taffy layout test fixtures (https://github.com/DioxusLabs/taffy), MIT.
   engine/src/test/resources/taffy/ holds Chrome-generated layout fixtures from
   Taffy; their license is in that directory. They are test data only and are not
   shipped in any jar.
+
+Bundled fonts (kit/src/main/resources/assets/oriel/font/), SIL Open Font License 1.1.
+  Each licence is in kit/src/main/resources/META-INF/licenses/fonts/ and ships in the jar. All but
+  Smiley Sans are subsets (GB2312 symbols and level-1 hanzi, Latin, punctuation,
+  and the characters the kit's pages use), made by a fontTools script; the fonts
+  are otherwise unchanged.
+  - Fusion Pixel Font 8px and 12px, proportional, zh_hans (TakWolf,
+    https://github.com/TakWolf/fusion-pixel-font, release 2026.10.25), OFL-1.1;
+    it includes glyphs from Ark Pixel Font, Cubic 11, Galmuri, Boutique Bitmap
+    7x7 (OFL-1.1), Misaki (free licence) and Miseki Bitmap (OFL-1.1).
+  - Cubic 11 (ACh-K, https://github.com/ACh-K/Cubic-11, v1.500), OFL-1.1.
+  - Noto Sans SC (Google, https://github.com/google/fonts, ofl/notosanssc),
+    instanced at weight 400, OFL-1.1 (Reserved Font Name "Source", not used).
+  - LXGW WenKai Regular (LXGW, https://github.com/lxgw/LxgwWenKai, v1.530),
+    OFL-1.1. Its Reserved Font Names are not used for the subset, which is
+    renamed "Oriel Kai" (oriel_kai.ttf).
+  - Smiley Sans Oblique (atelierAnchor, https://github.com/atelier-anchor/smiley-sans,
+    v2.0.1), OFL-1.1, the original file unmodified.
+  - ZCOOL KuaiLe (https://github.com/googlefonts/zcool-kuaile, via google/fonts),
+    OFL-1.1.

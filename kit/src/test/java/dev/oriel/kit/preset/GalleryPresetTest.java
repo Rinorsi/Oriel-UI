@@ -36,9 +36,11 @@ class GalleryPresetTest {
     @Test
     void themeSwitchesAndSticks() {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
-        click(doc, "[data-theme-pick=light]", 0, Modifiers.NONE, clock);
+        assertTrue(doc.querySelector("[data-action=theme] img").getAttribute("src").endsWith("sun.png"));
+        click(doc, "[data-action=theme]", 0, Modifiers.NONE, clock);
         assertEquals("light", doc.documentElement().getAttribute("data-theme"));
-        assertTrue(doc.querySelector("[data-theme-pick=light]").hasClass("on"));
+        assertTrue(doc.querySelector("[data-action=theme]").hasClass("on"));
+        assertTrue(doc.querySelector("[data-action=theme] img").getAttribute("src").endsWith("moon.png"), "the same button as every page");
         Document next = host.open(OrielKit.GALLERY, new GalleryPreset());
         assertEquals("light", next.documentElement().getAttribute("data-theme"));
         Shell.theme(next, "dark");

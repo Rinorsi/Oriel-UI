@@ -32,6 +32,21 @@ node tools/new-page.mjs bestiary "怪物图鉴"
 - Minecraft 内容直接用元素：`<item id="minecraft:diamond">`、`<model block="minecraft:anvil">`（3D 方块）、`<model item="minecraft:iron_sword">`、`<entity player follow-mouse>`（玩家 3D 模型）、`<entity type="minecraft:allay">`。
 - 3D 模型用 CSS 转：`-mc-yaw`、`-mc-pitch`，可以写进 `@keyframes`。
 
+### 文字、字体与 MC 格式
+
+- 全局字体：`Shell.font(doc, "kai")` 或任意元素加 `data-font-pick="kai"`（点了就换，所有页面跟着换）。可选：`mc`（原版）、`unifont`、`pixel`（缝合像素 8）、`pixel_12`、`cubic`（俐方体 11）、`sans`（黑体）、`kai`（文楷）、`smiley`（得意黑）、`kuaile`（快乐体）。全是 OFL 免费字体，许可证在 `META-INF/licenses/fonts/`。
+- 单个元素：`f-pixel`、`f-pixel-12`、`f-cubic`、`f-sans`、`f-kai`、`f-smiley`、`f-kuaile`、`f-unifont`、`f-alt`（附魔台文字）。像素 12 / 俐方体 11 建议配 `font-size: 12px` 或 `11px`，像素格才整齐。
+- 自定义字体：资源包里放 `assets/<命名空间>/font/<名字>.json`（Minecraft 的 ttf/bitmap 字体格式），CSS 写 `font-family: <命名空间>:<名字>`。缺的字会退回游戏字体。
+- 文字颜色就是 CSS `color`。MC 的 16 色和样式有现成类：`mc-0`…`mc-f`、`mc-l` 粗体、`mc-o` 斜体、`mc-n` 下划线、`mc-m` 删除线、`mc-k` 乱码（`-mc-obfuscated: on`，游戏里每帧随机换字）。
+- `§` / `&` 代码文本：`McFormat.render(doc, el, "§6§l标题§r正文")` 渲染成带样式的 span；`McFormat.json(...)` 得到聊天组件 JSON（给 `<mc-text json>`、`/tellraw`、物品名）；`McFormat.strip` 去掉代码。`§#rrggbb` 是 16 色以外的颜色。
+- 格式输入框：`<div class="o-mcfield"><input class="ore-field"></div>`，自动加颜色/样式条和预览；选中文字点颜色就包上代码。`data-json-out="#id"` 把 JSON 写到别的元素，`data-prefix="&"` 用 `&` 代码。
+
+### 通知与提示
+
+- 底部提示条：按钮加 `data-notice="已保存" data-kind="success" data-notice-action="撤销"`；代码里 `Notice.bar(doc, "warn", 文字, 按钮文字, 回调)`。一次一条。
+- 吐司：`data-toast="标题|副标题"`（`data-kind` 选 info/success/warn/error），或 `Notice.toast(doc, kind, 标题, 副标题, 毫秒)`，最多叠 4 条，自己消失。
+- 页面里的提示条：`<div class="o-notice inline warn">`。悬停提示：`title="…"`，物品式提示 `title-json="聊天组件"`。
+
 ## 3. 写控制器（Java）
 
 ```java
@@ -88,7 +103,7 @@ java -cp "preview/build/install/preview/lib/*" dev.oriel.preview.Preview \
 # 游戏里：/oriel open oriel:ui/bestiary.html   或 /oriel demo
 ```
 
-开发客户端里改 HTML/CSS 保存即热重载。自动巡检截图：`./gradlew :fabric:26.1:runClient -Pautopilot=oriel`（1280×720，截图在运行目录 `screenshots/`）。
+开发客户端里改 HTML/CSS（以及页面读的 JSON）保存即热重载。改了 Java、图标/贴图、字体、语言文件时，窗口底部会出现提示条，写明哪些改动还没生效，点「热重载」就编译、热替换类、重新加载资源并重开页面，不用重启；只有类增删了字段或方法、或改了 `fabric.mod.json` / `neoforge.mods.toml` / mixin 配置时，提示条会说明需要重启游戏。自动巡检截图：`./gradlew :fabric:26.1:runClient -Pautopilot=oriel`（1280×720，截图在运行目录 `screenshots/`）。
 
 ## 6. 常见坑
 

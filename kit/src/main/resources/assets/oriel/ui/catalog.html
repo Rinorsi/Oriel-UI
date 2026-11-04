@@ -9,13 +9,32 @@
    screen (docs/zh/recipes.md points here). */
 .list { flex: none; width: 118px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
+/* Switches for every component and page, in the status bar: corners and the font. */
+.globals { display: flex; align-items: center; gap: 4px; margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--o-line); }
+.globals > span { color: var(--o-text-faint); }
+.globals .o-seg + span { margin-left: 6px; }
+.globals .o-seg > * { height: 14px; }
+.globals .ore-select { width: 80px; }
 .list .item { position: relative; display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
     -mc-tint: var(--o-text-faint); transition: background-color 120ms, color 120ms; }
 .list .item:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); }
 .list .item.on { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
-.list .item.on::before { content: ""; position: absolute; left: -4px; top: 3px; width: 2px; height: 14px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
+.list .item.on::before { content: ""; position: absolute; left: 0; top: 3px; width: 2px; height: 14px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
 .list .n { margin-left: auto; color: var(--o-text-faint); }
 
+.font-grid { display: grid; }
+.font-card { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 6px 7px 5px; cursor: pointer; min-width: 0; }
+.font-card .sample { margin-right: 24px; color: var(--o-text); white-space: nowrap; overflow: hidden; }
+.font-card .fname { color: var(--o-text-dim); }
+.font-card .credit { color: var(--o-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.font-card .kind { position: absolute; right: 5px; top: 4px; color: var(--o-text-faint); }
+.font-card.on { box-shadow: inset 0 0 0 1px var(--o-accent-strong), 0 0 6px var(--o-accent); }
+.font-card.on .fname { color: var(--o-accent-strong); }
+.mc-palette span { margin-right: 4px; }
+.row.top { align-items: flex-start; }
+.mc-out { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mc-out .code { white-space: pre-wrap; word-break: break-all; max-height: 48px; overflow-y: auto; }
+.ore-select.up .menu { top: auto; bottom: 100%; }
 .pane { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 8px 10px 40px; display: flex; flex-direction: column; gap: 10px; }
 .sec { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--o-line); }
 .sec:last-child { border-bottom: none; }
@@ -73,7 +92,6 @@
       <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
       <span class="o-crumb" id="crumb">/ 按钮</span>
       <div class="o-grow"></div>
-      <div class="o-seg"><span data-style-pick="ore">像素</span><span data-style-pick="smooth">平滑</span></div>
       <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
       <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
@@ -111,8 +129,12 @@
           <div class="sec-head"><span class="o-h1">输入</span><span class="o-faint">支持中文输入法：预编辑内联显示，候选窗跟随光标</span></div>
           <div class="row"><span class="cap">文本框</span><input class="ore-field" placeholder="输入名字…" style="width: 140px"><input class="ore-field" value="史蒂夫" style="width: 100px"></div>
           <div class="row"><span class="cap">下拉框</span><div class="ore-select" style="width: 120px"><div class="value">高品质</div><div class="menu"><div class="option chosen">高品质</div><div class="option">均衡</div><div class="option">流畅</div></div></div></div>
+          <div class="row top"><span class="cap">格式文本</span>
+            <div class="o-mcfield" data-json-out="#mc-json" style="flex: 1; max-width: 300px"><input class="ore-field" value="§6§l传说之剑 §r§7· §b锋利 V §8| §d§k??§r §a限定"></div>
+            <div class="mc-out"><span class="o-caps">聊天组件 JSON</span><pre class="code" id="mc-json"></pre></div></div>
 <pre class="code">&lt;input class="ore-field" placeholder="输入名字…"&gt;
-&lt;div class="ore-select"&gt;&lt;div class="value"&gt;高品质&lt;/div&gt;&lt;div class="menu"&gt;…&lt;/div&gt;&lt;/div&gt;</pre>
+&lt;div class="ore-select"&gt;&lt;div class="value"&gt;高品质&lt;/div&gt;&lt;div class="menu"&gt;…&lt;/div&gt;&lt;/div&gt;
+&lt;div class="o-mcfield"&gt;&lt;input class="ore-field" value="§6金色§l粗体"&gt;&lt;/div&gt;   <span class="c">选中文字再点颜色或样式；data-json 是聊天组件</span></pre>
         </section>
 
         <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="toggles" data-title="开关与进度" data-icon="sliders">
@@ -218,13 +240,58 @@
 <pre class="code">&lt;span class="o-chip on"&gt;选中&lt;/span&gt; &lt;span class="o-badge red"&gt;9&lt;/span&gt; &lt;span class="o-kbd"&gt;Tab&lt;/span&gt;</pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="type" data-title="字体与层级" data-icon="layers">
-          <div class="sec-head"><span class="o-h1">字体与层级</span><span class="o-faint">只有 8/16 两档；只有底/面/浮三层</span></div>
-          <div class="row"><span class="o-h1">标题 16px</span><span>正文 8px</span><span class="o-dim">次要</span><span class="o-faint">更弱</span><span class="o-accent">强调</span></div>
-          <div class="o-caps">小标题（o-caps）</div>
-          <div class="depth"><div class="o-well">凹陷 o-well</div><div class="o-tile">浮起 o-tile</div><div class="o-tile hot">可交互 hot</div><div class="o-tile sel">选中 sel</div></div>
-<pre class="code">o-h1 · o-dim · o-faint · o-accent · o-caps · o-divider
-o-well（装东西）· o-tile（浮起，块里不再放块）· .hot 可交互 · .sel 选中</pre>
+        <section class="sec o-lazy" style="--lazy-h: 200px" data-sec="type" data-title="文字与字体" data-icon="book_open">
+          <div class="sec-head"><span class="o-h1">文字与字体</span><span class="o-faint">点一款字体，所有页面都换；单个元素用 f-* 类</span></div>
+          <div class="font-grid o-auto" style="--min: 112px; --gap: 4px">
+            <div class="font-card o-tile hot" data-font-pick="mc" tabindex="0"><span class="kind">像素</span>
+              <span class="sample " style="">优易库 Oriel 123</span><span class="fname">原版</span><span class="credit">Minecraft 默认字体</span></div>
+            <div class="font-card o-tile hot" data-font-pick="unifont" tabindex="0"><span class="kind">像素</span>
+              <span class="sample f-unifont" style="">优易库 Oriel 123</span><span class="fname">Unifont</span><span class="credit">GNU Unifont · 游戏自带</span></div>
+            <div class="font-card o-tile hot" data-font-pick="pixel" tabindex="0"><span class="kind">像素</span>
+              <span class="sample f-pixel" style="">优易库 Oriel 123</span><span class="fname">缝合像素 8</span><span class="credit">Fusion Pixel 8px · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="pixel_12" tabindex="0"><span class="kind">像素</span>
+              <span class="sample f-pixel-12" style="font-size: 12px; ">优易库 Oriel</span><span class="fname">缝合像素 12</span><span class="credit">Fusion Pixel 12px · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="cubic" tabindex="0"><span class="kind">像素</span>
+              <span class="sample f-cubic" style="font-size: 12px; ">优易库 Oriel</span><span class="fname">俐方体 11</span><span class="credit">Cubic 11 · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="sans" tabindex="0"><span class="kind">平滑</span>
+              <span class="sample f-sans" style="">优易库 Oriel 123</span><span class="fname">黑体</span><span class="credit">Noto Sans SC · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="kai" tabindex="0"><span class="kind">平滑</span>
+              <span class="sample f-kai" style="">优易库 Oriel 123</span><span class="fname">文楷</span><span class="credit">基于霞鹜文楷 · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="smiley" tabindex="0"><span class="kind">平滑</span>
+              <span class="sample f-smiley" style="">优易库 Oriel 123</span><span class="fname">得意黑</span><span class="credit">Smiley Sans · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="kuaile" tabindex="0"><span class="kind">趣味</span>
+              <span class="sample f-kuaile" style="">优易库 Oriel 123</span><span class="fname">快乐体</span><span class="credit">站酷快乐体 · OFL</span></div>
+          </div>
+          <div class="row"><span class="cap">层级</span><span class="o-h1">标题 16px</span><span>正文 8px</span><span class="o-dim">次要</span><span class="o-faint">更弱</span><span class="o-accent">强调</span><span class="o-caps" style="flex: 1">小标题</span></div>
+          <div class="row"><span class="cap">MC 颜色</span><div class="o-mctext mc-palette"><span class="mc-0">§0</span><span class="mc-1">§1</span><span class="mc-2">§2</span><span class="mc-3">§3</span><span class="mc-4">§4</span><span class="mc-5">§5</span><span class="mc-6">§6</span><span class="mc-7">§7</span><span class="mc-8">§8</span><span class="mc-9">§9</span><span class="mc-a">§a</span><span class="mc-b">§b</span><span class="mc-c">§c</span><span class="mc-d">§d</span><span class="mc-e">§e</span><span class="mc-f">§f</span></div></div>
+          <div class="row"><span class="cap">MC 样式</span><div class="o-mctext"><span class="mc-l">§l 粗体</span>&nbsp;<span class="mc-o">§o 斜体</span>&nbsp;<span class="mc-n">§n 下划线</span>&nbsp;<span class="mc-m">§m 删除线</span>&nbsp;<span class="mc-k">§k乱码</span><span>§k</span>&nbsp;<span class="mc-6 mc-l mc-n">组合</span></div></div>
+          <div class="row"><span class="cap">自定义色</span><span style="color: #7fd4ff">任意颜色 color: #7fd4ff</span><span style="color: #ffb3d9">粉</span><span style="color: #b8f28a">青柠</span><span class="o-faint">文字颜色就是 CSS color</span></div>
+<pre class="code">&lt;html data-font="kai"&gt;  <span class="c">或 Shell.font(doc, "kai")：所有页面换字体</span>
+&lt;span class="f-pixel-12"&gt;  <span class="c">单个元素；资源包字体写 font-family: 命名空间:字体名</span>
+&lt;span class="mc-6 mc-l"&gt;金色粗体&lt;/span&gt;   <span class="c">§ 代码对应 mc-0…mc-f、mc-k/l/m/n/o；McFormat.render 直接解析 § 文本</span></pre>
+        </section>
+
+        <section class="sec o-lazy" style="--lazy-h: 120px" data-sec="notices" data-title="通知与提示" data-icon="bell">
+          <div class="sec-head"><span class="o-h1">通知与提示</span><span class="o-faint">底部提示条一次一条；吐司在角落叠放，自己消失</span></div>
+          <div class="row"><span class="cap">底部提示</span>
+            <div class="ore-btn m-ripple" tabindex="0" data-notice="已连接到服务器 · 延迟 32ms">信息</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="success" data-notice="设置已保存，下次进入游戏时生效" data-notice-action="撤销">成功</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="warn" data-notice="改动需要重新加载资源才会生效" data-notice-action="重新加载">提醒</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="error" data-notice="保存失败：磁盘已满" data-notice-action="重试">错误</div></div>
+          <div class="row"><span class="cap">吐司</span>
+            <div class="ore-btn m-ripple" tabindex="0" data-toast="获得成就|钻石！">信息</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="success" data-toast="已导出|ui/my_page.html">成功</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="warn" data-toast="背包快满了|还剩 2 格">提醒</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="error" data-toast="无法连接|请检查网络">错误</div></div>
+          <div class="row"><span class="cap">行内</span>
+            <div class="o-notice inline" style="flex: 1"><img class="o-ico" src="../textures/icons/info.png"><span class="t">这一条在页面里，不浮动</span></div>
+            <div class="o-notice inline warn" style="flex: 1"><img class="o-ico" src="../textures/icons/warning.png"><span class="t">存档较旧，建议备份</span><div class="ore-btn" tabindex="0">备份</div></div></div>
+          <div class="row"><span class="cap">悬停提示</span>
+            <div class="ore-btn" tabindex="0" title="普通提示：写 title 就有">悬停我</div>
+            <div class="ore-btn" tabindex="0" title-json='{"text":"","extra":[{"text":"钻石剑","color":"aqua","bold":true},{"text":"\n锋利 V","color":"gray"}]}'>物品式提示</div></div>
+<pre class="code">&lt;div class="ore-btn" data-kind="success" data-notice="已保存" data-notice-action="撤销"&gt;
+&lt;div class="ore-btn" data-toast="获得成就|钻石！"&gt;   <span class="c">代码里：Notice.bar(doc, "warn", 文字, 按钮, 回调) · Notice.toast(doc, "success", 标题, 副标题, 毫秒)</span>
+&lt;div title="提示"&gt; · title-json="聊天组件"   <span class="c">悬停提示</span></pre>
         </section>
 
         <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="rarity" data-title="稀有度与光效" data-icon="sparkle">
@@ -300,7 +367,12 @@ Motion.zoomInto(card, () -&gt; doc.navigate(...))   <span class="c">或在链接
     <span class="o-preload-what">正在准备组件…</span>
     <div class="o-preload-bar indeterminate"><i></i></div>
     </div>
-    <div class="foot"><span id="count">11 节</span><div class="o-grow"></div><div class="o-hints"><span><span class="o-kbd">↑</span><span class="o-kbd">↓</span>切换</span></div></div>
+    <div class="foot"><span id="count">11 节</span>
+      <div class="globals" title="对所有组件和页面生效，换页后保持">
+        <span>边角</span><div class="o-seg"><span data-style-pick="ore">方角</span><span data-style-pick="smooth">圆角</span></div>
+        <span>字体</span><div class="ore-select up" data-font-select><div class="value">原版</div><div class="menu"><div class="option chosen" data-font-pick="mc">原版</div><div class="option" data-font-pick="unifont">Unifont</div><div class="option" data-font-pick="pixel">缝合像素 8</div><div class="option" data-font-pick="pixel_12">缝合像素 12</div><div class="option" data-font-pick="cubic">俐方体 11</div><div class="option" data-font-pick="sans">黑体</div><div class="option" data-font-pick="kai">文楷</div><div class="option" data-font-pick="smiley">得意黑</div><div class="option" data-font-pick="kuaile">快乐体</div></div></div>
+      </div>
+      <div class="o-grow"></div><div class="o-hints"><span><span class="o-kbd">↑</span><span class="o-kbd">↓</span>切换</span></div></div>
   </div>
   <div class="o-context" id="ctx-demo"><div class="item" tabindex="0"><span>复制</span><span class="k">Ctrl+C</span></div><div class="item" tabindex="0"><span>粘贴</span><span class="k">Ctrl+V</span></div><i class="sep"></i><div class="item" tabindex="0"><span>删除</span><span class="k">Delete</span></div></div>
   <div class="m-modal" id="modal">

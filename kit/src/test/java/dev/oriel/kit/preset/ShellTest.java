@@ -23,7 +23,7 @@ class ShellTest {
 
     @AfterEach
     void reset() {
-        Shell.window(host.open(OrielKit.GALLERY, new GalleryPreset()), "max");
+        Shell.window(host.open(OrielKit.GALLERY, new GalleryPreset()), "mini");
     }
 
     @Test
@@ -52,7 +52,11 @@ class ShellTest {
     @Test
     void windowSwitchIsAddedAndSticks() {
         Document home = host.open(OrielKit.GALLERY, new GalleryPreset(), 960, 540);
+        assertEquals("mini", home.documentElement().getAttribute("data-window"), "pages open as a window");
         assertNotNull(home.querySelector(".o-titlebar [data-action=window]"), "the switch sits in the title bar");
+        click(home, "[data-action=window]", 0, Modifiers.NONE, clock);
+        assertEquals("max", home.documentElement().getAttribute("data-window"));
+        frame(home, clock, 600);
         float full = home.querySelector(".o-window").getBoundingClientRect()[2];
         click(home, "[data-action=window]", 0, Modifiers.NONE, clock);
         assertEquals("mini", home.documentElement().getAttribute("data-window"));
@@ -119,9 +123,11 @@ class ShellTest {
 
     @Test
     void theIconWeightSwitchesEveryIconIncludingLaterOnes() {
+        Document icons = host.open(OrielKit.ICONS, new IconsPreset(), 640, 360);
+        click(icons, "[data-icons-pick=thin]", 0, Modifiers.NONE, clock);
+        assertEquals("thin", icons.documentElement().getAttribute("data-icons"));
         Document home = host.open(OrielKit.GALLERY, new GalleryPreset(), 640, 360);
-        click(home, "[data-icons-pick=thin]", 0, Modifiers.NONE, clock);
-        assertEquals("thin", home.documentElement().getAttribute("data-icons"));
+        assertEquals("thin", home.documentElement().getAttribute("data-icons"), "the weight picked on the icons page sticks");
         assertTrue(home.querySelector("#close img").getAttribute("src").contains("icons/thin/close.png"));
         var added = home.createElement("img");
         added.setAttribute("src", "../textures/icons/star.png");

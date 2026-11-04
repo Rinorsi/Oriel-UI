@@ -29,7 +29,7 @@ import java.util.List;
  * Controllers call {@link #setup} first and keep the returned particles for bursts.
  */
 public final class Shell {
-    private static volatile String theme = "dark", style = "ore", window = "max", icons = "bold";
+    private static volatile String theme = "dark", style = "ore", window = "mini", icons = "bold", font = "mc";
     /** The entrance for the next page's content, and the app tab it was opened from (-1: none). */
     private static volatile String enter;
     private static volatile int fromTab = -1;
@@ -69,7 +69,36 @@ public final class Shell {
         theme = name.equals("light") ? "light" : "dark";
         Element root = doc.documentElement();
         if (root != null) root.setAttribute("data-theme", theme);
-        for (Element e : doc.querySelectorAll("[data-action=theme]")) e.toggleClass("on", theme.equals("light"));
+        // The one theme button on every page: a sun while dark (press for light), a moon while light.
+        for (Element e : doc.querySelectorAll("[data-action=theme]")) {
+            e.toggleClass("on", theme.equals("light"));
+            e.setAttribute("title", theme.equals("light") ? "切换到暗色" : "切换到亮色");
+            Element img = e.querySelector("img");
+            if (img != null && img.getAttribute("src") != null) {
+                String src = img.getAttribute("src").replaceAll("(sun|moon)[.]png$", theme.equals("light") ? "moon.png" : "sun.png");
+                if (!src.equals(img.getAttribute("src"))) img.setAttribute("src", src);
+            }
+        }
+    }
+
+    /** The page font's id ({@link Fonts}); {@code mc} is the game's own. */
+    public static String font() {
+        return font;
+    }
+
+    /**
+     * Sets the font for this page and the pages opened after it ({@code data-font} on {@code <html>}, which
+     * {@code ore.css} turns into the font family); {@code [data-font-pick]} items show which is on.
+     */
+    public static void font(Document doc, String id) {
+        font = Fonts.byId(id).id();
+        Element root = doc.documentElement();
+        if (root != null) {
+            if (font.equals("mc")) root.removeAttribute("data-font");
+            else root.setAttribute("data-font", font);
+        }
+        for (Element e : doc.querySelectorAll("[data-font-pick]")) e.toggleClass("on", e.getAttribute("data-font-pick").equals(font));
+        for (Element e : doc.querySelectorAll(".ore-select[data-font-select] .value")) Dom.text(e, Fonts.byId(font).name());
     }
 
     /** The icon weight, {@code bold} or {@code thin}. */
@@ -154,12 +183,14 @@ public final class Shell {
         style(doc, style);
         window(doc, window);
         icons(doc, icons);
+        font(doc, font);
         followIcons(doc);
         for (Element e : doc.querySelectorAll("[data-icons-pick]")) activate(e, () -> icons(doc, e.getAttribute("data-icons-pick")));
         windowSwitch(doc);
         enter(doc);
         appTabs(doc);
         for (Element e : doc.querySelectorAll("[data-style-pick]")) activate(e, () -> style(doc, e.getAttribute("data-style-pick")));
+        for (Element e : doc.querySelectorAll("[data-font-pick]")) activate(e, () -> font(doc, e.getAttribute("data-font-pick")));
         for (Element e : doc.querySelectorAll("[data-go]")) {
             if (e.closest(".o-apptabs") != null) continue;
             String page = e.getAttribute("data-go");
@@ -179,6 +210,7 @@ public final class Shell {
             }
         }
         Widgets.attach(doc);
+        Notice.attach(doc);
         Lazy.attach(doc);
         doc.addDataListener((key, json) -> {
             if (DEV_KEY.equals(key)) devBar(doc, json);
