@@ -1072,7 +1072,32 @@ public final class DevAutopilot {
      */
     private static void styles(Minecraft mc) {
         guiScale(mc, 2);
+        // One-click save (below): the template's copy lands in config/oriel/my-pages/, and the saved view lists it. A copy
+        // from an earlier run is cleared first, before the centre reads the library.
+        java.nio.file.Path copy = dev.oriel.mod.platform.Services.PLATFORM.configDir().resolve("oriel/my-pages/rpg.html");
+        steps.add(() -> {
+            try {
+                java.nio.file.Files.deleteIfExists(copy);
+            } catch (java.io.IOException e) {
+                fail("could not clear {}", copy);
+            }
+        });
         shoot(mc, "styles_index", () -> OrielScreens.open(dev.oriel.kit.OrielKit.STYLES));
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.click("#grid .card")).orElse(false),
+                "opened a template's details", "could not open a template's details"));
+        settle("the template details", 20);
+        grab(mc, "styles_index_detail", 5);
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.click("#d-save")).orElse(false), "clicked save", "could not click save"));
+        settle("the saved template", 10);
+        steps.add(() -> check(java.nio.file.Files.exists(copy), "saving a template wrote its copy", "saving a template wrote no {}", copy));
+        steps.add(() -> OrielAutomation.screen().ifPresent(p -> {
+            p.key("Escape");
+            p.click("#side [data-view=saved]");
+        }));
+        settle("the saved view", 15);
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists("#grid .card")).orElse(false),
+                "the saved view lists the copy", "the saved view is empty"));
+        grab(mc, "styles_index_saved", 5);
         for (String look : dev.oriel.kit.preset.StylesPreset.PAGES) {
             shoot(mc, "styles_" + look, () -> OrielScreens.open(dev.oriel.kit.OrielKit.page("styles/" + look)));
         }
@@ -1082,9 +1107,9 @@ public final class DevAutopilot {
         guiScale(mc, 2);
         open("a look", () -> OrielScreens.open(dev.oriel.kit.OrielKit.page("styles/dungeon")));
         onPage("a look", page -> page.key("Escape"));
-        until("Escape went back to the style index", ticks -> OrielAutomation.screen().map(p -> p.exists(".look")).orElse(false),
+        until("Escape went back to the style index", ticks -> OrielAutomation.screen().map(p -> p.exists("#grid .card")).orElse(false),
                 100, "Escape on a look did not open the style index", true);
-        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists(".look")).orElse(false),
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists("#grid .card")).orElse(false),
                 "Escape on a look went back to the style index", "Escape on a look did not open the style index"));
         onPage("the style index", page -> page.key("Escape"));
         until("Escape went back to the gallery", ticks -> OrielAutomation.screen().map(p -> p.exists("#cards")).orElse(false),

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>方块地下城</title>
+<link rel="stylesheet" href="showcase.css">
+<style>
+/*
+ * A level of a block-world dungeon crawler seen from above, laid out as Minecraft Dungeons' HUD: the world an
+ * isometric diorama of real blocks (block item icons are drawn isometric, so placed on a lattice they tile into
+ * terrain), the hero and mobs on it; along the bottom one dark utility bar - souls, the inventory, three artifacts on
+ * 1 2 3, the big heart in its octagon (it shrinks as health goes, revives and level under it), the potion, the map,
+ * the dodge, the quiver and the emeralds - with the experience line under it; the effects top left.
+ */
+:root { --bar: #1e1f22; --slot: #16171a; --rim: #6d6e74; --rim-hi: #9a9ba2; --key: #c8c9ce; --soul: #b06cff; --xp: #8a4cff; }
+.level { position: absolute; inset: 0; overflow: hidden; color: #ffffff; font-family: minecraft:default; font-size: 8px;
+    background: radial-gradient(ellipse 80% 75% at 50% 45%, #3c5a3a, #1b2a1d 70%, #0d140e); }
+/* The world: the diorama, centred, a cool light from above and the dark at the edges. */
+.world { position: absolute; left: 50%; top: 52%; width: 0; height: 0; }
+.world item.b { position: absolute; width: 40px; height: 40px; }
+.mob { position: absolute; }
+.mob entity { position: absolute; left: 0; top: 0; -mc-pitch: 22deg; }
+.mob .hp { position: absolute; left: 3px; right: 3px; top: -5px; height: 2px; background: rgba(0, 0, 0, 0.6); }
+.mob .hp b { display: block; width: 70%; height: 2px; background: #e8413a; }
+.mob.hero::after { content: ""; position: absolute; left: -4px; right: -4px; bottom: -2px; height: 7px; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(214, 120, 255, 0.6), transparent 70%); animation: aura 1.6s ease-in-out infinite; }
+@keyframes aura { 50% { opacity: 0.45; transform: scale(1.15); } }
+.loot { position: absolute; width: 18px; height: 18px; animation: bob 1.8s ease-in-out infinite; }
+.loot item { width: 18px; height: 18px; }
+.loot::before { content: ""; position: absolute; left: 7px; bottom: 9px; width: 4px; height: 46px; border-radius: 2px;
+    background: linear-gradient(transparent, rgba(255, 196, 60, 0.85)); animation: beam 1.8s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-3px); } }
+@keyframes beam { 50% { opacity: 0.4; } }
+.shade { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 70% 65% at 50% 46%, transparent 50%, rgba(5, 10, 6, 0.75)),
+        linear-gradient(rgba(120, 170, 255, 0.07), transparent 40%); }
+
+/* ---- Effects, top left ---- */
+.effects { position: absolute; left: 6px; top: 22px; display: flex; gap: 2px; }
+.effects span { position: relative; width: 14px; height: 14px; padding: 1px; background: rgba(20, 20, 24, 0.75); border: 1px solid var(--rim); }
+.effects img { width: 12px; height: 12px; }
+
+/* ---- The utility bar ---- */
+.ubar { position: absolute; left: 50%; bottom: 3px; width: 322px; height: 30px; margin-left: -161px;
+    display: flex; align-items: center; gap: 2px; padding: 0 3px;
+    background: linear-gradient(#2a2b2f, var(--bar)); border-top: 1px solid #45464c;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.6); }
+.ubar::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -3px; height: 2px; background: rgba(0, 0, 0, 0.6); }
+.xp { position: absolute; left: 14px; bottom: -3px; width: 36%; height: 2px; z-index: 1; background: var(--xp); box-shadow: 0 0 4px var(--xp); }
+.slot { position: relative; flex: none; width: 24px; height: 24px; padding: 3px; background: var(--slot);
+    border: 1px solid var(--rim); box-shadow: inset 0 0 0 1px #000, inset 0 2px 0 rgba(255, 255, 255, 0.06); transition: border-color 120ms; }
+.slot:hover { border-color: var(--rim-hi); }
+.slot item { width: 16px; height: 16px; }
+.slot .k { position: absolute; right: 1px; bottom: 0; color: var(--key); font-size: 8px; line-height: 8px; text-shadow: 1px 1px 0 #000; }
+.slot .n { position: absolute; left: 2px; bottom: 0; line-height: 8px; }
+.slot .cool { position: absolute; left: 1px; right: 1px; top: 1px; bottom: 1px; background: rgba(0, 0, 0, 0.6); transform-origin: bottom;
+    animation: cool 6s linear infinite; }
+@keyframes cool { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+.slot.ready { border-color: #e8c34a; box-shadow: inset 0 0 0 1px #000, 0 0 5px rgba(232, 195, 74, 0.6); }
+.souls { flex: none; display: flex; align-items: center; gap: 2px; margin-right: 1px; }
+.souls i { width: 9px; height: 9px; border-radius: 50%;
+    background: conic-gradient(var(--soul) 0 70%, transparent 70%); -webkit-mask-image: radial-gradient(circle, transparent 2px, #000 2.5px);
+    mask-image: radial-gradient(circle, transparent 2px, #000 2.5px); animation: spin 2.4s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* The octagon frames, raised above the bar: the heart's and the quiver's. */
+.oct { position: relative; flex: none; display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 1px;
+    clip-path: polygon(28% 0, 72% 0, 100% 26%, 100% 100%, 0 100%, 0 26%); background: var(--rim); }
+.oct::before { content: ""; position: absolute; inset: 1px; clip-path: polygon(28% 0, 72% 0, 100% 26%, 100% 100%, 0 100%, 0 26%);
+    background: linear-gradient(#26272b, #141518); }
+.oct.heart { width: 56px; height: 40px; margin: 0 2px 1px; }
+.oct.quiver { width: 28px; height: 30px; margin-left: 3px; }
+/* The heart: low-poly, red, lit from the top left; it shrinks with health and beats when hit. */
+.heart .h { position: relative; width: 30px; height: 26px; margin-top: -6px; animation: hurt 5s ease-in-out infinite;
+    clip-path: polygon(50% 20%, 62% 6%, 80% 3%, 94% 13%, 100% 32%, 94% 54%, 76% 74%, 50% 97%, 24% 74%, 6% 54%, 0 32%, 6% 13%, 20% 3%, 38% 6%);
+    background: linear-gradient(135deg, #ff6a5c 0 22%, #e0261c 22% 55%, #b5150e 55% 78%, #8c0d08 78%); }
+@keyframes hurt { 0%, 64%, 100% { transform: scale(0.86); } 67% { transform: scale(0.95); filter: brightness(1.5); } 72% { transform: scale(0.8); } }
+.heart .rev { position: absolute; left: 3px; bottom: 1px; display: flex; align-items: center; gap: 1px; }
+.heart .rev img { width: 6px; height: 6px; }
+.heart .lv { position: absolute; right: 3px; bottom: 1px; }
+.dodge { display: flex; align-items: center; justify-content: center; }
+.dodge b { width: 14px; height: 8px; background: linear-gradient(90deg, #3d8bff, #7ec0ff);
+    clip-path: polygon(0 0, 25% 0, 50% 50%, 25% 100%, 0 100%, 25% 50%, 0 0, 50% 0, 75% 0, 100% 50%, 75% 100%, 50% 100%, 75% 50%, 50% 0); }
+.quiver item { position: relative; width: 16px; height: 16px; margin-top: 4px; }
+.quiver .cnt { position: absolute; left: 4px; top: 4px; }
+.gems { flex: none; display: flex; align-items: center; gap: 2px; margin-left: auto; padding-left: 4px; }
+.gems item { width: 12px; height: 12px; }
+
+@media (min-width: 560px) {
+    .ubar { width: 380px; margin-left: -190px; height: 34px; }
+    .slot { width: 27px; height: 27px; padding: 4px; }
+    .oct.heart { width: 64px; height: 46px; }
+    .heart .h { width: 38px; height: 33px; }
+    .world { transform: scale(1.25); }
+}
+</style>
+</head>
+<body>
+<div class="level">
+  <div class="world">
+    <item class="b" id="minecraft:dirt" style="left: -20.0px; top: -90.7px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -20.0px; top: -112.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -20.0px; top: -134.0px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -37.7px; top: -81.9px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -2.3px; top: -81.9px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -37.7px; top: -103.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -2.3px; top: -103.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -37.7px; top: -125.2px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -55.4px; top: -73.0px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -20.0px; top: -73.0px"></item>
+    <item class="b" id="minecraft:dirt" style="left: 15.4px; top: -73.0px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -55.4px; top: -94.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -20.0px; top: -94.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 15.4px; top: -94.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -55.4px; top: -116.3px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -73.0px; top: -64.2px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -37.7px; top: -64.2px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -2.3px; top: -64.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 33.0px; top: -64.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -73.0px; top: -85.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -37.7px; top: -85.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -2.3px; top: -85.8px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -90.7px; top: -55.4px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -55.4px; top: -55.4px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -20.0px; top: -55.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 15.4px; top: -55.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 50.7px; top: -55.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -90.7px; top: -77.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -55.4px; top: -77.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -20.0px; top: -77.0px"></item>
+    <item class="b" id="minecraft:hay_block" style="left: 15.4px; top: -77.0px"></item>
+    <item class="b" id="minecraft:hay_block" style="left: 50.7px; top: -77.0px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -90.7px; top: -141.9px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -108.4px; top: -46.5px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -73.0px; top: -46.5px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -37.7px; top: -46.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -2.3px; top: -46.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 33.0px; top: -46.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 68.4px; top: -46.5px"></item>
+    <item class="b" id="minecraft:oak_log" style="left: -108.4px; top: -68.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -73.0px; top: -68.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -37.7px; top: -68.2px"></item>
+    <item class="b" id="minecraft:oak_log" style="left: -108.4px; top: -89.8px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -108.4px; top: -111.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -126.1px; top: -37.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -90.7px; top: -37.7px"></item>
+    <item class="b" id="minecraft:dirt" style="left: -55.4px; top: -37.7px"></item>
+    <item class="b" id="minecraft:dirt_path" style="left: -20.0px; top: -37.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 15.4px; top: -37.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 50.7px; top: -37.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 86.1px; top: -37.7px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -55.4px; top: -59.3px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -126.1px; top: -102.6px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -143.8px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -108.4px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -73.0px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -37.7px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -2.3px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 33.0px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 68.4px; top: -28.8px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 103.8px; top: -28.8px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -108.4px; top: -50.5px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -108.4px; top: -72.1px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -161.4px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -126.1px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -90.7px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -55.4px; top: -20.0px"></item>
+    <item class="b" id="minecraft:dirt_path" style="left: -20.0px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 15.4px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 50.7px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 86.1px; top: -20.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 121.4px; top: -20.0px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -126.1px; top: -41.6px"></item>
+    <item class="b" id="minecraft:mossy_stone_bricks" style="left: 86.1px; top: -41.6px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -143.8px; top: -11.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -108.4px; top: -11.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -73.0px; top: -11.2px"></item>
+    <item class="b" id="minecraft:coarse_dirt" style="left: -37.7px; top: -11.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -2.3px; top: -11.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 33.0px; top: -11.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 68.4px; top: -11.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 103.8px; top: -11.2px"></item>
+    <item class="b" id="minecraft:oak_leaves" style="left: -108.4px; top: -32.8px"></item>
+    <item class="b" id="minecraft:mossy_stone_bricks" style="left: 103.8px; top: -32.8px"></item>
+    <item class="b" id="minecraft:mossy_stone_bricks" style="left: 103.8px; top: -54.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -126.1px; top: -2.3px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -90.7px; top: -2.3px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -55.4px; top: -2.3px"></item>
+    <item class="b" id="minecraft:dirt_path" style="left: -20.0px; top: -2.3px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 15.4px; top: -2.3px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 50.7px; top: -2.3px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 86.1px; top: -2.3px"></item>
+    <item class="b" id="minecraft:cracked_stone_bricks" style="left: 86.1px; top: -24.0px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -108.4px; top: 6.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -73.0px; top: 6.5px"></item>
+    <item class="b" id="minecraft:coarse_dirt" style="left: -37.7px; top: 6.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -2.3px; top: 6.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 33.0px; top: 6.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 68.4px; top: 6.5px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -90.7px; top: 15.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -55.4px; top: 15.4px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -20.0px; top: 15.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 15.4px; top: 15.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 50.7px; top: 15.4px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: -73.0px; top: 24.2px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -37.7px; top: 24.2px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -2.3px; top: 24.2px"></item>
+    <item class="b" id="minecraft:grass_block" style="left: 33.0px; top: 24.2px"></item>
+    <item class="b" id="minecraft:red_mushroom_block" style="left: -73.0px; top: 2.6px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -55.4px; top: 33.0px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -20.0px; top: 33.0px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: 15.4px; top: 33.0px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -37.7px; top: 41.9px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -2.3px; top: 41.9px"></item>
+    <item class="b" id="minecraft:mossy_cobblestone" style="left: -20.0px; top: 50.7px"></item>
+    <div class="loot" style="left: -9.0px; top: -15.1px"><item id="minecraft:golden_sword"></item></div>
+    <div class="mob hero" style="left: -15.0px; top: -55.0px; width: 30px; height: 48px"><entity player style="width: 30px; height: 48px; -mc-yaw: 30deg"></entity></div>
+    <div class="mob " style="left: 38.0px; top: -63.8px; width: 30px; height: 48px"><i class="hp"><b></b></i><entity type="minecraft:zombie" style="width: 30px; height: 48px; -mc-yaw: 140deg"></entity></div>
+    <div class="mob " style="left: -68.0px; top: -46.1px; width: 30px; height: 48px"><i class="hp"><b></b></i><entity type="minecraft:skeleton" style="width: 30px; height: 48px; -mc-yaw: -40deg"></entity></div>
+    <div class="mob " style="left: -26.7px; top: -0.9px; width: 18px; height: 18px"><i class="hp"><b></b></i><entity type="minecraft:chicken" style="width: 18px; height: 18px; -mc-yaw: 160deg"></entity></div>
+    <div class="mob " style="left: 40.0px; top: -21.1px; width: 26px; height: 40px"><i class="hp"><b></b></i><entity type="minecraft:creeper" style="width: 26px; height: 40px; -mc-yaw: 100deg"></entity></div>
+  </div>
+  <i class="shade"></i>
+  <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
+  <div class="effects"><span><img src="minecraft:textures/mob_effect/speed.png"></span><span><img src="minecraft:textures/mob_effect/strength.png"></span></div>
+
+  <div class="ubar">
+    <i class="xp"></i>
+    <div class="souls"><i></i><span>27</span></div>
+    <div class="slot"><item id="minecraft:chest"></item><span class="k">I</span></div>
+    <div class="slot ready"><item id="minecraft:totem_of_undying"></item><span class="k">1</span></div>
+    <div class="slot"><item id="minecraft:firework_rocket"></item><i class="cool"></i><span class="k">2</span></div>
+    <div class="slot"><item id="minecraft:cooked_beef"></item><span class="k">3</span></div>
+    <div class="oct heart"><i class="h"></i><span class="rev"><img src="sprite:minecraft:hud/heart/full">3</span><span class="lv">LV 97</span></div>
+    <div class="slot"><item id="minecraft:potion" components='{"minecraft:potion_contents":{"potion":"minecraft:healing"}}'></item><span class="k">E</span></div>
+    <div class="slot"><item id="minecraft:map"></item><span class="k">M</span></div>
+    <div class="slot dodge"><b></b><span class="k">␣</span></div>
+    <div class="oct quiver"><item id="minecraft:arrow"></item><span class="cnt">20</span></div>
+    <div class="gems"><item id="minecraft:emerald"></item><span>2637</span></div>
+  </div>
+</div>
+</body>
+</html>

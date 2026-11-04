@@ -1,149 +1,131 @@
 <!doctype html>
 <html>
 <head>
-<title>风格示例 · 优易库</title>
+<title>模板中心 · 优易库</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* The style showcase: eight complete looks, each a full-screen page of plain HTML and CSS. The list on the left groups
-   them (a new look is one more section here); the pane shows the chosen one: a live scene, then its spec, the colours
-   and fonts it is built from, the capabilities it leans on and how it is made, so the page is a pattern to copy as
-   much as a demo. StylesPreset builds the list and switches the looks. */
-.list { flex: none; width: 112px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
+/* The template centre: complete looks to start a screen from. The sidebar picks what shows (all, official,
+   community, the player's favourites, saved copies and the recently viewed, or one category); the grid shows covers
+   in the gallery's manner; a template's card opens its details beside the grid, with the way it is made, a
+   full-screen preview, one-click save into the player's own folder, and a favourite. StylesPreset builds it from the
+   .tpl entries below (a new template is one more entry) and the game keeps the library (TemplateLibrary). */
+.side { flex: none; width: 112px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
-.list .grp { flex: none; height: 14px; margin-top: 4px; padding: 0 5px; display: flex; align-items: center; color: var(--o-text-faint); letter-spacing: 1px; }
-.list .grp:first-child { margin-top: 0; }
-.list .item { flex: none; position: relative; display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
+.side .grp { flex: none; height: 14px; margin-top: 5px; padding: 0 5px; display: flex; align-items: center; color: var(--o-text-faint); letter-spacing: 1px; }
+.side .grp:first-child { margin-top: 0; }
+.side .item { flex: none; position: relative; display: flex; align-items: center; gap: 5px; height: 19px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
     -mc-tint: var(--o-text-faint); transition: background-color 120ms, color 120ms, padding-left 160ms var(--m-out); }
-.list .item:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); padding-left: 7px; }
-.list .item.on { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
-.list .item.on::before { content: ""; position: absolute; left: 0; top: 3px; width: 2px; height: 14px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
-.list .item i { margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: var(--sw); box-shadow: 0 0 4px var(--sw); }
+.side .item:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); padding-left: 7px; }
+.side .item.on { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
+.side .item.on::before { content: ""; position: absolute; left: 0; top: 3px; width: 2px; height: 13px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
+.side .item .n { margin-left: auto; color: var(--o-text-faint); }
+.side .grow { flex: 1; }
 
-.pane { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 6px 8px 10px; }
-.look { display: none; flex-direction: column; gap: 7px; }
-.look.on { display: flex; }
-.look.on .hero { animation: look-in 380ms var(--m-out) both; }
-.look.on .cols > * { animation: look-up 420ms var(--m-out) both; }
-.look.on .cols > *:nth-child(2) { animation-delay: 70ms; }
-@keyframes look-in { from { opacity: 0; transform: scale(0.97); } }
-@keyframes look-up { from { opacity: 0; transform: translateY(8px); } }
+.main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.bar { flex: none; display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-bottom: 1px solid var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
+.bar .search { position: relative; flex: 1; max-width: 170px; }
+.bar .search input { width: 100%; padding-left: 16px; }
+.bar .search .o-ico { position: absolute; left: 4px; top: 50%; margin-top: -4px; -mc-tint: var(--o-text-faint); }
+.bar .count { color: var(--o-text-faint); }
+.bar .o-grow { flex: 1; }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 7px 8px 12px; }
+.headline { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; min-width: 0; }
+.headline .o-h2 { flex: none; white-space: nowrap; }
+.headline .o-faint { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.headline .o-faint { line-height: 10px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 7px; }
 
-/* ---- The hero: the look's scene, live, with its name and the way in ---- */
-.hero { position: relative; height: 112px; flex: none; overflow: hidden; border: 1px solid var(--o-line-strong);
-    box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 2px 0 var(--o-shade); }
-.hero .scene { position: absolute; inset: 0; transition: transform 600ms var(--m-out); }
-.hero:hover .scene { transform: scale(1.04); }
-.hero .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.35) 46%, transparent 70%); }
-.hero .cap { position: absolute; left: 10px; top: 0; bottom: 0; width: 46%; display: flex; flex-direction: column; justify-content: center; gap: 3px;
-    color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7); }
-.hero .cap .tag { color: rgba(255, 255, 255, 0.6); letter-spacing: 1px; }
-.hero .cap .o-h1 { color: #ffffff; }
-.hero .cap .line { color: rgba(255, 255, 255, 0.8); line-height: 10px; }
-.hero .cap > * { flex: none; }
-.hero .cap .ore-btn { align-self: flex-start; height: 22px; margin-top: 3px; }
-.hero .cap .ore-btn .o-ico { transition: transform 200ms var(--m-out); }
-.hero .cap .ore-btn:hover .o-ico { transform: translateX(2px); }
+/* ---- Cards ---- */
+.card { position: relative; display: flex; flex-direction: column; cursor: pointer; min-width: 0; padding: 0; overflow: hidden;
+    animation: m-pop var(--m-slow) var(--m-spring) both; transition: transform 200ms var(--m-out), box-shadow 200ms; }
+.card:hover, .card:focus { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 4px 0 var(--o-shade), 0 0 0 1px var(--o-line-strong); }
+.cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #101114; border-bottom: 1px solid var(--o-line-strong); }
+.cover img.shot { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform 500ms var(--m-out); }
+.card:hover .cover img.shot { transform: scale(1.06); }
+.cover::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40%; pointer-events: none;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.55)); }
+.cover .sheen { position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; pointer-events: none; transform: skewX(-18deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent); opacity: 0; }
+.card:hover .cover .sheen { animation: sheen 700ms var(--m-out); }
+@keyframes sheen { from { left: -40%; opacity: 1; } to { left: 130%; opacity: 1; } }
+.badge { position: absolute; left: 4px; top: 4px; z-index: 2; padding: 1px 4px; color: #ffffff; background: rgba(20, 20, 24, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.25); }
+.badge.official { background: color-mix(in srgb, var(--o-accent) 80%, #000); border-color: var(--o-accent-strong); }
+.badge.new { left: auto; right: 4px; background: #c4462c; border-color: #ff8a6a; }
+.fav { position: absolute; right: 4px; bottom: 4px; z-index: 2; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+    background: rgba(20, 20, 24, 0.7); border: 1px solid rgba(255, 255, 255, 0.25); -mc-tint: rgba(255, 255, 255, 0.7);
+    transition: transform 160ms var(--m-spring), background-color 160ms; }
+.fav:hover { transform: scale(1.15); }
+.fav.on { background: #c43a4e; border-color: #ff8aa0; -mc-tint: #ffffff; animation: pop 300ms var(--m-spring); }
+@keyframes pop { 50% { transform: scale(1.35); } }
+.fav img { width: 8px; height: 8px; }
+.saved-mark { position: absolute; left: 4px; bottom: 4px; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 1px 3px; color: #b6f08f;
+    background: rgba(20, 20, 24, 0.75); border: 1px solid rgba(182, 240, 143, 0.5); -mc-tint: #b6f08f; }
+.saved-mark img { width: 8px; height: 8px; }
+.meta { display: flex; flex-direction: column; gap: 2px; padding: 5px 6px 6px; }
+.meta b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.by { display: flex; align-items: center; gap: 3px; color: var(--o-text-dim); white-space: nowrap; overflow: hidden; }
+.by img { width: 9px; height: 9px; flex: none; }
+.by em { margin-left: auto; font-style: normal; color: var(--o-text-faint); }
+.tags { display: flex; gap: 2px; overflow: hidden; }
+.tags span { flex: none; padding: 0 3px; color: var(--o-text-faint); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
 
-/* ---- The spec under it ---- */
-.cols { display: grid; grid-template-columns: 1fr 1.25fr; gap: 6px; }
-.card { display: flex; flex-direction: column; gap: 5px; padding: 6px 7px 7px; min-width: 0; }
-.card .o-caps { color: var(--o-text-faint); }
+/* ---- Empty states ---- */
+.empty { display: none; flex-direction: column; align-items: center; gap: 5px; padding: 24px 10px; color: var(--o-text-dim); text-align: center; }
+.empty.on { display: flex; animation: m-pop var(--m-slow) var(--m-spring) both; }
+.empty .art { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--o-accent) 25%, transparent), transparent 70%); -mc-tint: var(--o-accent-strong); }
+.empty .art img { width: 24px; height: 24px; }
+.empty .o-h2 { color: var(--o-text); }
+.empty .code { text-align: left; }
+
+/* ---- Details, beside the grid ---- */
+.veil { position: absolute; inset: 0; z-index: 5; background: rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; transition: opacity 220ms; }
+.veil.on { opacity: 1; pointer-events: auto; }
+.drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 6; width: 72%; max-width: 330px; display: flex; flex-direction: column;
+    background: var(--o-tile); border-left: 1px solid var(--o-line-strong); box-shadow: -6px 0 14px rgba(0, 0, 0, 0.45);
+    transform: translateX(105%); transition: transform 280ms var(--m-out); }
+.drawer.on { transform: none; }
+.drawer .dscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 0 10px; }
+.drawer .big { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #101114; }
+.drawer .big img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.drawer .close { position: absolute; right: 4px; top: 4px; z-index: 2; }
+.drawer .head { display: flex; flex-direction: column; gap: 3px; padding: 6px 8px 0; }
+.drawer .desc { color: var(--o-text-dim); line-height: 10px; }
+.drawer .acts { display: flex; gap: 4px; padding: 6px 8px 2px; flex-wrap: wrap; }
+.drawer .acts .ore-btn { height: 20px; }
+.drawer .acts .ore-btn.on { -mc-tint: #ff8aa0; }
+.drawer .note { margin: 2px 8px 0; color: #b6f08f; min-height: 10px; }
+.drawer .spec { display: flex; flex-direction: column; gap: 5px; padding: 4px 8px 0; }
+.spec .o-caps { color: var(--o-text-faint); }
 .swatches { display: flex; gap: 3px; }
-.swatches i { flex: 1; height: 26px; display: flex; align-items: flex-end; padding: 2px; border: 1px solid rgba(0, 0, 0, 0.35);
+.swatches i { flex: 1; height: 22px; display: flex; align-items: flex-end; padding: 2px; border: 1px solid rgba(0, 0, 0, 0.35);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.9); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
-    font-style: normal; white-space: nowrap; overflow: hidden; transition: transform 160ms var(--m-spring); }
-.swatches i:hover { transform: translateY(-2px); }
+    font-style: normal; white-space: nowrap; overflow: hidden; }
 .fonts { display: flex; flex-direction: column; gap: 2px; }
 .fonts span { display: flex; align-items: baseline; gap: 5px; color: var(--o-text); white-space: nowrap; overflow: hidden; }
-.fonts span em { font-style: normal; font-family: minecraft:default; color: var(--o-text-faint); }
+.fonts span em { font-style: normal; color: var(--o-text-faint); }
 .chips { display: flex; flex-wrap: wrap; gap: 3px; }
-.chips span { padding: 1px 4px; color: var(--o-text); background: var(--o-well); border: 1px solid var(--o-line-strong); white-space: nowrap;
-    transition: border-color 140ms, color 140ms; }
-.chips span:hover { border-color: var(--o-accent-strong); color: var(--o-accent-strong); }
+.chips span { padding: 1px 4px; color: var(--o-text); background: var(--o-well); border: 1px solid var(--o-line-strong); white-space: nowrap; }
 .chips span.new { border-color: color-mix(in srgb, var(--o-accent) 60%, var(--o-line-strong)); }
-.chips span.new::after { content: "新"; margin-left: 3px; color: var(--o-accent-strong); }
-.how { margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.how { display: flex; flex-direction: column; gap: 2px; }
 .how div { display: flex; gap: 4px; min-width: 0; color: var(--o-text-dim); line-height: 10px; }
+.how div b { flex: none; width: 9px; font-weight: normal; color: var(--o-accent-strong); }
 .how div span { flex: 1; min-width: 0; }
-.how div b { flex: none; width: 10px; font-weight: normal; color: var(--o-accent-strong); }
-.code { margin: 0; padding: 4px 6px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f; white-space: pre-wrap; word-break: break-all; line-height: 10px; }
+.code { margin: 0; padding: 4px 6px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f;
+    white-space: pre-wrap; word-break: break-all; line-height: 10px; }
 [data-theme=light] .code { background: #2b2b2b; }
 .code .c { color: #8c8d90; }
+.tpls { display: none; }
 .foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
 
-/* ---- The scenes (drawn in CSS: sharp at any size) ---- */
-@keyframes turn { to { transform: rotate(360deg); } }
-@keyframes breathe { 50% { transform: scale(1.2); opacity: 0.75; } }
-@keyframes slosh { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.s-rpg { background: radial-gradient(ellipse at 70% 120%, #5a3216, #160c06 70%); }
-.s-rpg .orb { position: absolute; top: 50%; width: 56px; height: 56px; margin-top: -28px; border-radius: 50%; overflow: hidden;
-    box-shadow: 0 0 0 3px #8a5a2a, 0 0 0 4px #2a160a, 0 0 18px rgba(0, 0, 0, 0.7); }
-.s-rpg .orb::before { content: ""; position: absolute; left: -40%; top: 38%; width: 180%; height: 180%; border-radius: 42%; animation: slosh 6s linear infinite; }
-.s-rpg .orb::after { content: ""; position: absolute; left: 18%; top: 12%; width: 32%; height: 20%; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
-.s-rpg .orb.hp { right: 96px; background: #2a0606; } .s-rpg .orb.hp::before { background: radial-gradient(circle at 40% 20%, #ff7a6a, #b81a14 50%, #5a0806); }
-.s-rpg .orb.mp { right: 24px; background: #06102a; } .s-rpg .orb.mp::before { background: radial-gradient(circle at 40% 20%, #8ab0ff, #2040c0 50%, #081450); top: 52%; animation-duration: 8s; }
-.s-arcane { background: radial-gradient(circle at 75% 50%, #5a2aa0, #14082a 65%); }
-.s-arcane .ring { position: absolute; right: 30px; top: 50%; width: 84px; height: 84px; margin-top: -42px; border-radius: 50%;
-    border: 1px solid rgba(200, 160, 255, 0.75); box-shadow: 0 0 10px rgba(160, 100, 255, 0.7), inset 0 0 10px rgba(160, 100, 255, 0.4); animation: turn 18s linear infinite; }
-.s-arcane .ring.in { right: 48px; width: 48px; height: 48px; margin-top: -24px; animation-direction: reverse; animation-duration: 11s; }
-.s-arcane .ring b { position: absolute; left: 50%; top: -6px; margin-left: -4px; font-weight: normal; font-family: minecraft:alt; color: #efe4ff;
-    text-shadow: 0 0 4px #b48cff; transform-origin: 4px 48px; }
-.s-arcane .core { position: absolute; right: 60px; top: 50%; width: 24px; height: 24px; margin-top: -12px; border-radius: 50%;
-    background: radial-gradient(circle, #fff, rgba(190, 140, 255, 0.6) 40%, transparent 72%); animation: breathe 3s ease-in-out infinite; }
-.s-military { background: linear-gradient(90deg, #0a1418, #10262c); }
-.s-military .radar { position: absolute; right: 26px; top: 50%; width: 86px; height: 86px; margin-top: -43px; border-radius: 50%; overflow: hidden;
-    background: repeating-radial-gradient(circle, transparent 0 10px, rgba(127, 231, 255, 0.25) 10px 11px), #0c2026; border: 1px solid rgba(127, 231, 255, 0.6); }
-.s-military .sweep { position: absolute; inset: 0; background: conic-gradient(transparent 0deg 290deg, rgba(127, 231, 255, 0.6) 360deg); animation: turn 3s linear infinite; }
-.s-military .ping { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ff7a3c; box-shadow: 0 0 5px #ff7a3c; animation: breathe 1.6s ease-in-out infinite; }
-.s-military .tape { position: absolute; left: 48%; right: 0; top: 10px; height: 10px; color: rgba(255, 255, 255, 0.6); font-family: minecraft:default; font-size: 8px;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); }
-.s-scifi { background: linear-gradient(#050a18, #10204a 60%, #050a18 60%); }
-.s-scifi .sun { position: absolute; right: 30px; top: 60%; width: 96px; height: 48px; margin-top: -48px; border-radius: 96px 96px 0 0;
-    background: linear-gradient(#ffe08a, #ff3d9a);
-    -webkit-mask-image: linear-gradient(#000 0 50%, transparent 50% 58%, #000 58% 70%, transparent 70% 78%, #000 78% 88%, transparent 88%);
-    mask-image: linear-gradient(#000 0 50%, transparent 50% 58%, #000 58% 70%, transparent 70% 78%, #000 78% 88%, transparent 88%); }
-.s-scifi .grid { position: absolute; left: 20%; right: -40%; top: 60%; bottom: 0;
-    background: repeating-conic-gradient(from 90deg at 50% 0, transparent 0deg 8deg, rgba(95, 243, 255, 0.55) 8deg 8.6deg);
-    -webkit-mask-image: linear-gradient(transparent, #000 60%); mask-image: linear-gradient(transparent, #000 60%); }
-.s-scifi .line { position: absolute; left: 0; right: 0; top: 60%; height: 1px; background: #5ff3ff; box-shadow: 0 0 6px #5ff3ff; }
-.s-xianxia { background: linear-gradient(#ece2c8, #dccfb2); }
-.s-xianxia .hill { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: rgba(40, 52, 54, 0.45);
-    clip-path: polygon(0 60%, 15% 30%, 28% 50%, 45% 10%, 60% 45%, 75% 25%, 100% 55%, 100% 100%, 0 100%); }
-.s-xianxia .taiji { position: absolute; right: 40px; top: 50%; width: 56px; height: 56px; margin-top: -34px; border-radius: 50%;
-    background: linear-gradient(90deg, #1e1a16 50%, #f4ecd8 50%); box-shadow: 0 0 0 1px #1e1a16, 0 0 14px rgba(63, 143, 111, 0.55); animation: turn 8s linear infinite; }
-.s-xianxia .taiji::before, .s-xianxia .taiji::after { content: ""; position: absolute; left: 14px; width: 28px; height: 28px; border-radius: 50%; }
-.s-xianxia .taiji::before { top: 0; background: radial-gradient(circle, #1e1a16 0 4px, #f4ecd8 4.5px); }
-.s-xianxia .taiji::after { bottom: 0; background: radial-gradient(circle, #f4ecd8 0 4px, #1e1a16 4.5px); }
-.s-xianxia .seal { position: absolute; right: 14px; top: 10px; padding: 2px; writing-mode: vertical-rl; height: 24px; font-family: oriel:kai; font-size: 9px;
-    line-height: 10px; color: #f4ecd8; background: #b8322a; transform: rotate(-5deg); }
-.s-fantasy { background: radial-gradient(ellipse at 75% 50%, #6e3c19, #1e0e08 75%); }
-.s-fantasy .page { position: absolute; right: 22px; top: 14px; bottom: 14px; width: 92px; padding: 6px; background: linear-gradient(90deg, #e4d1a4, #f3e6c6);
-    box-shadow: 0 0 0 1px #e0b45a, 0 0 0 3px #3b1f12, 0 6px 14px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; gap: 4px; transform: rotate(-3deg); }
-.s-fantasy .page b { font-weight: normal; font-family: oriel:kai; font-size: 22px; line-height: 22px; color: #9c2a22; -webkit-text-stroke: 1px #e0b45a; }
-.s-fantasy .page i { height: 2px; background: rgba(58, 38, 20, 0.35); }
-.s-fantasy .page i:nth-child(3) { width: 80%; } .s-fantasy .page i:nth-child(5) { width: 60%; }
-.s-terraria { background: linear-gradient(#2b3d7a, #c86a6a); }
-.s-terraria .hill { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: #5aa83a;
-    clip-path: polygon(0 30%, 20% 30%, 20% 10%, 40% 10%, 40% 40%, 60% 40%, 60% 0, 80% 0, 80% 25%, 100% 25%, 100% 100%, 0 100%); }
-.s-terraria .hill.dirt { background: #7a5230; transform: translateY(3px); }
-.s-terraria .hearts { position: absolute; right: 12px; top: 10px; display: flex; gap: 1px; }
-.s-terraria .hearts img { width: 9px; height: 9px; }
-.s-terraria .hearts img:first-child { animation: breathe 0.9s ease-in-out infinite; }
-.s-dungeon { background: repeating-linear-gradient(transparent 0 9px, rgba(0, 0, 0, 0.55) 9px 10px),
-    repeating-linear-gradient(90deg, transparent 0 19px, rgba(0, 0, 0, 0.5) 19px 20px), radial-gradient(circle at 78% 45%, #7a4a22, #140c08 60%); }
-.s-dungeon .flame { position: absolute; right: 54px; top: 26%; width: 16px; height: 22px; border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-    background: radial-gradient(ellipse at 50% 70%, #fff6c8, #ffb347 40%, #e2551c 70%, transparent 75%); animation: burn 0.6s ease-in-out infinite alternate;
-    transform-origin: bottom; filter: drop-shadow(0 0 6px #ff8a2a); }
-.s-dungeon .stick { position: absolute; right: 60px; top: 46%; width: 4px; height: 30%; background: #4a2c14; }
-@keyframes burn { to { transform: scale(0.9, 1.08) rotate(-3deg); } }
-
 @media (max-width: 560px) {
-    .list { width: 92px; }
-    .list .item i { display: none; }
-    .hero { height: 96px; }
-    .hero .cap { width: 60%; }
-    .hero .cap .line { display: none; }
-    .cols { grid-template-columns: 1fr; }
+    .side { width: 94px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+    .tags { display: none; }
+    .drawer { width: 86%; }
+    .drawer .big { aspect-ratio: auto; height: 92px; }
+    .drawer .big img { top: 50%; height: auto; transform: translateY(-50%); }
 }
 </style>
 </head>
@@ -152,9 +134,9 @@
   <div class="o-window">
     <div class="o-titlebar">
       <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
-      <span class="o-crumb" id="crumb">/ 风格示例</span>
+      <span class="o-crumb" id="crumb">/ 模板中心</span>
       <div class="o-grow"></div>
-      <div class="o-hints"><span><span class="o-kbd">↑↓</span>切换</span><span><span class="o-kbd">Enter</span>全屏</span></div>
+      <div class="o-hints"><span><span class="o-kbd">Enter</span>预览</span><span><span class="o-kbd">S</span>保存</span><span><span class="o-kbd">Esc</span>返回</span></div>
       <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
       <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
@@ -169,161 +151,162 @@
       </div>
     </div>
     <div class="o-body">
-      <div class="list" id="list"></div>
-      <div class="pane" id="pane">
-
-        <section class="look" data-look="rpg" data-title="RPG 战斗" data-icon="swords" data-group="战斗 HUD" data-swatch="#c0201a">
-          <div class="hero"><div class="scene s-rpg"><i class="orb hp"></i><i class="orb mp"></i></div><div class="shade"></div>
-            <div class="cap"><span class="tag">ACTION RPG</span><span class="o-h1">RPG 战斗 HUD</span><span class="line">暗黑破坏神式的青铜底座：血球与蓝球、技能冷却、Boss 血条</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/rpg" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #c0201a">血</i><i style="background: #2040c0">法力</i><i style="background: #8a5a2a">青铜</i><i style="background: #ffd77a">金</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>oriel:smiley<em>数值、伤害</em></span><span>minecraft:default<em>正文</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span>border-radius 50%</span><span>overflow 圆角裁切</span><span>radial-gradient</span><span>transform 动画</span><span>&lt;item&gt;</span><span>&lt;entity&gt;</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>球是圆形容器裁掉溢出，里面一块大圆角方块不停旋转，就是晃动的液面</span></div>
-                <div><b>2</b><span>冷却是一层半透明遮罩做 scaleY 动画，从上往下收</span></div><div><b>3</b><span>技能图标直接用 &lt;item&gt;，药水带 components 也能显示颜色</span></div></div>
-<pre class="code">.orb { border-radius: 50%; overflow: hidden; }
-.orb::before { border-radius: 42%;          <span class="c">/* 液面 */</span>
-  animation: slosh 6s linear infinite; }
-@keyframes slosh { to { transform: rotate(360deg); } }</pre></div>
+      <div class="side" id="side">
+        <div class="grp">浏览</div>
+        <div class="item on" data-view="all" tabindex="0"><img class="o-ico" src="../textures/icons/grid_bento.png"><span>全部模板</span><span class="n"></span></div>
+        <div class="item" data-view="official" tabindex="0"><img class="o-ico" src="../textures/icons/medal.png"><span>官方模板</span><span class="n"></span></div>
+        <div class="item" data-view="community" tabindex="0"><img class="o-ico" src="../textures/icons/users.png"><span>社区模板</span><span class="n"></span></div>
+        <div class="grp">我的</div>
+        <div class="item" data-view="fav" tabindex="0"><img class="o-ico" src="../textures/icons/heart.png"><span>收藏</span><span class="n"></span></div>
+        <div class="item" data-view="saved" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span>已保存</span><span class="n"></span></div>
+        <div class="item" data-view="recent" tabindex="0"><img class="o-ico" src="../textures/icons/clock.png"><span>最近浏览</span><span class="n"></span></div>
+        <div class="grp">分类</div>
+        <div class="item" data-view="group:hud" tabindex="0"><img class="o-ico" src="../textures/icons/swords.png"><span>战斗 HUD</span><span class="n"></span></div>
+        <div class="item" data-view="group:menu" tabindex="0"><img class="o-ico" src="../textures/icons/book_open.png"><span>界面与菜单</span><span class="n"></span></div>
+        <div class="item" data-view="group:theme" tabindex="0"><img class="o-ico" src="../textures/icons/sparkle.png"><span>主题氛围</span><span class="n"></span></div>
+        <div class="grow"></div>
+        <div class="item" data-view="guide" tabindex="0"><img class="o-ico" src="../textures/icons/help.png"><span>投稿指南</span></div>
+      </div>
+      <div class="main">
+        <div class="bar">
+          <div class="search"><input class="ore-field" id="q" placeholder="搜索模板"><img class="o-ico" src="../textures/icons/search.png"></div>
+          <span class="count" id="count"></span>
+          <div class="o-grow"></div>
+          <div class="o-seg" id="sort"><span class="on" data-sort="pick">推荐</span><span data-sort="new">最新</span><span data-sort="name">名称</span></div>
+        </div>
+        <div class="scroll" id="scroll">
+          <div class="headline"><span class="o-h2" id="view-title">全部模板</span><span class="o-faint" id="view-sub">完整的界面风格，都用 HTML 与 CSS 写成，可以直接保存来改</span></div>
+          <div class="grid" id="grid"></div>
+          <div class="empty" id="empty-community"><div class="art"><img class="o-ico" src="../textures/icons/users.png"></div>
+            <span class="o-h2">社区模板即将开放</span><span>你做的界面也可以出现在这里，左下角「投稿指南」写了怎么分享。</span></div>
+          <div class="empty" id="empty-mine"><div class="art"><img class="o-ico" src="../textures/icons/heart.png"></div>
+            <span class="o-h2" id="empty-mine-title">这里还没有模板</span><span id="empty-mine-text">在模板的详情里点「收藏」或「保存」，它就会出现在这里。</span></div>
+          <div class="empty" id="empty-search"><div class="art"><img class="o-ico" src="../textures/icons/search.png"></div>
+            <span class="o-h2">没有找到匹配的模板</span><span>换个关键词试试，比如「HUD」「水墨」或「像素」。</span></div>
+          <div class="empty" id="guide"><div class="art"><img class="o-ico" src="../textures/icons/help.png"></div>
+            <span class="o-h2">分享你的模板</span>
+            <span>模板就是一个页面文件夹：一个 HTML、它的样式和图片。保存过的模板在下面这个文件夹里，可以直接改，存盘后游戏里立刻刷新。</span>
+<pre class="code" id="guide-folder">config/oriel/my-pages/</pre>
+            <div class="ore-btn m-ripple" id="open-folder" tabindex="0"><img class="o-ico" src="../textures/icons/folder_open.png">打开文件夹</div>
+            <span class="o-faint">社区投稿上线后，带上封面图（16:9）和作者名，就能出现在「社区模板」里。</span></div>
+        </div>
+        <div class="veil" id="veil"></div>
+        <div class="drawer" id="drawer">
+          <div class="dscroll">
+            <div class="big"><img id="d-cover"><div class="ore-btn icon close" id="d-close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
+            <div class="head"><span class="o-h1" id="d-title"></span><div class="by"><img src="../textures/ui/emblem.png"><span id="d-author"></span><em id="d-ver"></em></div>
+              <span class="desc" id="d-desc"></span></div>
+            <div class="acts">
+              <div class="ore-btn hero m-ripple" id="d-open" tabindex="0"><img class="o-ico" src="../textures/icons/play.png">全屏预览</div>
+              <div class="ore-btn m-ripple" id="d-save" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span>一键保存</span></div>
+              <div class="ore-btn icon m-ripple" id="d-fav" tabindex="0" title="收藏"><img class="o-ico" src="../textures/icons/heart.png"></div>
+            </div>
+            <div class="note" id="d-note"></div>
+            <div class="spec" id="d-spec"></div>
           </div>
-        </section>
-
-        <section class="look" data-look="military" data-title="现代军武" data-icon="target" data-group="战斗 HUD" data-swatch="#7fe7ff">
-          <div class="hero"><div class="scene s-military"><div class="tape">N · 15 · 30 · NE · 60 · 75 · E · 105 · 120</div><div class="radar"><i class="sweep"></i><i class="ping" style="left: 58px; top: 22px"></i><i class="ping" style="left: 22px; top: 52px; animation-delay: 0.6s"></i></div></div><div class="shade"></div>
-            <div class="cap"><span class="tag">MODERN SHOOTER</span><span class="o-h1">现代军武</span><span class="line">战地式的冷色 HUD：罗盘带、雷达扫描、准星、击杀信息</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/military" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #7fe7ff; color: #06202a">友军</i><i style="background: #ff7a3c">敌方</i><i style="background: #8cf08c; color: #0a200a">正常</i><i style="background: #0a1418">底</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>oriel:sans<em>正文</em></span><span>oriel:smiley<em>弹药数</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span class="new">repeating-radial-gradient</span><span>conic-gradient</span><span>mask-image</span><span>mask 合成</span><span>@keyframes</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>雷达圈是重复径向渐变，扫描线是旋转的锥形渐变</span></div>
-                <div><b>2</b><span>罗盘是一条很长的刻度带在窄框里平移，两端用遮罩淡出</span></div><div><b>3</b><span>受击方向是锥形渐变再用径向遮罩切成一圈弧</span></div></div>
-<pre class="code">.radar { background:
-  repeating-radial-gradient(circle,
-    transparent 0 10px, #7fe7ff40 10px 11px); }
-.sweep { background: conic-gradient(
-    transparent 0 290deg, #7fe7ff99 360deg); }</pre></div>
-          </div>
-        </section>
-
-        <section class="look" data-look="dungeon" data-title="地下城" data-icon="skull" data-group="战斗 HUD" data-swatch="#ffb347">
-          <div class="hero"><div class="scene s-dungeon"><i class="stick"></i><i class="flame"></i></div><div class="shade"></div>
-            <div class="cap"><span class="tag">GOTHIC CRAWLER</span><span class="o-h1">地下城</span><span class="line">暗黑地牢式的回合战：火把光照、压力值、崩溃与旁白</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/dungeon" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #d9c9a3; color: #2a1d0e">骨色</i><i style="background: #a8231b">血</i><i style="background: #c8a050">鎏金</i><i style="background: #0d0907">煤烟</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>oriel:brush<em>旁白、名字</em></span><span>oriel:kai<em>正文</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span>&lt;entity&gt; -mc-yaw</span><span>steps() 闪烁</span><span>radial-gradient 光照</span><span>drop-shadow</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>火光是一层径向渐变，用 steps(1) 的动画不规则地变亮变暗</span></div>
-                <div><b>2</b><span>小队和敌人是真的实体，-mc-yaw 让双方面对面</span></div><div><b>3</b><span>压力值是十个小格；满格时整个角色抖一下，弹出「偏执」</span></div></div>
-<pre class="code">.light { animation: flicker 2.3s steps(1) infinite; }
-.party entity { -mc-yaw: 55deg; }   <span class="c">/* 面向右侧敌人 */</span>
-.foes entity  { -mc-yaw: -55deg; }</pre></div>
-          </div>
-        </section>
-
-        <section class="look" data-look="arcane" data-title="魔法附魔" data-icon="enchant" data-group="界面与菜单" data-swatch="#b48cff">
-          <div class="hero"><div class="scene s-arcane"><div class="ring"><b>a</b><b style="transform: rotate(90deg)">e</b><b style="transform: rotate(180deg)">l</b><b style="transform: rotate(270deg)">t</b></div><i class="ring in"></i><i class="core"></i></div><div class="shade"></div>
-            <div class="cap"><span class="tag">ENCHANTING</span><span class="o-h1">魔法附魔</span><span class="line">附魔台长成法坛：符文环反向旋转，书悬浮，选项悬停才显出名字</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/arcane" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #b48cff">紫光</i><i style="background: #3a1d6e">深紫</i><i style="background: #3f6fe0">青金石</i><i style="background: #b7ff8a; color: #1a3008">经验</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>minecraft:alt<em>标准银河字母（符文）</em></span><span>oriel:kai<em>标题与名字</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span>&lt;model&gt; -mc-yaw</span><span>clip-path 五角星</span><span>:hover 过渡</span><span>sprite: 原版图标</span><span>filter grayscale</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>每个符文用自己的角度旋转后再平移出去，就排在圆环上</span></div>
-                <div><b>2</b><span>附魔选项里叠着符文和名字两层，:hover 时交换透明度和位移</span></div><div><b>3</b><span>花费图标是原版精灵 sprite:minecraft:container/enchanting_table/level_1</span></div></div>
-<pre class="code">.rune { transform: rotate(var(--a)) translateY(-70px); }
-.offer:hover .runes { opacity: 0; transform: translateY(-4px); }
-.offer:hover .name  { opacity: 1; transform: none; }</pre></div>
-          </div>
-        </section>
-
-        <section class="look" data-look="fantasy" data-title="奇幻任务" data-icon="scroll" data-group="界面与菜单" data-swatch="#e0b45a">
-          <div class="hero"><div class="scene s-fantasy"><div class="page"><b>古</b><i></i><i></i><i></i><i></i></div></div><div class="shade"></div>
-            <div class="cap"><span class="tag">QUEST JOURNAL</span><span class="o-h1">奇幻任务</span><span class="line">皮面手札：任务人像、首字放大、目标与奖励、蜡封和丝带</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/fantasy" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #f3e6c6; color: #3a2614">羊皮纸</i><i style="background: #9c2a22">朱红</i><i style="background: #e0b45a; color: #3a2614">描金</i><i style="background: #3b1f12">皮面</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>oriel:kai<em>正文</em></span><span>oriel:brush<em>蜡封</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span class="new">::first-letter</span><span class="new">-webkit-text-stroke</span><span>&lt;entity follow-mouse&gt;</span><span>clip-path 丝带</span><span>多层 box-shadow</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>首字用 ::first-letter 放大成朱红色，再描一道金边</span></div>
-                <div><b>2</b><span>书皮的金线是 box-shadow 叠出来的几层内阴影</span></div><div><b>3</b><span>任务人是 &lt;entity follow-mouse&gt;，会跟着鼠标转头</span></div></div>
-<pre class="code">.lore::first-letter { font-size: 16px; color: #9c2a22;
-  -webkit-text-stroke: 1px #e0b45a; }
-.book { box-shadow: inset 0 0 0 1px #e0b45a80,
-  inset 0 0 0 3px #3b1f12, inset 0 0 0 4px #e0b45a59; }</pre></div>
-          </div>
-        </section>
-
-        <section class="look" data-look="terraria" data-title="泰拉瑞亚风" data-icon="pickaxe" data-group="界面与菜单" data-swatch="#5aa83a">
-          <div class="hero"><div class="scene s-terraria"><i class="hill"></i><i class="hill dirt"></i><div class="hearts"><img src="sprite:minecraft:hud/heart/full"><img src="sprite:minecraft:hud/heart/full"><img src="sprite:minecraft:hud/heart/full"><img src="sprite:minecraft:hud/heart/half"></div></div><div class="shade"></div>
-            <div class="cap"><span class="tag">2D SANDBOX</span><span class="o-h1">泰拉瑞亚风</span><span class="line">半透明蓝色格子、金色热键、彩虹流动的稀有度名字、血月</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/terraria" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #3f5297">格子</i><i style="background: #ffd94a; color: #3a2a00">选中</i><i style="background: #5aa83a">草</i><i style="background: #7a5230">土</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>minecraft:default<em>全部</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span>background-clip: text</span><span>background-position 动画</span><span>clip-path 阶梯</span><span>sprite: 原版红心</span><span>grid</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>稀有度名字的颜色是渐变裁到文字上，再让渐变平移，颜色就在字里流动</span></div>
-                <div><b>2</b><span>山坡是阶梯形 clip-path；同样的形状往下错 4px 再画一层土，草就沿着每一级台阶</span></div><div><b>3</b><span>红心直接用原版精灵 sprite:minecraft:hud/heart/full</span></div></div>
-<pre class="code">.name { background: linear-gradient(90deg, red, gold,
-  lime, cyan, violet, red); background-size: 200% 100%;
-  background-clip: text; color: transparent;
-  animation: rainbow 2.6s linear infinite; }</pre></div>
-          </div>
-        </section>
-
-        <section class="look" data-look="scifi" data-title="未来科技" data-icon="monitor" data-group="主题氛围" data-swatch="#ff3d9a">
-          <div class="hero"><div class="scene s-scifi"><i class="sun"></i><i class="grid"></i><i class="line"></i></div><div class="shade"></div>
-            <div class="cap"><span class="tag">SYNTHWAVE</span><span class="o-h1">未来科技</span><span class="line">落日沉入网格，玻璃面板、打字终端、分段能量环</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/scifi" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #5ff3ff; color: #06202a">青光</i><i style="background: #ff3d9a">警示</i><i style="background: #ffe08a; color: #3a2a00">落日</i><i style="background: #050a18">夜</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>oriel:smiley<em>标题、数值</em></span><span>minecraft:default<em>终端</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span>backdrop-filter</span><span>clip-path 切角</span><span>repeating-conic-gradient</span><span>mask 合成</span><span class="new">vertical-align 长度</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>地面是从消失点发出的重复锥形渐变，再叠一层越往下越疏的横线</span></div>
-                <div><b>2</b><span>玻璃面板 = backdrop-filter 模糊 + clip-path 切掉两个角</span></div><div><b>3</b><span>能量环是重复锥形渐变，用径向遮罩切成环、锥形遮罩截出进度</span></div></div>
-<pre class="code">.panel { backdrop-filter: blur(3px); clip-path: polygon(
-  10px 0, 100% 0, 100% calc(100% - 10px),
-  calc(100% - 10px) 100%, 0 100%, 0 10px); }</pre></div>
-          </div>
-        </section>
-
-        <section class="look" data-look="xianxia" data-title="修仙" data-icon="mountain" data-group="主题氛围" data-swatch="#3f8f6f">
-          <div class="hero"><div class="scene s-xianxia"><i class="hill"></i><i class="taiji"></i><span class="seal">逍遥自在</span></div><div class="shade"></div>
-            <div class="cap"><span class="tag">INK &amp; PAPER</span><span class="o-h1">修仙</span><span class="line">水墨群山、竖排书法、八卦太极、展开的卷轴与符箓</span>
-              <div class="ore-btn hero m-ripple" data-go="styles/xianxia" tabindex="0">打开全屏示例<img class="o-ico" src="../textures/icons/forward.png"></div></div></div>
-          <div class="cols">
-            <div class="card o-tile"><span class="o-caps">配色</span>
-              <div class="swatches"><i style="background: #1e1a16">墨</i><i style="background: #f4ecd8; color: #1e1a16">宣纸</i><i style="background: #b8322a">朱砂</i><i style="background: #3f8f6f">青玉</i></div>
-              <span class="o-caps">字体</span><div class="fonts"><span>oriel:brush<em>标题、符箓</em></span><span>oriel:kai<em>正文</em></span></div>
-              <span class="o-caps">用到的能力</span><div class="chips"><span class="new">writing-mode 竖排</span><span class="new">-webkit-text-stroke</span><span>clip-path 山形</span><span>transform-origin 卷轴</span></div></div>
-            <div class="card o-tile"><span class="o-caps">做法</span>
-              <div class="how"><div><b>1</b><span>标题、印章和符箓都是 writing-mode: vertical-rl，从右往左一列一列排</span></div>
-                <div><b>2</b><span>「金丹」是金色字加墨色描边；卷轴展开是从顶部 scaleY</span></div><div><b>3</b><span>太极是左右各半的渐变，加上下两个带圆点的小圆</span></div></div>
-<pre class="code">h1 { writing-mode: vertical-rl; font-family: oriel:brush; }
-.realm b { color: #c99a3b; -webkit-text-stroke: 2px #1e1a16; }
-.paper { transform-origin: top; animation: unroll 1.1s both; }</pre></div>
-          </div>
-        </section>
-
+        </div>
       </div>
     </div>
-    <div class="foot"><span id="count"></span><span>每个风格都是一个完整页面，在 ui/styles/ 下，按 Esc 回到这里</span></div>
+    <div class="foot"><span id="foot-count"></span><span>官方模板由优易库维护；保存的副本在 config/oriel/my-pages/，可自由修改</span></div>
+  </div>
+</div>
+
+<!-- The templates: one entry each (data for the card, and the spec the details show). -->
+<div class="tpls" id="tpls">
+  <div class="tpl" data-id="rpg" data-title="RPG 战斗 HUD" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="HUD,动作,暗黑" data-desc="暗黑破坏神式的青铜底座：会晃动的血球与蓝球、技能冷却、Boss 血条、头像和任务追踪。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #c0201a">血</i><i style="background: #2040c0">法力</i><i style="background: #8a5a2a">青铜</i><i style="background: #ffd77a; color: #3a2a00">金</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>oriel:smiley<em>数值、伤害</em></span><span>minecraft:default<em>正文</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span>overflow 圆角裁切</span><span>radial-gradient</span><span>transform 动画</span><span>&lt;item&gt;</span><span>&lt;entity&gt;</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>球是圆形容器裁掉溢出，里面一块大圆角方块不停旋转，就是晃动的液面</span></div>
+      <div><b>2</b><span>冷却是一层半透明遮罩做 scaleY 动画，从上往下收</span></div><div><b>3</b><span>技能图标直接用 &lt;item&gt;，药水带 components 也能显示颜色</span></div></div>
+<pre class="code">.orb { border-radius: 50%; overflow: hidden; }
+.orb::before { border-radius: 42%;  <span class="c">/* 液面 */</span>
+  animation: slosh 6s linear infinite; }</pre>
+  </div>
+  <div class="tpl" data-id="mcdungeons" data-title="方块地下城" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-05"
+       data-tags="HUD,等距,冒险" data-desc="方块地下城式的俯视冒险：等距地砖与熔岩、圆角石板面板、生命条与治疗药水、1 2 3 神器冷却、灵魂和绿宝石。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #e8413a">生命</i><i style="background: #5fd0ff; color: #06202a">灵魂</i><i style="background: #3ee07a; color: #06200e">绿宝石</i><i style="background: #1c1e24">石板</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>minecraft:default<em>全部</em></span><span>oriel:smiley<em>关卡名</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span>transform 等距地面</span><span>repeating-conic-gradient</span><span>mask-image</span><span>&lt;entity player&gt;</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>地面是方格棋盘转 45° 再压扁一半，看起来就是等距视角</span></div>
+      <div><b>2</b><span>神器冷却：就绪的格子描金边；冷却中的一层遮罩从上往下退去</span></div><div><b>3</b><span>掉落物下面一道竖光，颜色按稀有度给</span></div></div>
+<pre class="code">.floor { transform: scaleY(0.5) rotate(45deg); }
+.tiles { background: repeating-conic-gradient(
+  #5d6169 0 25%, #52565e 0 50%) 0 0 / 40px 40px; }</pre>
+  </div>
+  <div class="tpl" data-id="military" data-title="现代军武" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="HUD,射击,科技" data-desc="战地式的冷色 HUD：平移的罗盘带、旋转扫描的雷达、开火扩散的准星、受击方向和依次滑入的击杀信息。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #7fe7ff; color: #06202a">友军</i><i style="background: #ff7a3c">敌方</i><i style="background: #8cf08c; color: #0a200a">正常</i><i style="background: #0a1418">底</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>oriel:sans<em>正文</em></span><span>oriel:smiley<em>弹药数</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span class="new">repeating-radial-gradient</span><span>conic-gradient</span><span>mask-image</span><span>mask 合成</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>雷达圈是重复径向渐变，扫描线是旋转的锥形渐变</span></div>
+      <div><b>2</b><span>罗盘是一条很长的刻度带在窄框里平移，两端用遮罩淡出</span></div><div><b>3</b><span>受击方向是锥形渐变再用径向遮罩切成一圈弧</span></div></div>
+<pre class="code">.radar { background: repeating-radial-gradient(circle,
+  transparent 0 10px, #7fe7ff40 10px 11px); }</pre>
+  </div>
+  <div class="tpl" data-id="dungeon" data-title="暗黑地牢" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.1" data-date="2026-11-05"
+       data-tags="HUD,回合制,哥特" data-desc="哥特风的回合战：火把光照、四人小队与骷髅对峙、压力值、崩溃时的「偏执」和旁白。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #d9c9a3; color: #2a1d0e">骨色</i><i style="background: #a8231b">血</i><i style="background: #c8a050">鎏金</i><i style="background: #0d0907">煤烟</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>oriel:brush<em>旁白、名字</em></span><span>oriel:kai<em>正文</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span>&lt;entity&gt; -mc-yaw</span><span>steps() 闪烁</span><span>radial-gradient 光照</span><span>drop-shadow</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>火光是一层径向渐变，用 steps(1) 的动画不规则地变亮变暗</span></div>
+      <div><b>2</b><span>小队和敌人是真的实体，-mc-yaw 让双方面对面</span></div><div><b>3</b><span>目标脚下一圈红光、头顶一个箭头</span></div></div>
+<pre class="code">.light { animation: flicker 2.3s steps(1) infinite; }
+.party entity { -mc-yaw: 55deg; }
+.foes entity  { -mc-yaw: -55deg; }</pre>
+  </div>
+  <div class="tpl" data-id="arcane" data-title="魔法附魔" data-author="优易库官方" data-source="official" data-group="menu" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="菜单,魔法,紫色" data-desc="附魔台长成法坛：两圈符文反向旋转，书悬浮自转，附魔选项悬停才显出名字。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #b48cff">紫光</i><i style="background: #3a1d6e">深紫</i><i style="background: #3f6fe0">青金石</i><i style="background: #b7ff8a; color: #1a3008">经验</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>minecraft:alt<em>符文</em></span><span>oriel:kai<em>标题与名字</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span>&lt;model&gt; -mc-yaw</span><span>clip-path 五角星</span><span>:hover 过渡</span><span>sprite: 原版图标</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>每个符文用自己的角度旋转后再平移出去，就排在圆环上</span></div>
+      <div><b>2</b><span>选项里叠着符文和名字两层，:hover 时交换透明度和位移</span></div><div><b>3</b><span>花费图标是原版精灵 sprite:minecraft:container/enchanting_table/level_1</span></div></div>
+<pre class="code">.rune { transform: rotate(var(--a)) translateY(-70px); }
+.offer:hover .name { opacity: 1; transform: none; }</pre>
+  </div>
+  <div class="tpl" data-id="fantasy" data-title="奇幻任务" data-author="优易库官方" data-source="official" data-group="menu" data-ver="v1.1" data-date="2026-11-05"
+       data-tags="菜单,任务,羊皮纸" data-desc="皮面手札：拱窗里会转头的任务人、首字放大的任务说明、目标与奖励、蜡封和丝带。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #f3e6c6; color: #3a2614">羊皮纸</i><i style="background: #9c2a22">朱红</i><i style="background: #e0b45a; color: #3a2614">描金</i><i style="background: #3b1f12">皮面</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>oriel:kai<em>正文</em></span><span>oriel:brush<em>蜡封</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span class="new">::first-letter</span><span class="new">-webkit-text-stroke</span><span>&lt;entity follow-mouse&gt;</span><span>clip-path 丝带</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>首字用 ::first-letter 放大成朱红色，再描一道金边</span></div>
+      <div><b>2</b><span>书皮的金线是几层 box-shadow 叠出来的</span></div><div><b>3</b><span>任务人是 &lt;entity follow-mouse&gt;，会跟着鼠标转头</span></div></div>
+<pre class="code">.lore::first-letter { font-size: 16px; color: #9c2a22;
+  -webkit-text-stroke: 1px #e0b45a; }</pre>
+  </div>
+  <div class="tpl" data-id="terraria" data-title="泰拉瑞亚风" data-author="优易库官方" data-source="official" data-group="menu" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="背包,像素,2D" data-desc="半透明蓝色格子、金色热键、彩虹流动的稀有度名字、心与星、小地图，还有慢慢染红天空的血月。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #3f5297">格子</i><i style="background: #ffd94a; color: #3a2a00">选中</i><i style="background: #5aa83a">草</i><i style="background: #7a5230">土</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>minecraft:default<em>全部</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span>background-clip: text</span><span>background-position 动画</span><span>clip-path 阶梯</span><span>grid</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>稀有度名字是渐变裁到文字上，再让渐变平移，颜色就在字里流动</span></div>
+      <div><b>2</b><span>山坡是阶梯形 clip-path；同样的形状往下错 4px 再画一层土，草就沿着每一级台阶</span></div></div>
+<pre class="code">.name { background: linear-gradient(90deg, red, gold,
+  lime, cyan, violet, red); background-size: 200% 100%;
+  background-clip: text; color: transparent; }</pre>
+  </div>
+  <div class="tpl" data-id="scifi" data-title="未来科技" data-author="优易库官方" data-source="official" data-group="theme" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="合成波,霓虹,玻璃" data-desc="落日沉入霓虹网格：切角玻璃面板、打字终端、闪烁的告警、分段能量环和滚动的舰队广播。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #5ff3ff; color: #06202a">青光</i><i style="background: #ff3d9a">警示</i><i style="background: #ffe08a; color: #3a2a00">落日</i><i style="background: #050a18">夜</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>oriel:smiley<em>标题、数值</em></span><span>minecraft:default<em>终端</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span>backdrop-filter</span><span>clip-path 切角</span><span>repeating-conic-gradient</span><span class="new">vertical-align 长度</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>地面是从消失点发出的重复锥形渐变，再叠一层越往下越疏的横线</span></div>
+      <div><b>2</b><span>玻璃面板 = backdrop-filter 模糊 + clip-path 切掉两个角</span></div></div>
+<pre class="code">.panel { backdrop-filter: blur(3px); clip-path: polygon(
+  10px 0, 100% 0, 100% calc(100% - 10px),
+  calc(100% - 10px) 100%, 0 100%, 0 10px); }</pre>
+  </div>
+  <div class="tpl" data-id="xianxia" data-title="修仙" data-author="优易库官方" data-source="official" data-group="theme" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="水墨,书法,竖排" data-desc="水墨群山与朱砂日：竖排书法标题和印章、八卦环绕的太极、展开的卷轴、符箓与飞剑。">
+    <span class="o-caps">配色</span><div class="swatches"><i style="background: #1e1a16">墨</i><i style="background: #f4ecd8; color: #1e1a16">宣纸</i><i style="background: #b8322a">朱砂</i><i style="background: #3f8f6f">青玉</i></div>
+    <span class="o-caps">字体</span><div class="fonts"><span>oriel:brush<em>标题、符箓</em></span><span>oriel:kai<em>正文</em></span></div>
+    <span class="o-caps">用到的能力</span><div class="chips"><span class="new">writing-mode 竖排</span><span class="new">-webkit-text-stroke</span><span>clip-path 山形</span><span>transform-origin 卷轴</span></div>
+    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>标题、印章和符箓都是 writing-mode: vertical-rl，从右往左一列一列排</span></div>
+      <div><b>2</b><span>「金丹」是金色字加墨色描边；卷轴展开是从顶部 scaleY</span></div></div>
+<pre class="code">h1 { writing-mode: vertical-rl; font-family: oriel:brush; }
+.realm b { color: #c99a3b; -webkit-text-stroke: 2px #1e1a16; }</pre>
   </div>
 </div>
 </body>

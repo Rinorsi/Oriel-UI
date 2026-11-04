@@ -74,6 +74,8 @@ public final class OrielClient {
         // The potion HUD shows the player's own effects.
         PlayerEffects.init();
         InventoryEffects.init();
+        // The template centre's favourites, recently viewed and saved copies (config/oriel/).
+        TemplateLibrary.init();
         OrielHud.register(POTION_HUD, OrielKit.POTIONS, OrielHud.Input.WHEN_CHAT_OPEN);
         // The gallery's HUD card: every lasting effect on the player (to see the HUD and the inventory's panel full),
         // then the potion HUD over the game, closing the gallery so it can be seen.
