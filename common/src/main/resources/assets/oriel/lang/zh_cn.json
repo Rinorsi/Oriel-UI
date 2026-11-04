@@ -1,4 +1,6 @@
 {
+  "oriel.disconnect.required": "此服务器要求客户端安装优易库（Oriel UI），协议版本为 %s。请安装后重新连接。",
+  "oriel.disconnect.protocol": "优易库（Oriel UI）协议版本不匹配。此服务器要求协议 %s，请安装兼容的客户端版本后重新连接。",
   "oriel.effect.minecraft.speed.desc": "移动速度提高 20%/级，视野略微变宽。",
   "oriel.effect.minecraft.slowness.desc": "移动速度降低 15%/级，视野略微变窄。",
   "oriel.effect.minecraft.haste.desc": "挖掘和攻击速度提高 10%/级。",

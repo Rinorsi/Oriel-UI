@@ -123,6 +123,7 @@ public final class OrielNeoForgeClient {
     }
 
     private static void registerPayloadHandlers(RegisterClientPayloadHandlersEvent event) {
+        if (Boolean.getBoolean("oriel.probeMissing") && !System.getProperty("oriel.probeRole", "").isEmpty()) return;
         // Runs on the client main thread (HandlerThread.MAIN is the default for this overload).
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) register(event, c);
     }

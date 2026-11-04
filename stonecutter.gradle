@@ -34,7 +34,8 @@ tasks.register('templateCompile') {
         startParameter.offline = gradle.startParameter.offline
         startParameter.projectProperties = ['orielRepository': layout.buildDirectory.dir('template-maven').get().asFile.absolutePath]
         dependsOn(":" + loader + ':26.3:publishAllPublicationsToTemplateLocalRepository',
-                ':engine:publishAllPublicationsToTemplateLocalRepository')
+                ':engine:publishAllPublicationsToTemplateLocalRepository', ':mc-extension:publishAllPublicationsToTemplateLocalRepository',
+                ':script-rhino:publishAllPublicationsToTemplateLocalRepository')
     }
     tasks.named('templateCompile') { dependsOn(gate) }
 }

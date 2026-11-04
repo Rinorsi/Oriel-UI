@@ -1081,7 +1081,7 @@ public final class DevAutopilot {
         guiScale(mc, 2);
         // One-click save (below): the template's copy lands in config/oriel/my-pages/, and the saved view lists it. A copy
         // from an earlier run is cleared first, before the centre reads the library.
-        java.nio.file.Path copy = dev.oriel.mod.platform.Services.PLATFORM.configDir().resolve("oriel/my-pages/rpg.html");
+        java.nio.file.Path copy = dev.oriel.mod.internal.platform.Services.PLATFORM.configDir().resolve("oriel/my-pages/rpg.html");
         steps.add(() -> {
             try {
                 java.nio.file.Files.deleteIfExists(copy);

@@ -8,8 +8,8 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const [loader, requestedRoot, ...flags] = process.argv.slice(2);
-if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--mismatch', '--accept-eula'].includes(f))) {
-  console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--multiplayer] [--mismatch] [--accept-eula]');
+if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--mismatch', '--missing-client', '--accept-eula'].includes(f))) {
+  console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--multiplayer] [--mismatch] [--missing-client] [--accept-eula]');
   process.exit(2);
 }
 const LF = String.fromCharCode(10), CR = String.fromCharCode(13), BS = String.fromCharCode(92);
@@ -116,10 +116,26 @@ try {
     runs.push(client);
     await until(client, text => text.includes('PASS mismatched protocol disconnected'), 180);
     if (await client.done !== 0) throw Error('Mismatch client did not exit normally');
-    if (loader === 'fabric' && !server.text.includes('protocol mismatch'))
+    if (!server.text.includes('protocol mismatch') || !server.text.includes('协议版本不匹配'))
       throw Error('Server log lacks protocol rejection explanation');
-    if (loader === 'neoforge' && !client.text.includes('client wants the payload to be version: 999'))
-      throw Error('NeoForge did not identify the mismatched payload version');
+    if (!client.text.includes('protocol mismatch') || !client.text.includes('协议版本不匹配'))
+      throw Error('Client log lacks bilingual protocol rejection');
+  }
+  if (flags.includes('--missing-client')) {
+    const clientRoot = path.join(root, 'missing-client');
+    const clientDir = path.join(clientRoot, loader + '-26.1', 'client');
+    fs.mkdirSync(clientDir, {recursive: true});
+    fs.writeFileSync(path.join(clientDir, 'options.txt'), 'onboardAccessibility:false' + LF + 'skipMultiplayerWarning:true' + LF);
+    // Suppress all Oriel client channel registration while retaining the test driver and its normal shutdown.
+    const client = launch('missing-client', ':' + loader + ':26.1:runClient',
+      ['-PprobeRole=A', '-PprobeMissing', '-PprobeAddress=127.0.0.1:' + port], clientRoot);
+    runs.push(client);
+    await until(client, text => text.includes('PASS missing client disconnected'), 180);
+    if (await client.done !== 0) throw Error('Missing-client probe did not exit normally');
+    for (const text of [client.text, server.text]) {
+      if (!text.includes('requires Oriel UI on the client') || !text.includes('此服务器要求客户端安装'))
+        throw Error('Missing-client rejection was not bilingual');
+    }
   }
   if (flags.includes('--multiplayer')) {
     for (const role of ['A', 'B']) {
@@ -147,6 +163,6 @@ try {
     await rcon('stop').catch(error => console.error('Could not stop server through RCON: ' + error.message));
   }
   const results = await Promise.all(runs.map(async run => ({name: run.name, exit: await run.done, log: run.log})));
-  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), success, results}, null, 2));
+  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), missingClientChannels: flags.includes('--missing-client'), success, results}, null, 2));
 }
 console.log('PASS: ' + loader + ' dedicated startup, library loading, ' + (flags.includes('--multiplayer') ? 'two-client isolation, ' : '') + 'clean shutdown');

@@ -91,6 +91,7 @@ public final class OrielFabricClient implements ClientModInitializer {
     }
 
     private static <T extends CustomPacketPayload> void register(OrielNetwork.Clientbound<T> c) {
+        if (Boolean.getBoolean("oriel.probeMissing") && !System.getProperty("oriel.probeRole", "").isEmpty()) return;
         ClientPlayNetworking.registerGlobalReceiver(c.type(), (payload, context) -> context.client().execute(() -> OrielClient.handle(payload)));
     }
 

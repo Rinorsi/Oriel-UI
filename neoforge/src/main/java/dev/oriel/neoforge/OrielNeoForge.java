@@ -52,7 +52,9 @@ public final class OrielNeoForge {
     /** Clientbound payloads; their client handlers are added by {@code OrielNeoForgeClient}. */
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         // Clients can join servers without Oriel. The server separately requires matching client capabilities at join.
-        PayloadRegistrar registrar = event.registrar(OrielNetwork.protocolVersion()).optional();
+        // Stable transport identity: the capability gate supplies bilingual rejection before UI packets.
+        PayloadRegistrar registrar = event.registrar("oriel-capabilities-v1").optional();
+        if (Boolean.getBoolean("oriel.probeMissing") && !System.getProperty("oriel.probeRole", "").isEmpty()) return;
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) clientbound(registrar, c);
         for (OrielNetwork.Serverbound<?> s : OrielNetwork.SERVERBOUND) serverbound(registrar, s);
     }

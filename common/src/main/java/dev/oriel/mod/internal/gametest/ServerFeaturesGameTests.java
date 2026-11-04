@@ -26,6 +26,11 @@ public final class ServerFeaturesGameTests {
             h.assertFalse(OrielNetwork.compatible(type -> type != dev.oriel.mod.internal.net.ProtocolPayload.TYPE), "old or mismatched protocol rejected");
             h.assertTrue(OrielNetwork.compatible(type -> true), "matching complete capabilities accepted");
             h.assertFalse(OrielNetwork.compatible(type -> type != dev.oriel.mod.internal.net.PatchPayload.TYPE), "incomplete protocol rejected");
+            for (boolean installed : new boolean[] {false, true}) {
+                String reason = dev.oriel.mod.internal.net.ProtocolMessages.rejection(installed);
+                h.assertTrue(reason.contains("Oriel UI") && reason.contains("优易库") && reason.contains("1"),
+                        "language resources provide bilingual missing/version rejection");
+            }
             h.succeed();
         });
         GameTests.add("unsupported_client", ServerFeaturesGameTests::unsupported);

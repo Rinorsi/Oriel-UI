@@ -178,4 +178,6 @@ GameTest 包含 unsupported_client、player_isolation、forge_menu、protocol_co
 
 使用 server-smoke.mjs 的 --mismatch 参数可额外启动协议 999 的测试客户端，检查清晰的拒绝原因与正常退出；该覆盖与成功双客户端流程可一起运行。GameTestServer 的 mock 不进行网络协商，只对测试服务器豁免加入检查，正式专用／集成服务器均不豁免。
 
+`--missing-client` 再启动关闭全部 Oriel 通道注册的真实连接，验证缺少客户端通道时同样断开；测试驱动仍在客户端中，因此该测试不等同于完全卸载模组。两种拒绝都核对客户端和服务端日志中的中英双语内容。提示来自 `assets/oriel/lang/en_us.json` 与 `zh_cn.json`，由服务器解析后发送，未安装库的客户端也能看懂。NeoForge 保持固定可选传输注册标识，应用协议是否兼容由版本能力门禁决定；版本不匹配时不发送页面数据。
+
 手动复现多人隔离：开启专用测试服务器，让两个装库客户端分别用 A/B 身份进入；控制台针对 A 调用自己的 OrielServer.open 命令（或启用 -PserverProbe 后执行 oriel-probe start OrielProbeA OrielProbeB），确认 B 仍在原屏幕。A 发送消息后服务端仅处理 A 的状态。若改用真实未装库的客户端，连接成功后调用 OrielServer.open，调用方必须收到 CLIENT_UNSUPPORTED；不能把客户端被加载器的注册表兼容检查拒绝登录误记为打开失败回调通过。

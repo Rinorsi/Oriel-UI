@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
 
 /** The payload registry both loaders iterate, and the common way to send clientbound payloads. */
 public final class OrielNetwork {
-    /** Bump when a payload's wire format changes (NeoForge refuses mismatched versions). */
+    /** Bump when a payload's wire format changes; both loaders require the matching version capability. */
     public static final String PROTOCOL_VERSION = "1";
 
     /** Test override is only accepted in the opt-in network probe process. */
@@ -61,8 +61,7 @@ public final class OrielNetwork {
         // GameTest's loopback mock players do not negotiate channels. This exemption never applies to a game server.
         if (player.level().getServer() instanceof net.minecraft.gametest.framework.GameTestServer) return true;
         if (compatible(type -> canReceive(player, type))) return true;
-        String message = "Oriel UI protocol mismatch or missing client mod. Server requires protocol " + PROTOCOL_VERSION
-                + ". Install a compatible Oriel UI version and reconnect. / 此服务器需要匹配协议的优易库客户端模组。";
+        String message = ProtocolMessages.rejection(canReceive(player, OpenPayload.TYPE));
         dev.oriel.mod.internal.Constants.LOG.warn("Oriel: rejecting {}: {}", player.getGameProfile().name(), message);
         player.connection.disconnect(net.minecraft.network.chat.Component.literal(message));
         return false;

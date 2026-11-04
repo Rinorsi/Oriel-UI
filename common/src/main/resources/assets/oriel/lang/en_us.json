@@ -1,4 +1,6 @@
 {
+  "oriel.disconnect.required": "This server requires Oriel UI on the client (protocol %s). Install it and reconnect.",
+  "oriel.disconnect.protocol": "Oriel UI protocol mismatch. This server requires protocol %s. Install a compatible client version and reconnect.",
   "oriel.screen": "Oriel",
   "oriel.demo.chest": "Oriel Demo Chest",
   "oriel.demo.title": "Oriel demos",

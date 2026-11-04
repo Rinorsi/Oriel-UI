@@ -71,8 +71,11 @@ Either way:
   loads `assets/mymod/oriel/shop.css`.
 
 A server with Oriel requires every client to have a matching Oriel protocol. Missing or incompatible clients are
-disconnected with an explanation on both loaders. Fabric negotiates a version-specific capability; NeoForge also
-checks the payload registrar version. Clients with Oriel can still join servers without it for local-only pages.
+disconnected with an English/Chinese explanation on both loaders. Both negotiate a version-specific capability;
+NeoForge keeps a stable optional transport registration so Oriel can deliver the same localized explanation
+instead of a loader-only message. No application payload is sent before that check passes. Disconnect text comes
+from the bundled en_us/zh_cn language files, resolved by the server because missing clients lack those resources.
+Clients with Oriel can still join servers without it for local-only pages.
 
 ## Stability
 
