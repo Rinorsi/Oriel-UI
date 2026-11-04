@@ -22,6 +22,10 @@ configurations {
         canBeResolved = true
         canBeConsumed = false
     }
+    scriptClasses {
+        canBeResolved = true
+        canBeConsumed = false
+    }
     rhinoRelocated {
         canBeResolved = true
         canBeConsumed = false
@@ -47,6 +51,8 @@ dependencies {
     commonResources(project(path: common, configuration: 'commonResources'))
     // The engine is compiled once, by :engine. The loaders compile against it and copy its classes (processResources).
     compileOnly(project(':engine'))
+    compileOnly(project(':script-rhino'))
+    scriptClasses(project(path: ':script-rhino', configuration: 'scriptClasses'))
     engineJava(project(path: ':engine', configuration: 'engineJava'))
     engineClasses(project(path: ':engine', configuration: 'engineClasses'))
     compileOnly(project(':kit'))
@@ -68,6 +74,7 @@ processResources {
     }
     from(configurations.commonResources)
     from(configurations.engineClasses)
+    from(configurations.scriptClasses)
     from(configurations.kitClasses)
 }
 

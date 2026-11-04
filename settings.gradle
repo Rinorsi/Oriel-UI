@@ -38,6 +38,7 @@ includeBuild('build-logic')
 // Version-independent: one build for every Minecraft version.
 include('rhino')
 include('engine')
+include('script-rhino')
 include('kit')
 include('preview')
 
