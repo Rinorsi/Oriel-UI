@@ -57,11 +57,11 @@ final class PreviewWindow {
     /** The next frame must be rendered whatever the scene says (input, reload, resize, a setting changed). */
     private boolean stale = true;
 
-    PreviewWindow(Scene scene, PreviewHost host, int scale, int width, int height) {
+    PreviewWindow(Scene scene, PreviewHost host, int scale, int width, int height, Integer background) {
         this.scene = scene;
         this.page = scene instanceof PageScene p ? p : null;
         this.host = host;
-        this.renderer = new FrameRenderer(host.assets(), host.fonts());
+        this.renderer = new FrameRenderer(host.assets(), host.fonts(), background);
         this.scale = scale;
         if (page != null) {
             host.onNavigate(url -> SwingUtilities.invokeLater(() -> {

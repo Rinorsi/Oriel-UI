@@ -4,9 +4,25 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Command line options of the previewer. */
 class PreviewOptionsTest {
+    @Test
+    void backgroundAcceptsOpaqueCssColorsAndKeepsWorldDefault() {
+        assertNull(Preview.Options.parse("page.html").background());
+        assertEquals(0xFF123456, Preview.Options.parse("page.html", "--background", "#123456").background());
+        assertEquals(0xFFFFFFFF, Preview.Options.parse("page.html", "--background", "white").background());
+        assertEquals(0xFF010203, Preview.Options.parse("page.html", "--background", "rgb(1, 2, 3)").background());
+        for (String invalid : new String[] {"garbage", "transparent", "#1234"}) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> Preview.Options.parse("page.html", "--background", invalid));
+        }
+        assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("page.html", "--background"));
+    }
+
     @Test
     void strictIsOffUnlessAsked() {
         assertFalse(Preview.Options.parse("page.html", "--snapshot", "out.png").strict());
