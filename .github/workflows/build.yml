@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Gradle provisions the per-version toolchains (Java 25 for 26.3 and 26.2, Java 21 for 1.21.1) itself; this JDK runs Gradle.
+      # All supported game targets and the API signature inspector use Java 25.
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -26,18 +26,13 @@ jobs:
       # Caches Gradle, the Minecraft artifacts and the pinned Rhino source archive (in the Gradle user home).
       - uses: gradle/actions/setup-gradle@v5
 
-      # Engine and previewer tests, both Minecraft versions on both loaders, and Fabric's GameTests.
-      - run: ./gradlew build --stacktrace
+      # Full matrix, explicit root API/template/boundary gates, and both loaders' server tests.
+      - run: ./gradlew build :check :neoforge:26.1:runGameTestServer --stacktrace
 
       # The example mods in template/, against this Oriel rather than the released one, so an API change can't
       # break them unnoticed.
-      - name: Build the templates
-        run: |
-          ./gradlew publishToMavenLocal --stacktrace
-          version=$(sed -n 's/^version=//p' gradle.properties)
-          for loader in neoforge fabric; do
-            (cd template/$loader && ./gradlew build -I "$GITHUB_WORKSPACE/.github/local-oriel.gradle" -Poriel_version="$version" --stacktrace)
-          done
+      - name: Compile downstream templates
+        run: ./gradlew templateCompile --stacktrace
 
       - if: failure()
         uses: actions/upload-artifact@v5

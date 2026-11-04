@@ -1,10 +1,11 @@
 package dev.oriel.mod.server;
 
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import dev.oriel.mod.net.OpenPayload;
-import dev.oriel.mod.net.OrielNetwork;
-import dev.oriel.mod.registry.OrielRegistry;
+import dev.oriel.mod.internal.net.OpenPayload;
+import dev.oriel.mod.internal.net.OrielNetwork;
+import dev.oriel.mod.internal.registry.OrielRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

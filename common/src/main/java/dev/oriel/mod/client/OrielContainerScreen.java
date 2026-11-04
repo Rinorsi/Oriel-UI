@@ -1,12 +1,14 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.mod.internal.client.PageNarrator;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.paint.Coordinates;
-import dev.oriel.mod.Constants;
-import dev.oriel.mod.client.render.McCanvas;
+import dev.oriel.mod.internal.Constants;
+import dev.oriel.mod.internal.client.render.McCanvas;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -49,7 +51,7 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
     private static final int OFF_SCREEN = -10_000;
 
     private final DocumentDriver driver;
-    private final McCanvas.SlotSink slotSink = this::placeSlot;
+    private final DocumentDriver.SlotSink slotSink = this::placeSlot;
     /** The mod's fields for {@code oriel.data}, or null. */
     private final @Nullable Function<? super M, ? extends JsonObject> extra;
     /** Copies of the stacks the page was last sent, so data goes out only when the menu's contents change. */
@@ -122,7 +124,7 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
     }
 
     @Override
-    public McCanvas.SlotSink slots() {
+    public DocumentDriver.SlotSink slots() {
         return slotSink;
     }
 

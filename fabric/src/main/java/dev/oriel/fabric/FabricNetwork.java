@@ -1,6 +1,6 @@
 package dev.oriel.fabric;
 
-import dev.oriel.mod.platform.Network;
+import dev.oriel.mod.internal.platform.Network;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;

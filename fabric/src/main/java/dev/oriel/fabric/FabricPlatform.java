@@ -1,6 +1,6 @@
 package dev.oriel.fabric;
 
-import dev.oriel.mod.platform.Platform;
+import dev.oriel.mod.internal.platform.Platform;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.nio.file.Path;

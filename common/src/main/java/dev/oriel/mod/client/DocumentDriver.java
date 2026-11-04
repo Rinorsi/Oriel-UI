@@ -1,5 +1,16 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.mod.internal.client.DevInspector;
+import dev.oriel.mod.internal.client.ErrorPanel;
+import dev.oriel.mod.internal.client.KeyNames;
+import dev.oriel.mod.internal.client.McClient;
+import dev.oriel.mod.internal.client.McHost;
+import dev.oriel.mod.internal.client.McText;
+import dev.oriel.mod.internal.client.OrielClient;
+import dev.oriel.mod.internal.client.OrielResources;
+import dev.oriel.mod.internal.client.PageNarrator;
+import dev.oriel.mod.internal.client.ServerPages;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -14,16 +25,16 @@ import dev.oriel.engine.input.Tooltip;
 import dev.oriel.engine.inspect.Inspection;
 import dev.oriel.engine.paint.HitResult;
 import dev.oriel.engine.style.Cursor;
-import dev.oriel.mod.Constants;
-import dev.oriel.mod.PageData;
-import dev.oriel.mod.RecentEvents;
-import dev.oriel.mod.TokenBucket;
-import dev.oriel.mod.OrielConfig;
-import dev.oriel.mod.client.render.McCanvas;
-import dev.oriel.mod.client.render.McGui;
-import dev.oriel.mod.client.replaced.OwnTooltip;
-import dev.oriel.mod.net.ClosedPayload;
-import dev.oriel.mod.net.MessagePayload;
+import dev.oriel.mod.internal.Constants;
+import dev.oriel.mod.internal.PageData;
+import dev.oriel.mod.internal.RecentEvents;
+import dev.oriel.mod.internal.TokenBucket;
+import dev.oriel.mod.internal.OrielConfig;
+import dev.oriel.mod.internal.client.render.McCanvas;
+import dev.oriel.mod.internal.client.render.McGui;
+import dev.oriel.mod.internal.client.replaced.OwnTooltip;
+import dev.oriel.mod.internal.net.ClosedPayload;
+import dev.oriel.mod.internal.net.MessagePayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -61,6 +72,11 @@ import java.util.function.Predicate;
  * by an {@link ErrorPanel} until it is reloaded. Render thread only.
  */
 public final class DocumentDriver {
+    /** Placement callback for native menu slots, independent of the internal Minecraft canvas implementation. */
+    @FunctionalInterface
+    public interface SlotSink {
+        void place(int index, int x, int y);
+    }
     /** What a driver needs from whatever shows it. */
     public interface Owner {
         /** {@code oriel.close()} from the page: close the screen, hide the overlay. */
@@ -72,7 +88,7 @@ public final class DocumentDriver {
         }
 
         /** Where painted {@code <slot>} elements are reported (container screens), or null. */
-        default McCanvas.@Nullable SlotSink slots() {
+        default @Nullable SlotSink slots() {
             return null;
         }
 
@@ -160,7 +176,8 @@ public final class DocumentDriver {
     }
 
     /** The driver showing its page in {@code screen}, or null. */
-    static @Nullable DocumentDriver of(Screen screen) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static @Nullable DocumentDriver of(Screen screen) {
         for (DocumentDriver d : LIVE) if (d.owner.screen() == screen && d.inspecting == null) return d;
         return null;
     }
@@ -186,7 +203,8 @@ public final class DocumentDriver {
     }
 
     /** The loaded drivers showing page {@code url} (queries and fragments ignored); never inline pages. */
-    static List<DocumentDriver> showing(String url) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static List<DocumentDriver> showing(String url) {
         String page = Urls.withoutQuery(url);
         List<DocumentDriver> drivers = new ArrayList<>();
         for (DocumentDriver d : LIVE) if (d.html == null && Urls.withoutQuery(d.url).equals(page)) drivers.add(d);
@@ -251,7 +269,8 @@ public final class DocumentDriver {
     }
 
     /** The server ended this session; {@link #close()} then won't report it back. */
-    void closedByServer() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void closedByServer() {
         closedByServer = true;
     }
 
@@ -318,7 +337,8 @@ public final class DocumentDriver {
     }
 
     /** {@link #extract} without the title tooltip, for owners that draw over the page and show it later. */
-    void extractPage(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void extractPage(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         runDeferred();
         // (-1, -1) is no pointer; other negative positions are off the window's top or left (OrielAutomation.leave).
         if (mouseX != -1 || mouseY != -1) followPointer(mouseX, mouseY);
@@ -369,7 +389,8 @@ public final class DocumentDriver {
      * Vanilla draws it on top at the end of the frame, and only if nothing set a tooltip before it (a container
      * slot's item, which its screen sets first).
      */
-    void extractTooltip(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void extractTooltip(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         Document doc = document();
         Tooltip tooltip = doc == null || mouseX < 0 ? null : doc.input().tooltip();
         if (tooltip == null) return;
@@ -395,7 +416,8 @@ public final class DocumentDriver {
     }
 
     /** Whether the last {@link #extract} asked vanilla for a tooltip. */
-    boolean requestedTooltip() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public boolean requestedTooltip() {
         return tooltipRequested;
     }
 
@@ -434,17 +456,20 @@ public final class DocumentDriver {
      * overlay loads at its first draw) and while a navigation or {@code oriel.close()} waits for the next frame;
      * true while the error panel shows.
      */
-    boolean settled() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public boolean settled() {
         if (error != null) return true;
         return document != null && pendingNavigation == null && !closeRequested && document.settled();
     }
 
-    Owner owner() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public Owner owner() {
         return owner;
     }
 
     /** What the page gives Minecraft's narrator: the screen's title, the element it reads, live regions. */
-    PageNarrator narrator() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public PageNarrator narrator() {
         return narrator;
     }
 
@@ -454,7 +479,8 @@ public final class DocumentDriver {
     }
 
     /** Errors seen by this page's host, including nonfatal script errors; an unavailable document counts as one. */
-    int pageErrorCount() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public int pageErrorCount() {
         Document doc = document();
         return doc == null ? Math.max(1, host.errorCount())
                 : host.errorCount() + doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.ERROR);
@@ -476,7 +502,8 @@ public final class DocumentDriver {
         return hit == null || isBackground(hit) ? null : hit;
     }
 
-    static boolean isBackground(Element element) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static boolean isBackground(Element element) {
         return element.tagName().equals("html") || element.tagName().equals("body");
     }
 
@@ -499,7 +526,8 @@ public final class DocumentDriver {
     }
 
     /** The pointer left the page (an interactive HUD overlay whose screen closed): hover ends. */
-    void mouseLeave() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void mouseLeave() {
         Document doc = document();
         if (doc != null) doc.input().mouseLeave();
     }
@@ -692,23 +720,27 @@ public final class DocumentDriver {
     }
 
     /** {@link #patch} with the value as JSON text (well-formed), or null to remove the field. */
-    void patchJson(String key, @Nullable String valueJson) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void patchJson(String key, @Nullable String valueJson) {
         data.put(key, valueJson);
         patchPage(key, valueJson);
     }
 
-    void pushData(@Nullable String json) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void pushData(@Nullable String json) {
         data.set(json);
         pushToPage();
     }
 
-    void pushData(PageData data) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void pushData(PageData data) {
         this.data.set(data);
         pushToPage();
     }
 
     /** The data stored for the page, for checks on what a server may add to it. */
-    PageData pageData() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public PageData pageData() {
         return data;
     }
 
@@ -740,7 +772,8 @@ public final class DocumentDriver {
      * page. At most {@code client.messageBurst} at once and {@code client.messagesPerSecond} after, counted per driver
      * so reloading the page or following a link doesn't reset the count; false when the message is dropped.
      */
-    boolean send(String channel, String json) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public boolean send(String channel, String json) {
         if (!sendRate.tryTake()) {
             if (!warnedSendRate) Constants.LOG.warn("Oriel: {} is sending too many messages; dropping some", name());
             warnedSendRate = true;
@@ -778,7 +811,8 @@ public final class DocumentDriver {
         return true;
     }
 
-    int session() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public int session() {
         return session;
     }
 
@@ -792,17 +826,20 @@ public final class DocumentDriver {
     }
 
     /** Whether a text field in the page has keyboard focus (the player is typing into it). */
-    boolean typing() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public boolean typing() {
         return textInput;
     }
 
-    String name() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public String name() {
         return html != null ? "inline page" + (session >= 0 ? " (session " + session + ")" : "") : url;
     }
 
     // ---- Requests from the page, run between frames (never inside the engine's own dispatch) ----
 
-    void requestClose() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void requestClose() {
         closeRequested = true;
     }
 
@@ -811,7 +848,8 @@ public final class DocumentDriver {
      * first, as chat links do, and only right after the player clicked or pressed a key in the page, so a script
      * cannot put the confirmation up again and again.
      */
-    void navigate(String target) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void navigate(String target) {
         pendingNavigation = target;
     }
 
@@ -851,19 +889,22 @@ public final class DocumentDriver {
         }
     }
 
-    void setCursor(Cursor cursor) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void setCursor(Cursor cursor) {
         this.cursor = cursor;
     }
 
     /** The cursor the page asks for where its pointer is: the hovered element's {@code cursor}, as it is used. */
-    Cursor cursor() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public Cursor cursor() {
         return cursor;
     }
 
     // ---- Inspector ----
 
     /** Opens or closes the element inspector over this page ({@link DevInspector}). */
-    void toggleInspector() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void toggleInspector() {
         if (inspector != null) {
             inspector.close();
             inspector = null;
@@ -874,20 +915,24 @@ public final class DocumentDriver {
     }
 
     /** The inspector over this page, while it is open. */
-    @Nullable DevInspector inspector() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public @Nullable DevInspector inspector() {
         return inspector;
     }
 
     /** Makes this the inspector's panel, inspecting another page. */
-    void inspecting(Inspection inspection) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void inspecting(Inspection inspection) {
         inspecting = inspection;
     }
 
-    @Nullable Inspection inspection() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public @Nullable Inspection inspection() {
         return inspecting;
     }
 
-    @Nullable Screen screen() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public @Nullable Screen screen() {
         return owner.screen();
     }
 

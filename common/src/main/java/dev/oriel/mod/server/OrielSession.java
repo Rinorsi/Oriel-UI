@@ -1,14 +1,15 @@
 package dev.oriel.mod.server;
 
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
-import dev.oriel.mod.Constants;
-import dev.oriel.mod.TokenBucket;
-import dev.oriel.mod.OrielConfig;
-import dev.oriel.mod.net.ClosePayload;
-import dev.oriel.mod.net.DataPayload;
-import dev.oriel.mod.net.PatchPayload;
-import dev.oriel.mod.net.OrielNetwork;
+import dev.oriel.mod.internal.Constants;
+import dev.oriel.mod.internal.TokenBucket;
+import dev.oriel.mod.internal.OrielConfig;
+import dev.oriel.mod.internal.net.ClosePayload;
+import dev.oriel.mod.internal.net.DataPayload;
+import dev.oriel.mod.internal.net.PatchPayload;
+import dev.oriel.mod.internal.net.OrielNetwork;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
 
@@ -36,7 +37,8 @@ public final class OrielSession {
     private final TokenBucket rate = new TokenBucket(OrielConfig.SERVER_MESSAGE_BURST.get(), OrielConfig.SERVER_MESSAGES_PER_SECOND.get());
     private boolean warnedRate, warnedPatch;
 
-    OrielSession(int id, ServerPlayer player) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public OrielSession(int id, ServerPlayer player) {
         this.id = id;
         this.player = player;
     }
@@ -65,7 +67,8 @@ public final class OrielSession {
         return this;
     }
 
-    void unsupportedClient() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void unsupportedClient() {
         openStatus = OpenStatus.CLIENT_UNSUPPORTED;
     }
 
@@ -117,7 +120,8 @@ public final class OrielSession {
         OrielServer.end(this);
     }
 
-    void dispatch(ServerPlayer sender, String channel, JsonElement value) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void dispatch(ServerPlayer sender, String channel, JsonElement value) {
         List<BiConsumer<ServerPlayer, JsonElement>> list = handlers.get(channel);
         if (list == null) {
             Constants.LOG.debug("Oriel session {}: no handler for channel '{}'", id, channel);
@@ -133,7 +137,8 @@ public final class OrielSession {
     }
 
     /** False when the page sends faster than its rate limit allows. */
-    boolean tryAcquire() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public boolean tryAcquire() {
         if (rate.tryTake()) return true;
         if (!warnedRate) {
             warnedRate = true;
@@ -142,7 +147,8 @@ public final class OrielSession {
         return false;
     }
 
-    void ended() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public void ended() {
         open = false;
         handlers.clear();
         for (Runnable r : closeHandlers) {

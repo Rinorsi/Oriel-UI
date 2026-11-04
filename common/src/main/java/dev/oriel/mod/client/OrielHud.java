@@ -1,8 +1,10 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.mod.internal.client.McClient;
+
 import com.google.gson.JsonElement;
-import dev.oriel.mod.PageData;
-import dev.oriel.mod.client.render.McGui;
+import dev.oriel.mod.internal.PageData;
+import dev.oriel.mod.internal.client.render.McGui;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -118,7 +120,8 @@ public final class OrielHud {
     }
 
     /** The driver of a shown overlay once it has drawn, or null. */
-    static @Nullable DocumentDriver driver(Identifier id) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static @Nullable DocumentDriver driver(Identifier id) {
         Overlay o = OVERLAYS.get(id);
         return o == null || !o.shown ? null : o.driver;
     }
@@ -127,12 +130,14 @@ public final class OrielHud {
      * The open screen when the overlay showing {@code driver}'s page has the pointer over it (it was drawn above the
      * screen with the pointer last frame), so real pointer input reaches the page; null otherwise.
      */
-    static @Nullable Screen pointerScreen(DocumentDriver driver) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static @Nullable Screen pointerScreen(DocumentDriver driver) {
         return pointerOverlay(o -> o.driver == driver) == null ? null : openScreen();
     }
 
     /** The driver of the overlay a click at a GUI point over the open screen goes to, or null when none takes it. */
-    static @Nullable DocumentDriver pointerDriverAt(double x, double y) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static @Nullable DocumentDriver pointerDriverAt(double x, double y) {
         Overlay o = overlayAt(x, y);
         return o == null ? null : o.driver;
     }
@@ -210,7 +215,8 @@ public final class OrielHud {
     }
 
     /** The open screen while it is drawn (no loading overlay hides it): the one interactive overlays may be over. */
-    static @Nullable Screen openScreen() {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static @Nullable Screen openScreen() {
         return McClient.loadingOverlay() ? null : McClient.screen();
     }
 

@@ -1,0 +1,217 @@
+dev.oriel.mod.client.DocumentDriver CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.client.DocumentDriver [public, static] void onMessageFromAny(java.lang.String,java.util.function.Consumer<com.google.gson.JsonElement>) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public, static] void patchEverywhere(java.lang.String,java.lang.@org.jspecify.annotations.Nullable String) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public, static] void reloadAll() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean charTyped(net.minecraft.client.input.CharacterEvent) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean keyPressed(net.minecraft.client.input.KeyEvent) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean keyReleased(net.minecraft.client.input.KeyEvent) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean mouseMoved(double,double) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean mouseScrolled(double,double,double,double) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean preedit(net.minecraft.client.input.@org.jspecify.annotations.Nullable PreeditEvent) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] boolean serverSession() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] com.google.gson.@org.jspecify.annotations.Nullable JsonElement data() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.engine.dom.@org.jspecify.annotations.Nullable Document document() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.engine.dom.@org.jspecify.annotations.Nullable Element contentAt(double,double) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.engine.dom.@org.jspecify.annotations.Nullable Element elementAt(double,double) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver onClose(java.lang.Runnable) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver onKey(java.util.function.Predicate<net.minecraft.client.input.KeyEvent>) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver onMessage(java.lang.String,java.util.function.Consumer<com.google.gson.JsonElement>) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] java.lang.String url() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void DocumentDriver(dev.oriel.mod.client.DocumentDriver.Owner,java.lang.String,java.lang.@org.jspecify.annotations.Nullable String,int) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void close() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void extract(net.minecraft.client.gui.GuiGraphicsExtractor,int,int) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void merge(com.google.gson.JsonObject) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void patch(java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void push(com.google.gson.JsonElement) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void receive(java.lang.String,java.lang.String) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void reload() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] void resize(int,int) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver.Owner INTERFACE [public, abstract, static] typeparams= extends=none implements=
+dev.oriel.mod.client.DocumentDriver.Owner [public, abstract] void closeDocument() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver.Owner [public, default] dev.oriel.mod.client.DocumentDriver.@org.jspecify.annotations.Nullable SlotSink slots() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver.Owner [public, default] java.lang.@org.jspecify.annotations.Nullable String narration() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver.Owner [public, default] net.minecraft.client.gui.screens.@org.jspecify.annotations.Nullable Screen screen() throws= varargs=false
+dev.oriel.mod.client.DocumentDriver.Owner [public, default] void beforePaint(dev.oriel.engine.dom.Document) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver.SlotSink INTERFACE [public, abstract, static] typeparams= extends=none implements=
+dev.oriel.mod.client.DocumentDriver.SlotSink [public, abstract] void place(int,int,int) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.client.OrielAutomation [public, static] java.util.List<java.lang.String> recordNarration() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public, static] java.util.Optional<dev.oriel.mod.client.OrielAutomation> hud(net.minecraft.resources.Identifier) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public, static] java.util.Optional<dev.oriel.mod.client.OrielAutomation> screen() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public, static] void stopRecordingNarration() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean click(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean click(java.lang.String,int) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean drag(java.lang.String,float,float) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean exists(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean hover(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean key(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean scrollIntoView(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean settled() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean tooltipShown() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] boolean wheel(java.lang.String,double) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] java.util.Optional<com.google.gson.JsonElement> eval(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] java.util.Optional<float[]> pointerTarget(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] java.util.Optional<float[]> rect(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] java.util.Optional<java.lang.String> narration() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] java.util.Optional<java.lang.String> text(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] void leave() throws= varargs=false
+dev.oriel.mod.client.OrielAutomation [public] void type(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen CLASS [public] typeparams=M extends=net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<M> implements=dev.oriel.mod.client.DocumentDriver.Owner
+dev.oriel.mod.client.OrielContainerScreen [protected] boolean hasClickedOutside(double,double,int,int) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [protected] void containerTick() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [protected] void extractLabels(net.minecraft.client.gui.GuiGraphicsExtractor,int,int) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [protected] void extractTooltip(net.minecraft.client.gui.GuiGraphicsExtractor,int,int) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [protected] void init() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [protected] void updateNarratedWidget(net.minecraft.client.gui.narration.NarrationElementOutput) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] boolean charTyped(net.minecraft.client.input.CharacterEvent) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] boolean keyPressed(net.minecraft.client.input.KeyEvent) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] boolean keyReleased(net.minecraft.client.input.KeyEvent) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent,boolean) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] boolean mouseScrolled(double,double,double,double) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] dev.oriel.mod.client.DocumentDriver driver() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] dev.oriel.mod.client.DocumentDriver.SlotSink slots() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] java.lang.String narration() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] net.minecraft.client.gui.screens.Screen screen() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] net.minecraft.network.chat.Component getTitle() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void OrielContainerScreen(M,net.minecraft.world.entity.player.Inventory,net.minecraft.network.chat.Component,java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void OrielContainerScreen(M,net.minecraft.world.entity.player.Inventory,net.minecraft.network.chat.Component,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void beforePaint(dev.oriel.engine.dom.Document) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void closeDocument() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor,int,int,float) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void mouseMoved(double,double) throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen [public] void removed() throws= varargs=false
+dev.oriel.mod.client.OrielContainerScreen bound M=net.minecraft.world.inventory.AbstractContainerMenu
+dev.oriel.mod.client.OrielEntities <T>registerPortraitState(net.minecraft.world.entity.EntityType<T>,dev.oriel.mod.client.OrielEntities.PortraitState<? super T>) bound T=net.minecraft.world.entity.Entity
+dev.oriel.mod.client.OrielEntities CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.client.OrielEntities [public, static] void <T>registerPortraitState(net.minecraft.world.entity.EntityType<T>,dev.oriel.mod.client.OrielEntities.PortraitState<? super T>) throws= varargs=false
+dev.oriel.mod.client.OrielEntities.PortraitState INTERFACE [public, abstract, static] typeparams=T extends=none implements=
+dev.oriel.mod.client.OrielEntities.PortraitState [public, abstract] net.minecraft.client.renderer.entity.state.@org.jspecify.annotations.Nullable EntityRenderState create(T,float) throws= varargs=false
+dev.oriel.mod.client.OrielEntities.PortraitState bound T=net.minecraft.world.entity.Entity
+dev.oriel.mod.client.OrielHud CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.client.OrielHud [public, static] boolean isShown(net.minecraft.resources.Identifier) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] boolean mouseScrolled(double,double,double,double) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] dev.oriel.mod.client.DocumentDriver show(net.minecraft.resources.Identifier) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void extract(net.minecraft.client.gui.GuiGraphicsExtractor,net.minecraft.client.DeltaTracker) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void extractAboveScreen(net.minecraft.client.gui.GuiGraphicsExtractor,float) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void hide(net.minecraft.resources.Identifier) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void patch(net.minecraft.resources.Identifier,java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void push(net.minecraft.resources.Identifier,com.google.gson.JsonElement) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void register(net.minecraft.resources.Identifier,java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void register(net.minecraft.resources.Identifier,java.lang.String,dev.oriel.mod.client.OrielHud.Input) throws= varargs=false
+dev.oriel.mod.client.OrielHud [public, static] void register(net.minecraft.resources.Identifier,java.lang.String,java.util.function.Predicate<net.minecraft.client.gui.screens.Screen>) throws= varargs=false
+dev.oriel.mod.client.OrielHud.Input ENUM [public, static, final] typeparams= extends=java.lang.Enum<dev.oriel.mod.client.OrielHud.Input> implements=
+dev.oriel.mod.client.OrielHud.Input [public, static, final] dev.oriel.mod.client.OrielHud.Input NONE
+dev.oriel.mod.client.OrielHud.Input [public, static, final] dev.oriel.mod.client.OrielHud.Input WHEN_CHAT_OPEN
+dev.oriel.mod.client.OrielHud.Input [public, static, final] dev.oriel.mod.client.OrielHud.Input WHEN_CURSOR_FREE
+dev.oriel.mod.client.OrielHud.Input [public, static] dev.oriel.mod.client.OrielHud.Input valueOf(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielHud.Input [public, static] dev.oriel.mod.client.OrielHud.Input[] values() throws= varargs=false
+dev.oriel.mod.client.OrielScreen CLASS [public] typeparams= extends=net.minecraft.client.gui.screens.Screen implements=dev.oriel.mod.client.DocumentDriver.Owner
+dev.oriel.mod.client.OrielScreen [protected] void init() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [protected] void updateNarratedWidget(net.minecraft.client.gui.narration.NarrationElementOutput) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean charTyped(net.minecraft.client.input.CharacterEvent) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean isInGameUi() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean isPauseScreen() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean keyPressed(net.minecraft.client.input.KeyEvent) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean keyReleased(net.minecraft.client.input.KeyEvent) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent,boolean) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean mouseScrolled(double,double,double,double) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] boolean preeditUpdated(net.minecraft.client.input.@org.jspecify.annotations.Nullable PreeditEvent) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] dev.oriel.mod.client.DocumentDriver driver() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] dev.oriel.mod.client.OrielScreen pauses(boolean) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] java.lang.String narration() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] net.minecraft.client.gui.screens.Screen screen() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] net.minecraft.network.chat.Component getTitle() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] void closeDocument() throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor,int,int,float) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] void mouseMoved(double,double) throws= varargs=false
+dev.oriel.mod.client.OrielScreen [public] void removed() throws= varargs=false
+dev.oriel.mod.client.OrielScreens <M>registerContainer(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String) bound M=net.minecraft.world.inventory.AbstractContainerMenu
+dev.oriel.mod.client.OrielScreens <M>registerContainer(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) bound M=net.minecraft.world.inventory.AbstractContainerMenu
+dev.oriel.mod.client.OrielScreens <M>registerContainer(net.minecraft.world.inventory.MenuType<M>,java.lang.String) bound M=net.minecraft.world.inventory.AbstractContainerMenu
+dev.oriel.mod.client.OrielScreens <M>registerContainer(net.minecraft.world.inventory.MenuType<M>,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) bound M=net.minecraft.world.inventory.AbstractContainerMenu
+dev.oriel.mod.client.OrielScreens CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.client.OrielScreens [public, static] dev.oriel.mod.client.OrielScreen open(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] dev.oriel.mod.client.OrielScreen open(java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] dev.oriel.mod.client.OrielScreen openInline(java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] java.util.List<dev.oriel.mod.client.DocumentDriver> pages(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] java.util.List<dev.oriel.mod.client.OrielScreens.ContainerBinding<?>> takeContainers() throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] void <M>registerContainer(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] void <M>registerContainer(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] void <M>registerContainer(net.minecraft.world.inventory.MenuType<M>,java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] void <M>registerContainer(net.minecraft.world.inventory.MenuType<M>,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) throws= varargs=false
+dev.oriel.mod.client.OrielScreens [public, static] void onPageLoad(java.lang.String,java.util.function.Consumer<dev.oriel.mod.client.DocumentDriver>) throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding RECORD [public, static, final] typeparams=M extends=java.lang.Record implements=
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public, final] boolean equals(java.lang.Object) throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public, final] int hashCode() throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public, final] java.lang.String toString() throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] dev.oriel.mod.client.OrielContainerScreen<M> create(M,net.minecraft.world.entity.player.Inventory,net.minecraft.network.chat.Component) throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.lang.String url
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.lang.String url() throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject> data
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject> data() throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>> type
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>> type() throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] void ContainerBinding(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding [public] void ContainerBinding(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) throws= varargs=false
+dev.oriel.mod.client.OrielScreens.ContainerBinding bound M=net.minecraft.world.inventory.AbstractContainerMenu
+dev.oriel.mod.server.ForgeMenu CLASS [public, final] typeparams= extends=net.minecraft.world.inventory.AbstractContainerMenu implements=
+dev.oriel.mod.server.ForgeMenu [public, static, final] int END=39
+dev.oriel.mod.server.ForgeMenu [public, static, final] int HOTBAR_START=30
+dev.oriel.mod.server.ForgeMenu [public, static, final] int IDLE=0
+dev.oriel.mod.server.ForgeMenu [public, static, final] int INPUT=0
+dev.oriel.mod.server.ForgeMenu [public, static, final] int MATERIAL=1
+dev.oriel.mod.server.ForgeMenu [public, static, final] int OUTPUT=2
+dev.oriel.mod.server.ForgeMenu [public, static, final] int OUTPUT_BLOCKED=2
+dev.oriel.mod.server.ForgeMenu [public, static, final] int PLAYER_START=3
+dev.oriel.mod.server.ForgeMenu [public, static, final] int WORKING=1
+dev.oriel.mod.server.ForgeMenu [public, static, final] int WORK_TICKS=40
+dev.oriel.mod.server.ForgeMenu [public, static, final] java.util.List<dev.oriel.mod.server.ForgeMenu.Recipe> RECIPES
+dev.oriel.mod.server.ForgeMenu [public, static, final] net.minecraft.world.inventory.MenuType<dev.oriel.mod.server.ForgeMenu> TYPE
+dev.oriel.mod.server.ForgeMenu [public, static] boolean open(net.minecraft.server.level.ServerPlayer) throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public, static] void init() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public] boolean stillValid(net.minecraft.world.entity.player.Player) throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public] com.google.gson.JsonObject pageData() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public] net.minecraft.world.item.ItemStack quickMoveStack(net.minecraft.world.entity.player.Player,int) throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public] void ForgeMenu(int,net.minecraft.world.entity.player.Inventory) throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public] void broadcastChanges() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu [public] void removed(net.minecraft.world.entity.player.Player) throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe RECORD [public, static, final] typeparams= extends=java.lang.Record implements=
+dev.oriel.mod.server.ForgeMenu.Recipe [public, final] boolean equals(java.lang.Object) throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe [public, final] int hashCode() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe [public, final] java.lang.String toString() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe [public] java.lang.String id
+dev.oriel.mod.server.ForgeMenu.Recipe [public] java.lang.String id() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item input
+dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item input() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item material
+dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item material() throws= varargs=false
+dev.oriel.mod.server.ForgeMenu.Recipe [public] void Recipe(java.lang.String,net.minecraft.world.item.Item,net.minecraft.world.item.Item) throws= varargs=false
+dev.oriel.mod.server.OrielServer CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.server.OrielServer [public, static] dev.oriel.mod.server.@org.jspecify.annotations.Nullable OrielSession session(net.minecraft.server.level.ServerPlayer,int) throws= varargs=false
+dev.oriel.mod.server.OrielServer [public, static] dev.oriel.mod.server.OrielSession open(net.minecraft.server.level.ServerPlayer,java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.server.OrielServer [public, static] dev.oriel.mod.server.OrielSession openInline(net.minecraft.server.level.ServerPlayer,java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.server.OrielServer [public, static] void onPlayerLeft(net.minecraft.server.level.ServerPlayer) throws= varargs=false
+dev.oriel.mod.server.OrielServer [public, static] void onServerStopping() throws= varargs=false
+dev.oriel.mod.server.OrielSession CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.server.OrielSession [public] boolean isOpen() throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] dev.oriel.mod.server.OrielSession onClose(java.lang.Runnable) throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] dev.oriel.mod.server.OrielSession onMessage(java.lang.String,java.util.function.BiConsumer<net.minecraft.server.level.ServerPlayer,com.google.gson.JsonElement>) throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] dev.oriel.mod.server.OrielSession onOpenFailure(java.util.function.Consumer<dev.oriel.mod.server.OrielSession.OpenStatus>) throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] dev.oriel.mod.server.OrielSession patch(java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] dev.oriel.mod.server.OrielSession push(com.google.gson.JsonElement) throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] dev.oriel.mod.server.OrielSession.OpenStatus openStatus() throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] int id() throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] net.minecraft.server.level.ServerPlayer player() throws= varargs=false
+dev.oriel.mod.server.OrielSession [public] void close() throws= varargs=false
+dev.oriel.mod.server.OrielSession.OpenStatus ENUM [public, static, final] typeparams= extends=java.lang.Enum<dev.oriel.mod.server.OrielSession.OpenStatus> implements=
+dev.oriel.mod.server.OrielSession.OpenStatus [public, static, final] dev.oriel.mod.server.OrielSession.OpenStatus CLIENT_UNSUPPORTED
+dev.oriel.mod.server.OrielSession.OpenStatus [public, static, final] dev.oriel.mod.server.OrielSession.OpenStatus SENT
+dev.oriel.mod.server.OrielSession.OpenStatus [public, static] dev.oriel.mod.server.OrielSession.OpenStatus valueOf(java.lang.String) throws= varargs=false
+dev.oriel.mod.server.OrielSession.OpenStatus [public, static] dev.oriel.mod.server.OrielSession.OpenStatus[] values() throws= varargs=false

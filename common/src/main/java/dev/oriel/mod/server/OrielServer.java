@@ -1,16 +1,17 @@
 package dev.oriel.mod.server;
 
+
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonParseException;
-import dev.oriel.mod.Constants;
-import dev.oriel.mod.OrielConfig;
-import dev.oriel.mod.net.ClosedPayload;
-import dev.oriel.mod.net.JsonLimits;
-import dev.oriel.mod.net.MessagePayload;
-import dev.oriel.mod.net.OpenPayload;
-import dev.oriel.mod.net.OrielNetwork;
+import dev.oriel.mod.internal.Constants;
+import dev.oriel.mod.internal.OrielConfig;
+import dev.oriel.mod.internal.net.ClosedPayload;
+import dev.oriel.mod.internal.net.JsonLimits;
+import dev.oriel.mod.internal.net.MessagePayload;
+import dev.oriel.mod.internal.net.OpenPayload;
+import dev.oriel.mod.internal.net.OrielNetwork;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
 
@@ -85,6 +86,7 @@ public final class OrielServer {
      * A page called {@code oriel.send}. Rate-limited per session; messages over the configured size or nesting
      * depth, and anything but one strict JSON value, are dropped before a handler sees them.
      */
+    @org.jetbrains.annotations.ApiStatus.Internal
     public static void handleMessage(ServerPlayer sender, MessagePayload payload) {
         OrielSession session = session(sender, payload.session());
         if (session == null || !session.tryAcquire()) return;
@@ -103,6 +105,7 @@ public final class OrielServer {
     }
 
     /** The player closed the session's screen. */
+    @org.jetbrains.annotations.ApiStatus.Internal
     public static void handleClosed(ServerPlayer sender, ClosedPayload payload) {
         OrielSession session = session(sender, payload.session());
         if (session != null) end(session);
@@ -131,13 +134,15 @@ public final class OrielServer {
         for (int i = 0; i <= own.size() - max; i++) end(own.get(i));
     }
 
-    static void end(OrielSession session) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static void end(OrielSession session) {
         SESSIONS.remove(session.id());
         if (session.isOpen()) session.ended();
     }
 
     /** Serialises data for a payload, failing early (with a useful message) when it is over the configured size. */
-    static String json(@Nullable JsonElement value) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static String json(@Nullable JsonElement value) {
         String s = GSON.toJson(value == null ? JsonNull.INSTANCE : value);
         int max = OrielConfig.SERVER_MAX_DATA.get();
         if (s.length() > max) throw new IllegalArgumentException("Oriel data is " + s.length() + " chars; the limit is " + max);

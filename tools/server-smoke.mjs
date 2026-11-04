@@ -8,8 +8,8 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const [loader, requestedRoot, ...flags] = process.argv.slice(2);
-if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--accept-eula'].includes(f))) {
-  console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--multiplayer] [--accept-eula]');
+if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--mismatch', '--accept-eula'].includes(f))) {
+  console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--multiplayer] [--mismatch] [--accept-eula]');
   process.exit(2);
 }
 const LF = String.fromCharCode(10), CR = String.fromCharCode(13), BS = String.fromCharCode(92);
@@ -106,6 +106,21 @@ try {
   await until(server, text => text.includes('Done (') && text.includes('ORIEL_SERVER_PROBE loaded')
     && text.includes('RCON running on'), 300);
   ready = true;
+  if (flags.includes('--mismatch')) {
+    const clientRoot = path.join(root, 'mismatch');
+    const clientDir = path.join(clientRoot, loader + '-26.1', 'client');
+    fs.mkdirSync(clientDir, {recursive: true});
+    fs.writeFileSync(path.join(clientDir, 'options.txt'), 'onboardAccessibility:false' + LF + 'skipMultiplayerWarning:true' + LF);
+    const client = launch('mismatch-client', ':' + loader + ':26.1:runClient',
+      ['-PprobeRole=A', '-PprobeProtocol=999', '-PprobeAddress=127.0.0.1:' + port], clientRoot);
+    runs.push(client);
+    await until(client, text => text.includes('PASS mismatched protocol disconnected'), 180);
+    if (await client.done !== 0) throw Error('Mismatch client did not exit normally');
+    if (loader === 'fabric' && !server.text.includes('protocol mismatch'))
+      throw Error('Server log lacks protocol rejection explanation');
+    if (loader === 'neoforge' && !client.text.includes('client wants the payload to be version: 999'))
+      throw Error('NeoForge did not identify the mismatched payload version');
+  }
   if (flags.includes('--multiplayer')) {
     for (const role of ['A', 'B']) {
       const clientDir = path.join(root, role, loader + '-26.1', 'client');
@@ -132,6 +147,6 @@ try {
     await rcon('stop').catch(error => console.error('Could not stop server through RCON: ' + error.message));
   }
   const results = await Promise.all(runs.map(async run => ({name: run.name, exit: await run.done, log: run.log})));
-  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, multiplayer: flags.includes('--multiplayer'), success, results}, null, 2));
+  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), success, results}, null, 2));
 }
 console.log('PASS: ' + loader + ' dedicated startup, library loading, ' + (flags.includes('--multiplayer') ? 'two-client isolation, ' : '') + 'clean shutdown');

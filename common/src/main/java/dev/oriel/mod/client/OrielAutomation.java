@@ -1,5 +1,9 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.mod.internal.client.KeyNames;
+import dev.oriel.mod.internal.client.McClient;
+import dev.oriel.mod.internal.client.PageNarrator;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import dev.oriel.engine.dom.Document;

@@ -16,6 +16,23 @@ dependencies {
     compileOnly(project(path: ':rhino', configuration: 'relocated'))
 }
 
+tasks.register('checkPublicApi', Exec) {
+    group = 'verification'
+    dependsOn('compileJava')
+    def cpFile = layout.buildDirectory.file('api-check/classpath.txt')
+    doFirst {
+        cpFile.get().asFile.parentFile.mkdirs()
+        cpFile.get().asFile.text = sourceSets.main.output.classesDirs.asPath + File.pathSeparator + sourceSets.main.compileClasspath.asPath
+        def source = sourceSets.main.java.srcDirs.find { new File(it, 'dev/oriel/mod/server/OrielServer.java').exists() }
+        def javaBin = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }.get().executablePath.asFile
+        def parameters = [javaBin, rootProject.file('tools/api/ApiCheck.java'), source,
+                cpFile.get().asFile, rootProject.file('api/' + project.name + '.txt')]
+        if (project.hasProperty('updateApi')) parameters.add('--update')
+        commandLine(parameters)
+    }
+}
+tasks.named('check') { dependsOn('checkPublicApi') }
+
 configurations {
     commonJava {
         canBeResolved = false

@@ -1,10 +1,10 @@
 package dev.oriel.neoforge;
 
-import dev.oriel.mod.Constants;
-import dev.oriel.mod.OrielCommon;
-import dev.oriel.mod.net.OrielNetwork;
-import dev.oriel.mod.registry.Entry;
-import dev.oriel.mod.registry.OrielRegistry;
+import dev.oriel.mod.internal.Constants;
+import dev.oriel.mod.internal.OrielCommon;
+import dev.oriel.mod.internal.net.OrielNetwork;
+import dev.oriel.mod.internal.registry.Entry;
+import dev.oriel.mod.internal.registry.OrielRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
@@ -30,6 +30,9 @@ public final class OrielNeoForge {
 
         var bus = NeoForge.EVENT_BUS;
         bus.addListener((RegisterCommandsEvent e) -> OrielCommon.registerCommands(e.getDispatcher()));
+        bus.addListener((PlayerEvent.PlayerLoggedInEvent e) -> {
+            if (e.getEntity() instanceof ServerPlayer player) OrielNetwork.requireOnClient(player);
+        });
         bus.addListener((PlayerEvent.PlayerLoggedOutEvent e) -> {
             if (e.getEntity() instanceof ServerPlayer player) OrielCommon.onPlayerLeft(player);
         });
@@ -48,8 +51,8 @@ public final class OrielNeoForge {
 
     /** Clientbound payloads; their client handlers are added by {@code OrielNeoForgeClient}. */
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        // Optional: servers without Oriel, and Oriel servers with vanilla clients, can still connect.
-        PayloadRegistrar registrar = event.registrar(OrielNetwork.PROTOCOL_VERSION).optional();
+        // Clients can join servers without Oriel. The server separately requires matching client capabilities at join.
+        PayloadRegistrar registrar = event.registrar(OrielNetwork.protocolVersion()).optional();
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) clientbound(registrar, c);
         for (OrielNetwork.Serverbound<?> s : OrielNetwork.SERVERBOUND) serverbound(registrar, s);
     }

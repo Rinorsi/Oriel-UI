@@ -12,6 +12,41 @@ plugins {
 
 stonecutter.active '26.3'
 
+tasks.register('check') { group = 'verification' }
+
+// Compile real downstream examples against this checkout's artifacts, never the upstream Maven repository.
+allprojects {
+    plugins.withId('maven-publish') {
+        publishing.repositories.maven {
+            name = 'TemplateLocal'
+            url = rootProject.layout.buildDirectory.dir('template-maven')
+        }
+    }
+}
+tasks.register('templateCompile') {
+    group = 'verification'
+    description = 'Compile both downstream template mods against the current Oriel checkout.'
+}
+['fabric', 'neoforge'].each { loader ->
+    def gate = tasks.register("compileTemplate" + loader.capitalize(), GradleBuild) {
+        dir = file("template/" + loader)
+        tasks = ['compileJava', 'processResources']
+        startParameter.offline = gradle.startParameter.offline
+        startParameter.projectProperties = ['orielRepository': layout.buildDirectory.dir('template-maven').get().asFile.absolutePath]
+        dependsOn(":" + loader + ':26.3:publishAllPublicationsToTemplateLocalRepository',
+                ':engine:publishAllPublicationsToTemplateLocalRepository')
+    }
+    tasks.named('templateCompile') { dependsOn(gate) }
+}
+tasks.named('check') { dependsOn('templateCompile') }
+tasks.named('check') { dependsOn(':common:26.1:checkPublicApi', ':common:26.2:checkPublicApi', ':common:26.3:checkPublicApi') }
+tasks.register('checkBackendBoundaries', Exec) {
+    group = 'verification'
+    commandLine('node', '--test', rootProject.file('tools/backend-boundaries.test.mjs'))
+}
+tasks.named('check') { dependsOn('checkBackendBoundaries') }
+tasks.named('check') { dependsOn(':engine:test', ':kit:test', ':preview:test') }
+
 stonecutter.parameters { sc ->
     // The version's settings from stonecutter.properties.toml become project properties.
     sc.properties.tags(sc.current.version)
