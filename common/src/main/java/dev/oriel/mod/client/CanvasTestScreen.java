@@ -49,7 +49,7 @@ final class CanvasTestScreen extends Screen {
     }
 
     @Override
-    public void /*? if >=26 {*/extractRenderState/*?} else {*//*render*//*?}*/(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
         McCanvas c = new McCanvas(g, mouseX, mouseY);
         try {
             int columns = Math.max(1, (width - 4) / CELL_W);

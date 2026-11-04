@@ -1,5 +1,9 @@
 package dev.oriel.engine.paint;
 
+import dev.oriel.engine.style.BlendMode;
+import dev.oriel.engine.style.MaskComposite;
+import dev.oriel.engine.style.Image;
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.ReplacedContent;
 import dev.oriel.engine.input.Controls;
@@ -35,6 +39,11 @@ final class BoxPainter implements StackingOrder.Visitor {
     private float dp;
     private float[] dpStack = new float[8];
     private int depth;
+    /** Per open context: the box and its style when it is drawn as a group (effects), else null. */
+    private Group[] groups = new Group[8];
+
+    /** A context drawn through a group: what {@link #exitContext} needs to draw its masks and composite it. */
+    private record Group(Box box, ComputedStyle style, float x, float y) {}
 
     private final float[] rect = new float[4], radii = new float[8], widths = new float[4];
     /** The border or padding box a box-shadow is drawn from, for {@link Canvas#fillBoxShadow}. */
@@ -52,11 +61,20 @@ final class BoxPainter implements StackingOrder.Visitor {
         this.canvas = canvas;
         dp = Geometry.devicePixel(canvas);
         depth = 0;
+        rootGroup = pageGroup && canvas.backdropNeedsGroup() && canvas.beginPageGroup();
     }
 
     void end() {
+        if (rootGroup) canvas.endGroup(1, List.of(), BlendMode.NORMAL);
+        rootGroup = false;
         canvas = null;
     }
+
+    /**
+     * The page is painted as a group, so a backend that can only read back groups ({@link Canvas#backdropNeedsGroup})
+     * can draw its backdrops: set once a backdrop was met outside any group, from the next frame on.
+     */
+    private boolean pageGroup, rootGroup;
 
     private float snap(float v) {
         return Geometry.snap(v, dp);
@@ -70,25 +88,131 @@ final class BoxPainter implements StackingOrder.Visitor {
         float opacity = Math.min(1, style.opacity);
         if (!(opacity > 0)) return false;
         canvas.save();
-        if (depth == dpStack.length) dpStack = Arrays.copyOf(dpStack, depth * 2);
-        dpStack[depth++] = dp;
+        if (depth == dpStack.length) {
+            dpStack = Arrays.copyOf(dpStack, depth * 2);
+            groups = Arrays.copyOf(groups, depth * 2);
+        }
+        float bx = x, by = y;
+        dpStack[depth] = dp;
         if (transform != null) {
             canvas.translate(x, y);
             canvas.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
             dp = Geometry.devicePixel(canvas);
+            bx = by = 0;
         }
-        if (opacity < 1) canvas.multiplyAlpha(opacity);
+        // The backdrop reads what is under the element, so it comes before the element's own group.
+        if (!style.backdropFilter.isEmpty()) backdrop(box, style, bx, by);
+        boolean effects = style.hasLayerEffects();
+        boolean group = effects && canvas.beginGroup();
+        if (effects && !group) unsupported("filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: this canvas has no offscreen layers");
+        String limits = group ? canvas.groupLimits(style.filter, style.mixBlendMode) : null;
+        if (limits != null) unsupported(limits);
+        groups[depth++] = group ? new Group(box, style, bx, by) : null;
+        if (!group && opacity < 1) canvas.multiplyAlpha(opacity);
         return true;
     }
 
     @Override
     public void exitContext() {
-        dp = dpStack[--depth];
+        Group group = groups[--depth];
+        groups[depth] = null;
+        if (group != null) {
+            masks(group);
+            ComputedStyle s = group.style;
+            canvas.endGroup(Math.min(1, s.opacity), s.filter, s.mixBlendMode);
+        }
+        dp = dpStack[depth];
         canvas.restore();
     }
 
+    /** {@code backdrop-filter}: what is under the border box, through the filters, inside its rounded shape. */
+    private void backdrop(Box box, ComputedStyle s, float x, float y) {
+        if (!canvas.beginBackdrop()) {
+            if (canvas.backdropNeedsGroup() && !rootGroup && !pageGroup) {
+                pageGroup = true; // drawn from the next frame on
+                return;
+            }
+            unsupported("backdrop-filter is not drawn: this canvas cannot read back what it has drawn");
+            return;
+        }
+        Geometry g = geometry.box(box, s, x, y, dp);
+        if (Shapes.isRounded(g.radii)) canvas.fillRoundedRect(g.x, g.y, g.width, g.height, g.radii, Colors.WHITE);
+        else canvas.fillRect(g.x, g.y, g.width, g.height, Colors.WHITE);
+        canvas.endBackdrop(s.backdropFilter);
+    }
+
+    /** The group's masks: its mask images bottom layer first, then its clip-path, which every mask is cut by. */
+    private void masks(Group group) {
+        ComputedStyle s = group.style;
+        boolean any = false;
+        List<Image> images = s.maskImage;
+        if (!images.isEmpty()) {
+            Geometry g = geometry.box(group.box, s, group.x, group.y, dp);
+            for (int i = images.size() - 1; i >= 0; i--) {
+                canvas.beginMask(s.maskComposite.get(i % s.maskComposite.size()));
+                backgrounds.mask(canvas, batch, g, s, images.get(i), s.maskClip.get(i % s.maskClip.size()), dp);
+                any = true;
+            }
+        }
+        float[] outline = s.clipPath.outline(group.x, group.y, group.box.width, group.box.height);
+        if (outline != null) {
+            canvas.beginMask(any ? MaskComposite.INTERSECT : MaskComposite.ADD);
+            Polygons.fill(canvas, outline, Colors.WHITE);
+        }
+    }
+
+    /** Reports, once per page and message, an effect that is drawn without some of it. */
+    private void unsupported(String why) {
+        painter.document().diagnostics().report(new Diagnostic(Diagnostic.Severity.WARNING, "effects-unsupported",
+                painter.document().url(), 0, why, ""));
+    }
+
+    /** Per open clip: whether it is a group cut to rounded corners when it pops. */
+    private boolean[] roundedClips = new boolean[8];
+    private final float[] clipBox = new float[4], clipRadii = new float[8];
+    private Box[] clipBoxes = new Box[8];
+    private float[] clipOrigins = new float[16];
+    private int clips;
+
+    /**
+     * Overflow clips: the padding box as a rectangle, and when the clipping box has rounded corners and the canvas
+     * has groups, the content as a group masked to the rounded padding box (CSS Backgrounds 3 §5.3).
+     */
     @Override
-    public boolean pushClip(float x, float y, float width, float height) {
+    public boolean pushClip(Box clipper, float x, float y, float width, float height) {
+        if (!pushClip(x, y, width, height)) return false;
+        if (clips == roundedClips.length) {
+            roundedClips = Arrays.copyOf(roundedClips, clips * 2);
+            clipBoxes = Arrays.copyOf(clipBoxes, clips * 2);
+            clipOrigins = Arrays.copyOf(clipOrigins, clips * 4);
+        }
+        ComputedStyle s = StackingOrder.styleOf(clipper);
+        boolean rounded = s.hasRadius() && canvas.beginGroup();
+        roundedClips[clips] = rounded;
+        clipBoxes[clips] = rounded ? clipper : null;
+        clipOrigins[clips * 2] = x - clipper.borderLeft;
+        clipOrigins[clips * 2 + 1] = y - clipper.borderTop;
+        clips++;
+        return true;
+    }
+
+    @Override
+    public void popClip(Box clipper) {
+        clips--;
+        if (roundedClips[clips]) {
+            Box box = clipBoxes[clips];
+            ComputedStyle s = StackingOrder.styleOf(box);
+            geometry.box(box, s, clipOrigins[clips * 2], clipOrigins[clips * 2 + 1], dp).area(BackgroundLayer.Box.PADDING_BOX, clipBox, clipRadii);
+            canvas.beginMask(MaskComposite.ADD);
+            canvas.fillRoundedRect(clipBox[0], clipBox[1], clipBox[2], clipBox[3], clipRadii, Colors.WHITE);
+            canvas.endGroup(1, List.of(), BlendMode.NORMAL);
+            clipBoxes[clips] = null;
+        }
+        popClip();
+    }
+
+    /** A plain rectangle clip (the overflow of replaced content, and every overflow clip's rectangle). */
+    private boolean pushClip(float x, float y, float width, float height) {
         if (width <= 0 || height <= 0) return false;
         canvas.save();
         float x0 = snap(x), y0 = snap(y);
@@ -96,8 +220,7 @@ final class BoxPainter implements StackingOrder.Visitor {
         return true;
     }
 
-    @Override
-    public void popClip() {
+    private void popClip() {
         canvas.restore();
     }
 
@@ -106,7 +229,9 @@ final class BoxPainter implements StackingOrder.Visitor {
     @Override
     public void box(Box box, ComputedStyle s, float x, float y) {
         if (s.visibility != Visibility.VISIBLE || box.kind == Box.Kind.ANONYMOUS) return;
-        decorations(s, geometry.box(box, s, x, y, dp));
+        Geometry g = geometry.box(box, s, x, y, dp);
+        decorations(s, g);
+        if (Backgrounds.clipsToText(s)) textBackground(g, s, sink -> StackingOrder.textRuns(box, x, y, sink));
         Element element = box.element;
         if (element == null || box.kind == Box.Kind.PSEUDO) return;
         if (Controls.isControl(element.tagName())) {
@@ -121,14 +246,37 @@ final class BoxPainter implements StackingOrder.Visitor {
     @Override
     public void inlineBox(Box block, Fragment.InlineBox fragment, ComputedStyle s, float x, float y) {
         if (s.visibility != Visibility.VISIBLE) return;
-        decorations(s, geometry.fragment(fragment, s, x, y, dp));
+        Geometry g = geometry.fragment(fragment, s, x, y, dp);
+        decorations(s, g);
+        if (Backgrounds.clipsToText(s)) textBackground(g, s, sink -> StackingOrder.textRuns(block, fragment, x, y, sink));
+    }
+
+    /**
+     * {@code background-clip: text}: the layers clipped to the text, as a group masked by the glyphs of the text
+     * {@code runs} gives (the text itself is painted later, as usual, usually transparent). Without groups the
+     * layers are left out, so the text stays readable in its own colour.
+     */
+    private void textBackground(Geometry g, ComputedStyle s, java.util.function.Consumer<StackingOrder.RunSink> runs) {
+        if (!canvas.beginGroup()) {
+            unsupported("background-clip: text is left out: this canvas has no offscreen layers");
+            return;
+        }
+        backgrounds.paint(canvas, batch, g, s, dp, true);
+        batch.flush(canvas);
+        canvas.beginMask(MaskComposite.ADD);
+        runs.accept((run, rx, ry) -> {
+            ComputedStyle rs = StackingOrder.styleOf(run);
+            if (rs.visibility != Visibility.VISIBLE || run.text().isEmpty()) return;
+            TextPainter.glyphs(canvas, run.text(), run.spaced(), rx + run.x(), ry + run.y(), rs.font(), rs, Colors.WHITE, dp);
+        });
+        canvas.endGroup(1, List.of(), BlendMode.NORMAL);
     }
 
     /** Outer shadows, background, inset shadows and border (CSS paints the first shadow on top). */
     private void decorations(ComputedStyle s, Geometry g) {
         canvas.crispShapes(s.shapeRendering == ShapeRendering.CRISP_EDGES);
         paintShadows(g, s.boxShadow, false, BackgroundLayer.Box.BORDER_BOX);
-        backgrounds.paint(canvas, batch, g, s, dp);
+        backgrounds.paint(canvas, batch, g, s, dp, false);
         paintShadows(g, s.boxShadow, true, BackgroundLayer.Box.PADDING_BOX);
         // A border image replaces the border's own painting (CSS Backgrounds 3 §6), when its source can be drawn.
         if (borderImages.paint(canvas, g, s, dp)) return;

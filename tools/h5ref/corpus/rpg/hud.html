@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>RPG HUD</title>
+<style>
+  :root {
+    --hp: #d8323c;
+    --hp-dark: #6e0f17;
+    --mp: #2f7bff;
+    --mp-dark: #0c2a6b;
+    --gold: #e9c46a;
+    --frame: #3a2a1a;
+    --frame-hi: #8a6a3a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: transparent; font-family: "Trebuchet MS", "Segoe UI", sans-serif; color: #f4ead5; }
+  .hud { position: fixed; inset: 0; pointer-events: none; }
+
+  /* Health and mana orbs */
+  .orb {
+    position: absolute; bottom: 10px; width: 64px; height: 64px; border-radius: 50%;
+    border: 3px solid var(--frame-hi);
+    box-shadow: 0 0 0 2px var(--frame), 0 4px 10px rgba(0, 0, 0, .6), inset 0 0 12px rgba(0, 0, 0, .7);
+    overflow: hidden; background: #120a06;
+  }
+  .orb.hp { left: 10px; }
+  .orb.mp { right: 10px; }
+  .orb .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 72%; }
+  .orb.hp .fill { background: radial-gradient(circle at 35% 30%, #ff8a8a, var(--hp) 45%, var(--hp-dark)); }
+  .orb.mp .fill { height: 48%; background: radial-gradient(circle at 35% 30%, #9ec2ff, var(--mp) 45%, var(--mp-dark)); }
+  .orb .shine { position: absolute; left: 14%; top: 10%; width: 40%; height: 26%; border-radius: 50%; background: rgba(255, 255, 255, .35); filter: blur(2px); }
+  .orb .value { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; font-size: 11px; text-shadow: 0 1px 2px #000; }
+
+  /* Skill bar with cooldown sweeps */
+  .skills { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 4px; padding: 4px;
+    background: linear-gradient(#2b1d12, #1a110a); border: 2px solid var(--frame-hi); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.6); }
+  .skill { position: relative; width: 28px; height: 28px; border: 1px solid #000; border-radius: 4px; background: #241812; overflow: hidden; }
+  .skill .icon { position: absolute; inset: 3px; border-radius: 3px; }
+  .skill:nth-child(1) .icon { background: linear-gradient(135deg, #ffb347, #c0392b); }
+  .skill:nth-child(2) .icon { background: linear-gradient(135deg, #8fd3ff, #2c3e8f); }
+  .skill:nth-child(3) .icon { background: linear-gradient(135deg, #b6ff8f, #2c8f3e); }
+  .skill:nth-child(4) .icon { background: linear-gradient(135deg, #e0a3ff, #6a2c8f); }
+  .skill .cd { position: absolute; inset: 0; background: conic-gradient(rgba(0, 0, 0, .7) var(--cd), transparent 0); }
+  .skill .key { position: absolute; right: 2px; bottom: 0; font-size: 7px; color: #ddd; text-shadow: 0 0 2px #000; }
+  .skill .time { position: absolute; inset: 0; display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+
+  /* XP bar */
+  .xp { position: absolute; left: 84px; right: 84px; bottom: 50px; height: 5px; background: rgba(0,0,0,.6); border: 1px solid #000; border-radius: 3px; overflow: hidden; }
+  .xp > i { display: block; height: 100%; width: 63%; background: linear-gradient(90deg, #9b59b6, #f1c40f); box-shadow: 0 0 6px #f1c40f; }
+
+  /* Boss bar */
+  .boss { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 220px; text-align: center; }
+  .boss .name { font-size: 10px; letter-spacing: 1px; color: var(--gold); text-shadow: 0 0 6px rgba(233, 196, 106, .8), 0 1px 0 #000; }
+  .boss .bar { margin-top: 2px; height: 8px; border: 1px solid #000; outline: 1px solid var(--frame-hi); background: #2a0d0d; position: relative; }
+  .boss .bar > i { position: absolute; left: 0; top: 0; bottom: 0; width: 41%; background: linear-gradient(#ff5b5b, #a3141c); }
+  .boss .bar > b { position: absolute; left: 41%; top: 0; bottom: 0; width: 9%; background: #f5d0d0; opacity: .6; animation: drain 1.2s ease-out infinite; }
+  @keyframes drain { from { width: 9%; } to { width: 0; } }
+
+  /* Quest tracker */
+  .quest { position: absolute; right: 8px; top: 40px; width: 120px; padding: 6px 8px; background: linear-gradient(90deg, transparent, rgba(0, 0, 0, .55) 20%);
+    border-right: 2px solid var(--gold); font-size: 8px; text-align: right; }
+  .quest h4 { margin: 0 0 3px; font-size: 9px; color: var(--gold); }
+  .quest li { list-style: none; margin: 2px 0; }
+  .quest li.done { color: #8f8; text-decoration: line-through; }
+  .quest ul { margin: 0; padding: 0; }
+
+  /* Buff row */
+  .buffs { position: absolute; left: 8px; top: 8px; display: flex; gap: 3px; }
+  .buff { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #000; position: relative; }
+  .buff.good { background: radial-gradient(#7ee787, #1b5e20); }
+  .buff.bad { background: radial-gradient(#ff9a9a, #7f1d1d); }
+  .buff span { position: absolute; bottom: -8px; left: 0; right: 0; text-align: center; font-size: 6px; }
+
+  /* Damage flash */
+  .hurt { position: absolute; inset: 0; box-shadow: inset 0 0 40px rgba(200, 0, 0, .55); animation: pulse 1s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: .4; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="hud">
+  <div class="hurt"></div>
+  <div class="buffs">
+    <div class="buff good"><span>2:10</span></div>
+    <div class="buff good"><span>0:45</span></div>
+    <div class="buff bad"><span>0:12</span></div>
+  </div>
+  <div class="boss"><div class="name">远古巨龙 · 赫尔维斯</div><div class="bar"><i></i><b></b></div></div>
+  <div class="quest">
+    <h4>主线：龙之巢穴</h4>
+    <ul><li class="done">找到古老的地图</li><li>击败巨龙 (0/1)</li><li>收集龙鳞 (3/5)</li></ul>
+  </div>
+  <div class="xp"><i></i></div>
+  <div class="orb hp"><div class="fill"></div><div class="shine"></div><div class="value">720</div></div>
+  <div class="skills">
+    <div class="skill" style="--cd: 0%"><div class="icon"></div><div class="cd"></div><span class="key">1</span></div>
+    <div class="skill" style="--cd: 65%"><div class="icon"></div><div class="cd"></div><div class="time">4</div><span class="key">2</span></div>
+    <div class="skill" style="--cd: 20%"><div class="icon"></div><div class="cd"></div><span class="key">3</span></div>
+    <div class="skill" style="--cd: 0%"><div class="icon"></div><div class="cd"></div><span class="key">4</span></div>
+  </div>
+  <div class="orb mp"><div class="fill"></div><div class="shine"></div><div class="value">310</div></div>
+</div>
+</body>
+</html>

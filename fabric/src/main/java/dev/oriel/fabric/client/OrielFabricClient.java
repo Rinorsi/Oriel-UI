@@ -22,6 +22,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import dev.oriel.mod.client.render.GuiSceneRenderer;
+import dev.oriel.mod.client.render.LayerRenderer;
+import dev.oriel.mod.client.render.Layers;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.render.GuiRenderer;
+import java.util.List;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -36,9 +41,23 @@ public final class OrielFabricClient implements ClientModInitializer {
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) register(c);
         //? if >=26.2 {
         PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer());
-        //?} else
-        //PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer(context.bufferSource()));
+        PictureInPictureRendererRegistry.register(context -> new LayerRenderer());
+        Layers.renderers(state -> new GuiRenderer(state, Minecraft.getInstance().gameRenderer.featureRenderDispatcher(),
+                List.of(new GuiSceneRenderer(), new LayerRenderer())));
+        //?} else {
+        /*PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer(context.bufferSource()));
+        PictureInPictureRendererRegistry.register(context -> new LayerRenderer(context.bufferSource()));
+        Layers.renderers(state -> {
+            var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+            var features = Minecraft.getInstance().gameRenderer.getFeatureRenderDispatcher();
+            return new GuiRenderer(state, buffers, features.getSubmitNodeStorage(), features,
+                    List.of(new GuiSceneRenderer(buffers), new LayerRenderer(buffers)));
+        });
+        *///?}
         HudElementRegistry.attachElementAfter(VanillaHudElements.TITLE_AND_SUBTITLE, Constants.id("hud"), OrielHud::extract);
+        HudElementRegistry.replaceElement(VanillaHudElements.MOB_EFFECTS, vanilla -> (g, delta) -> {
+            if (!OrielClient.hidesVanillaEffects()) vanilla.extractRenderState(g, delta);
+        });
         // Interactive HUD overlays: drawn above every screen and given its pointer input first (per-screen events).
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
             ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> OrielHud.extractAboveScreen(g, a));

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Holo terminal</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap");
+  :root { --c: #3ff6ff; --c2: #ff3fd4; --bg: rgba(6, 18, 30, .6); }
+  * { box-sizing: border-box; margin: 0; }
+  body { height: 100vh; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: "Orbitron", "Segoe UI", sans-serif;
+    color: var(--c); background: #050b14 radial-gradient(circle at 70% 20%, rgba(255, 63, 212, .25), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(63, 246, 255, .2), transparent 45%); }
+  .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(rgba(63,246,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(63,246,255,.07) 1px, transparent 1px);
+    background-size: 16px 16px; transform: perspective(300px) rotateX(55deg) translateY(40%); transform-origin: bottom; }
+  .card { position: relative; width: 180px; padding: 12px; background: var(--bg); backdrop-filter: blur(10px) saturate(160%);
+    border: 1px solid rgba(63, 246, 255, .35); border-radius: 10px; box-shadow: 0 0 24px rgba(63, 246, 255, .25), inset 0 1px 0 rgba(255,255,255,.15); }
+  .card::after { content: ""; position: absolute; inset: -1px; border-radius: 10px; padding: 1px;
+    background: linear-gradient(135deg, var(--c), transparent 40%, var(--c2));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .card h1 { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+  .card h1 span { color: var(--c2); }
+  .stat { margin-top: 8px; }
+  .stat label { display: flex; justify-content: space-between; font-size: 8px; opacity: .85; }
+  .meter { margin-top: 3px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: var(--v); background: linear-gradient(90deg, var(--c), var(--c2)); box-shadow: 0 0 8px var(--c); }
+  .gauge { width: 110px; height: 110px; border-radius: 50%; position: relative; display: grid; place-items: center;
+    background: conic-gradient(from -120deg, var(--c) 0 calc(var(--p) * 2.4deg), rgba(255,255,255,.07) 0 240deg, transparent 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px)); mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+    filter: drop-shadow(0 0 6px var(--c)); }
+  .gauge-wrap { position: relative; }
+  .gauge-wrap .num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 700; text-shadow: 0 0 10px var(--c); }
+  .gauge-wrap .num small { display: block; font-size: 7px; letter-spacing: 2px; opacity: .7; text-align: center; }
+  .hex { position: absolute; right: -6px; top: -6px; width: 22px; height: 24px; background: var(--c2);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); display: grid; place-items: center; font-size: 8px; color: #050b14; font-weight: 700; }
+  .glitch { position: relative; }
+  .glitch::before, .glitch::after { content: attr(data-text); position: absolute; left: 0; top: 0; }
+  .glitch::before { color: var(--c2); transform: translate(1px, 0); mix-blend-mode: screen; animation: g1 2s infinite steps(1); }
+  .glitch::after { color: var(--c); transform: translate(-1px, 0); mix-blend-mode: screen; animation: g1 2.6s infinite steps(1) reverse; }
+  @keyframes g1 { 0%, 90% { clip-path: inset(0 0 0 0); } 92% { clip-path: inset(30% 0 50% 0); } 95% { clip-path: inset(70% 0 10% 0); } }
+  .log { margin-top: 8px; font: 7px/1.5 "Consolas", monospace; color: rgba(63, 246, 255, .7); height: 34px; overflow: hidden;
+    mask-image: linear-gradient(transparent, #000 40%); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="card">
+  <div class="hex">07</div>
+  <h1 class="glitch" data-text="SYS // ONLINE">SYS <span>//</span> ONLINE</h1>
+  <div class="stat"><label><span>CORE TEMP</span><span>62°C</span></label><div class="meter" style="--v: 62%"><i></i></div></div>
+  <div class="stat"><label><span>SHIELD</span><span>88%</span></label><div class="meter" style="--v: 88%"><i></i></div></div>
+  <div class="stat"><label><span>UPLINK</span><span>34%</span></label><div class="meter" style="--v: 34%"><i></i></div></div>
+  <div class="log">&gt; handshake ok<br>&gt; decrypting relay 0x3F…<br>&gt; node 7 responded<br>&gt; awaiting command_</div>
+</div>
+<div class="gauge-wrap"><div class="gauge" style="--p: 73"></div><div class="num">73<small>ENERGY</small></div></div>
+</body>
+</html>

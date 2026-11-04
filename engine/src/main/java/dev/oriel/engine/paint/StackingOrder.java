@@ -35,7 +35,7 @@ final class StackingOrder {
     /** Receives the walk. Every {@code pushClip} or {@code enterContext} returning true is matched by a pop. */
     interface Visitor {
         /**
-         * Enters a box with opacity below 1 and/or a transform. {@code transform} (null for none) maps the box's
+         * Enters a box with opacity below 1, a transform or group effects ({@link ComputedStyle#hasGroupEffects}). {@code transform} (null for none) maps the box's
          * border-box space, origin at 0,0, to the current space translated to ({@code x}, {@code y}); it is scratch,
          * valid only during the call. Return false to skip the box and its descendants.
          */
@@ -43,10 +43,14 @@ final class StackingOrder {
 
         void exitContext();
 
-        /** Clips what follows to a rectangle; return false when nothing inside can matter (it is skipped). */
-        boolean pushClip(float x, float y, float width, float height);
+        /**
+         * Clips what follows to {@code clipper}'s padding box (a rectangle in the current space; the clipper's rounded
+         * corners, if any, are its painter's business). Return false when nothing inside can matter (it is skipped).
+         */
+        boolean pushClip(Box clipper, float x, float y, float width, float height);
 
-        void popClip();
+        /** Ends the clip {@code pushClip} began for {@code clipper}. */
+        void popClip(Box clipper);
 
         /** The box's own painting (shadows, background, border, form control, replaced content) at border-box origin (x, y). */
         void box(Box box, ComputedStyle style, float x, float y);
@@ -64,6 +68,7 @@ final class StackingOrder {
         void inlineOutline(Fragment.InlineBox fragment, ComputedStyle style, float x, float y);
     }
 
+    private static final Box[] NO_BOXES = {};
     private final Layers layers;
     private final Affine transform = new Affine(), offset = new Affine();
     /** The transformed box whose border box is the current space, or null for the viewport. */
@@ -128,10 +133,11 @@ final class StackingOrder {
     // ---- Walk ----
 
     /** Paints a box whole: a stacking context, or a positioned box or atomic inline treated like one. */
-    private void layer(Box box, ComputedStyle s, float x, float y, boolean context, Visitor v) {
+    private void layer(Box box, ComputedStyle s, float x, float y, boolean stacking, Visitor v) {
         Box outerSpace = space;
         boolean transformed = Coordinates.transform(box, s, transform);
-        if (s.opacity < 1 || transformed) {
+        boolean context = s.opacity < 1 || transformed || s.hasGroupEffects();
+        if (context) {
             if (!v.enterContext(box, s, x, y, transformed ? transform : null)) return;
             if (transformed) {
                 space = box;
@@ -140,7 +146,7 @@ final class StackingOrder {
             }
         }
         v.box(box, s, x, y);
-        if (context) {
+        if (stacking) {
             Box[] items = layers.of(box);
             int i = 0;
             for (; i < items.length && zIndex(items[i]) < 0; i++) item(box, items[i], v);
@@ -152,7 +158,7 @@ final class StackingOrder {
             inlines(box, x, y, v);
         }
         v.after(box, s, x, y);
-        if (s.opacity < 1 || transformed) v.exitContext();
+        if (context) v.exitContext();
         space = outerSpace;
     }
 
@@ -235,6 +241,43 @@ final class StackingOrder {
         return outlines;
     }
 
+    /** Receives a text run and the origin its block's walk paints it from (see {@link Visitor#textRun}). */
+    interface RunSink {
+        void run(Fragment.TextRun run, float x, float y);
+    }
+
+    /**
+     * The text painted as {@code box}'s content, its lines and those of its in-flow descendants (atomic inlines too),
+     * from (x, y): the foreground {@code background-clip: text} is cut to.
+     */
+    static void textRuns(Box box, float x, float y, RunSink sink) {
+        float cx = x - box.scrollLeft(), cy = y - box.scrollTop();
+        for (LineBox line : box.lines) {
+            for (Fragment f : line.fragments) {
+                if (f instanceof Fragment.TextRun run) {
+                    sink.run(run, cx, cy);
+                } else if (f instanceof Fragment.Atomic atomic && !isLayer(styleOf(atomic.box()))) {
+                    textRuns(atomic.box(), cx + atomic.box().x, cy + atomic.box().y, sink);
+                }
+            }
+        }
+        for (Box child : box.children) {
+            if (inFlow(child)) textRuns(child, cx + child.x, cy + child.y, sink);
+        }
+    }
+
+    /** The text runs inside inline fragment {@code fragment} of {@code block}'s lines, from (cx, cy). */
+    static void textRuns(Box block, Fragment.InlineBox fragment, float cx, float cy, RunSink sink) {
+        for (LineBox line : block.lines) {
+            int i = line.fragments.indexOf(fragment);
+            if (i < 0) continue;
+            for (int j = i + 1; j < fragment.end(); j++) {
+                if (line.fragments.get(j) instanceof Fragment.TextRun run) sink.run(run, cx, cy);
+            }
+            return;
+        }
+    }
+
     static boolean hasOutline(ComputedStyle s) {
         return s.outlineStyle.isVisible() && s.outlineWidth > 0 && !Colors.isTransparent(s.outlineColor);
     }
@@ -245,11 +288,11 @@ final class StackingOrder {
     }
 
     private static boolean clipToPaddingBox(Box box, float x, float y, Visitor v) {
-        return v.pushClip(x + box.borderLeft, y + box.borderTop, box.paddingBoxWidth(), box.paddingBoxHeight());
+        return v.pushClip(box, x + box.borderLeft, y + box.borderTop, box.paddingBoxWidth(), box.paddingBoxHeight());
     }
 
     private static void exitContent(Box box, Visitor v) {
-        if (clips(box, styleOf(box))) v.popClip();
+        if (clips(box, styleOf(box))) v.popClip(box);
     }
 
     /**
@@ -274,18 +317,19 @@ final class StackingOrder {
         }
         int pushed = 0;
         boolean visible = true;
+        Box[] clipped = holders == 0 ? NO_BOXES : new Box[holders];
         for (int i = holders - 1; i >= 0 && visible; i--) {
             Box a = chain[i];
             if (!clips(a, styleOf(a))) continue;
             Coordinates.offset(a, space, offset);
             visible = a == space ? clipToPaddingBox(a, 0, 0, v) : clipToPaddingBox(a, offset.e, offset.f, v);
-            if (visible) pushed++;
+            if (visible) clipped[pushed++] = a;
         }
         if (visible) {
             ComputedStyle s = styleOf(item);
             Coordinates.offset(item, space, offset);
             layer(item, s, offset.e, offset.f, isContext(item, s), v);
         }
-        for (; pushed > 0; pushed--) v.popClip();
+        for (; pushed > 0; pushed--) v.popClip(clipped[pushed - 1]);
     }
 }

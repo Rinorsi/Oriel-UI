@@ -12,7 +12,8 @@ package dev.oriel.engine.style;
 public record BackgroundLayer(Image image, String sizeKeyword, Length width, Length height,
                               Length positionX, Length positionY, Repeat repeatX, Repeat repeatY, Box clip) {
     public enum Repeat { REPEAT, NO_REPEAT, SPACE, ROUND }
-    public enum Box { BORDER_BOX, PADDING_BOX, CONTENT_BOX }
+    /** The painting area; {@code TEXT} is the element's foreground text (positioned over the border box). */
+    public enum Box { BORDER_BOX, PADDING_BOX, CONTENT_BOX, TEXT }
 
     public static BackgroundLayer simple(Image image) {
         return new BackgroundLayer(image, null, Length.AUTO, Length.AUTO, Length.ZERO, Length.ZERO,

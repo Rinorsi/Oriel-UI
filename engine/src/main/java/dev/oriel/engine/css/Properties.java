@@ -1,5 +1,8 @@
 package dev.oriel.engine.css;
 
+import dev.oriel.engine.style.MaskComposite;
+import dev.oriel.engine.style.BlendMode;
+import dev.oriel.engine.style.ClipShape;
 import dev.oriel.engine.css.ComponentValue.Func;
 import dev.oriel.engine.css.Longhand.LineHeightFactor;
 import dev.oriel.engine.css.Longhand.Parser;
@@ -124,6 +127,12 @@ final class Properties {
         alias("overflow-wrap", "word-break");
         alias("word-wrap", "word-break");
         alias("-webkit-line-clamp", "line-clamp");
+        alias("-webkit-backdrop-filter", "backdrop-filter");
+        alias("-webkit-background-clip", "background-clip");
+        alias("-webkit-clip-path", "clip-path");
+        alias("-webkit-mask-image", "mask-image");
+        alias("-webkit-mask-composite", "mask-composite");
+        alias("-webkit-mask-clip", "mask-clip");
         Map<ListGroup, List<Longhand>> components = new EnumMap<>(ListGroup.class);
         for (ListGroup g : ListGroup.values()) {
             components.put(g, ALL.stream().filter(l -> l.group == g).toList());
@@ -311,6 +320,15 @@ final class Properties {
         add(Prop.TRANSFORM_ORIGIN_X, (r, ctx) -> Images.axis(r, ctx, "left", "right"), TEXT);
         add(Prop.TRANSFORM_ORIGIN_Y, (r, ctx) -> Images.axis(r, ctx, "top", "bottom"), TEXT);
         add(Prop.TINT, CssColors::read, COLOR);
+        add(Prop.FILTER, Effects::filters, v -> Effects.serializeFilters(cast(v)));
+        add(Prop.BACKDROP_FILTER, Effects::filters, v -> Effects.serializeFilters(cast(v)));
+        add(Prop.CLIP_PATH, Effects::clipPath, v -> Effects.serializeClipPath((ClipShape) v));
+        add(Prop.MASK_IMAGE, Effects::maskImages, v -> Properties.<Image>cast(v).isEmpty() ? "none"
+                : CssText.join(Properties.<Image>cast(v), ", ", Images::serialize));
+        add(Prop.MASK_COMPOSITE, Effects::maskComposites, v -> CssText.join(Properties.<MaskComposite>cast(v), ", ", Keywords::css));
+        add(Prop.MASK_CLIP, Effects::maskClips, v -> CssText.join(Properties.<BackgroundLayer.Box>cast(v), ", ", Keywords::css));
+        add(Prop.MIX_BLEND_MODE, Keywords.parser(BlendMode.class), KEYWORD);
+        add(Prop.ISOLATION, Keywords.parser(Map.of("auto", false, "isolate", true)), v -> (Boolean) v ? "isolate" : "auto");
         add(Prop.OBFUSCATED, Keywords.parser(Map.of("on", true, "off", false, "none", false)), v -> (Boolean) v ? "on" : "off");
         add(List.of(Prop.MODEL_YAW, Prop.MODEL_PITCH, Prop.MODEL_ROLL), Numeric::angle, v -> CssText.deg((Float) v));
         add(Prop.MODEL_SCALE, nonNegative(Numeric::number), NUMBER);

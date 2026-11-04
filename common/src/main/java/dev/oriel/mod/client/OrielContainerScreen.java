@@ -225,7 +225,7 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
 
     /** Dropping the carried stack happens outside the page's content: where only html or body is under the pointer. */
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top/*? if <26 {*//*, int button*//*?}*/) {
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
         Element hit = driver.elementAt(mouseX, mouseY);
         return hit != null && DocumentDriver.isBackground(hit);
     }

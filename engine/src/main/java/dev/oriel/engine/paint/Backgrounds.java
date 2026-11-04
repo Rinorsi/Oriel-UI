@@ -1,5 +1,6 @@
 package dev.oriel.engine.paint;
 
+import dev.oriel.engine.style.Length;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.replaced.CanvasContent;
 import dev.oriel.engine.replaced.ImageSources;
@@ -37,18 +38,41 @@ final class Backgrounds {
         this.document = document;
     }
 
-    void paint(Canvas canvas, QuadBatch batch, Geometry g, ComputedStyle s, float dp) {
+    /**
+     * Paints the layers clipped to a box ({@code text} false), or only those clipped to the text ({@code text} true:
+     * over the border box, for the caller to mask with the glyphs).
+     */
+    void paint(Canvas canvas, QuadBatch batch, Geometry g, ComputedStyle s, float dp, boolean text) {
         List<BackgroundLayer> layers = s.backgroundLayers;
-        if (!Colors.isTransparent(s.backgroundColor)) {
-            // The colour is clipped like the bottom layer.
-            g.area(layers.isEmpty() ? BackgroundLayer.Box.BORDER_BOX : layers.getLast().clip(), area, areaRadii);
+        // The colour is clipped like the bottom layer.
+        BackgroundLayer.Box colorClip = layers.isEmpty() ? BackgroundLayer.Box.BORDER_BOX : layers.getLast().clip();
+        if (!Colors.isTransparent(s.backgroundColor) && (colorClip == BackgroundLayer.Box.TEXT) == text) {
+            g.area(colorClip, area, areaRadii);
             if (Shapes.isRounded(areaRadii)) {
                 canvas.fillRoundedRect(area[0], area[1], area[2], area[3], areaRadii, s.backgroundColor);
             } else {
                 canvas.fillRect(area[0], area[1], area[2], area[3], s.backgroundColor);
             }
         }
-        for (int i = layers.size() - 1; i >= 0; i--) layer(canvas, batch, g, s, layers.get(i), dp);
+        for (int i = layers.size() - 1; i >= 0; i--) {
+            BackgroundLayer layer = layers.get(i);
+            if ((layer.clip() == BackgroundLayer.Box.TEXT) == text) layer(canvas, batch, g, s, layer, dp);
+        }
+    }
+
+    /** Whether some of {@code s}'s background is clipped to the text. */
+    static boolean clipsToText(ComputedStyle s) {
+        List<BackgroundLayer> layers = s.backgroundLayers;
+        for (BackgroundLayer layer : layers) {
+            if (layer.clip() == BackgroundLayer.Box.TEXT && (layer.image() != null || layer == layers.getLast())) return true;
+        }
+        return false;
+    }
+
+    /** One mask layer's image, drawn like a background image clipped to {@code clip}. */
+    void mask(Canvas canvas, QuadBatch batch, Geometry g, ComputedStyle s, Image image, BackgroundLayer.Box clip, float dp) {
+        layer(canvas, batch, g, s, new BackgroundLayer(image, null, Length.AUTO, Length.AUTO, Length.ZERO, Length.ZERO,
+                BackgroundLayer.Repeat.NO_REPEAT, BackgroundLayer.Repeat.NO_REPEAT, clip), dp);
     }
 
     private void layer(Canvas canvas, QuadBatch batch, Geometry g, ComputedStyle s, BackgroundLayer layer, float dp) {

@@ -4,10 +4,12 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.GameEffects;
 import dev.oriel.kit.Shell;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,7 +25,9 @@ import java.util.Map;
  *   harmful and neutral, each with a countdown and a draining bar. A group shows three rows and a "另有 N 个" chip
  *   that expands it; its header folds it to a strip of icons.</li>
  * </ul>
- * Effects blink in their last ten seconds and fade out when they end; new ones keep arriving from a queue.
+ * Effects blink in their last ten seconds and fade out when they end. In game ({@link GameEffects} has a provider)
+ * they are the player's own, as the game reports them; elsewhere (the previewer, tests) fixtures keep arriving from
+ * a queue.
  */
 public final class PotionHudPreset implements PageControllers.Controller {
     static final int SHOWN = 3, BAR_TILES = 5;
@@ -31,12 +35,18 @@ public final class PotionHudPreset implements PageControllers.Controller {
 
     enum Kind { BENEFICIAL, HARMFUL, NEUTRAL }
 
+    /** {@code id} is a registry id ("minecraft:speed") or a vanilla one's path; {@code seconds} may be infinite. */
     record Effect(String id, String name, int level, Kind kind, double seconds) {}
 
     /** One running effect: when it ends (in page seconds), its panel row and its bar tile. */
     static final class Running {
-        final Effect effect;
-        final double start, end;
+        Effect effect;
+        final double start;
+        double end;
+        /** The duration its bar drains over: the longest it has had (a new dose can extend it). */
+        double total;
+        /** The whole seconds the game last reported (game effects), which the countdown does not pass. */
+        int reported = -1;
         Element row, time, tile, tileTime;
         Dom.Style bar, drain;
         int shownSeconds = -1;
@@ -48,6 +58,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             this.effect = effect;
             this.start = now;
             this.end = now + effect.seconds();
+            this.total = effect.seconds();
         }
 
         double remaining(double now) {
@@ -79,7 +90,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             new Effect("luck", "幸运", 1, Kind.NEUTRAL, 300),
             new Effect("absorption", "伤害吸收", 2, Kind.BENEFICIAL, 60));
 
-    private static final String[] ROMAN = {"", "", " II", " III", " IV", " V"};
+    private static final String[] ROMAN = {"", "", " II", " III", " IV", " V", " VI", " VII", " VIII", " IX", " X"};
     private static final String[] GROUP_TITLES = {"增益", "减益", "中性"}, GROUP_CLASSES = {"beneficial", "harmful", "neutral"};
 
     final Map<Kind, List<Running>> groups = new LinkedHashMap<>();
@@ -91,6 +102,9 @@ public final class PotionHudPreset implements PageControllers.Controller {
     /** Every row of every group, with no "more" fold (the panel has a place of its own). */
     private boolean everyRow;
     private double now, nextArrival = ARRIVAL_SECONDS, toastUntil;
+    /** The game's effects last seen, or null for fixtures. */
+    private GameEffects.Snapshot game;
+    private Element hint;
 
     /** The HUD page: bar, announcements and the folding full panel. */
     @Override
@@ -101,6 +115,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         toast = Dom.byId(doc, "toast");
         tiles = Dom.byId(doc, "tiles");
         more = Dom.byId(doc, "more-tiles");
+        hint = Dom.query(hud, ".hint");
         Element handle = Dom.byId(doc, "handle");
         Shell.activate(handle, this::togglePanel);
         Dom.onKey(doc, e -> {
@@ -139,8 +154,14 @@ public final class PotionHudPreset implements PageControllers.Controller {
                 refresh(k);
             });
         }
-        for (Effect e : INITIAL) add(e, false);
-        queue.addAll(ARRIVALS);
+        game = GameEffects.current();
+        if (game != null) {
+            sync(game, false);
+        } else {
+            for (Effect e : INITIAL) add(e, false);
+            queue.addAll(ARRIVALS);
+        }
+        refreshBar();
         doc.scheduler().requestAnimationFrame(t -> frame(t, t));
     }
 
@@ -156,6 +177,13 @@ public final class PotionHudPreset implements PageControllers.Controller {
 
     /** Advances to {@link #now}: arrivals, countdowns, bars and departures. */
     void tick() {
+        if (game != null) {
+            GameEffects.Snapshot next = GameEffects.current();
+            if (next != null && next != game) {
+                game = next;
+                sync(next, true);
+            }
+        }
         if (now >= nextArrival && !queue.isEmpty()) {
             nextArrival = now + ARRIVAL_SECONDS;
             Effect e = queue.poll();
@@ -170,7 +198,9 @@ public final class PotionHudPreset implements PageControllers.Controller {
         for (Kind k : Kind.values()) {
             for (Running r : List.copyOf(groups.get(k))) {
                 double left = r.remaining(now);
-                int secs = (int) Math.ceil(left);
+                // Between the game's reports the countdown runs on, but not past the second it reported (paused games).
+                if (r.reported > 0) left = Math.max(left, r.reported - 0.999);
+                int secs = (int) Math.min(Integer.MAX_VALUE, Math.ceil(left));
                 if (secs != r.shownSeconds) {
                     r.shownSeconds = secs;
                     String text = clock(secs);
@@ -181,10 +211,10 @@ public final class PotionHudPreset implements PageControllers.Controller {
                         r.tile.toggleClass("low", secs <= 10 && secs > 0);
                     }
                 }
-                double fraction = left / r.effect.seconds();
+                double fraction = Double.isInfinite(r.total) ? 1 : r.total <= 0 ? 0 : Math.min(1, left / r.total);
                 r.bar.set("width", Math.round(1000 * fraction) / 10.0 + "%").apply();
                 if (r.drain != null) r.drain.set("height", Math.round(1000 * (1 - fraction)) / 10.0 + "%").apply();
-                if (left <= 0 && !r.leaving) leave(k, r);
+                if (game == null && left <= 0 && !r.leaving) leave(k, r);
             }
         }
     }
@@ -198,7 +228,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         Element row = Dom.html(doc, "<div class=\"eff\"><i class=\"remain\"></i><img><span class=\"name\"></span>"
                 + "<span class=\"time\"></span></div>");
         Dom.query(row, "img").setAttribute("src", icon(e));
-        Dom.text(Dom.query(row, ".name"), e.name() + ROMAN[e.level()]);
+        Dom.text(Dom.query(row, ".name"), e.name() + level(e.level()));
         r.row = row;
         r.time = Dom.query(row, ".time");
         r.bar = new Dom.Style(Dom.query(row, ".remain"));
@@ -206,9 +236,9 @@ public final class PotionHudPreset implements PageControllers.Controller {
             Element tile = Dom.html(doc, "<div class=\"tile " + GROUP_CLASSES[e.kind().ordinal()] + "\"><img>"
                     + "<i class=\"drain\"></i><b class=\"lv\"></b><span class=\"t\"></span></div>");
             Dom.query(tile, "img").setAttribute("src", icon(e));
-            Dom.text(Dom.query(tile, ".lv"), ROMAN[e.level()].trim());
-            tile.toggleClass("leveled", !ROMAN[e.level()].isBlank());
-            tile.setAttribute("title", e.name() + ROMAN[e.level()]);
+            Dom.text(Dom.query(tile, ".lv"), level(e.level()).trim());
+            tile.toggleClass("leveled", !level(e.level()).isBlank());
+            tile.setAttribute("title", e.name() + level(e.level()));
             r.tile = tile;
             r.tileTime = Dom.query(tile, ".t");
             r.drain = new Dom.Style(Dom.query(tile, ".drain"));
@@ -227,6 +257,64 @@ public final class PotionHudPreset implements PageControllers.Controller {
         while (at < list.size() && list.get(at).end <= r.end) at++;
         list.add(at, r);
         refresh(e.kind());
+    }
+
+    /**
+     * Brings the effects in line with the game's: a new effect (or a new level of one) is added, announced when
+     * {@code fresh}; one that is still running takes the game's time; one the game no longer has fades out.
+     * Effects the game hides from the HUD ({@code showIcon} off) are left out.
+     */
+    private void sync(GameEffects.Snapshot snapshot, boolean fresh) {
+        Map<String, GameEffects.Entry> wanted = new LinkedHashMap<>();
+        for (GameEffects.Entry e : snapshot.effects()) if (e.showIcon()) wanted.put(e.id(), e);
+        for (Kind k : Kind.values()) {
+            boolean moved = false;
+            for (Running r : List.copyOf(groups.get(k))) {
+                if (r.leaving) continue;
+                GameEffects.Entry e = wanted.get(r.effect.id());
+                if (e == null) {
+                    leave(k, r);
+                } else if (e.level() == r.effect.level() && kind(e) == k) {
+                    wanted.remove(e.id());
+                    moved |= report(r, e);
+                }
+            }
+            if (moved) {
+                groups.get(k).sort(Comparator.comparingDouble(r -> r.end));
+                refresh(k);
+            }
+        }
+        for (GameEffects.Entry e : wanted.values()) {
+            Effect effect = new Effect(e.id(), e.name(), e.level(), kind(e), e.seconds() < 0 ? Double.POSITIVE_INFINITY : e.seconds());
+            add(effect, fresh);
+            Running r = find(effect);
+            if (r != null) r.reported = e.seconds();
+            if (fresh) announce(effect);
+        }
+    }
+
+    /** The game's time for a running effect; whether its place in the soonest-first order may have changed. */
+    private boolean report(Running r, GameEffects.Entry e) {
+        double end = e.seconds() < 0 ? Double.POSITIVE_INFINITY : now + e.seconds();
+        boolean moved = Math.abs(end - r.end) > 1.5; // a new dose, not the clock
+        r.end = end;
+        r.reported = e.seconds();
+        r.total = Math.max(r.total, e.seconds() < 0 ? Double.POSITIVE_INFINITY : e.seconds());
+        if (!e.name().equals(r.effect.name())) { // the language changed
+            r.effect = new Effect(r.effect.id(), e.name(), r.effect.level(), r.effect.kind(), r.effect.seconds());
+            Dom.text(Dom.query(r.row, ".name"), e.name() + level(e.level()));
+            if (r.tile != null) r.tile.setAttribute("title", e.name() + level(e.level()));
+        }
+        return moved;
+    }
+
+    private Running find(Effect e) {
+        for (Running r : groups.get(e.kind())) if (r.effect == e) return r;
+        return null;
+    }
+
+    private static Kind kind(GameEffects.Entry e) {
+        return Kind.valueOf(e.kind().name());
     }
 
     private void leave(Kind k, Running r) {
@@ -252,7 +340,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         img.setAttribute("src", icon(e));
         toast.appendChild(img);
         Element text = Dom.el(doc, "div", "text", null);
-        text.appendChild(Dom.el(doc, "div", "name", (e.kind() == Kind.HARMFUL ? "受到 " : "获得 ") + e.name() + ROMAN[e.level()]));
+        text.appendChild(Dom.el(doc, "div", "name", (e.kind() == Kind.HARMFUL ? "受到 " : "获得 ") + e.name() + level(e.level())));
         text.appendChild(Dom.el(doc, "div", "sub", clock((int) e.seconds()) + " · " + GROUP_TITLES[e.kind().ordinal()]));
         toast.appendChild(text);
         doc.scheduler().requestAnimationFrame(t -> toast.addClass("on"));
@@ -299,6 +387,12 @@ public final class PotionHudPreset implements PageControllers.Controller {
         place(tiles, want);
         Dom.text(more, total > want.size() ? "+" + (total - want.size()) : "");
         more.toggleClass("none", total <= want.size());
+        // In game, the HUD has nothing to show until the player has an effect; the hint says so.
+        boolean empty = game != null && total == 0;
+        if (hud != null && hud.hasClass("empty") != empty) {
+            hud.toggleClass("empty", empty);
+            if (hint != null) Dom.text(hint, empty ? "身上没有药水效果" : "打开聊天栏后可展开全部效果");
+        }
     }
 
     /** Puts {@code want} into {@code parent} in order, moving only what must move (re-inserting replays slide-ins). */
@@ -311,7 +405,14 @@ public final class PotionHudPreset implements PageControllers.Controller {
     }
 
     static String icon(Effect e) {
-        return "minecraft:textures/mob_effect/" + e.id() + ".png";
+        int colon = e.id().indexOf(':');
+        String namespace = colon < 0 ? "minecraft" : e.id().substring(0, colon);
+        return namespace + ":textures/mob_effect/" + e.id().substring(colon + 1) + ".png";
+    }
+
+    /** The level after a name: none for I, Roman numerals to X, digits beyond, as vanilla. */
+    static String level(int level) {
+        return level < ROMAN.length ? ROMAN[Math.max(0, level)] : " " + level;
     }
 
     static String clock(int seconds) {

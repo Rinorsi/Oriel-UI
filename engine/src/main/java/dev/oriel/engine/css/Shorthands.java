@@ -117,6 +117,9 @@ final class Shorthands {
                 "animation-iteration-count", "animation-direction", "animation-fill-mode", "animation-play-state",
                 "animation-name");
         register("list-style", List.of(Properties.longhand("list-style-type")), Shorthands::listStyle);
+        for (String name : List.of("mask", "-webkit-mask")) {
+            register(name, longhands("mask-image", "mask-clip", "mask-composite"), values -> String.join(" ", values), Shorthands::mask);
+        }
     }
 
     private Shorthands() {}
@@ -376,6 +379,48 @@ final class Shorthands {
                     && Numeric.of(item, probe) == null) return null;
         }
         return lines.isEmpty() ? Map.of() : fill(l, lines);
+    }
+
+    /**
+     * {@code mask} per layer: {@code <image> || <box> || <compositing-operator>}. Mask positions, sizes, repeats and
+     * modes are not supported, so a layer with any of them makes the value invalid (and reported) rather than drawn
+     * differently.
+     */
+    private static Map<Longhand, List<ComponentValue>> mask(List<Longhand> l, List<ComponentValue> v) {
+        List<ComponentValue> images = new ArrayList<>(), clips = new ArrayList<>(), composites = new ArrayList<>();
+        ValueContext probe = new ValueContext();
+        boolean anyClip = false, anyComposite = false;
+        for (List<ComponentValue> layer : ValueReader.splitCommas(v)) {
+            List<ComponentValue> image = null;
+            String box = null, composite = null;
+            for (ComponentValue item : ValueReader.items(layer)) {
+                String id = item instanceof Token t && t.is(Type.IDENT) ? t.lower : null;
+                if (image == null && (id != null && id.equals("none") || Images.read(new ValueReader(List.of(item)), probe) != null)) {
+                    image = List.of(item);
+                } else if (box == null && Effects.box(id) != null) {
+                    box = id;
+                } else if (composite == null && Effects.isCompositeName(id)) {
+                    composite = id;
+                } else {
+                    return null;
+                }
+            }
+            if (!images.isEmpty()) {
+                images.addAll(COMMA);
+                clips.addAll(COMMA);
+                composites.addAll(COMMA);
+            }
+            images.addAll(image == null ? values("none") : image);
+            clips.addAll(values(box == null ? "border-box" : box));
+            composites.addAll(values(composite == null ? "add" : composite));
+            anyClip |= box != null;
+            anyComposite |= composite != null;
+        }
+        Map<Longhand, List<ComponentValue>> out = new HashMap<>();
+        out.put(l.get(0), images);
+        if (anyClip) out.put(l.get(1), clips);
+        if (anyComposite) out.put(l.get(2), composites);
+        return out;
     }
 
     /** {@code <start> [/ <end>]}; an omitted end copies a custom-ident start, else is auto. */

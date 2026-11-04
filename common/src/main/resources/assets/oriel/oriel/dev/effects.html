@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <title>Effects</title>
+  <style>
+/*
+ * The autopilot's check of group effects ({@code -Pautopilot=effects}): filters, clip-path, masks, blend modes,
+ * backdrop-filter and group opacity, then rounded overflow clips, background-clip: text and content that goes through
+ * a layer (an item, text, a group inside a group). Each cell names what it draws.
+ */
+body { margin: 0; padding: 6px; background: linear-gradient(135deg, #223, #446 50%, #263); font-family: sans-serif; color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(5, 76px); gap: 6px; }
+.cell { height: 54px; position: relative; font-size: 8px; }
+.cell span { position: absolute; left: 2px; bottom: 1px; text-shadow: 0 1px 0 #000; }
+.pic { position: absolute; inset: 0 0 10px 0; background: linear-gradient(90deg, #f33, #fd3, #3c6, #39f); border: 2px solid #fff; border-radius: 6px; }
+.pic::after { content: "Aa"; position: absolute; left: 6px; top: 4px; font-size: 16px; color: #111; }
+.blur .pic { filter: blur(2px); }
+.bright .pic { filter: brightness(1.6); }
+.gray .pic { filter: grayscale(1); }
+.sepia .pic { filter: sepia(1) contrast(1.2); }
+.hue .pic { filter: hue-rotate(120deg); }
+.shadow .pic { filter: drop-shadow(3px 3px 2px #000); }
+.glow .pic { filter: drop-shadow(0 0 4px #3ff6ff); }
+.cut .pic { clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.circle .pic { clip-path: circle(40% at 50% 50%); }
+.mask .pic { -webkit-mask-image: linear-gradient(90deg, #000, transparent); mask-image: linear-gradient(90deg, #000, transparent); }
+.ring .pic { border: 0; border-radius: 50%; width: 44px; background: conic-gradient(#3ff6ff 0 70%, #333 0); mask: radial-gradient(circle, transparent 55%, #000 57%); }
+.screen .pic::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 3px); mix-blend-mode: screen; opacity: .5; }
+.mult .pic { background: #888; }
+.mult .pic::before { content: ""; position: absolute; inset: 6px; background: #f80; mix-blend-mode: multiply; }
+.glass { background: repeating-linear-gradient(45deg, #fd3 0 6px, #36c 6px 12px); }
+.glass::before { content: "BEHIND"; position: absolute; left: 8px; top: 14px; font-size: 14px; color: #000; }
+.glass .pic { background: rgba(255,255,255,.15); backdrop-filter: blur(3px); border-color: rgba(255,255,255,.6); }
+.group .pic { opacity: .5; background: #39f; }
+.group .pic::before { content: ""; position: absolute; left: 10px; top: 8px; width: 30px; height: 20px; background: #f33; }
+.orb .pic { border-radius: 50%; width: 44px; overflow: hidden; background: #222; }
+.orb .pic::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 60%; background: linear-gradient(#f55, #a11); }
+.textclip .pic { border: 0; background: none; }
+.textclip .pic::after { content: "GOLD"; color: transparent; font-size: 20px; background: linear-gradient(#fff, #e0a020); -webkit-background-clip: text; }
+.itemclip .pic { border-radius: 50%; width: 44px; overflow: hidden; background: #335; }
+.itemclip .pic::after { content: none; }
+.itemclip item { position: absolute; left: 6px; top: 6px; width: 32px; height: 32px; }
+.nested .pic { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.nested .pic::after { content: ""; left: 0; top: 0; right: 0; bottom: 0; background: #000; -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000); }
+.plus .pic::before { content: ""; position: absolute; inset: 6px; background: #36f; mix-blend-mode: plus-lighter; }
+</style></head><body><div class="grid">
+<div class="cell blur"><div class="pic"></div><span>blur(2px)</span></div>
+<div class="cell bright"><div class="pic"></div><span>brightness</span></div>
+<div class="cell gray"><div class="pic"></div><span>grayscale</span></div>
+<div class="cell sepia"><div class="pic"></div><span>sepia+contrast</span></div>
+<div class="cell hue"><div class="pic"></div><span>hue-rotate</span></div>
+<div class="cell shadow"><div class="pic"></div><span>drop-shadow</span></div>
+<div class="cell glow"><div class="pic"></div><span>glow</span></div>
+<div class="cell cut"><div class="pic"></div><span>clip polygon</span></div>
+<div class="cell circle"><div class="pic"></div><span>clip circle</span></div>
+<div class="cell mask"><div class="pic"></div><span>mask fade</span></div>
+<div class="cell ring"><div class="pic"></div><span>conic+mask</span></div>
+<div class="cell screen"><div class="pic"></div><span>blend screen</span></div>
+<div class="cell mult"><div class="pic"></div><span>multiply</span></div>
+<div class="cell glass"><div class="pic"></div><span>backdrop blur</span></div>
+<div class="cell group"><div class="pic"></div><span>group opacity</span></div>
+<div class="cell orb"><div class="pic"></div><span>round overflow</span></div>
+<div class="cell textclip"><div class="pic"></div><span>clip text</span></div>
+<div class="cell itemclip"><div class="pic"><item id="minecraft:diamond_sword"></item></div><span>item, round</span></div>
+<div class="cell nested"><div class="pic"></div><span>mask in clip</span></div>
+<div class="cell plus"><div class="pic"></div><span>plus-lighter</span></div>
+</div></body></html>
+

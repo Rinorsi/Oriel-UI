@@ -1,7 +1,12 @@
 package dev.oriel.engine.paint;
 
 import dev.oriel.engine.host.FontSpec;
+import dev.oriel.engine.style.BlendMode;
+import dev.oriel.engine.style.Filter;
+import dev.oriel.engine.style.MaskComposite;
 import dev.oriel.engine.style.Shadow;
+
+import java.util.List;
 
 /**
  * The drawing backend. The {@link Painter} turns the box tree into calls on this interface each frame; Minecraft
@@ -124,6 +129,57 @@ public interface Canvas {
     default void fillBoxShadow(float[] box, float[] radii, Shadow shadow) {
         Shadows.fill(this, box, radii, shadow);
     }
+
+    // ---- Groups: offscreen layers for effects on a whole element ----
+
+    /**
+     * Starts a group: what is drawn until {@link #endGroup} goes into an offscreen layer instead of the target, then
+     * is composited as one image (CSS filters, masks, clip-path, blend modes, group opacity). Returns false when the
+     * backend has no layers: the painter then draws the element directly, without the effects, and says so.
+     * Groups nest. Transform, clip and alpha are unchanged by the call.
+     */
+    default boolean beginGroup() { return false; }
+
+    /**
+     * Inside a group, starts a mask layer: what is drawn next (until the next {@code beginMask} or {@link #endGroup})
+     * is a mask whose alpha the group's content is multiplied by. Several mask layers combine in the order they are
+     * begun, each onto the result of the ones before with {@code composite}; the first one's operator is ignored.
+     */
+    default void beginMask(MaskComposite composite) {}
+
+    /**
+     * Ends the innermost group and draws it onto what was the target: its pixels through {@code filters} (in order),
+     * then its masks, then {@code opacity}, blended with {@code blend}.
+     */
+    default void endGroup(float opacity, List<Filter> filters, BlendMode blend) {}
+
+    /**
+     * What this canvas's groups leave out of {@code filters} and {@code blend}, said in a sentence, or null when they
+     * draw it all. The painter reports it; the group is drawn without what is left out.
+     */
+    default String groupLimits(List<Filter> filters, BlendMode blend) { return null; }
+
+    /**
+     * Starts a backdrop ({@code backdrop-filter}): what is drawn until {@link #endBackdrop} is a shape mask. False
+     * when the backend cannot read back what it has drawn, or (see {@link #backdropNeedsGroup}) not here.
+     */
+    default boolean beginBackdrop() { return false; }
+
+    /**
+     * Whether a backdrop can only be read inside a group: the backend can read back what a group has drawn, but not
+     * the target itself. The painter then paints the page as a group (the page's backdrop root) once it has met a
+     * backdrop outside any group, and the backend gives that group what is under the page as its backdrop.
+     */
+    default boolean backdropNeedsGroup() { return false; }
+
+    /** {@link #beginGroup} for the page itself (see {@link #backdropNeedsGroup}): its backdrop is what is under the page. */
+    default boolean beginPageGroup() { return beginGroup(); }
+
+    /**
+     * Ends the backdrop: what had been drawn under the shape is drawn again through {@code filters}, inside the shape
+     * (the mask drawn since {@link #beginBackdrop}).
+     */
+    default void endBackdrop(List<Filter> filters) {}
 
     /**
      * Whether the shapes that follow ({@link #fillRoundedRect}, {@link #fillBorder}, {@link #fillBoxShadow}) keep hard

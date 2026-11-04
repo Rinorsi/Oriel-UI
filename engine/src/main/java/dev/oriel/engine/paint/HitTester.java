@@ -100,12 +100,12 @@ final class HitTester implements StackingOrder.Visitor {
     }
 
     @Override
-    public boolean pushClip(float x, float y, float width, float height) {
+    public boolean pushClip(Box clipper, float x, float y, float width, float height) {
         return inside(x, y, width, height);
     }
 
     @Override
-    public void popClip() {}
+    public void popClip(Box clipper) {}
 
     // ---- Steps ----
 

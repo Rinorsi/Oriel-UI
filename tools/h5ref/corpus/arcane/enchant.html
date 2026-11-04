@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Arcane enchanting</title>
+<style>
+  :root { --violet: #b388ff; --deep: #1a0b2e; --rune: #e0c3ff; --glow: rgba(179, 136, 255, .6); }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100vh; display: grid; place-items: center; font-family: Georgia, "Times New Roman", serif; color: var(--rune);
+    background: radial-gradient(ellipse at center, #2d1450 0%, #0d0518 70%); }
+  .table { position: relative; width: 380px; height: 210px; display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 14px;
+    border-radius: 14px; background: linear-gradient(160deg, rgba(60, 25, 100, .75), rgba(15, 5, 30, .9));
+    border: 1px solid rgba(179, 136, 255, .45); box-shadow: 0 0 30px var(--glow), inset 0 0 40px rgba(0, 0, 0, .6);
+    backdrop-filter: blur(6px); }
+  .circle { position: relative; width: 150px; height: 150px; align-self: center; }
+  .ring { position: absolute; inset: 0; border-radius: 50%; border: 2px dashed rgba(224, 195, 255, .6); animation: spin 18s linear infinite; }
+  .ring.inner { inset: 22px; border-style: solid; border-color: rgba(179, 136, 255, .8); animation-direction: reverse; animation-duration: 10s;
+    box-shadow: 0 0 18px var(--glow), inset 0 0 18px var(--glow); }
+  .ring.core { inset: 52px; border: none; background: radial-gradient(circle, #fff 0%, var(--violet) 35%, transparent 70%); filter: blur(1px);
+    animation: breathe 2.4s ease-in-out infinite; }
+  .rune { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; font-size: 12px; text-align: center; line-height: 14px;
+    color: #fff; text-shadow: 0 0 6px var(--violet), 0 0 12px var(--violet); }
+  .rune:nth-child(4) { transform: rotate(0deg) translate(62px) rotate(0deg); }
+  .rune:nth-child(5) { transform: rotate(72deg) translate(62px) rotate(-72deg); }
+  .rune:nth-child(6) { transform: rotate(144deg) translate(62px) rotate(-144deg); }
+  .rune:nth-child(7) { transform: rotate(216deg) translate(62px) rotate(-216deg); }
+  .rune:nth-child(8) { transform: rotate(288deg) translate(62px) rotate(-288deg); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes breathe { 50% { transform: scale(1.15); opacity: .7; } }
+  .side h2 { margin: 0 0 6px; font-size: 14px; font-weight: normal; letter-spacing: 2px; text-transform: uppercase;
+    background: linear-gradient(90deg, #fff, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .option { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 6px 8px; border-radius: 8px; cursor: pointer;
+    background: rgba(255, 255, 255, .04); border: 1px solid rgba(179, 136, 255, .25); transition: all .2s; }
+  .option:hover, .option.on { background: rgba(179, 136, 255, .18); box-shadow: 0 0 12px var(--glow); transform: translateX(3px); }
+  .option .lvl { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 10px;
+    background: conic-gradient(var(--violet) 0 70%, rgba(255,255,255,.1) 70%); }
+  .option .name { flex: 1; font-size: 10px; }
+  .option .cost { font-size: 9px; color: #9effa0; }
+  .option.locked { opacity: .45; filter: grayscale(1); }
+  .sparkle { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px 2px var(--violet);
+    animation: float 3s ease-in-out infinite; mix-blend-mode: screen; }
+  @keyframes float { 0%, 100% { transform: translateY(0); opacity: 0; } 50% { transform: translateY(-20px); opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="table">
+  <div class="circle">
+    <div class="ring"></div><div class="ring inner"></div><div class="ring core"></div>
+    <span class="rune">ᚠ</span><span class="rune">ᚱ</span><span class="rune">ᛟ</span><span class="rune">ᛉ</span><span class="rune">ᚨ</span>
+  </div>
+  <div class="side">
+    <h2>附魔台</h2>
+    <div class="option on"><div class="lvl">III</div><div class="name">锋利 III · 抢夺 II</div><div class="cost">✦ 3</div></div>
+    <div class="option"><div class="lvl">II</div><div class="name">耐久 II</div><div class="cost">✦ 2</div></div>
+    <div class="option locked"><div class="lvl">V</div><div class="name">??? 需要 30 级</div><div class="cost">✦ 30</div></div>
+  </div>
+  <span class="sparkle" style="left: 30px; top: 40px"></span>
+  <span class="sparkle" style="left: 120px; top: 150px; animation-delay: 1s"></span>
+  <span class="sparkle" style="left: 300px; top: 30px; animation-delay: 2s"></span>
+</div>
+</body>
+</html>

@@ -59,6 +59,8 @@ html, body { background: none; }
 .hint { color: #8c8d90; text-shadow: 1px 1px 0 #000000; animation: hint-out 7s ease-in forwards; }
 @keyframes hint-out { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .hud.full .hint { display: none; }
+/* In game, before the player has any effect: only the hint, saying so. */
+.hud.empty .hud-bar, .hud.empty .toast, .hud.empty .panel { display: none; }
 </style>
 </head>
 <body>

@@ -19,6 +19,11 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayDeque;
+import java.util.List;
+import java.util.ArrayList;
+import dev.oriel.engine.style.MaskComposite;
+import dev.oriel.engine.style.Filter;
+import dev.oriel.engine.style.BlendMode;
 import java.util.Deque;
 
 /**
@@ -31,15 +36,28 @@ import java.util.Deque;
 public final class ImageCanvas implements Canvas {
     private record State(AffineTransform transform, Rectangle clip, float alpha) {}
 
+    /** Where drawing goes: the image, or a group's layer of the same size. */
+    private record Target(BufferedImage image, int[] pixels, Graphics2D g, TriangleRasterizer rasterizer, ShapeRasterizer shapes) {}
+
+    /**
+     * An open group (or backdrop): its layer, the target it draws onto when it ends, its mask layers and their
+     * operators, and the alpha it is drawn with (the canvas's alpha when it began; inside, drawing is at full alpha).
+     */
+    private record Group(Target content, Target under, List<Target> masks, List<MaskComposite> ops, float alpha) {}
+
     private static final AffineTransform IDENTITY = new AffineTransform();
 
     private final BufferedImage image;
     private final float scale;
     private final MinecraftAssets assets;
     private final MinecraftFont font;
-    private final Graphics2D g;
-    private final TriangleRasterizer rasterizer;
-    private final ShapeRasterizer shapes;
+    /** The current target's tools (see {@link #bind}). */
+    private Graphics2D g;
+    private TriangleRasterizer rasterizer;
+    private ShapeRasterizer shapes;
+    private final Target root;
+    private Target current;
+    private final Deque<Group> groups = new ArrayDeque<>();
     /** The box being painted asked for hard pixel edges ({@code shape-rendering: crispEdges}). */
     private boolean crisp;
     private final Rectangle bounds;
@@ -69,15 +87,9 @@ public final class ImageCanvas implements Canvas {
         this.scale = scale;
         this.assets = assets;
         this.font = font;
-        this.g = image.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-        // Pure strokes keep shape edges where they are, so pixels are covered by their centres, as on a GPU.
-        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-        this.rasterizer = new TriangleRasterizer(pixels, image.getWidth());
-        this.shapes = new ShapeRasterizer(pixels, image.getWidth());
+        this.root = target(image);
         this.bounds = new Rectangle(image.getWidth(), image.getHeight());
+        bind(root);
         reset();
     }
 
@@ -87,6 +99,8 @@ public final class ImageCanvas implements Canvas {
 
     /** Back to the initial state (GUI scale transform, no clip, full alpha) for drawing the next frame. */
     public void reset() {
+        while (!groups.isEmpty()) dispose(groups.pop());
+        bind(root);
         saved.clear();
         transform = AffineTransform.getScaleInstance(scale, scale);
         clip = bounds;
@@ -95,7 +109,109 @@ public final class ImageCanvas implements Canvas {
 
     /** Releases the Graphics2D; the canvas must not be used afterwards. */
     public void dispose() {
-        g.dispose();
+        reset();
+        root.g().dispose();
+    }
+
+    // ---- Targets ----
+
+    private static Target target(BufferedImage image) {
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        // Pure strokes keep shape edges where they are, so pixels are covered by their centres, as on a GPU.
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        return new Target(image, pixels, g, new TriangleRasterizer(pixels, image.getWidth()), new ShapeRasterizer(pixels, image.getWidth()));
+    }
+
+    /** A new transparent layer the size of the image. */
+    private Target layer() {
+        return target(new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB));
+    }
+
+    /** Draws onto {@code t} from now on; the Graphics2D state cache starts over. */
+    private void bind(Target t) {
+        current = t;
+        g = t.g();
+        rasterizer = t.rasterizer();
+        shapes = t.shapes();
+        appliedClip = null;
+        appliedColor = null;
+        appliedAlpha = -1;
+        appliedSmooth = false;
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+    }
+
+    private static void dispose(Group group) {
+        group.content().g().dispose();
+        for (Target m : group.masks()) m.g().dispose();
+    }
+
+    // ---- Groups ----
+
+    @Override
+    public boolean beginGroup() {
+        groups.push(new Group(layer(), current, new ArrayList<>(), new ArrayList<>(), alpha));
+        alpha = 1;
+        bind(groups.peek().content());
+        return true;
+    }
+
+    @Override
+    public void beginMask(MaskComposite composite) {
+        Group group = groups.peek();
+        if (group == null) return;
+        Target mask = layer();
+        group.masks().add(mask);
+        group.ops().add(composite);
+        bind(mask);
+    }
+
+    @Override
+    public void endGroup(float opacity, List<Filter> filters, BlendMode blend) {
+        Group group = groups.pop();
+        bind(group.under());
+        Rectangle area = clip.intersection(bounds);
+        if (!area.isEmpty()) {
+            int w = image.getWidth();
+            int[] px = group.content().pixels();
+            Layers2D.filter(px, w, area, filters, 1 / devicePixel());
+            float[] mask = null;
+            for (int i = 0; i < group.masks().size(); i++) {
+                if (mask == null) mask = new float[area.width * area.height];
+                Layers2D.maskComposite(mask, group.masks().get(i).pixels(), w, area, group.ops().get(i), i == 0);
+            }
+            float a = opacity * group.alpha();
+            if (mask != null || a < 1) Layers2D.multiplyAlpha(px, w, area, mask, a);
+            Layers2D.composite(px, group.under().pixels(), w, area, blend);
+        }
+        dispose(group);
+    }
+
+    @Override
+    public boolean beginBackdrop() {
+        groups.push(new Group(layer(), current, List.of(), List.of(), alpha));
+        alpha = 1;
+        bind(groups.peek().content());
+        return true;
+    }
+
+    @Override
+    public void endBackdrop(List<Filter> filters) {
+        Group group = groups.pop();
+        bind(group.under());
+        Rectangle area = clip.intersection(bounds);
+        if (!area.isEmpty()) {
+            int w = image.getWidth();
+            int[] under = group.under().pixels(), copy = under.clone(), shape = group.content().pixels();
+            Layers2D.filter(copy, w, area, filters, 1 / devicePixel());
+            float[] mask = new float[area.width * area.height];
+            Layers2D.maskComposite(mask, shape, w, area, MaskComposite.ADD, true);
+            Layers2D.multiplyAlpha(copy, w, area, mask, group.alpha());
+            Layers2D.composite(copy, under, w, area, BlendMode.NORMAL);
+        }
+        dispose(group);
     }
 
     // ---- State ----

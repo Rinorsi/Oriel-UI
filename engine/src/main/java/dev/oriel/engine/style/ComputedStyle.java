@@ -139,6 +139,14 @@ public final class ComputedStyle implements Cloneable {
     public BorderImage.Sides borderImageOutset = BorderImage.Sides.ZERO;
     public BorderImage.Repeats borderImageRepeat = BorderImage.Repeats.STRETCH;
     public List<TransformFunction> transform = List.of();
+    // Effects that paint the element as a group (an offscreen layer where the canvas has them).
+    public List<Filter> filter = List.of(), backdropFilter = List.of();
+    public ClipShape clipPath = ClipShape.NONE;
+    public List<Image> maskImage = List.of();
+    public List<MaskComposite> maskComposite = List.of(MaskComposite.ADD);
+    public List<BackgroundLayer.Box> maskClip = List.of(BackgroundLayer.Box.BORDER_BOX);
+    public BlendMode mixBlendMode = BlendMode.NORMAL;
+    public boolean isolate;
     public Length transformOriginX = Length.PERCENT_50, transformOriginY = Length.PERCENT_50;
     /**
      * Tint multiplied into images, items and sprites ({@code -mc-tint}); white for none. A Oriel extension, handy
@@ -345,7 +353,9 @@ public final class ComputedStyle implements Cloneable {
                 && same(outlineOffset, o.outlineOffset) && borderImageSource.equals(o.borderImageSource)
                 && borderImageSlice.equals(o.borderImageSlice) && borderImageWidth.equals(o.borderImageWidth)
                 && borderImageOutset.equals(o.borderImageOutset) && borderImageRepeat.equals(o.borderImageRepeat)
-                && transform.equals(o.transform)
+                && transform.equals(o.transform) && filter.equals(o.filter) && backdropFilter.equals(o.backdropFilter)
+                && clipPath.equals(o.clipPath) && maskImage.equals(o.maskImage) && maskComposite.equals(o.maskComposite) && maskClip.equals(o.maskClip)
+                && mixBlendMode == o.mixBlendMode && isolate == o.isolate
                 && transformOriginX.equals(o.transformOriginX) && transformOriginY.equals(o.transformOriginY)
                 && tint == o.tint && same(modelYaw, o.modelYaw) && same(modelPitch, o.modelPitch)
                 && same(modelRoll, o.modelRoll) && same(modelScale, o.modelScale) && entityFocus == o.entityFocus
@@ -457,7 +467,25 @@ public final class ComputedStyle implements Cloneable {
     /** True when this element starts a stacking context (z-index on a positioned box, opacity, transform...). */
     public boolean createsStackingContext() {
         return (!zIndexAuto && (position.isPositioned() || isFlexOrGridItemHint)) || opacity < 1f
-                || !transform.isEmpty() || position == Position.FIXED;
+                || !transform.isEmpty() || position == Position.FIXED || hasGroupEffects();
+    }
+
+    /**
+     * Whether the element paints as one group with an effect applied to the whole (filter, backdrop filter,
+     * clip-path, mask, blend mode, isolation): each makes it a stacking context, and painters draw it through an
+     * offscreen layer where the canvas has them.
+     */
+    public boolean hasGroupEffects() {
+        return !backdropFilter.isEmpty() || hasLayerEffects();
+    }
+
+    /**
+     * {@link #hasGroupEffects} but a backdrop filter, which reads what is under the element (before it) and needs no
+     * layer of the element's own.
+     */
+    public boolean hasLayerEffects() {
+        return !filter.isEmpty() || clipPath != ClipShape.NONE || !maskImage.isEmpty() || mixBlendMode != BlendMode.NORMAL
+                || isolate;
     }
 
     /** Set by the style engine for children of flex and grid containers, where z-index applies without position. */

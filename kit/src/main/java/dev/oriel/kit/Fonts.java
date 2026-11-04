@@ -25,7 +25,8 @@ public final class Fonts {
             new Font("sans", "oriel:sans", "黑体", "平滑", 8, "Noto Sans SC · OFL"),
             new Font("kai", "oriel:kai", "文楷", "平滑", 8, "基于霞鹜文楷 · OFL"),
             new Font("smiley", "oriel:smiley", "得意黑", "平滑", 9, "Smiley Sans · OFL"),
-            new Font("kuaile", "oriel:kuaile", "快乐体", "趣味", 9, "站酷快乐体 · OFL"));
+            new Font("kuaile", "oriel:kuaile", "快乐体", "趣味", 9, "站酷快乐体 · OFL"),
+            new Font("brush", "oriel:brush", "毛笔楷", "书法", 10, "马善政楷书 · OFL"));
 
     private Fonts() {}
 

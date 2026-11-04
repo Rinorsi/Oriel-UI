@@ -34,8 +34,8 @@ node tools/new-page.mjs bestiary "怪物图鉴"
 
 ### 文字、字体与 MC 格式
 
-- 全局字体：`Shell.font(doc, "kai")` 或任意元素加 `data-font-pick="kai"`（点了就换，所有页面跟着换）。可选：`mc`（原版）、`unifont`、`pixel`（缝合像素 8）、`pixel_12`、`cubic`（俐方体 11）、`sans`（黑体）、`kai`（文楷）、`smiley`（得意黑）、`kuaile`（快乐体）。全是 OFL 免费字体，许可证在 `META-INF/licenses/fonts/`。
-- 单个元素：`f-pixel`、`f-pixel-12`、`f-cubic`、`f-sans`、`f-kai`、`f-smiley`、`f-kuaile`、`f-unifont`、`f-alt`（附魔台文字）。像素 12 / 俐方体 11 建议配 `font-size: 12px` 或 `11px`，像素格才整齐。
+- 全局字体：`Shell.font(doc, "kai")` 或任意元素加 `data-font-pick="kai"`（点了就换，所有页面跟着换）。可选：`mc`（原版）、`unifont`、`pixel`（缝合像素 8）、`pixel_12`、`cubic`（俐方体 11）、`sans`（黑体）、`kai`（文楷）、`smiley`（得意黑）、`kuaile`（快乐体）、`brush`（毛笔楷）。全是 OFL 免费字体，许可证在 `META-INF/licenses/fonts/`。
+- 单个元素：`f-pixel`、`f-pixel-12`、`f-cubic`、`f-sans`、`f-kai`、`f-smiley`、`f-kuaile`、`f-brush`、`f-unifont`、`f-alt`（附魔台文字）。像素 12 / 俐方体 11 建议配 `font-size: 12px` 或 `11px`，像素格才整齐。
 - 自定义字体：资源包里放 `assets/<命名空间>/font/<名字>.json`（Minecraft 的 ttf/bitmap 字体格式），CSS 写 `font-family: <命名空间>:<名字>`。缺的字会退回游戏字体。
 - 文字颜色就是 CSS `color`。MC 的 16 色和样式有现成类：`mc-0`…`mc-f`、`mc-l` 粗体、`mc-o` 斜体、`mc-n` 下划线、`mc-m` 删除线、`mc-k` 乱码（`-mc-obfuscated: on`，游戏里每帧随机换字）。
 - `§` / `&` 代码文本：`McFormat.render(doc, el, "§6§l标题§r正文")` 渲染成带样式的 span；`McFormat.json(...)` 得到聊天组件 JSON（给 `<mc-text json>`、`/tellraw`、物品名）；`McFormat.strip` 去掉代码。`§#rrggbb` 是 16 色以外的颜色。
