@@ -17,7 +17,7 @@ public final class ParserAudit {
 
     public static Mode mode() {
         if (OVERRIDE.get() != null) return OVERRIDE.get();
-        return switch (System.getProperty("oriel.parser", "old")) {
+        return switch (System.getProperty("oriel.parser", "new")) {
             case "old" -> Mode.OLD;
             case "new" -> Mode.NEW;
             case "both" -> Mode.BOTH;
