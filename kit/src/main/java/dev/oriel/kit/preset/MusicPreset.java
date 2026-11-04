@@ -196,7 +196,8 @@ public final class MusicPreset implements PageControllers.Controller {
             retarget = 0.11;
             for (int i = 0; i < BARS; i++) {
                 double shape = 0.55 + 0.45 * Math.sin(i * 0.7 + now / 900);
-                targets[i] = playing ? (float) (volume * shape * (0.35 + random.nextFloat() * 0.65)) : 0;
+                // The volume scales the bars only a little, so the spectrum uses its height at any volume.
+                targets[i] = playing ? (float) Math.min(1, (0.45 + 0.55 * volume) * shape * (0.45 + random.nextFloat() * 0.6)) : 0;
             }
         }
         for (int i = 0; i < BARS; i++) {

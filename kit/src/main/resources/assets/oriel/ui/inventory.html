@@ -124,6 +124,16 @@
     .bag { gap: 3px; }
 }
 @keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.25); } }
+/* Large GUIs, maximized: 32px slots with 24px items; wider side columns. */
+@media (min-width: 700px) and (min-height: 390px) {
+    [data-window=max] .ore-slot { width: 32px; height: 32px; }
+    [data-window=max] .ore-slot item, [data-window=max] .ore-slot .hint { left: 4px; top: 4px; width: 24px; height: 24px; }
+    [data-window=max] .grid, [data-window=max] .hotbar, [data-window=max] .keys { grid-template-columns: repeat(9, 32px); gap: 2px; }
+    [data-window=max] .doll { width: 176px; }
+    [data-window=max] .info { width: 190px; }
+    [data-window=max] .equip { grid-template-columns: 32px 1fr 32px; grid-template-rows: repeat(4, minmax(32px, 1fr)); }
+    [data-window=max] .bag { gap: 8px; }
+}
 
 .ore-tooltip .tip-name { color: var(--tier); line-height: 10px; }
 .ore-tooltip .tip-line { color: #c4c5c8; line-height: 10px; }

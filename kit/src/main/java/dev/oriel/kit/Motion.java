@@ -24,19 +24,22 @@ public final class Motion {
     public static void play(Element e, String cls, int ms) {
         Document doc = e.ownerDocument();
         e.removeClass(cls);
-        doc.scheduler().requestAnimationFrame(t -> {
+        // Two frames: a frame's callbacks run before its style, so the removal must be styled in a frame of its own
+        // for the animation to start again.
+        doc.scheduler().requestAnimationFrame(t -> doc.scheduler().requestAnimationFrame(t2 -> {
             e.addClass(cls);
             doc.scheduler().setTimeout(() -> e.removeClass(cls), ms);
-        });
+        }));
     }
 
     /**
-     * Replays a {@code .m-stagger} list's entrance: the class comes off for a frame (so the children's animation
-     * stops) and goes back on, and the children rise again one after another.
+     * Replays a {@code .m-stagger} list's entrance: the class comes off for a styled frame (so the children's
+     * animation stops) and goes back on, and the children rise again one after another.
      */
     public static void stagger(Element list) {
         list.removeClass("m-stagger");
-        list.ownerDocument().scheduler().requestAnimationFrame(t -> list.addClass("m-stagger"));
+        var scheduler = list.ownerDocument().scheduler();
+        scheduler.requestAnimationFrame(t -> scheduler.requestAnimationFrame(t2 -> list.addClass("m-stagger")));
     }
 
     /**

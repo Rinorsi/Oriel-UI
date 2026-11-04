@@ -48,7 +48,7 @@ class GalleryPresetTest {
     void particlesFillTheirCanvases() {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
         frame(doc, clock, 2000);
-        var canvas = doc.querySelector(".hero canvas[data-fx=stars]");
+        var canvas = doc.querySelector(".stage canvas[data-fx=stars]");
         assertTrue(Integer.parseInt(canvas.getAttribute("width")) > 100, "the canvas takes its box's width");
     }
 }

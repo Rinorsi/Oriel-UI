@@ -42,4 +42,17 @@ class CatalogPresetTest {
         frame(doc, clock, 16);
         assertTrue(doc.querySelector(".sec[data-sec=buttons]").hasClass("on"));
     }
+
+    @Test
+    void theStaggerDemoReplays() {
+        Document doc = host.open(OrielKit.CATALOG, new CatalogPreset(), 640, 360);
+        for (int i = 0; i < 60; i++) frame(doc, clock, 16);
+        var last = doc.getElementById("stagger").children().getLast();
+        assertEquals(1f, last.computedStyle().opacity, 0.01f, "the entrance has finished");
+        doc.querySelector("[data-demo=stagger]").click();
+        for (int i = 0; i < 4; i++) frame(doc, clock, 16);
+        assertTrue(last.computedStyle().opacity < 0.9f, "the boxes rise again: " + last.computedStyle().opacity);
+        for (int i = 0; i < 60; i++) frame(doc, clock, 16);
+        assertEquals(1f, last.computedStyle().opacity, 0.01f);
+    }
 }

@@ -4,54 +4,75 @@
 <title>优易库 · Oriel UI</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* The launcher, in the same window as every other page (moving between pages changes only the content). Left: the
-   hero, a pixel night landscape with the headline. Right: the
-   destinations, one row each, every row with a live preview that grows with the row, so a large GUI gets bigger
-   previews rather than empty tiles. */
+/* The launcher, in the same window as every other page (moving between pages changes only the content): a bento
+   grid. Every tile is a header and a live preview that fills the rest of the tile, so a larger GUI gives bigger
+   previews, never empty tiles. */
 
-/* Title bar: brand and tabs (shared with the other top-level pages), key hints, the look switches. */
 .o-seg > span { gap: 3px; }
 
-.home-body { flex: 1; min-width: 0; display: flex; gap: 6px; padding: 6px; }
+.bento { flex: 1; min-width: 0; display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr; grid-template-rows: auto 1fr; gap: 6px; padding: 6px; }
+/* The fourth column of the top row: the forge over the music player. */
+.side { grid-column: 4; grid-row: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.side > .card { flex: 1; }
 
-/* Hero: one picture, a headline and two buttons, with room to breathe. The picture leaves the upper left open for
-   the words; it stays a night scene in both themes, so its text is always light. */
-.hero { flex: 1.35; min-width: 0; position: relative; overflow: hidden; background-color: #1b1838;
-    background-image: url(../textures/ui/hero_bg.png); background-size: cover; background-position: 78% 50%; image-rendering: pixelated;
+/* ---- Tiles: a header, then the preview filling the rest ---- */
+.card { position: relative; min-height: 0; min-width: 0; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 5px;
     animation: m-pop var(--m-slow) var(--m-spring) both; }
-.hero .scrim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
-    background: radial-gradient(ellipse at 0% 20%, rgba(14, 12, 34, 0.55), rgba(14, 12, 34, 0) 60%); }
-.hero .pitch { position: absolute; left: 7%; top: 13%; right: 30%; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
-    animation: fx-rise 700ms var(--o-ease-out) 120ms both; }
-.hero .tag { color: #b9b2e0; letter-spacing: 1px; white-space: nowrap; }
-.hero .o-h1 { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
-.hero .o-h1 em { font-style: normal; color: #a8f2dc; }
-.hero .actions { display: flex; gap: 4px; margin-top: 4px; }
-.hero .actions .ore-btn { flex: none; white-space: nowrap; min-height: 18px; padding: 0 8px; }
-
-/* Destinations. */
-.dests { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 4px; }
-.card { position: relative; flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; gap: 6px; padding: 3px 3px 3px 6px;
-    animation: m-pop var(--m-slow) var(--m-spring) both; }
-.card .ic { flex: none; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: var(--o-well); border: 1px solid var(--o-line-strong); }
-.card .ic .o-ico { -mc-tint: var(--o-text-dim); transition: -mc-tint 160ms; }
-.card.hot:hover .ic .o-ico, .card.hot:focus .ic .o-ico { -mc-tint: var(--o-accent-strong); }
-.card .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.card .label { color: var(--o-text); }
-.card .sub { color: var(--o-text-dim); line-height: 10px; }
-/* The live preview: a recessed well at the row's right end, as tall as the row. */
-.card .thumb { position: relative; flex: none; align-self: stretch; width: 38%; overflow: hidden; background: var(--o-well); border: 1px solid var(--o-line); }
-.card .go { position: absolute; right: 4px; top: 50%; margin-top: -8px; opacity: 0; transform: translateX(-4px); transition: opacity 160ms, transform 160ms var(--m-out); -mc-tint: var(--o-text); }
+.card .head { flex: none; display: flex; align-items: center; gap: 4px; }
+.card .head .o-ico { -mc-tint: var(--o-text-dim); transition: -mc-tint 160ms; }
+.card.hot:hover .head .o-ico, .card.hot:focus .head .o-ico { -mc-tint: var(--o-accent-strong); }
+.card .label { flex: 1; min-width: 0; color: var(--o-text); white-space: nowrap; overflow: hidden; }
+.card .go { opacity: 0; transform: translateX(-4px); transition: opacity 160ms, transform 160ms var(--m-out); }
 .card:hover .go { opacity: 1; transform: none; }
+.card .thumb { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--o-well); border: 1px solid var(--o-line); }
 .card:hover .thumb { border-color: var(--o-line-strong); }
+.bento > .card:nth-child(2) { animation-delay: 60ms; }
+.bento > .card:nth-child(3) { animation-delay: 100ms; }
+.bento > .card:nth-child(4) { animation-delay: 140ms; }
+.bento > .card:nth-child(5) { animation-delay: 180ms; }
+.bento > .card:nth-child(6) { animation-delay: 220ms; }
+.bento > .card:nth-child(7) { animation-delay: 260ms; }
+.bento > .card:nth-child(8) { animation-delay: 300ms; }
 
-.inv entity { position: absolute; left: 0; top: 0; right: 0; bottom: 0; -mc-entity-focus: center; -mc-model-scale: 1.7; -mc-pitch: 6deg; }
-.forge model { position: absolute; left: 10%; top: 4%; width: 80%; height: 92%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
+/* ---- Stage: the picture and the words (a night scene in both themes, so the words are always light) ---- */
+.stage { grid-column: 1 / 3; grid-row: 1; aspect-ratio: 2 / 1; padding: 0; justify-content: center; background-color: #1b1838;
+    background-image: url(../textures/ui/hero_bg.png); background-size: cover; background-position: 70% 45%; image-rendering: pixelated; }
+.stage .scrim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
+    background: linear-gradient(to right, rgba(14, 12, 34, 0.62), rgba(14, 12, 34, 0.25) 50%, rgba(14, 12, 34, 0) 75%); }
+/* Moving masks: drifting mist low over the lake and a soft light sweep now and then. */
+.stage .mist { position: absolute; left: 0; bottom: 0; width: 200%; height: 50%; pointer-events: none; animation: mist 48s linear infinite;
+    background: radial-gradient(ellipse at 12% 80%, rgba(196, 204, 255, 0.16), rgba(196, 204, 255, 0) 22%),
+        radial-gradient(ellipse at 37% 95%, rgba(168, 242, 220, 0.12), rgba(168, 242, 220, 0) 24%),
+        radial-gradient(ellipse at 62% 80%, rgba(196, 204, 255, 0.16), rgba(196, 204, 255, 0) 22%),
+        radial-gradient(ellipse at 87% 95%, rgba(168, 242, 220, 0.12), rgba(168, 242, 220, 0) 24%); }
+@keyframes mist { to { transform: translateX(-50%); } }
+.stage .sheen { position: absolute; top: 0; bottom: 0; left: 0; width: 26%; pointer-events: none; animation: sheen 11s ease-in-out 2.4s infinite;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(214, 236, 255, 0.10), rgba(255, 255, 255, 0)); transform: translateX(-120%); }
+@keyframes sheen { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(420%); } }
+.stage .pitch { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 0 8%;
+    animation: fx-rise 700ms var(--o-ease-out) 200ms both; }
+.stage .tag { color: #b9b2e0; letter-spacing: 1px; white-space: nowrap; }
+.stage .o-h1 { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
+.stage .o-h1 em { font-style: normal; color: #a8f2dc; }
+.stage .actions { display: flex; gap: 4px; margin-top: 4px; }
+.stage .actions .ore-btn { flex: none; white-space: nowrap; min-height: 18px; padding: 0 8px; }
+
+/* ---- The other tiles ---- */
+.inv { grid-column: 3; grid-row: 1; }
+.inv entity { position: absolute; left: 0; top: 3%; width: 100%; height: 94%; }
+.inv .floor { position: absolute; left: 20%; right: 20%; bottom: 2px; height: 12px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 70%); }
+.inv .thumb { background: linear-gradient(rgba(0, 0, 0, 0) 60%, rgba(255, 255, 255, 0.04)),
+    repeating-linear-gradient(to right, rgba(255, 255, 255, 0.035) 0 1px, rgba(0, 0, 0, 0) 1px 12px), var(--o-well); }
+
+.forge { }
+.forge model { position: absolute; left: 12%; top: 4%; width: 76%; height: 94%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
 .forge:hover model { -mc-yaw: 210deg; }
-.editor model { position: absolute; right: 2%; top: 8%; width: 40%; height: 84%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
-.editor:hover model { -mc-yaw: 210deg; }
+.forge .thumb { background: radial-gradient(ellipse at 50% 85%, rgba(255, 150, 60, 0.20), rgba(255, 150, 60, 0) 60%), var(--o-well); }
 
-.spectrum { position: absolute; left: 6px; right: 6px; top: 4px; bottom: 4px; display: flex; align-items: flex-end; gap: 2px; }
+.music { }
+.music .thumb { display: flex; flex-direction: column; gap: 3px; padding: 4px 5px; }
+.spectrum { position: relative; flex: 1; min-height: 6px; display: flex; align-items: flex-end; gap: 2px; }
 .spectrum i { flex: 1; height: 30%; background: repeating-linear-gradient(to top, var(--o-accent-strong) 0 2px, rgba(0, 0, 0, 0) 2px 3px);
     animation: band 900ms ease-in-out infinite alternate; }
 @keyframes band { from { height: 15%; } to { height: 95%; } }
@@ -62,52 +83,77 @@
 .spectrum i:nth-child(6) { animation-delay: -0.6s; }
 .spectrum i:nth-child(7) { animation-delay: -0.4s; }
 .spectrum i:nth-child(8) { animation-delay: -0.9s; }
+.track { flex: none; display: flex; justify-content: space-between; gap: 4px; color: var(--o-text-dim); white-space: nowrap; }
+.track b { font-weight: normal; color: var(--o-text); }
+.progress { flex: none; position: relative; height: 2px; background: var(--o-line-strong); }
+.progress i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--o-text-dim); animation: play 30s linear infinite; }
+@keyframes play { to { width: 100%; } }
 
-/* The game's own effect textures (any mod's effect has one at <namespace>:textures/mob_effect/<path>.png). */
-.effs { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; gap: 2px; }
-.effs span { position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--o-line-strong); }
-.effs span.good { border-bottom-color: #6cc349; }
-.effs span.bad { border-bottom-color: #e25a5a; }
-.effs img { width: 16px; height: 16px; }
+/* Potion HUD: the game's own effect textures (any mod's effect has one at <namespace>:textures/mob_effect/<path>.png);
+   the list takes as many rows as the tile holds. */
+.hud { grid-column: 1; grid-row: 2; }
+.effs { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 3px; padding: 4px; overflow: hidden; }
+.effs .e { position: relative; flex: none; display: flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 4px; overflow: hidden; }
+.effs .e::before { content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 2px; background: #6cc349; }
+.effs .e.bad::before { background: #e25a5a; }
+.effs .e .left { position: absolute; left: 0; top: 0; bottom: 0; width: var(--t); background: color-mix(in srgb, #6cc349 14%, transparent); }
+.effs .e.bad .left { background: color-mix(in srgb, #e25a5a 14%, transparent); }
+.effs .e img { position: relative; width: 16px; height: 16px; flex: none; }
+.effs .e b { position: relative; flex: 1; font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; }
+.effs .e span { position: relative; color: var(--o-text-dim); }
+.effs .e:nth-child(n+4) { display: none; }
 
-.mock { position: absolute; left: 4px; top: 4px; bottom: 4px; right: 44%;
+/* Component editor: a miniature canvas with a selected element and the crafting table. */
+.editor { grid-column: 2; grid-row: 2; }
+.mock { position: absolute; left: 4px; top: 4px; bottom: 4px; right: 36%;
     background-image: repeating-linear-gradient(to right, var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px), repeating-linear-gradient(var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px); }
 .mock i { position: absolute; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
-.mock .a { left: 8%; top: 12%; width: 60%; height: 26%; }
-.mock .b { left: 8%; top: 50%; width: 26%; height: 38%; }
-.mock .c { left: 42%; top: 50%; width: 46%; height: 38%; border-color: var(--o-accent-strong); animation: nudge 3.2s var(--m-out) infinite; }
-@keyframes nudge { 0%, 40% { left: 42%; } 60%, 100% { left: 50%; } }
+.mock .a { left: 6%; top: 10%; width: 58%; height: 24%; }
+.mock .b { left: 6%; top: 46%; width: 24%; height: 42%; }
+.mock .c { left: 38%; top: 46%; width: 48%; height: 42%; border-color: var(--o-accent-strong); animation: nudge 3.2s var(--m-out) infinite; }
+@keyframes nudge { 0%, 40% { left: 38%; } 60%, 100% { left: 46%; } }
+.editor model { position: absolute; right: 2%; top: 6%; width: 32%; height: 88%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
+.editor:hover model { -mc-yaw: 210deg; }
 
-.settings .thumb { display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 0 6px; }
-.settings .thumb div { display: flex; align-items: center; justify-content: space-between; color: var(--o-text-dim); }
+/* Settings: rows spread over the tile. */
+.settings { grid-column: 3; grid-row: 2; }
+.settings .thumb { display: flex; flex-direction: column; justify-content: space-evenly; padding: 2px 6px; }
+.settings .thumb > div { display: flex; align-items: center; justify-content: space-between; gap: 4px; color: var(--o-text-dim); white-space: nowrap; }
+.settings .mini-slider { position: relative; width: 40%; height: 4px; background: var(--o-line-strong); }
+.settings .large { display: none; }
+.settings .mini-slider i { position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: var(--o-accent-strong); }
 
-.dests > .card:nth-child(1) { animation-delay: 60ms; }
-.dests > .card:nth-child(2) { animation-delay: 100ms; }
-.dests > .card:nth-child(3) { animation-delay: 140ms; }
-.dests > .card:nth-child(4) { animation-delay: 180ms; }
-.dests > .card:nth-child(5) { animation-delay: 220ms; }
-.dests > .card:nth-child(6) { animation-delay: 260ms; }
+/* The figures. */
+/* The figures, along the bottom of the picture. */
+.stats { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 16px; padding: 6px 8% 7px;
+    background: linear-gradient(rgba(10, 9, 24, 0), rgba(10, 9, 24, 0.78) 40%); animation: fx-rise 700ms var(--o-ease-out) 320ms both; }
+.stats .s { display: flex; align-items: baseline; gap: 4px; }
+.stats .v { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); }
+.stats .k { color: #b9b2e0; white-space: nowrap; }
 
-/* Small GUIs (427×240 is 1280×720 at GUI scale 3): icons only in the title bar, one line per row. */
-@media (max-width: 560px) {
-    .o-seg em { display: none; }
-}
+/* Components: a few live controls. */
+.kit { grid-column: 4; grid-row: 2; }
+.kit .thumb { display: flex; flex-direction: column; justify-content: space-evenly; align-items: flex-start; gap: 3px; padding: 3px 6px; }
+.kit .thumb > div { display: flex; align-items: center; gap: 3px; }
+.kit .ore-btn { min-height: 14px; padding: 0 5px; }
+
+/* Small GUIs (427×240 is 1280×720 at GUI scale 3). */
+@media (max-width: 560px) { .o-seg em { display: none; } }
 @media (max-width: 700px) { .o-hints { display: none; } }
 [data-window=mini] .o-hints { display: none; }
 @media (max-height: 300px) {
-    .card .sub { display: none; }
-    .hero .pitch { left: 10px; top: 12px; right: 6px; gap: 6px; }
-    .settings .thumb div:nth-child(2) { display: none; }
-    .settings .thumb div { justify-content: center; font-size: 0; }
-    .effs span:nth-child(n+4) { display: none; }
+    .stage .tag { display: none; }
+    .stage .pitch { gap: 6px; padding: 0 10px; }
+    .track, .progress, .stats, .settings .more, .kit .more { display: none; }
 }
-/* Large GUIs, maximized (the window mode decides the room, not only the screen): a bigger headline, roomier rows. */
+/* Large GUIs, maximized (the window mode decides the room, not only the screen). */
 @media (min-width: 760px) and (min-height: 400px) {
-    [data-window=max] .hero .pitch { gap: 12px; }
-    [data-window=max] .hero .o-h1 { font-size: 24px; line-height: 26px; }
-    [data-window=max] .card { gap: 8px; padding: 4px 4px 4px 8px; }
-    [data-window=max] .card .ic { width: 28px; height: 28px; }
-    [data-window=max] .effs span { width: 22px; height: 22px; }
+    [data-window=max] .stage .pitch { gap: 12px; }
+    [data-window=max] .stage .o-h1 { font-size: 20px; line-height: 22px; }
+    [data-window=max] .card { padding: 7px; gap: 6px; }
+    [data-window=max] .effs .e { height: 20px; }
+    [data-window=max] .effs .e:nth-child(-n+5) { display: flex; }
+    [data-window=max] .settings .large { display: flex; }
 }
 </style>
 </head>
@@ -123,7 +169,7 @@
       <i class="m-indicator" id="indicator"></i>
     </div>
     <div class="o-grow"></div>
-    <div class="o-hints"><span><span class="o-kbd">T</span>主题</span><span><span class="o-kbd">Tab</span>焦点</span><span><span class="o-kbd">Esc</span>关闭</span></div>
+    <div class="o-hints"><span><span class="o-kbd">T</span>主题</span><span><span class="o-kbd">Esc</span>关闭</span></div>
     <div class="o-seg">
       <span data-style-pick="ore" title="像素斜角"><img class="o-ico" src="../textures/icons/grid.png"><em>像素</em></span>
       <span data-style-pick="smooth" title="圆角与柔和阴影"><img class="o-ico" src="../textures/icons/layers.png"><em>平滑</em></span>
@@ -136,13 +182,21 @@
   </div>
 
   <div class="o-body">
-  <div class="home-body">
-    <div class="hero o-tile">
-      <canvas class="fx" data-fx="stars" data-rate="2" data-seed="11"></canvas>
+  <div class="bento" id="cards">
+    <div class="card stage o-tile m-spot">
       <div class="scrim"></div>
+      <div class="mist"></div>
+      <div class="sheen"></div>
+      <canvas class="fx" data-fx="stars" data-rate="2" data-seed="11"></canvas>
+      <div class="stats">
+        <div class="s"><span class="v" data-count="77">0</span><span class="k">像素图标</span></div>
+        <div class="s"><span class="v" data-count="11">0</span><span class="k">组件分类</span></div>
+        <div class="s"><span class="v" data-count="8">0</span><span class="k">粒子预设</span></div>
+        <div class="s"><span class="v" data-count="6">0</span><span class="k">构建目标</span></div>
+      </div>
       <div class="pitch">
-        <div class="tag">0.2 预览 · Minecraft 26.1 – 26.3</div>
-        <div class="o-h1">用网页的方式<br><em>做 Minecraft 界面</em></div>
+        <div class="tag">ORIEL UI · 0.2</div>
+        <div class="o-h1">新一代<br><em>Minecraft 界面框架</em></div>
         <div class="actions">
           <div class="ore-btn hero m-ripple" data-go="inventory" data-zoom tabindex="0"><img class="o-ico" src="../textures/icons/play.png">开始体验</div>
           <div class="ore-btn secondary m-ripple" data-go="catalog" tabindex="0"><img class="o-ico" src="../textures/icons/grid.png">组件目录</div>
@@ -150,41 +204,60 @@
       </div>
     </div>
 
-    <div class="dests" id="cards">
-      <div class="card inv o-tile hot m-spot" tabindex="0" data-go="inventory" data-zoom>
-        <div class="ic"><img class="o-ico" src="../textures/icons/bag.png"></div>
-        <div class="txt"><div class="label">背包</div></div>
-        <div class="thumb"><entity player follow-mouse></entity></div>
+    <div class="card inv o-tile hot m-spot" tabindex="0" data-go="inventory" data-zoom>
+      <div class="head"><img class="o-ico" src="../textures/icons/bag.png"><span class="label">背包</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb"><div class="floor"></div><entity player follow-mouse></entity></div>
+    </div>
+
+    <div class="side">
+    <div class="card forge o-tile hot m-spot" tabindex="0" data-go="forge" data-zoom>
+      <div class="head"><img class="o-ico" src="../textures/icons/hammer.png"><span class="label">锻造台</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb"><canvas class="fx" data-fx="embers" data-rate="7" data-seed="2"></canvas><model block="minecraft:anvil"></model></div>
+    </div>
+
+    <div class="card music o-tile hot m-spot" tabindex="0" data-go="music" data-zoom>
+      <div class="head"><img class="o-ico" src="../textures/icons/music.png"><span class="label">音乐播放器</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb">
+        <div class="spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="track"><b>Sweden</b><span>C418</span></div>
+        <div class="progress"><i></i></div>
       </div>
-      <div class="card forge o-tile hot m-spot" tabindex="0" data-go="forge" data-zoom>
-        <div class="ic"><img class="o-ico" src="../textures/icons/hammer.png"></div>
-        <div class="txt"><div class="label">锻造台</div></div>
-        <div class="thumb"><canvas class="fx" data-fx="embers" data-rate="7" data-seed="2"></canvas><model block="minecraft:anvil"></model></div>
+    </div>
+    </div>
+
+    <div class="card hud o-tile hot m-spot" tabindex="0" data-page="potions">
+      <div class="head"><img class="o-ico" src="../textures/icons/flask.png"><span class="label">药水 HUD</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb"><div class="effs">
+        <div class="e" style="--t: 70%"><i class="left"></i><img src="minecraft:textures/mob_effect/speed.png"><b>迅捷 II</b><span>1:30</span></div>
+        <div class="e" style="--t: 90%"><i class="left"></i><img src="minecraft:textures/mob_effect/strength.png"><b>力量</b><span>3:00</span></div>
+        <div class="e bad" style="--t: 20%"><i class="left"></i><img src="minecraft:textures/mob_effect/poison.png"><b>中毒</b><span>0:12</span></div>
+        <div class="e" style="--t: 100%"><i class="left"></i><img src="minecraft:textures/mob_effect/night_vision.png"><b>夜视</b><span>8:00</span></div>
+        <div class="e" style="--t: 45%"><i class="left"></i><img src="minecraft:textures/mob_effect/regeneration.png"><b>生命恢复</b><span>0:45</span></div>
+        <div class="e" style="--t: 60%"><i class="left"></i><img src="minecraft:textures/mob_effect/haste.png"><b>急迫 II</b><span>2:10</span></div>
+      </div></div>
+    </div>
+
+    <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
+      <div class="head"><img class="o-ico" src="../textures/icons/layers.png"><span class="label">组件编辑器</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb"><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><model block="minecraft:crafting_table"></model></div>
+    </div>
+
+    <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
+      <div class="head"><img class="o-ico" src="../textures/icons/gear.png"><span class="label">设置</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb">
+        <div>垂直同步<span class="ore-toggle on"></span></div>
+        <div>粒子效果<span class="ore-toggle on"></span></div>
+        <div class="more">界面缩放<span class="mini-slider"><i></i></span></div>
+        <div class="more large">鼠标灵敏度<span class="mini-slider"><i style="width: 45%"></i></span></div>
       </div>
-      <div class="card hud o-tile hot m-spot" tabindex="0" data-page="potions">
-        <div class="ic"><img class="o-ico" src="../textures/icons/flask.png"></div>
-        <div class="txt"><div class="label">药水 HUD</div></div>
-        <div class="thumb"><div class="effs">
-          <span class="good"><img src="minecraft:textures/mob_effect/speed.png"></span>
-          <span class="good"><img src="minecraft:textures/mob_effect/strength.png"></span>
-          <span class="bad"><img src="minecraft:textures/mob_effect/poison.png"></span>
-          <span class="good"><img src="minecraft:textures/mob_effect/night_vision.png"></span>
-        </div></div>
-      </div>
-      <div class="card music o-tile hot m-spot" tabindex="0" data-go="music" data-zoom>
-        <div class="ic"><img class="o-ico" src="../textures/icons/music.png"></div>
-        <div class="txt"><div class="label">音乐播放器</div></div>
-        <div class="thumb"><div class="spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-      </div>
-      <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
-        <div class="ic"><img class="o-ico" src="../textures/icons/layers.png"></div>
-        <div class="txt"><div class="label">组件编辑器</div></div>
-        <div class="thumb"><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><model block="minecraft:crafting_table"></model></div>
-      </div>
-      <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
-        <div class="ic"><img class="o-ico" src="../textures/icons/gear.png"></div>
-        <div class="txt"><div class="label">设置</div></div>
-        <div class="thumb"><div>垂直同步<span class="ore-toggle on"></span></div><div>粒子效果<span class="ore-toggle on"></span></div></div>
+    </div>
+
+    <div class="card kit o-tile hot m-spot" tabindex="0" data-go="catalog">
+      <div class="head"><img class="o-ico" src="../textures/icons/grid.png"><span class="label">组件目录</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb">
+        <div><span class="ore-btn hero">确认</span><span class="ore-btn secondary">取消</span></div>
+        <div><span class="o-chip on">选中</span><span class="o-chip">芯片</span><span class="o-badge red">9</span></div>
+        <div class="more"><span class="ore-toggle on"></span><span class="o-kbd">Ctrl</span><span class="o-kbd">Z</span></div>
       </div>
     </div>
   </div>

@@ -8,7 +8,8 @@
    24-band LED spectrum with its reflection, and the transport. The queue is on the right; rows drag to reorder.
    "迷你" folds the window into the HUD form: a small bar at the bottom right that keeps playing. */
 .o-main { flex-direction: row; gap: 10px; padding: 10px 10px 8px; }
-.deck { position: relative; width: 132px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.deck { position: relative; width: 132px; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--disc, #c46aff) 14%, transparent), rgba(0, 0, 0, 0) 65%); }
 .platter { position: relative; width: 124px; height: 124px; }
 .vinyl {
     position: absolute; left: 6px; top: 6px; width: 112px; height: 112px; border-radius: 56px;
@@ -60,6 +61,13 @@
 .controls .toggle.on .o-ico { -mc-tint: var(--o-accent-strong); }
 .volume { display: flex; align-items: center; gap: 4px; margin-left: auto; width: 110px; }
 .volume .o-ico { -mc-tint: var(--o-text-dim); }
+
+/* Large GUIs, maximized: a larger record. */
+@media (min-width: 700px) and (min-height: 390px) {
+    [data-window=max] .deck { width: 190px; gap: 14px; }
+    [data-window=max] .platter { transform: scale(1.4); margin: 26px 0; }
+    [data-window=max] .o-side { width: 200px; }
+}
 
 /* The queue. */
 .o-side { width: 176px; padding: 6px 6px 4px; }
