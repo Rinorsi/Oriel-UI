@@ -1,4 +1,4 @@
-package dev.oriel.mod.client;
+package dev.oriel.mod.internal.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -6,8 +6,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.preset.StylesPreset;
-import dev.oriel.mod.Constants;
-import dev.oriel.mod.platform.Services;
+import dev.oriel.mod.client.OrielScreens;
+import dev.oriel.mod.internal.Constants;
+import dev.oriel.mod.internal.platform.Services;
 import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
