@@ -213,6 +213,10 @@ public final class DevAutopilot {
             home(mc);
             return;
         }
+        if (ONLY.equals("reload")) {
+            hotReload(mc);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -1004,6 +1008,24 @@ public final class DevAutopilot {
         grab(mc, "home_gui3_light", 5);
         onPage("dark", p -> p.click("[data-theme-pick=dark]"));
         guiScale(mc, 2);
+    }
+
+    /**
+     * {@code -Pautopilot=reload}: the Java hot reload end to end. Opens the home page and waits (up to 3 minutes) for
+     * the reload bar (edit a Java file meanwhile), presses its button, waits for the result and screenshots it.
+     */
+    private static void hotReload(Minecraft mc) {
+        guiScale(mc, 2);
+        shoot(mc, "reload_open", () -> OrielClientCommands.preset("gallery"));
+        until("the reload bar showed", t -> OrielAutomation.screen().map(p -> p.exists("#o-devbar")).orElse(false), 3600,
+                "no reload bar", true);
+        grab(mc, "reload_bar", 5);
+        onPage("press 热重载", p -> p.click("#o-devbar .ore-btn"));
+        until("the reload finished", t -> OrielAutomation.screen().flatMap(p -> p.text("#o-devbar .t"))
+                .map(s -> s.startsWith("已") || s.contains("失败") || s.contains("重启")).orElse(false), 7200, "no result", true);
+        pause(10);
+        grab(mc, "reload_done", 5);
+        onPage("the result", p -> Constants.LOG.info("Oriel autopilot: reload bar says {}", p.text("#o-devbar .t").orElse("(gone)")));
     }
 
     /** Play mode: things to try, the home page open, and a chat note on what to look at. */

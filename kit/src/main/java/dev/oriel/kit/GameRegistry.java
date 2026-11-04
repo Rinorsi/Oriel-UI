@@ -27,6 +27,9 @@ public final class GameRegistry {
     }
 
     private static volatile Supplier<List<Entry>> source = GameRegistry::fixture;
+    private static volatile Supplier<List<Entry>> entitySource = GameRegistry::entityFixture;
+    private static volatile List<Entry> entities;
+    private static volatile Map<String, Entry> entityById = Map.of();
     private static volatile List<Entry> cached;
     private static volatile Map<String, Entry> byId = Map.of();
 
@@ -36,6 +39,41 @@ public final class GameRegistry {
     public static void provide(Supplier<List<Entry>> entries) {
         source = entries;
         cached = null;
+    }
+
+    /** Sets where the entity types come from (the mod: the entity registry, named in the game's language). */
+    public static void provideEntities(Supplier<List<Entry>> types) {
+        entitySource = types;
+        entities = null;
+    }
+
+    /** Every entity type that can be shown (vanilla and modded), read again from the source. */
+    public static List<Entry> refreshEntities() {
+        List<Entry> all = List.copyOf(entitySource.get());
+        Map<String, Entry> map = new HashMap<>();
+        for (Entry e : all) map.put(e.id(), e);
+        entityById = map;
+        entities = all;
+        return all;
+    }
+
+    public static List<Entry> entities() {
+        List<Entry> all = entities;
+        return all != null ? all : refreshEntities();
+    }
+
+    /** The display name of entity type {@code id}, or the id. */
+    public static String entityName(String id) {
+        if (entities == null) entities();
+        Entry e = entityById.get(id);
+        return e == null ? id : e.name();
+    }
+
+    /** The spawn egg item for entity type {@code id} when the game has one (its icon in pickers), else null. */
+    public static String spawnEgg(String id) {
+        String egg = id + "_spawn_egg";
+        if (cached == null) entries();
+        return byId.containsKey(egg) ? egg : null;
     }
 
     /** Every entry, read again from the source (names follow a language change). */
@@ -68,6 +106,16 @@ public final class GameRegistry {
         return e == null ? id : e.name();
     }
 
+    private static List<Entry> entityFixture() {
+        String[][] types = {
+                {"minecraft:pig", "猪"}, {"minecraft:cow", "牛"}, {"minecraft:sheep", "绵羊"}, {"minecraft:chicken", "鸡"},
+                {"minecraft:fox", "狐狸"}, {"minecraft:wolf", "狼"}, {"minecraft:cat", "猫"}, {"minecraft:axolotl", "美西螈"},
+                {"minecraft:bee", "蜜蜂"}, {"minecraft:allay", "悦灵"}, {"minecraft:villager", "村民"}, {"minecraft:iron_golem", "铁傀儡"},
+                {"minecraft:zombie", "僵尸"}, {"minecraft:skeleton", "骷髅"}, {"minecraft:creeper", "苦力怕"}, {"minecraft:enderman", "末影人"},
+        };
+        return java.util.Arrays.stream(types).map(t -> new Entry(t[0], t[1], false)).toList();
+    }
+
     private static List<Entry> fixture() {
         String[][] items = {
                 {"minecraft:diamond", "钻石", "0"}, {"minecraft:emerald", "绿宝石", "0"}, {"minecraft:gold_ingot", "金锭", "0"},
@@ -85,6 +133,7 @@ public final class GameRegistry {
                 {"minecraft:anvil", "铁砧", "1"}, {"minecraft:enchanting_table", "附魔台", "1"}, {"minecraft:beacon", "信标", "1"},
                 {"minecraft:diamond_block", "钻石块", "1"}, {"minecraft:tnt", "TNT", "1"}, {"minecraft:bookshelf", "书架", "1"},
                 {"minecraft:lantern", "灯笼", "1"}, {"minecraft:jukebox", "唱片机", "1"}, {"minecraft:note_block", "音符盒", "1"},
+                {"minecraft:pig_spawn_egg", "猪刷怪蛋", "0"}, {"minecraft:fox_spawn_egg", "狐狸刷怪蛋", "0"}, {"minecraft:creeper_spawn_egg", "苦力怕刷怪蛋", "0"},
         };
         return java.util.Arrays.stream(items).map(i -> new Entry(i[0], i[1], i[2].equals("1"))).toList();
     }

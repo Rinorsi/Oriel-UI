@@ -165,4 +165,24 @@ class EditorPresetTest {
         assertFalse(doc.getElementById("ctx").hasClass("open"));
         assertEquals(before + 1, editor.parts.size());
     }
+
+    @Test
+    void anEntityPartPicksFromTheEntityTypes() {
+        EditorPreset editor = open();
+        editor.place("entity", 100, 80);
+        EditorPreset.Part entity = editor.selected().getFirst();
+        assertEquals("minecraft:fox", entity.text);
+        frame(doc, clock, 16);
+        assertTrue(doc.querySelector(".node.k-entity entity") != null, "a live entity on the artboard");
+        assertTrue(doc.getElementById("picked").textContent().contains("狐狸"));
+        click(doc, "#picked", 0, Modifiers.NONE, clock);
+        assertEquals("选择实体", doc.getElementById("pick-title").textContent());
+        var q = doc.getElementById("pick-q");
+        q.setValue("苦力怕");
+        q.dispatchEvent(new dev.oriel.engine.event.Event("input", true, false));
+        assertEquals(1, doc.querySelectorAll("#pick-grid .pick").size());
+        assertTrue(doc.querySelector("#pick-grid .pick item") != null, "shown by its spawn egg");
+        click(doc, "#pick-grid .pick", 0, Modifiers.NONE, clock);
+        assertEquals("minecraft:creeper", entity.text);
+    }
 }

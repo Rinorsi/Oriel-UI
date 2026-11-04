@@ -60,9 +60,9 @@ public final class EditorPreset implements PageControllers.Controller {
     }
 
     static final Map<String, String> KIND_NAMES = Map.of("button", "按钮", "panel", "面板", "title", "标题", "text", "文本",
-            "slot", "物品格", "toggle", "开关", "meter", "进度条", "block", "3D 方块");
+            "slot", "物品格", "toggle", "开关", "meter", "进度条", "block", "3D 方块", "entity", "3D 实体");
     static final Map<String, String> KIND_ICONS = Map.of("button", "mouse", "panel", "layers", "title", "file", "text", "list",
-            "slot", "gem", "toggle", "sliders", "meter", "bolt", "block", "cube");
+            "slot", "gem", "toggle", "sliders", "meter", "bolt", "block", "cube", "entity", "paw");
     static final List<String> VARIANTS = List.of("hero", "primary", "secondary", "destructive", "neutral");
     static final List<String> TIERS = List.of("common", "uncommon", "rare", "epic", "legendary");
 
@@ -270,9 +270,12 @@ public final class EditorPreset implements PageControllers.Controller {
     void openPicker(Part p) {
         picking = p;
         GameRegistry.refresh();
-        pickKind = p.kind.equals("block") ? "block" : "all";
+        boolean entity = p.kind.equals("entity");
+        if (entity) GameRegistry.refreshEntities();
+        pickKind = entity ? "entity" : p.kind.equals("block") ? "block" : "all";
         for (Element k : doc.querySelectorAll("#pick-kind [data-k]")) k.toggleClass("on", k.getAttribute("data-k").equals(pickKind));
-        Dom.text(Dom.byId(doc, "pick-title"), p.kind.equals("block") ? "选择方块" : "选择物品");
+        Dom.byId(doc, "pick-kind").toggleClass("o-hidden", entity);
+        Dom.text(Dom.byId(doc, "pick-title"), entity ? "选择实体" : p.kind.equals("block") ? "选择方块" : "选择物品");
         Dom.byId(doc, "pick-q").setValue("");
         Dom.text(Dom.byId(doc, "pick-hover"), "");
         Dom.byId(doc, "pick-box").addClass("on");
@@ -290,16 +293,15 @@ public final class EditorPreset implements PageControllers.Controller {
         grid.removeAllChildren();
         String query = Dom.byId(doc, "pick-q").value().trim().toLowerCase(Locale.ROOT);
         int total = 0;
-        for (GameRegistry.Entry e : GameRegistry.entries()) {
+        boolean entity = pickKind.equals("entity");
+        for (GameRegistry.Entry e : entity ? GameRegistry.entities() : GameRegistry.entries()) {
             if (pickKind.equals("block") && !e.block() || pickKind.equals("item") && e.block()) continue;
             if (!e.matches(query)) continue;
             if (++total > PICK_LIMIT) continue;
             Element cell = Dom.el(doc, "div", "pick", null);
             cell.setAttribute("data-id", e.id());
             cell.toggleClass("on", picking != null && e.id().equals(picking.text));
-            Element item = Dom.el(doc, "item", null, null);
-            item.setAttribute("id", e.id());
-            cell.appendChild(item);
+            cell.appendChild(entity ? entityFace(e.id()) : itemFace(e.id()));
             cell.appendChild(Dom.el(doc, "span", "nm", e.name()));
             Dom.onMouse(cell, "mouseenter", ev -> Dom.text(Dom.byId(doc, "pick-hover"), e.name() + "  " + e.id()));
             Shell.activate(cell, () -> choose(e));
@@ -389,6 +391,7 @@ public final class EditorPreset implements PageControllers.Controller {
             case "text" -> "一段文字";
             case "slot" -> "minecraft:emerald";
             case "block" -> "minecraft:grass_block";
+            case "entity" -> "minecraft:fox";
             default -> "";
         };
         p.variant = kind.equals("button") ? "primary" : "";
@@ -399,6 +402,7 @@ public final class EditorPreset implements PageControllers.Controller {
 
     private static int[] defaultSize(String kind) {
         return switch (kind) {
+            case "entity" -> new int[] {48, 64};
             case "button" -> new int[] {64, 20};
             case "panel" -> new int[] {96, 64};
             case "title" -> new int[] {96, 18};
@@ -880,6 +884,7 @@ public final class EditorPreset implements PageControllers.Controller {
             case "slot" -> "<div class=\"ore-slot\"><item id=\"" + text + "\"></item></div>";
             case "toggle" -> "<div class=\"ore-toggle on\"></div>";
             case "meter" -> "<div class=\"o-meter\" style=\"--value: 0.6\"><i></i></div>";
+            case "entity" -> "<entity type=\"" + text + "\"></entity>";
             case "block" -> GameRegistry.isBlock(p.text) ? "<model block=\"" + text + "\"></model>" : "<model item=\"" + text + "\"></model>";
             default -> "";
         };
@@ -899,6 +904,7 @@ public final class EditorPreset implements PageControllers.Controller {
             row.appendChild(icon(KIND_ICONS.getOrDefault(p.kind, "layers"), "o-ico"));
             row.appendChild(Dom.el(doc, "span", "nm", p.name));
             if (p.kind.equals("slot") || p.kind.equals("block")) row.setAttribute("title", GameRegistry.name(p.text) + " · " + p.text);
+            if (p.kind.equals("entity")) row.setAttribute("title", GameRegistry.entityName(p.text) + " · " + p.text);
             Element eye = icon(p.visible ? "eye" : "minus", "o-ico tg" + (p.visible ? "" : " on"));
             Element lock = icon(p.locked ? "lock" : "unlock", "o-ico tg" + (p.locked ? " on" : ""));
             row.appendChild(eye);
@@ -952,7 +958,7 @@ public final class EditorPreset implements PageControllers.Controller {
         pos.appendChild(number("高", p.h, v -> p.h = clamp(v, 4, boardH - p.y)));
         inspector.appendChild(pos);
         if (List.of("button", "title", "text").contains(p.kind)) inspector.appendChild(field("文字", p.text, v -> p.text = v));
-        if (List.of("slot", "block").contains(p.kind)) inspector.appendChild(picked(p));
+        if (List.of("slot", "block", "entity").contains(p.kind)) inspector.appendChild(picked(p));
         if (p.kind.equals("button")) {
             inspector.appendChild(Dom.el(doc, "div", "o-caps", "样式"));
             Element seg = Dom.el(doc, "div", "o-seg", null);
@@ -991,16 +997,28 @@ public final class EditorPreset implements PageControllers.Controller {
         Element card = Dom.el(doc, "div", "picked o-tile hot", null);
         card.setAttribute("tabindex", "0");
         card.setAttribute("id", "picked");
-        Element item = Dom.el(doc, "item", null, null);
-        item.setAttribute("id", p.text);
-        card.appendChild(item);
+        boolean entity = p.kind.equals("entity");
+        card.appendChild(entity ? entityFace(p.text) : itemFace(p.text));
         Element words = Dom.el(doc, "div", "words", null);
-        words.appendChild(Dom.el(doc, "b", null, GameRegistry.name(p.text)));
+        words.appendChild(Dom.el(doc, "b", null, entity ? GameRegistry.entityName(p.text) : GameRegistry.name(p.text)));
         words.appendChild(Dom.el(doc, "span", null, p.text));
         card.appendChild(words);
         card.appendChild(icon("search", "o-ico"));
         Shell.activate(card, () -> openPicker(p));
         return card;
+    }
+
+    private Element itemFace(String id) {
+        Element item = Dom.el(doc, "item", null, null);
+        item.setAttribute("id", id);
+        return item;
+    }
+
+    /** An entity type's face in lists: its spawn egg when it has one, else a paw. */
+    private Element entityFace(String id) {
+        String egg = GameRegistry.spawnEgg(id);
+        if (egg != null) return itemFace(egg);
+        return icon("paw", "o-ico face");
     }
 
     private Element field(String label, String value, java.util.function.Consumer<String> apply) {

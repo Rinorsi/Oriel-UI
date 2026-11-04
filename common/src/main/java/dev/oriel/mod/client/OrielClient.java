@@ -50,6 +50,7 @@ public final class OrielClient {
         OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
         OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
         OrielKit.register();
+        DevReload.init();
         // Pickers list every registered item (vanilla and modded) by the name the game shows in its language.
         GameRegistry.provide(() -> {
             List<GameRegistry.Entry> all = new ArrayList<>();
@@ -57,6 +58,16 @@ public final class OrielClient {
                 if (item == Items.AIR) continue;
                 String name = new ItemStack(item).getHoverName().getString();
                 all.add(new GameRegistry.Entry(BuiltInRegistries.ITEM.getKey(item).toString(), name, item instanceof BlockItem));
+            }
+            return all;
+        });
+        // And every entity type that can be summoned, for the editor's 3D entity.
+        GameRegistry.provideEntities(() -> {
+            List<GameRegistry.Entry> all = new ArrayList<>();
+            for (net.minecraft.world.entity.EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {
+                Identifier key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+                if (!type.canSummon() || key.toString().equals("minecraft:player")) continue;
+                all.add(new GameRegistry.Entry(key.toString(), type.getDescription().getString(), false));
             }
             return all;
         });

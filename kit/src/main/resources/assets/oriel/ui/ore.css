@@ -481,6 +481,18 @@ input.ore-field::placeholder { color: var(--ore-text-faint); }
 /* .o-fit: a box that shows only the children that fit whole (Widgets hides the rest), for tiles that fill to
    their size. */
 .o-fit > .o-out { visibility: hidden; }
+/* The dev hot reload bar (Shell; dev runs only): over the bottom of the window. */
+.o-devbar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 97; display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 6px;
+    background: var(--o-tile); border-top: 1px solid var(--o-accent-strong); box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4), inset 3px 0 0 var(--o-accent-strong);
+    color: var(--o-text); -mc-tint: var(--o-accent-strong); animation: fx-rise 220ms var(--o-ease-out) both; }
+.o-devbar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.o-devbar .ore-btn { flex: none; }
+.o-devbar .x { flex: none; width: 16px; text-align: center; color: var(--o-text-faint); cursor: pointer; }
+.o-devbar .x:hover { color: var(--o-text); }
+.o-devbar.building img { animation: fx-spin 1s linear infinite; }
+.o-devbar.failed, .o-devbar.restart { border-top-color: #e25a5a; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4), inset 3px 0 0 #e25a5a; -mc-tint: #e25a5a; }
+.o-devbar.done { border-top-color: var(--o-accent); }
+
 /* Hidden by a tab or segment item's data-show (Widgets). */
 .o-hidden { display: none !important; }
 

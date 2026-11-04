@@ -180,8 +180,51 @@ public final class Shell {
         }
         Widgets.attach(doc);
         Lazy.attach(doc);
+        doc.addDataListener((key, json) -> {
+            if (DEV_KEY.equals(key)) devBar(doc, json);
+        });
         Motion.attach(doc);
         return Particles.attach(doc);
+    }
+
+    /** The data field the dev hot reload sets on every page (the game's DevReload). */
+    static final String DEV_KEY = "oriel-dev";
+
+    /**
+     * The dev reload bar over the bottom of the window: what changed, and a button that asks the game to compile and
+     * swap the classes in ({@code send("oriel-dev", "reload")}); none in release builds, where nothing sets the field.
+     */
+    private static void devBar(Document doc, String json) {
+        Element bar = doc.getElementById("o-devbar");
+        if (json == null || json.equals("null")) {
+            if (bar != null) bar.remove();
+            return;
+        }
+        com.google.gson.JsonObject o;
+        try {
+            o = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+        } catch (RuntimeException e) {
+            return;
+        }
+        if (bar == null) {
+            Element host = doc.querySelector(".o-window");
+            if (host == null) host = doc.querySelector(".o-app");
+            if (host == null) return;
+            bar = Dom.html(doc, "<div class=\"o-devbar\" id=\"o-devbar\"><img class=\"o-ico\" src=\"oriel:textures/icons/refresh.png\">"
+                    + "<span class=\"t\"></span><div class=\"o-grow\"></div><div class=\"ore-btn primary\" tabindex=\"0\"></div>"
+                    + "<div class=\"x\" title=\"关闭\">×</div></div>");
+            host.appendChild(bar);
+            Element b = bar;
+            activate(Dom.query(bar, ".ore-btn"), () -> doc.host().send(DEV_KEY, "\"reload\""));
+            Dom.onClick(Dom.query(bar, ".x"), e -> b.remove());
+        }
+        String state = o.has("state") ? o.get("state").getAsString() : "changed";
+        bar.setAttribute("class", "o-devbar " + state);
+        Dom.text(Dom.query(bar, ".t"), o.has("text") ? o.get("text").getAsString() : "");
+        Element button = Dom.query(bar, ".ore-btn");
+        boolean action = o.has("action");
+        button.toggleClass("o-hidden", !action);
+        if (action) Dom.text(button, o.get("action").getAsString());
     }
 
     /** The entrance chosen by the page that opened this one (or the default, {@code o-content-in}). */

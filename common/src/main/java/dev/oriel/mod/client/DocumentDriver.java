@@ -89,6 +89,9 @@ public final class DocumentDriver {
     }
 
     private static final Set<DocumentDriver> LIVE = Collections.newSetFromMap(new WeakHashMap<>());
+    /** Data fields every page gets (patched into each one as it loads), and handlers for messages from any page. */
+    private static final Map<String, String> EVERYWHERE = new java.util.LinkedHashMap<>();
+    private static final Map<String, List<Consumer<JsonElement>>> FROM_ANY = new java.util.HashMap<>();
     /** Title tooltips wrap at this width, as vanilla widget tooltips do ({@code Tooltip.splitTooltip}). */
     private static final int TOOLTIP_WIDTH = 170;
     /** Escapes the page keeps within this time count towards {@code client.forceClosePresses}. */
@@ -160,6 +163,21 @@ public final class DocumentDriver {
     static @Nullable DocumentDriver of(Screen screen) {
         for (DocumentDriver d : LIVE) if (d.owner.screen() == screen && d.inspecting == null) return d;
         return null;
+    }
+
+    /**
+     * Sets data field {@code key} (JSON text, or null to remove it) on every loaded page and on each page loaded
+     * after; pages read it with {@code Document.addDataListener}. For client-wide state such as the dev reload bar.
+     */
+    public static void patchEverywhere(String key, @Nullable String valueJson) {
+        if (valueJson == null) EVERYWHERE.remove(key);
+        else EVERYWHERE.put(key, valueJson);
+        for (DocumentDriver d : List.copyOf(LIVE)) d.patchPage(key, valueJson);
+    }
+
+    /** Handles {@code send(channel, value)} from any page (local pages; a server's pages keep their own channel). */
+    public static void onMessageFromAny(String channel, Consumer<JsonElement> handler) {
+        FROM_ANY.computeIfAbsent(channel, c -> new ArrayList<>()).add(handler);
     }
 
     /** Reloads every loaded document: after a resource reload, {@code /oriel reload}, or a saved source file in dev. */
@@ -267,6 +285,7 @@ public final class DocumentDriver {
                 Constants.LOG.warn("Oriel: restoring the state of {} failed", name(), e);
             }
         }
+        for (Map.Entry<String, String> e : EVERYWHERE.entrySet()) document.patch(e.getKey(), e.getValue());
     }
 
     private void applyViewport(@Nullable Document doc) {
@@ -721,6 +740,9 @@ public final class DocumentDriver {
             return false;
         }
         List<Consumer<JsonElement>> local = listeners.get(channel);
+        if (session < 0 && FROM_ANY.containsKey(channel)) {
+            local = local == null ? FROM_ANY.get(channel) : java.util.stream.Stream.concat(local.stream(), FROM_ANY.get(channel).stream()).toList();
+        }
         if (local != null) {
             JsonElement value = null;
             try {
