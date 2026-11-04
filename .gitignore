@@ -5,6 +5,9 @@
 .gradle/
 build/
 out/
+node_modules/
+/tools/h5ref/.cache/
+/tools/h5ref/chrome/
 run/
 *.class
 *.log
