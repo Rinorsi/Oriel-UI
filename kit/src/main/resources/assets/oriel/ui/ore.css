@@ -576,3 +576,99 @@ canvas.fx.off { display: none; }
 [data-theme=light] .r-epic { --tier: #8a3ad0; }
 [data-theme=light] .r-legendary { --tier: #b86e00; }
 [data-theme=light] .r-mythic { --tier: #c42e3e; }
+
+/* =====================================================================================================================
+ * Motion (docs/zh/motion.md). Tokens, then named motions: every animation in the kit is one of these, so durations
+ * and curves stay consistent. Java helpers: dev.oriel.kit.Motion.
+ * ===================================================================================================================*/
+
+:root {
+    --m-fast: 120ms; --m-base: 220ms; --m-slow: 360ms;
+    --m-out: cubic-bezier(0.2, 0.8, 0.2, 1); --m-in: cubic-bezier(0.5, 0, 0.75, 0); --m-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --m-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Press: sink a little and spring back. For tiles, chips, rail items; Ore buttons already sink their texture. */
+.m-press { transition: transform var(--m-fast) var(--m-spring); }
+.m-press:active { transform: scale(0.95) translateY(1px); transition-duration: 60ms; }
+
+/* Ripple: a pixel ring grows square from the press point (--rx/--ry set by Motion.ripples) and fades. */
+.m-ripple { position: relative; overflow: hidden; }
+.m-ripple::after {
+    content: ""; position: absolute; left: var(--rx, 50%); top: var(--ry, 50%); width: 2px; height: 2px; margin: -1px 0 0 -1px;
+    border: 1px solid rgba(255, 255, 255, 0.0); pointer-events: none;
+}
+.m-ripple.m-rippling::after { animation: m-ripple 420ms var(--m-out); }
+@keyframes m-ripple {
+    0% { transform: scale(1); border-color: rgba(255, 255, 255, 0.85); background-color: rgba(255, 255, 255, 0.25); }
+    100% { transform: scale(40); border-color: rgba(255, 255, 255, 0); background-color: rgba(255, 255, 255, 0); }
+}
+
+/* Entrances. */
+.m-fade-in { animation: m-fade-in var(--m-base) var(--m-out) both; }
+@keyframes m-fade-in { from { opacity: 0; } }
+.m-rise { animation: fx-rise var(--m-slow) var(--m-out) both; }
+.m-drop { animation: ore-drop var(--m-base) var(--m-out) both; }
+.m-pop { animation: fx-pop var(--m-slow) var(--m-spring) both; }
+.m-slide-left { animation: m-slide-left var(--m-slow) var(--m-out) both; }
+@keyframes m-slide-left { from { opacity: 0; transform: translateX(14px); } }
+.m-slide-right { animation: m-slide-right var(--m-slow) var(--m-out) both; }
+@keyframes m-slide-right { from { opacity: 0; transform: translateX(-14px); } }
+/* Children come in one after another (delays set by Motion.attach, 40ms apart). */
+.m-stagger > * { animation: fx-rise var(--m-slow) var(--m-out) both; }
+/* Scroll reveal: hidden until Motion.reveal gives it m-in. */
+.m-reveal { opacity: 0; transform: translateY(8px); transition: opacity var(--m-slow) var(--m-out), transform var(--m-slow) var(--m-out); }
+.m-reveal.m-in { opacity: 1; transform: none; }
+
+/* Exits. */
+.m-leaving { animation: m-leave var(--m-slow) var(--m-in) both; }
+@keyframes m-leave { to { opacity: 0; transform: scale(0.97); } }
+/* The zoom transition's growing panel (Motion.zoomInto). */
+.m-zoom { position: absolute; z-index: 90; pointer-events: none; background: var(--o-tile); border: 1px solid var(--o-accent-strong);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--o-accent) 40%, transparent);
+    transition: left var(--m-slow) var(--m-in-out), top var(--m-slow) var(--m-in-out), width var(--m-slow) var(--m-in-out), height var(--m-slow) var(--m-in-out); }
+
+/* Expand and collapse (Motion.toggle animates the height); the caret turns with m-open on the parent. */
+.m-caret { transition: transform var(--m-base) var(--m-out); }
+.m-open > * > .m-caret, .m-open > .m-caret { transform: rotate(180deg); }
+
+/* A modal: the backdrop fades, the panel springs up. */
+.m-modal { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 70; display: none; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.55); }
+.m-modal.on { display: flex; animation: m-fade-in var(--m-base) var(--m-out); }
+.m-modal.on > * { animation: m-modal-in var(--m-slow) var(--m-spring) both; }
+@keyframes m-modal-in { from { opacity: 0; transform: translateY(10px) scale(0.94); } }
+
+/* Loading skeleton: a light band sweeping across a placeholder. */
+.m-skeleton { position: relative; overflow: hidden; background: var(--o-well); }
+.m-skeleton::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60px; width: 60px; pointer-events: none;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0));
+    animation: m-skeleton 1.3s var(--m-in-out) infinite; }
+@keyframes m-skeleton { to { transform: translateX(400px); } }
+
+/* A tab indicator that glides (Motion.indicator sets left and width). */
+.m-indicator { position: absolute; bottom: 0; height: 2px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent);
+    transition: left var(--m-base) var(--m-spring), width var(--m-base) var(--m-out); pointer-events: none; }
+
+/* Spotlight: a soft light follows the pointer over the element (Motion.spotlights sets --mx/--my). */
+.m-spot { position: relative; overflow: hidden; }
+.m-spot::after { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 70px);
+    transition: opacity var(--m-base); }
+.m-spot:hover::after { opacity: 1; }
+
+/* Feedback. */
+.m-success { animation: m-success 520ms var(--m-spring); }
+@keyframes m-success { 0% { transform: scale(1); } 30% { transform: scale(1.08); box-shadow: 0 0 10px rgba(108, 195, 73, 0.9); } 100% { transform: scale(1); } }
+.m-error { animation: fx-shake 260ms linear; box-shadow: 0 0 0 1px #e25a5a; }
+.m-attention { animation: m-attention 1.6s var(--m-in-out) infinite; }
+@keyframes m-attention { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 181, 43, 0); } 50% { box-shadow: 0 0 0 2px rgba(255, 181, 43, 0.65); } }
+
+/* Hover lift for any element (tiles have it built in). */
+.m-lift { transition: transform var(--m-base) var(--m-out), box-shadow var(--m-base) var(--m-out); }
+.m-lift:hover { transform: translateY(-2px); box-shadow: 0 3px 0 var(--o-shade); }
+
+/* Reduced motion (settings, or a player who asks): everything stops moving but stays visible. */
+[data-motion=reduced] *, [data-motion=reduced] *::before, [data-motion=reduced] *::after { animation: none; transition: none; }
+[data-motion=reduced] .m-reveal { opacity: 1; transform: none; }
+.ore-field, input, textarea { accent-color: var(--o-accent-strong); }

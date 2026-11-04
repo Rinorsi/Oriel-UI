@@ -93,6 +93,10 @@ public final class Controls {
             ComputedStyle ps = el.placeholderStyle;
             drawLines(canvas, box, field, shown, ps != null ? ps : s,
                     ps != null ? ps.color : Colors.withAlphaFactor(s.color, PLACEHOLDER_ALPHA));
+        } else if (field.preedit() != null && el.isFocused()) {
+            paintComposition(canvas, box, field, s);
+            if (clip) canvas.restore();
+            return;
         } else {
             if (el.isFocused() && editor.hasSelection()) paintSelection(canvas, field, value, s);
             drawLines(canvas, box, field, value, s, s.color);
@@ -103,6 +107,34 @@ public final class Controls {
                     TextPainter.snap(canvas, field.glyphY(value.lineOf(caret))), 1, field.glyphHeight(), s.color);
         }
         if (clip) canvas.restore();
+    }
+
+    /**
+     * An input method's composition, inline: the value with the composition in place, the composition underlined
+     * (the segment being converted with a heavier line in the accent colour), and the caret inside it.
+     */
+    private static void paintComposition(Canvas canvas, Box box, TextField field, ComputedStyle s) {
+        TextLayout composed = field.composedLayout();
+        drawLines(canvas, box, field, composed, s, s.color);
+        int start = field.composeAt(), end = start + field.preedit().length();
+        int focusFrom = start + field.preeditFocusStart(), focusTo = start + field.preeditFocusEnd();
+        float x0 = field.textX(), gh = field.glyphHeight();
+        for (int i = 0; i < composed.lineCount(); i++) {
+            TextLayout.Line line = composed.line(i);
+            int from = Math.max(start, line.start()), to = Math.min(end, line.end());
+            if (from >= to) continue;
+            float y = TextPainter.snap(canvas, field.glyphY(i) + gh);
+            float left = TextPainter.snap(canvas, x0 + line.x(from));
+            canvas.fillRect(left, y, TextPainter.snap(canvas, x0 + line.x(to)) - left, 1, Colors.withAlphaFactor(s.color, 0.7f));
+            int ff = Math.max(focusFrom, from), ft = Math.min(focusTo, to);
+            if (ff < ft) {
+                float fl = TextPainter.snap(canvas, x0 + line.x(ff));
+                canvas.fillRect(fl, y, TextPainter.snap(canvas, x0 + line.x(ft)) - fl, 2, s.accentColor);
+            }
+        }
+        int caret = start + field.preeditCaret();
+        canvas.fillRect(TextPainter.snap(canvas, x0 + composed.x(caret)),
+                TextPainter.snap(canvas, field.glyphY(composed.lineOf(caret))), 1, gh, s.color);
     }
 
     private static void paintSelection(Canvas canvas, TextField field, TextLayout layout, ComputedStyle s) {

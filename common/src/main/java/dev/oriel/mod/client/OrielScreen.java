@@ -5,6 +5,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.PreeditEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
@@ -144,6 +145,12 @@ public class OrielScreen extends Screen implements DocumentDriver.Owner {
     @Override
     public boolean charTyped(CharacterEvent event) {
         return driver.charTyped(event);
+    }
+
+    /** An input method's composition (Chinese, Japanese...): shown inline in the focused text field. */
+    @Override
+    public boolean preeditUpdated(@Nullable PreeditEvent event) {
+        return driver.preedit(event);
     }
     //?} else {
     /*@Override

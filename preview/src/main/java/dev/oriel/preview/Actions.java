@@ -63,6 +63,7 @@ final class Actions {
             case "wheel" -> n > 1 && isNumber(s.args.getLast()) ? null : "wheel takes a target and a distance in px";
             case "key" -> n == 1 ? null : "key takes one key, like Enter, ArrowDown, a or Shift+Tab";
             case "type" -> n > 0 ? null : "type takes text";
+            case "preedit" -> null;
             case "shot" -> n == 1 ? null : "shot takes a file name (without .png)";
             default -> "unknown action '" + s.action + "'";
         };
@@ -140,6 +141,12 @@ final class Actions {
                             in.keyUp(ch, code, Modifiers.NONE);
                         });
                     });
+                    frames(1);
+                }
+                case "preedit" -> {
+                    // An input method composing: "preedit 中文" shows it inline; a bare "preedit" ends it.
+                    String text = s.rest == null ? "" : s.rest;
+                    scene.input(in -> in.preedit(text.isEmpty() ? null : text, text.length(), 0, text.length()));
                     frames(1);
                 }
                 case "shot" -> {

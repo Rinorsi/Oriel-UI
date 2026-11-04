@@ -313,6 +313,11 @@ public final class DocumentDriver {
             canvas.finish();
             narrator.tick(owner.screen() == null && (mouseX != -1 || mouseY != -1));
             syncTextInput();
+            if (textInput) {
+                // The input method's candidate window follows the caret.
+                float[] caret = doc.input().textCaretRect();
+                if (caret != null) McClient.textInputArea(Math.round(caret[0]), Math.round(caret[1]), Math.round(caret[2]));
+            }
             McGui.cursor(g, cursor, owner.screen() != null);
         }
         if (error == null && document != null && document.error() != null) {
@@ -592,6 +597,19 @@ public final class DocumentDriver {
         if (inspector != null && inspector.keyReleased(e)) return true;
         String key = KeyNames.key(e);
         return input(in -> in.keyUp(key, KeyNames.code(e), KeyNames.modifiers(e.modifiers())));
+    }
+
+    /**
+     * An input method's composition for the focused text field, or its end (null). The focused segment is the
+     * event's focused block, as char offsets into its text.
+     */
+    public boolean preedit(net.minecraft.client.input.@Nullable PreeditEvent e) {
+        if (e == null) return input(in -> in.preedit(null, 0, 0, 0));
+        int start = 0;
+        for (int i = 0; i < e.focusedBlock(); i++) start += e.blocks().get(i).length();
+        int end = start + e.blocks().get(e.focusedBlock()).length();
+        int from = start;
+        return input(in -> in.preedit(e.fullText(), e.caretPosition(), from, end));
     }
 
     public boolean charTyped(CharacterEvent e) {

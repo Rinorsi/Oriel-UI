@@ -269,6 +269,27 @@ public final class InputHandler {
         });
     }
 
+    /**
+     * An input method's composition for the focused text field ({@code text} null or empty ends it), with its caret
+     * and the segment being converted, in chars of {@code text}. Returns true if a text field took it. The committed
+     * text arrives afterwards through {@link #charTyped}.
+     */
+    public boolean preedit(String text, int caret, int focusStart, int focusEnd) {
+        return document.guard(() -> {
+            TextField field = focusedField();
+            if (field == null) return false;
+            field.preedit(text, caret, focusStart, focusEnd);
+            document.invalidatePaint();
+            return true;
+        });
+    }
+
+    /** The focused text field's caret as {x, y, height} in viewport px (for the input method's window), or null. */
+    public float[] textCaretRect() {
+        TextField field = focusedField();
+        return field == null ? null : field.caretRect();
+    }
+
     /** Keys while a dropdown is open; false lets the key continue (Tab closes the list and moves focus). */
     private boolean popupKey(String key) {
         switch (key) {

@@ -90,9 +90,14 @@ public final class McClient {
      * Text input (SDL's, which {@code charTyped} needs) on or off for a text field of {@code owner}. On 26.2 GLFW always
      * sends typed characters, so there is nothing to switch.
      */
+    /** Turns text input (and with it the input method) on or off for {@code owner}; every 26.x has this. */
     static void textInput(Screen owner, boolean on) {
-        //? if >=26.3
         Minecraft.getInstance().onTextInputFocusChange(owner, on);
+    }
+
+    /** Where the input method's candidate window goes: under a caret at GUI px (x, y), {@code height} tall. */
+    static void textInputArea(int x, int y, int height) {
+        Minecraft.getInstance().textInputManager().setTextInputArea(x, y, x + 1, y + height);
     }
 
     // ---- Input through Minecraft's own handlers, as a real mouse and keyboard send it (OrielAutomation) ----

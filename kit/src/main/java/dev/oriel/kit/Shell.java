@@ -52,6 +52,7 @@ public final class Shell {
                 default -> { }
             }
         }
+        Motion.attach(doc);
         return Particles.attach(doc);
     }
 

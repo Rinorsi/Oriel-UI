@@ -77,14 +77,22 @@ public final class Dom {
 
     /**
      * Inline style kept as ordered properties, written as one attribute only when it changed: controllers set
-     * individual properties every frame without re-parsing styles that did not move.
+     * individual properties every frame without re-parsing styles that did not move. A new one picks up the
+     * element's inline style first; keep one per element when setting properties every frame.
      */
     public static final class Style {
         private final Element element;
         private final Map<String, String> props = new LinkedHashMap<>();
 
+        /** Starts from the element's current inline style, so setting one property keeps the others. */
         public Style(Element element) {
             this.element = element;
+            String css = element.getAttribute("style");
+            if (css == null) return;
+            for (String decl : css.split(";")) {
+                int colon = decl.indexOf(':');
+                if (colon > 0) props.put(decl.substring(0, colon).trim(), decl.substring(colon + 1).trim());
+            }
         }
 
         public Style set(String property, String value) {

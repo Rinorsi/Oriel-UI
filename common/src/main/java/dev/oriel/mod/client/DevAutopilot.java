@@ -799,6 +799,27 @@ public final class DevAutopilot {
         onPage("the dropdown", p -> p.click("[data-key=graphics] .value"));
         pause(8);
         grab(mc, "preset_settings_dropdown", 5);
+        // IME: a composition in two segments (the second being converted) arrives as Minecraft sends it, shows inline,
+        // then commits as typed text.
+        onPage("the name field", p -> {
+            p.key("Escape");
+            p.click("[data-tab=控制]");
+        });
+        pause(6);
+        onPage("focus the name", p -> p.click("[data-key=name] input"));
+        pause(4);
+        steps.add(() -> {
+            if (McClient.screen() != null) McClient.screen().preeditUpdated(new net.minecraft.client.input.PreeditEvent("中文输入", 4,
+                    java.util.List.of("中文", "输入"), 1));
+        });
+        pause(6);
+        grab(mc, "preset_settings_ime", 5);
+        steps.add(() -> {
+            if (McClient.screen() != null) McClient.screen().preeditUpdated(null);
+        });
+        onPage("commit", p -> p.type("中文输入"));
+        pause(6);
+        grab(mc, "preset_settings_ime_committed", 5);
 
         shoot(mc, "preset_editor", () -> OrielClientCommands.preset("editor"));
         onPage("an editor selection", p -> p.click(".node[data-id='7']"));

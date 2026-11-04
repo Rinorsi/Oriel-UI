@@ -165,6 +165,71 @@ final class TextField {
         return caretOn;
     }
 
+    // ---- IME composition (preedit) ----
+
+    /** The text an input method is composing (shown inline, not yet in the value), or null. */
+    private String preedit;
+    private int preeditCaret, preeditFocusStart, preeditFocusEnd;
+    private TextLayout composedLayout;
+
+    /**
+     * Shows {@code text} as the input method's composition at the caret (replacing the selection while shown), its
+     * caret at {@code caret} and the segment being converted at {@code [focusStart, focusEnd)}, all in chars of
+     * {@code text}. Null or empty ends it; the committed text then arrives as typed characters.
+     */
+    void preedit(String text, int caret, int focusStart, int focusEnd) {
+        if (text == null || text.isEmpty()) {
+            preedit = null;
+            composedLayout = null;
+            return;
+        }
+        preedit = text;
+        preeditCaret = Math.max(0, Math.min(text.length(), caret));
+        preeditFocusStart = Math.max(0, Math.min(text.length(), focusStart));
+        preeditFocusEnd = Math.max(preeditFocusStart, Math.min(text.length(), focusEnd));
+        caretOn = true;
+    }
+
+    String preedit() {
+        return preedit;
+    }
+
+    /** Where the composition goes into the value: the selection's start, or the caret. */
+    int composeAt() {
+        return editor.hasSelection() ? editor.selectionStart() : editor.caret();
+    }
+
+    /** The value as shown while composing: the composition in place of the selection. */
+    TextLayout composedLayout() {
+        String t = editor.text();
+        int at = composeAt(), end = editor.hasSelection() ? editor.selectionEnd() : at;
+        return composedLayout = lines(composedLayout, t.substring(0, at) + preedit + t.substring(end), masked());
+    }
+
+    int preeditCaret() {
+        return preeditCaret;
+    }
+
+    int preeditFocusStart() {
+        return preeditFocusStart;
+    }
+
+    int preeditFocusEnd() {
+        return preeditFocusEnd;
+    }
+
+    /**
+     * The caret as {x, y, height} in viewport px (the composition's caret while composing), for placing the input
+     * method's candidate window; null without a box.
+     */
+    float[] caretRect() {
+        if (element.box == null) return null;
+        float[] r = element.getBoundingClientRect();
+        TextLayout l = preedit != null ? composedLayout() : layout();
+        int caret = preedit != null ? composeAt() + preeditCaret : editor.caret();
+        return new float[] {r[0] + textX() + l.x(caret), r[1] + glyphY(l.lineOf(caret)), glyphHeight()};
+    }
+
     // ---- Focus and time ----
 
     void focused() {
@@ -173,6 +238,7 @@ final class TextField {
     }
 
     void blurred() {
+        preedit(null, 0, 0, 0);
         commitChange();
         valueAtFocus = null;
         if (!multiline) element.scrollTo(0, 0);
