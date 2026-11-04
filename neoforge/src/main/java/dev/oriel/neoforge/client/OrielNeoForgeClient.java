@@ -75,8 +75,6 @@ public final class OrielNeoForgeClient {
                     new PictureInPictureRendererRegistration<>(LayerRenderState.class, LayerRenderer::new)));
         });
         *///?}
-        // NeoForge's picture-in-picture renderers need a depth format in the target they are drawn from.
-        Layers.withDepth();
         modBus.addListener((AddClientReloadListenersEvent e) ->
                 e.addListener(Constants.id("documents"), (ResourceManagerReloadListener) resources -> OrielClient.onResourceReload()));
         modBus.addListener((RegisterGuiLayersEvent e) -> e.registerAbove(VanillaGuiLayers.TITLE, Constants.id("hud"), OrielHud::extract));
