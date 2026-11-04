@@ -44,6 +44,18 @@ class BackdropTest {
     }
 
     @Test
+    void aClipPathCutsTheBackdropToo() {
+        Page page = new TestHost().load("<div style='width: 40px; height: 20px; backdrop-filter: blur(2px);"
+                + " clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)'></div>");
+        RecordingCanvas c = new RecordingCanvas();
+        c.groups = true;
+        List<String> all = page.paint(c).calls.stream().map(RecordingCanvas.Call::op).toList();
+        int at = all.indexOf("beginBackdrop");
+        assertTrue(at >= 0, all::toString);
+        assertEquals("fillQuads", all.get(at + 1), "the backdrop's shape is the clip-path's polygon: " + all);
+    }
+
+    @Test
     void aCanvasWithoutGroupsReportsTheBackdrop() {
         Page page = new TestHost().load(PAGE);
         page.paint(new RecordingCanvas());
