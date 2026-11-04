@@ -878,6 +878,17 @@ public final class DevAutopilot {
         onPage("the light theme", p -> p.click("[data-theme-pick=light]"));
         pause(10);
         grab(mc, "preset_gallery_light", 5);
+        onPage("the smooth style", p -> p.click("[data-style-pick=smooth]"));
+        pause(10);
+        grab(mc, "preset_gallery_smooth_light", 5);
+        onPage("smooth and dark", p -> p.click("[data-theme-pick=dark]"));
+        pause(10);
+        grab(mc, "preset_gallery_smooth", 5);
+        shoot(mc, "preset_catalog_smooth", () -> OrielClientCommands.preset("catalog"));
+        steps.add(() -> {
+            dev.oriel.kit.Shell.setStyle("ore");
+            dev.oriel.kit.Shell.setTheme("light");
+        });
         shoot(mc, "preset_inventory_light", () -> OrielClientCommands.preset("inventory"));
         steps.add(() -> dev.oriel.kit.Shell.setTheme("dark"));
 

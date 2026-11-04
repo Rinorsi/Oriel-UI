@@ -1,22 +1,30 @@
-//? if >=26.2 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+//? if >=26.2 {
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.pipeline.BlendFunction;
 import com.mojang.renderpearl.api.pipeline.ColorTargetState;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.vertex.VertexFormat;
+import net.minecraft.client.renderer.BindGroupLayouts;
+//?} else {
+/*import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.shaders.UniformType;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
+*///?}
 //? if >=26.3
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
-//? if <26.3
+//? if >=26.2 <26.3
 //import com.mojang.blaze3d.PrimitiveTopology;
 import dev.oriel.engine.paint.SmoothShape;
 import dev.oriel.mod.Constants;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2fc;
@@ -38,6 +46,9 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code LineWidth}: {@code a}.</li>
  *   <li>{@code Normal} (shadows): x = inset, y = leave the box uncovered.</li>
  * </ul>
+ *
+ * <p>26.1 builds the same pipelines with the older blaze3d API (named uniforms instead of bind groups) and the same
+ * shader as 26.2.
  *
  * <p>26.2's {@code BufferBuilder} writes no {@code UV3}, so there the quad is the box grown by one margin on every
  * side, {@code Position.z} carries that margin, and the shader takes the half size as {@code |UV0|} minus it (the
@@ -80,6 +91,7 @@ record SdfRenderState(Matrix3x2fc pose, SmoothShape shape, float edge, short[] r
         } catch (RuntimeException e) {
             error = e;
         }
+        if (compiled) Constants.LOG.info("Oriel's shape shader is ready (rounded boxes and soft shadows on the GPU)");
         if (!compiled) {
             failed = true;
             Constants.LOG.warn("Oriel's shape shader is not available; drawing shapes as quads until resources reload", error);
@@ -95,6 +107,7 @@ record SdfRenderState(Matrix3x2fc pose, SmoothShape shape, float edge, short[] r
 
     private static RenderPipeline pipeline(String name, boolean shadow) {
         Identifier shader = Constants.id("core/sdf_box");
+        //? if >=26.2 {
         RenderPipeline.Builder builder = RenderPipeline.builder()
                 .withLocation(Constants.id("pipeline/" + name))
                 .withBindGroupLayout(BindGroupLayouts.GLOBALS)
@@ -106,6 +119,17 @@ record SdfRenderState(Matrix3x2fc pose, SmoothShape shape, float edge, short[] r
                 .withVertexBinding(0, format(shadow))
                 .withPrimitiveTopology(PrimitiveTopology.QUADS)
                 .withCull(false); // one quad per shape, in any winding a transform leaves it
+        //?} else {
+        /*RenderPipeline.Builder builder = RenderPipeline.builder()
+                .withLocation(Constants.id("pipeline/" + name))
+                .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+                .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+                .withVertexShader(shader)
+                .withFragmentShader(shader)
+                .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+                .withVertexFormat(format(shadow), VertexFormat.Mode.QUADS)
+                .withCull(false);
+        *///?}
         if (shadow) builder.withShaderDefine("SHADOW");
         //? if <26.3
         //builder.withShaderDefine("ORIEL_26_2");
@@ -113,6 +137,7 @@ record SdfRenderState(Matrix3x2fc pose, SmoothShape shape, float edge, short[] r
     }
 
     /** The vertex layout above; shadows add {@code Normal}. */
+    //? if >=26.2 {
     private static VertexFormat format(boolean shadow) {
         VertexFormat.Builder builder = VertexFormat.builder(0)
                 .addAttribute("Position", GpuFormat.RGB32_FLOAT)
@@ -126,6 +151,19 @@ record SdfRenderState(Matrix3x2fc pose, SmoothShape shape, float edge, short[] r
         if (shadow) builder.addAttribute("Normal", GpuFormat.RGBA8_SNORM);
         return builder.build();
     }
+    //?} else {
+    /*private static VertexFormat format(boolean shadow) {
+        VertexFormat.Builder builder = VertexFormat.builder()
+                .add("Position", VertexFormatElement.POSITION)
+                .add("Color", VertexFormatElement.COLOR)
+                .add("UV0", VertexFormatElement.UV0)
+                .add("UV1", VertexFormatElement.UV1)
+                .add("UV2", VertexFormatElement.UV2)
+                .add("LineWidth", VertexFormatElement.LINE_WIDTH);
+        if (shadow) builder.add("Normal", VertexFormatElement.NORMAL).padding(1);
+        return builder.build();
+    }
+    *///?}
 
     @Override
     public RenderPipeline pipeline() {
@@ -188,4 +226,3 @@ record SdfRenderState(Matrix3x2fc pose, SmoothShape shape, float edge, short[] r
     }
     *///?}
 }
-//?}

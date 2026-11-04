@@ -129,15 +129,11 @@ public final class McGui {
 
     /** Whether {@link #shape} can draw: the shape shader is compiled. */
     boolean shapesAvailable() {
-        //? if >=26.2 {
         return SdfRenderState.available();
-        //?} else
-        //return false; // 26.1: no shape shader yet; shapes are tessellated
     }
 
     /** Resources reloaded: if the shape shader failed to compile, {@link #shapesAvailable} tries it again. */
     public static void reloadShapes() {
-        //? if >=26.2
         SdfRenderState.reload();
     }
 
@@ -147,7 +143,6 @@ public final class McGui {
      */
     void shape(Matrix3x2fc pose, SmoothShape shape, float edge, short[] radii, int color, ScreenRectangle bounds,
                @Nullable ScreenRectangle scissor) {
-        //? if >=26.2
         g.guiRenderState.addGuiElement(new SdfRenderState(pose, shape, edge, radii, color, scissor, bounds));
     }
 

@@ -1,5 +1,7 @@
 # 优易库设计规范（Ore 像素主题 v2）
 
+相关：动效 `motion.md`、布局套路 `recipes.md`、做页面流程 `making-a-page.md`；游戏里 `/oriel demo catalog` 是所有组件与动效的活目录。
+
 适用于 `kit/src/main/resources/assets/oriel/ui/` 下的所有页面。样式全部在 `ore.css`，页面只写布局。
 
 ## 1. 尺寸与网格
@@ -78,7 +80,13 @@
 - 75 个 16×16 白色像素图标在 `textures/icons/`（`tools/gen-icons.mjs` 生成）。用法：`<img class="o-ico" src="../textures/icons/gear.png">`，颜色由 `-mc-tint` / `--ico` 决定。
 - AI 生成的图（如徽标）用工作区的 `tools/pixelize.mjs` 转成真像素：去背景 → 按格取主色 → 限色 → 描边。
 
-## 9. 检查清单（每个页面）
+## 9. 两种风格
+
+- **像素（默认，`data-style="ore"`）**：Ore 斜角纹理，按下下沉。适合原版风格的模组。
+- **平滑（`data-style="smooth"`）**：同一套组件换成圆角、渐变和柔和阴影（GPU 有向距离场着色器绘制，26.1–26.3 都支持）。适合现代风格的工具和编辑器。
+- 页面不用改：`Shell.style(doc, "smooth")` 或设置页「外观 → 界面风格」切换，之后打开的页面沿用。两种风格都支持亮/暗主题。
+
+## 10. 检查清单（每个页面）
 
 1. `./gradlew :preview:checkUi`：无错误、无缺图、无 CSS 警告。
 2. 640×360 与 427×240 各截一张图，看层级是否一眼可辨：标题 > 主内容 > 辅助信息。

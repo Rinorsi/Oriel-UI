@@ -66,7 +66,7 @@ D:\Minecraft\project\Mods\
 
 ## UI 工作流（AI 快速入口）
 
-1. 规则：`docs/zh/design.md`（尺寸 640×360 / 427×240、三层层级、稀有度光效、粒子、图标）。流程：`docs/zh/making-a-page.md`。
+1. 规则：`docs/zh/design.md`（尺寸、层级、稀有度光效、粒子、图标、两种风格）、`docs/zh/motion.md`（动效）、`docs/zh/recipes.md`（布局套路，先挑一个再改）。流程：`docs/zh/making-a-page.md`。活目录：游戏里 `/oriel demo catalog`。
 2. 新页面：`node tools/new-page.mjs <名字> "<标题>"`（页面 + 控制器 + 测试 + 登记）。
 3. 页面只写 HTML/CSS（`kit/src/main/resources/assets/oriel/ui/`，样式库 `ore.css`）；交互在 Java 控制器（`kit/.../preset/*Preset.java`），共用件在 `kit/.../kit/`（`Shell`、`Dom`、`Flip`、`Slider`、`fx/Particles`）。
 4. 每次改完：`./gradlew :kit:test :preview:checkUi`。排查布局：预览器 `--snapshot out.png --frames 60 --boxes "<选择器>"`。MCP：`node tools/mcp/oriel-preview.mjs`（检查、截图、交互）。
@@ -75,6 +75,6 @@ D:\Minecraft\project\Mods\
 ## 当前状态（2026-11-04 实测）
 
 - 构建与运行：MC 26.1.2 / 26.2 / 26.3，Fabric 与 NeoForge 均可构建；Fabric 26.1 与 26.3 客户端实测通过。26.1 是主验收版本。
-- kit：画廊、背包、锻造台、音乐、设置、药水 HUD、组件编辑器 7 个界面；亮/暗主题；75 个像素图标；8 种粒子预设。
+- kit：首页（全屏拼贴 + 3D 场景）、背包、锻造台、音乐、设置、药水 HUD、组件编辑器、组件与动效目录、物品数据编辑器（`/oriel edit`，服务端校验后写回）；像素/平滑两种风格 × 亮/暗主题；75 个像素图标；8 种粒子；命名动效库；中文输入法预编辑与候选窗定位。
 - 本环境调用 Sonnet 子代理失败（模型不可用），2026-11-04 起未派子代理，全部由主会话完成。
 - 任务记录：`..\Oriel-UI-Workspace\planning\TASK-01-overnight.md`、`TASK-02.md` 与当天的 `daily\<日期>\reports\`。

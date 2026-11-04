@@ -77,6 +77,7 @@ public final class SettingsPreset implements PageControllers.Controller {
                 Setting.slider("tooltip", "提示延迟", 500, 0, 2000, 100, " ms", "显示")));
         TABS.put("外观", List.of(
                 Setting.select("theme", "界面主题", "暗色", List.of("暗色", "亮色"), "主题"),
+                Setting.select("style", "界面风格", "像素", List.of("像素", "平滑"), "主题"),
                 Setting.toggle("particles", "粒子与光效", true, "效果")));
     }
 
@@ -85,7 +86,7 @@ public final class SettingsPreset implements PageControllers.Controller {
     static final Map<String, String> HELP = Map.ofEntries(Map.entry("render", "能看见多远的区块"),
             Map.entry("fps", "越高越流畅"), Map.entry("graphics", "影响树叶与云"), Map.entry("gamma", "暗处的可见度"),
             Map.entry("master", "所有声音"), Map.entry("sensitivity", "视角转动速度"), Map.entry("name", "最多 24 个字"),
-            Map.entry("narrator", "朗读界面文字"), Map.entry("theme", "立即生效"), Map.entry("particles", "本页的粒子"),
+            Map.entry("narrator", "朗读界面文字"), Map.entry("theme", "立即生效"), Map.entry("style", "像素斜角或圆角阴影"), Map.entry("particles", "本页的粒子"),
             Map.entry("textbg", "聊天与字幕背后"));
 
     final Map<String, Object> values = new LinkedHashMap<>();
@@ -102,6 +103,7 @@ public final class SettingsPreset implements PageControllers.Controller {
         Shell.setup(doc);
         for (List<Setting> list : TABS.values()) for (Setting s : list) values.put(s.key(), s.initial());
         values.put("theme", Shell.theme().equals("light") ? "亮色" : "暗色");
+        values.put("style", Shell.style().equals("smooth") ? "平滑" : "像素");
         crumb = Dom.byId(doc, "crumb");
         chunks = Dom.byId(doc, "chunks");
         dark = Dom.byId(doc, "dark");
@@ -343,6 +345,7 @@ public final class SettingsPreset implements PageControllers.Controller {
     void set(Setting s, Object value) {
         values.put(s.key(), value);
         if (s.key().equals("theme")) Shell.theme(doc, value.equals("亮色") ? "light" : "dark");
+        if (s.key().equals("style")) Shell.style(doc, value.equals("平滑") ? "smooth" : "ore");
         if (s.key().equals("particles")) {
             for (Element c : doc.querySelectorAll("canvas.fx")) c.toggleClass("off", !(Boolean) value);
         }
@@ -413,6 +416,7 @@ public final class SettingsPreset implements PageControllers.Controller {
             values.put(s.key(), s.initial());
         }
         if (changed.contains("theme")) Shell.theme(doc, "dark");
+        if (changed.contains("style")) Shell.style(doc, "ore");
         show(tab, false);
         for (Element row : rows.querySelectorAll(".ore-row")) if (changed.contains(row.getAttribute("data-key"))) row.addClass("flash");
     }

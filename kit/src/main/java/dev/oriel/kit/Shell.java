@@ -17,13 +17,31 @@ import dev.oriel.kit.fx.Particles;
  * Controllers call {@link #setup} first and keep the returned particles for bursts.
  */
 public final class Shell {
-    private static volatile String theme = "dark";
+    private static volatile String theme = "dark", style = "ore";
 
     private Shell() {}
 
     /** The current theme, {@code dark} or {@code light}. */
     public static String theme() {
         return theme;
+    }
+
+    /** The current style, {@code ore} (pixel bevels) or {@code smooth} (rounded, soft shadows). */
+    public static String style() {
+        return style;
+    }
+
+    /** Sets the style for the pages opened from now on. */
+    public static void setStyle(String name) {
+        style = name.equals("smooth") ? "smooth" : "ore";
+    }
+
+    /** Sets the style ({@code data-style} on {@code <html>}) for this page and the pages opened after it. */
+    public static void style(Document doc, String name) {
+        style = name.equals("smooth") ? "smooth" : "ore";
+        Element root = doc.documentElement();
+        if (root != null) root.setAttribute("data-style", style);
+        for (Element e : doc.querySelectorAll("[data-style-pick]")) e.toggleClass("on", e.getAttribute("data-style-pick").equals(style));
     }
 
     /** Sets the theme for the pages opened from now on. */
@@ -42,6 +60,8 @@ public final class Shell {
     /** Applies the theme, wires the shared attributes and starts the page's particles. */
     public static Particles setup(Document doc) {
         theme(doc, theme);
+        style(doc, style);
+        for (Element e : doc.querySelectorAll("[data-style-pick]")) activate(e, () -> style(doc, e.getAttribute("data-style-pick")));
         for (Element e : doc.querySelectorAll("[data-go]")) {
             String page = e.getAttribute("data-go");
             Runnable go = () -> doc.navigate(OrielKit.page(page));
