@@ -13,6 +13,10 @@ class ParserSelectionTest {
             assertEquals(ParserAudit.Mode.NEW, ParserAudit.mode());
             System.setProperty("oriel.parser", "typo");
             assertThrows(IllegalArgumentException.class, ParserAudit::mode);
+            for (String mode : new String[] {"old", "both"}) {
+                System.setProperty("oriel.parser", mode);
+                assertThrows(IllegalStateException.class, ParserAudit::mode, "retired modes must not pretend to dual-run");
+            }
         } finally {
             if (previous == null) System.clearProperty("oriel.parser"); else System.setProperty("oriel.parser", previous);
         }

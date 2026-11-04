@@ -22,6 +22,7 @@ final class HtmlTreeBuilder {
     private final boolean fragment;
     private final HtmlInput input;
     private final BiConsumer<Integer, String> issue;
+    private final dev.oriel.engine.parse.SourceLocation.Index positions;
     private final ArrayDeque<Element> open = new ArrayDeque<>();
     private Element html, head, body;
     private Node textParent;
@@ -30,6 +31,7 @@ final class HtmlTreeBuilder {
     private HtmlTreeBuilder(Document document, String source, Node root, boolean fragment, BiConsumer<Integer, String> issue) {
         this.document = document; this.root = root; this.fragment = fragment; this.issue = issue;
         input = new HtmlInput(source, issue);
+        positions = new dev.oriel.engine.parse.SourceLocation.Index(source);
     }
     static void document(Document document, String source, BiConsumer<Integer, String> issue) {
         new HtmlTreeBuilder(document, source, document, false, issue).build();
@@ -75,7 +77,8 @@ final class HtmlTreeBuilder {
             Element element = switch (tag) { case "html" -> html(); case "head" -> head(); default -> body(); };
             attributes(element, token.attributes()); return;
         }
-        Element element = document.createElement(tag);
+        var position = positions.at(token.offset());
+        Element element = document.createElement(tag, position.line(), position.column());
         for (var it = open.descendingIterator(); it.hasNext();) {
             Element ancestor = it.next();
             if (ancestor.tagName().equals("svg") || ancestor.tagName().equals("math")) {

@@ -56,4 +56,19 @@ class HtmlSyntaxMigrationTest {
         assertEquals("� � � &unsupported;", doc.body().textContent());
         assertEquals(4, doc.diagnostics().all().size());
     }
+
+    @Test
+    void unsupportedElementsUseTheirMarkupPosition() {
+        Document doc = parse("\n  <svg></svg>");
+        var diagnostic = doc.diagnostics().all().getFirst();
+        assertEquals("unsupported-element", diagnostic.code());
+        assertEquals(2, diagnostic.line()); assertEquals(3, diagnostic.column());
+    }
+
+    @Test
+    void paramIsVoidAndDoesNotCaptureFollowingContent() {
+        Document doc = parse("<param name=x><div>after</div>");
+        assertEquals(2, doc.body().children().size());
+        assertEquals("after", doc.body().children().getLast().textContent());
+    }
 }

@@ -16,6 +16,8 @@ sealed interface ComponentValue permits Token, ComponentValue.Func, ComponentVal
 
     int line();
 
+    default int column() { return dev.oriel.engine.parse.SourceLocation.at(source(), start()).column(); }
+
     /** The source text of this value. */
     default String text() {
         return source().substring(start(), end());

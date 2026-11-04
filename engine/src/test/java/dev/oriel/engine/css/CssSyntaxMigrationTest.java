@@ -49,4 +49,20 @@ class CssSyntaxMigrationTest {
         assertNull(rules.getLast().block());
         assertNotNull(rules.get(2).block());
     }
+
+    @Test
+    void declarationAndCapabilityDiagnosticsHaveNameColumns() {
+        List<Diagnostic> diagnostics = new ArrayList<>();
+        Stylesheet.parse("a {\r\n   wrong-property: 1;\n  width 2px;\n}", "test:columns.css", null, diagnostics::add);
+        assertTrue(diagnostics.stream().anyMatch(d -> d.code().equals("unknown-property") && d.line() == 2 && d.column() == 4));
+        assertTrue(diagnostics.stream().anyMatch(d -> d.code().equals("not-a-declaration") && d.line() == 3 && d.column() == 3));
+    }
+
+    @Test
+    void malformedInlineDeclarationIsNotSilentlyDiscarded() {
+        var page = new dev.oriel.engine.testing.TestHost().load("<div id=x style='width 2px; color:red'></div>");
+        assertTrue(page.doc.diagnostics().all().stream().anyMatch(d -> d.code().equals("not-a-declaration")
+                && d.line() == 1 && d.column() == 1));
+        assertEquals(0xFFFF0000, page.byId("x").style.color);
+    }
 }

@@ -74,7 +74,7 @@ final class CssSyntax {
                 if (keyword != null && value instanceof Token t && t.is(Token.Type.SEMICOLON)) break;
                 prelude.add(value);
             }
-            if (keyword != null || block != null) output.add(new CssParser.Rule(keyword, trim(prelude), block, first.line()));
+            if (keyword != null || block != null) output.add(new CssParser.Rule(keyword, trim(prelude), block, first.line(), first.column()));
             else CssIssues.report(first.source(), first.start(), "Qualified rule without a block discarded");
         }
         return output;
@@ -93,7 +93,7 @@ final class CssSyntax {
             List<ComponentValue> item = trim(input.subList(begin, cursor));
             CssParser.Declaration declaration = declaration(item);
             if (declaration == null) {
-                if (!item.isEmpty()) dropped.accept(ComponentValue.text(item), item.getFirst().line());
+                if (!item.isEmpty()) dropped.accept(ComponentValue.text(item), item.getFirst().line(), item.getFirst().column());
             } else output.add(declaration);
             if (cursor < input.size() && input.get(cursor) instanceof Token t && t.is(Token.Type.SEMICOLON)) cursor++;
         }
@@ -110,7 +110,7 @@ final class CssSyntax {
             while (bang >= 0 && space(value.get(bang))) bang--;
             if (bang >= 0 && value.get(bang) instanceof Token t && t.isDelim('!')) { important = true; value = trim(value.subList(0, bang)); }
         }
-        return new CssParser.Declaration(name.value.startsWith("--") ? name.value : name.lower, value, important, name.line());
+        return new CssParser.Declaration(name.value.startsWith("--") ? name.value : name.lower, value, important, name.line(), name.column());
     }
     static List<ComponentValue> trim(List<ComponentValue> input) {
         int a = 0, b = input.size();

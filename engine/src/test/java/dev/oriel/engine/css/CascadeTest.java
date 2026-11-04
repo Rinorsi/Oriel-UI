@@ -417,7 +417,7 @@ class CascadeTest {
     void invalidDeclarationsAreReportedAsWarnings() {
         TestHost host = new TestHost();
         Page page = host.load("<style>\n#a { colr: red }</style><div id=a style='width: nope'></div>");
-        assertTrue(host.logs.contains("WARN: test:page.html:2: warning [unknown-property] Invalid declaration "
+        assertTrue(host.logs.contains("WARN: test:page.html:2:6: warning [unknown-property] Invalid declaration "
                 + "'colr: red' (did you mean 'color'?)"), host.logs::toString);
         assertTrue(host.logs.stream().anyMatch(l -> l.startsWith("WARN:") && l.contains("[invalid-value]")
                 && l.contains("'width: nope'")), host.logs::toString);
