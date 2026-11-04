@@ -31,24 +31,14 @@ final class Images {
         return switch (f.name()) {
             case "url" -> f.args().size() == 1 && f.args().get(0) instanceof Token s && s.is(Type.STRING)
                     ? Image.ofUrl(s.value, ctx::resolveUrl) : null;
-            case "sprite" -> sprite(f.args());
             case "linear-gradient" -> linear(f, ctx, false);
             case "repeating-linear-gradient" -> linear(f, ctx, true);
             case "radial-gradient" -> radial(f, ctx, false);
             case "repeating-radial-gradient" -> radial(f, ctx, true);
             case "conic-gradient" -> conic(f, ctx, false);
             case "repeating-conic-gradient" -> conic(f, ctx, true);
-            default -> null;
+            default -> dev.oriel.engine.css.ImageProviders.function(f.name(), f.args());
         };
-    }
-
-    /** {@code sprite(minecraft:widget/button)} or {@code sprite("minecraft:widget/button")}. */
-    private static Image sprite(List<ComponentValue> args) {
-        List<ComponentValue> a = CssParser.trim(args);
-        if (a.isEmpty()) return null;
-        if (a.size() == 1 && a.get(0) instanceof Token s && s.is(Type.STRING)) return new Image.Sprite(s.value);
-        for (ComponentValue v : a) if (!(v instanceof Token t) || t.is(Type.WHITESPACE)) return null;
-        return new Image.Sprite(ComponentValue.text(a));
     }
 
     private static Image linear(Func f, ValueContext ctx, boolean repeating) {

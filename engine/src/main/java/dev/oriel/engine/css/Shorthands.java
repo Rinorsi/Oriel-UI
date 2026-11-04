@@ -26,7 +26,7 @@ final class Shorthands {
     private static final List<ComponentValue> AUTO = values("auto"), ZERO = values("0"), ONE = values("1"),
             ZERO_PERCENT = values("0%"), COMMA = values(",");
     /** What {@link #sequence} gives a longhand left out: the value before it, or nothing (the value is invalid). */
-    private static final UnaryOperator<List<ComponentValue>> REPEAT = last -> last, REQUIRED = last -> null;
+    static final UnaryOperator<List<ComponentValue>> REPEAT = last -> last, REQUIRED = last -> null;
     private static final Set<String> POSITION_KEYWORDS = Set.of("left", "right", "top", "bottom", "center");
     private static final Set<String> LIST_STYLE_TYPES = Set.of("disc", "circle", "square", "none");
     private static final Set<String> DECORATION_STYLES = Set.of("solid", "double", "dotted", "dashed", "wavy",
@@ -41,7 +41,7 @@ final class Shorthands {
 
     /** Splits a shorthand value among its longhands; omitted longhands may be left out of the result. */
     @FunctionalInterface
-    private interface Expander {
+    interface Expander {
         Map<Longhand, List<ComponentValue>> expand(List<Longhand> longhands, List<ComponentValue> value);
     }
 
@@ -97,15 +97,7 @@ final class Shorthands {
                 Shorthands::transformOrigin);
         register("object-position", longhands("-oriel-object-position-x", "-oriel-object-position-y"),
                 (l, v) -> pairOf(l, Images.splitPosition(v)));
-        register("-mc-gaze-limit", longhands("-oriel-gaze-limit-yaw", "-oriel-gaze-limit-up",
-                "-oriel-gaze-limit-down"), values -> shortest(values, last -> last), (l, v) -> sequence(l, v, REPEAT));
-        // Inside a <scene>: x [y [z]] in blocks, the ones left out 0; the centre is auto or all three coordinates.
-        register("-mc-translate", longhands("-oriel-translate-x", "-oriel-translate-y", "-oriel-translate-z"),
-                values -> shortest(values, last -> "0"), (l, v) -> sequence(l, v, last -> INITIAL));
-        register("-mc-scene-center", longhands("-oriel-scene-center-x", "-oriel-scene-center-y",
-                "-oriel-scene-center-z"), values -> values.contains("auto") ? "auto" : String.join(" ", values),
-                (l, v) -> isIdent(v, "auto")
-                ? Map.of(l.get(0), v, l.get(1), v, l.get(2), v) : sequence(l, v, REQUIRED));
+        PropertySchema.registerAll(PropertySchema.Phase.SHORTHANDS);
         register("scrollbar-color", longhands("-oriel-scrollbar-thumb-color", "-oriel-scrollbar-track-color"),
                 (l, v) -> isIdent(v, "auto") ? Map.of() : sequence(l, v, REQUIRED));
         register("background-position", List.of(BG_X, BG_Y), Shorthands::backgroundPosition);
@@ -136,12 +128,12 @@ final class Shorthands {
 
     // ---- Registration ----
 
-    private static void register(String name, List<Longhand> longhands, Expander expander) {
+    static void register(String name, List<Longhand> longhands, Expander expander) {
         register(name, longhands, values -> String.join(" ", values), expander);
     }
 
     /** Registers a shorthand; longhands the expander leaves out are set to {@code initial}. */
-    private static void register(String name, List<Longhand> longhands, Function<List<String>, String> joiner,
+    static void register(String name, List<Longhand> longhands, Function<List<String>, String> joiner,
                                  Expander expander) {
         BY_NAME.put(name, new Shorthand(name, longhands, joiner, v -> {
             Map<Longhand, List<ComponentValue>> parts = expander.expand(longhands, v);
@@ -152,7 +144,7 @@ final class Shorthands {
         }));
     }
 
-    private static List<Longhand> longhands(String... names) {
+    static List<Longhand> longhands(String... names) {
         return Arrays.stream(names).map(Properties::longhand).toList();
     }
 
@@ -232,7 +224,7 @@ final class Shorthands {
      * it is {@code omitted} applied to the one before ({@link #REPEAT}: {@code -mc-gaze-limit: 30deg 9deg}), and the
      * value is invalid where that is null ({@link #REQUIRED}).
      */
-    private static Map<Longhand, List<ComponentValue>> sequence(List<Longhand> longhands, List<ComponentValue> v,
+    static Map<Longhand, List<ComponentValue>> sequence(List<Longhand> longhands, List<ComponentValue> v,
                                                                UnaryOperator<List<ComponentValue>> omitted) {
         ValueReader r = new ValueReader(v);
         ValueContext probe = new ValueContext();
@@ -250,7 +242,7 @@ final class Shorthands {
      * The shortest value {@link #sequence} reads back: trailing values that {@code omitted} gives from the one before
      * (as text) are left out.
      */
-    private static String shortest(List<String> values, UnaryOperator<String> omitted) {
+    static String shortest(List<String> values, UnaryOperator<String> omitted) {
         int n = values.size();
         while (n > 1 && values.get(n - 1).equals(omitted.apply(values.get(n - 2)))) n--;
         return String.join(" ", values.subList(0, n));
@@ -318,7 +310,7 @@ final class Shorthands {
         return out;
     }
 
-    private static boolean isIdent(List<ComponentValue> v, String lower) {
+    static boolean isIdent(List<ComponentValue> v, String lower) {
         return v.size() == 1 && v.get(0) instanceof Token t && t.isIdent(lower);
     }
 

@@ -265,7 +265,7 @@ public final class Document extends Node {
      */
     private void load() {
         readyState = "interactive";
-        for (Element e : getElementsByTagName(MinecraftText.TAG)) MinecraftText.expand(this, e);
+        ElementExpansion.load(this);
         scripts = host.createScriptRuntime(this);
         if (scripts != null && initialData != null) scripts.receive("data", initialData);
         for (Element script : getElementsByTagName("script")) runScript(script);
@@ -626,7 +626,7 @@ public final class Document extends Node {
         if (node instanceof Element e) {
             if (e.replaced == null) addReplaced(e);
             // An expanded mc-text's new children were connected as they were inserted.
-            if (loaded && e.tagName().equals(MinecraftText.TAG) && MinecraftText.expand(this, e)) return;
+            if (loaded && ElementExpansion.connected(this, e)) return;
             if (e.hasInertContent()) return;
         }
         for (int i = 0; i < node.children.size(); i++) connect(node.children.get(i), loaded);
@@ -721,7 +721,7 @@ public final class Document extends Node {
         boolean selectors = styleEngine.matchingReads(element, name);
         invalidate(selectors, selectors || styleEngine.readsAttribute(name), layout);
         repaint = true;
-        if (MinecraftText.expandsOn(element, name) && !readyState.equals("loading")) MinecraftText.expand(this, element);
+        if (!readyState.equals("loading")) ElementExpansion.attributeChanged(this, element, name);
     }
 
     /**

@@ -35,6 +35,7 @@ class CoreBoundaryTest {
     void inheritedBoundaryCannotGrowAndRemovedEntriesMustBeDeleted() throws IOException {
         Map<String, Integer> actual = new TreeMap<>();
         for (Path root : List.of(Path.of("src/main/java"), Path.of("src/main/resources"))) {
+            if (!Files.isDirectory(root)) continue;
             try (var paths = Files.walk(root)) {
                 for (Path file : paths.filter(Files::isRegularFile).filter(CoreBoundaryTest::source).sorted().toList()) {
                     actual.putAll(scan(file.toString().replace('\\', '/'), Files.readString(file)));
@@ -129,6 +130,7 @@ class CoreBoundaryTest {
     public static void main(String[] args) throws IOException {
         List<String> lines = new ArrayList<>();
         for (Path root : List.of(Path.of("src/main/java"), Path.of("src/main/resources"))) {
+            if (!Files.isDirectory(root)) continue;
             try (var paths = Files.walk(root)) {
                 for (Path file : paths.filter(Files::isRegularFile).filter(CoreBoundaryTest::source).sorted().toList()) {
                     scan(file.toString().replace('\\', '/'), Files.readString(file))

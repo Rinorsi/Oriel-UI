@@ -42,7 +42,7 @@ public final class FontSpec {
 
     /** Scale relative to the native 8px em. */
     public float scale() {
-        return size / ComputedStyle.DEFAULT_FONT_SIZE;
+        return size / dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize();
     }
 
     /**

@@ -17,12 +17,16 @@ import dev.oriel.engine.style.ImageRendering;
  */
 final class ImageContent implements ReplacedContent {
     private final Element element;
+    private final boolean spriteElement;
     /** What src names, or null without one. */
     private Image source;
     private float width = Float.NaN, height = Float.NaN;
 
-    ImageContent(Element element) {
+    ImageContent(Element element) { this(element, false); }
+
+    ImageContent(Element element, boolean spriteElement) {
         this.element = element;
+        this.spriteElement = spriteElement;
         load();
     }
 
@@ -51,8 +55,8 @@ final class ImageContent implements ReplacedContent {
         if (source == null) return;
         ComputedStyle s = element.style;
         int tint = s == null ? Colors.WHITE : s.tint;
-        if (source instanceof Image.Sprite sprite) {
-            canvas.drawSprite(sprite.id(), x, y, w, h, tint);
+        if (dev.oriel.engine.css.ImageProviders.handles(source)) {
+            dev.oriel.engine.css.ImageProviders.paint(canvas, source, x, y, w, h, tint);
             return;
         }
         String url = ImageSources.textureUrl(document(), source);
@@ -67,7 +71,7 @@ final class ImageContent implements ReplacedContent {
         String src = element.getAttribute("src");
         src = src == null ? "" : src.strip();
         if (src.isEmpty()) source = null;
-        else if (element.tagName().equals("sprite")) source = new Image.Sprite(src);
+        else if (spriteElement) source = dev.oriel.engine.css.ImageProviders.fromUrl(Image.SPRITE_SCHEME + src);
         else source = Image.ofUrl(src, document()::resolveUrl);
         refreshSize();
     }

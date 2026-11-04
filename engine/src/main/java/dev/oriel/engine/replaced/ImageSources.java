@@ -28,9 +28,8 @@ public final class ImageSources {
     public static float[] size(Document document, Image image, CanvasContent canvas) {
         return switch (image) {
             case Image.Url url -> textureSize(document, url.url());
-            case Image.Sprite sprite -> document.host().spriteSize(sprite.id());
             case Image.Canvas c -> canvas == null ? null : canvas.size();
-            default -> null;
+            default -> dev.oriel.engine.css.ImageProviders.size(document, image);
         };
     }
 
