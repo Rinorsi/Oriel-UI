@@ -1324,14 +1324,9 @@ public final class DevAutopilot {
         command(mc, "effect give @s minecraft:night_vision 600 0 true");
         pause(20);
         steps.add(() -> {
-            String[] lines = {"§a[优易库] 验收模式：首页已经打开，鼠标键盘都交给你了。",
-                    "§7  /oriel demo        首页（再输一次可回来）",
-                    "§7  /oriel demo catalog 组件与动效目录",
-                    "§7  /oriel edit        编辑手里的剑（物品编辑器）",
-                    "§7  /oriel demo hud    开关药水 HUD（按 T 打开聊天后能点它）",
-                    "§7  设置 → 控制 → 玩家名称：用系统输入法打中文，看候选窗位置",
-                    "§7  Esc 关闭界面；改 HTML/CSS 保存后界面会热重载"};
-            for (String l : lines) McClient.systemMessage(Component.literal(l));
+            String[] lines = {"oriel.dev.acceptance.ready", "oriel.dev.acceptance.home", "oriel.dev.acceptance.catalog",
+                    "oriel.dev.acceptance.edit", "oriel.dev.acceptance.hud", "oriel.dev.acceptance.ime", "oriel.dev.acceptance.reload"};
+            for (String key : lines) McClient.systemMessage(Component.literal(ClientText.t(key)));
             OrielClientCommands.preset("gallery");
         });
         if (Boolean.getBoolean("oriel.play.test")) {

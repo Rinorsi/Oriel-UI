@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
 /** The payload registry both loaders iterate, and the common way to send clientbound payloads. */
 public final class OrielNetwork {
     /** Bump when a payload's wire format changes; both loaders require the matching version capability. */
-    public static final String PROTOCOL_VERSION = "1";
+    public static final String PROTOCOL_VERSION = "2";
 
     /** Test override is only accepted in the opt-in network probe process. */
     public static String protocolVersion() {

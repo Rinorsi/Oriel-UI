@@ -2,6 +2,7 @@ package dev.oriel.mod.internal.server;
 
 import dev.oriel.mod.server.OrielServer;
 import dev.oriel.mod.server.OrielSession;
+import dev.oriel.kit.LocalizedMessage;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -57,7 +58,7 @@ public final class ItemEditor {
     public static boolean open(ServerPlayer player) {
         ItemStack held = player.getMainHandItem();
         if (held.isEmpty()) {
-            player.sendSystemMessage(Component.literal("[Oriel] 手里没有物品可以编辑"));
+            player.sendSystemMessage(Component.translatable("oriel.server.item_editor.empty_hand"));
             return false;
         }
         int slot = player.getInventory().getSelectedSlot();
@@ -77,10 +78,10 @@ public final class ItemEditor {
                         Constants.LOG.info("Oriel: {} edited {}", p.getName().getString(), BuiltInRegistries.ITEM.getKey(saved.getItem()));
                     } catch (Rejected e) {
                         reply.addProperty("status", "rejected");
-                        reply.addProperty("reason", e.getMessage());
+                        reply.add("reason", e.reason.json());
                     } catch (RuntimeException e) {
                         reply.addProperty("status", "rejected");
-                        reply.addProperty("reason", "数据格式不对");
+                        reply.add("reason", LocalizedMessage.text("oriel.server.item_editor.bad_data").json());
                         Constants.LOG.warn("Oriel: a malformed item edit from {}", p.getName().getString(), e);
                     }
                     session[0].patch("result", reply);
@@ -89,10 +90,15 @@ public final class ItemEditor {
     }
 
     /** A refused save; the message is shown to the player. */
-    static final class Rejected extends Exception {
+    public static final class Rejected extends Exception {
         @java.io.Serial private static final long serialVersionUID = 1L;
-        Rejected(String message) {
-            super(message);
+        public final transient LocalizedMessage reason;
+        Rejected(String key, Object... args) {
+            this(LocalizedMessage.text(key, args));
+        }
+        Rejected(LocalizedMessage message) {
+            super(message.key());
+            reason = message;
         }
     }
 
@@ -163,12 +169,16 @@ public final class ItemEditor {
         // Every component as JSON, for the tree (read only; the unknown ones are kept as they are).
         RegistryOps<JsonElement> ops = player.registryAccess().createSerializationContext(JsonOps.INSTANCE);
         JsonObject all = new JsonObject();
+        JsonArray unencodable = new JsonArray();
         for (TypedDataComponent<?> c : stack.getComponents()) {
             Identifier key = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(c.type());
             if (key == null) continue;
-            all.add(key.toString(), c.encodeValue(ops).result().orElse(new com.google.gson.JsonPrimitive("(不可编码)")));
+            var encoded = c.encodeValue(ops).result();
+            if (encoded.isEmpty()) unencodable.add(key.toString());
+            all.add(key.toString(), encoded.orElse(new com.google.gson.JsonPrimitive("oriel.server.item_editor.unencodable")));
         }
         o.add("components", all);
+        o.add("unencodableComponents", unencodable);
         return o;
     }
 
@@ -181,17 +191,17 @@ public final class ItemEditor {
     // ---- Save ----
 
     public static ItemStack save(ServerPlayer player, int slot, ItemStack original, JsonObject before, JsonObject edit) throws Rejected {
-        if (!Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(player.createCommandSourceStack())) throw new Rejected("没有编辑物品的权限");
-        if (player.getInventory().getSelectedSlot() != slot) throw new Rejected("你换了快捷栏格子，请重新打开编辑器");
+        if (!Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(player.createCommandSourceStack())) throw new Rejected("oriel.server.item_editor.no_permission");
+        if (player.getInventory().getSelectedSlot() != slot) throw new Rejected("oriel.server.item_editor.wrong_slot");
         ItemStack current = player.getInventory().getItem(slot);
-        if (!ItemStack.matches(current, original)) throw new Rejected("手里的物品已经变了，请重新打开编辑器");
+        if (!ItemStack.matches(current, original)) throw new Rejected("oriel.server.item_editor.item_changed");
         ItemStack next = current.copy();
 
         if (changed(before, edit, "name") || changed(before, edit, "nameColor")) {
             String name = string(edit, "name");
             if (name == null || name.isBlank()) next.remove(DataComponents.CUSTOM_NAME);
             else {
-                if (name.length() > MAX_NAME) throw new Rejected("名称最多 " + MAX_NAME + " 个字");
+                if (name.length() > MAX_NAME) throw new Rejected(LocalizedMessage.plural("oriel.server.item_editor.name_limit", MAX_NAME));
                 Style style = Style.EMPTY.withItalic(false);
                 String colour = string(edit, "nameColor");
                 if (colour != null && colour.matches("#[0-9a-fA-F]{6}")) style = style.withColor(TextColor.fromRgb(Integer.parseInt(colour.substring(1), 16)));
@@ -202,16 +212,16 @@ public final class ItemEditor {
             String r = string(edit, "rarity");
             Rarity rarity = null;
             for (Rarity value : Rarity.values()) if (value.getSerializedName().equals(r)) rarity = value;
-            if (rarity == null) throw new Rejected("未知稀有度 " + r);
+            if (rarity == null) throw new Rejected("oriel.server.item_editor.unknown_rarity", r);
             next.set(DataComponents.RARITY, rarity);
         }
         if (changed(before, edit, "lore")) {
             JsonArray lines = edit.getAsJsonArray("lore");
-            if (lines.size() > MAX_LORE_LINES) throw new Rejected("说明最多 " + MAX_LORE_LINES + " 行");
+            if (lines.size() > MAX_LORE_LINES) throw new Rejected(LocalizedMessage.plural("oriel.server.item_editor.lore_lines_limit", MAX_LORE_LINES));
             List<Component> lore = new ArrayList<>();
             for (JsonElement l : lines) {
                 String text = l.getAsString();
-                if (text.length() > MAX_LORE_LENGTH) throw new Rejected("每行说明最多 " + MAX_LORE_LENGTH + " 个字");
+                if (text.length() > MAX_LORE_LENGTH) throw new Rejected(LocalizedMessage.plural("oriel.server.item_editor.lore_length_limit", MAX_LORE_LENGTH));
                 lore.add(Component.literal(text).withStyle(Style.EMPTY.withItalic(true).withColor(TextColor.fromRgb(0xaa00aa))));
             }
             if (lore.isEmpty()) next.remove(DataComponents.LORE);
@@ -219,28 +229,28 @@ public final class ItemEditor {
         }
         if (changed(before, edit, "enchantments")) {
             JsonArray list = edit.getAsJsonArray("enchantments");
-            if (list.size() > MAX_ENCHANTMENTS) throw new Rejected("附魔最多 " + MAX_ENCHANTMENTS + " 个");
+            if (list.size() > MAX_ENCHANTMENTS) throw new Rejected(LocalizedMessage.plural("oriel.server.item_editor.enchantments_limit", MAX_ENCHANTMENTS));
             Registry<Enchantment> registry = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             ItemEnchantments.Mutable enchants = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
             for (JsonElement e : list) {
                 JsonObject en = e.getAsJsonObject();
                 Identifier id = Identifier.tryParse(en.get("id").getAsString());
                 Optional<Holder.Reference<Enchantment>> holder = id == null ? Optional.empty() : registry.get(id);
-                if (holder.isEmpty()) throw new Rejected("未知附魔 " + en.get("id").getAsString());
+                if (holder.isEmpty()) throw new Rejected("oriel.server.item_editor.unknown_enchantment", en.get("id").getAsString());
                 int level = en.get("level").getAsInt();
-                if (level < 1 || level > MAX_LEVEL) throw new Rejected("附魔等级要在 1–" + MAX_LEVEL + " 之间");
+                if (level < 1 || level > MAX_LEVEL) throw new Rejected("oriel.server.item_editor.enchantment_level", MAX_LEVEL);
                 enchants.set(holder.get(), level);
             }
             EnchantmentHelper.setEnchantments(next, enchants.toImmutable());
         }
         if (changed(before, edit, "maxDamage") && next.isDamageableItem()) {
             int max = edit.get("maxDamage").getAsInt();
-            if (max < 1 || max > MAX_DURABILITY) throw new Rejected("最大耐久要在 1–" + MAX_DURABILITY + " 之间");
+            if (max < 1 || max > MAX_DURABILITY) throw new Rejected("oriel.server.item_editor.max_durability", MAX_DURABILITY);
             next.set(DataComponents.MAX_DAMAGE, max);
         }
         if (changed(before, edit, "damage") && next.isDamageableItem()) {
             int damage = edit.get("damage").getAsInt();
-            if (damage < 0 || damage >= next.getMaxDamage()) throw new Rejected("损耗要在 0–" + (next.getMaxDamage() - 1) + " 之间");
+            if (damage < 0 || damage >= next.getMaxDamage()) throw new Rejected("oriel.server.item_editor.damage", next.getMaxDamage() - 1);
             next.setDamageValue(damage);
         }
         if (changed(before, edit, "unbreakable")) {
@@ -254,21 +264,21 @@ public final class ItemEditor {
         }
         if (changed(before, edit, "attributes")) {
             JsonArray list = edit.getAsJsonArray("attributes");
-            if (list.size() > MAX_ATTRIBUTES) throw new Rejected("属性修饰最多 " + MAX_ATTRIBUTES + " 条");
+            if (list.size() > MAX_ATTRIBUTES) throw new Rejected(LocalizedMessage.plural("oriel.server.item_editor.attributes_limit", MAX_ATTRIBUTES));
             ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
             int n = 0;
             for (JsonElement e : list) {
                 JsonObject a = e.getAsJsonObject();
                 Identifier id = Identifier.tryParse(a.get("attribute").getAsString());
                 Optional<Holder.Reference<Attribute>> attribute = id == null ? Optional.empty() : BuiltInRegistries.ATTRIBUTE.get(id);
-                if (attribute.isEmpty()) throw new Rejected("未知属性 " + a.get("attribute").getAsString());
+                if (attribute.isEmpty()) throw new Rejected("oriel.server.item_editor.unknown_attribute", a.get("attribute").getAsString());
                 double amount = a.get("amount").getAsDouble();
-                if (!Double.isFinite(amount) || Math.abs(amount) > MAX_AMOUNT) throw new Rejected("属性数值要在 ±" + (int) MAX_AMOUNT + " 之内");
+                if (!Double.isFinite(amount) || Math.abs(amount) > MAX_AMOUNT) throw new Rejected("oriel.server.item_editor.attribute_amount", (int) MAX_AMOUNT);
                 AttributeModifier.Operation operation = null;
                 for (AttributeModifier.Operation op : AttributeModifier.Operation.values()) if (op.getSerializedName().equals(string(a, "operation"))) operation = op;
                 EquipmentSlotGroup group = null;
                 for (EquipmentSlotGroup g : EquipmentSlotGroup.values()) if (g.getSerializedName().equals(string(a, "slot"))) group = g;
-                if (operation == null || group == null) throw new Rejected("属性的运算或部位不对");
+                if (operation == null || group == null) throw new Rejected("oriel.server.item_editor.invalid_attribute_operation");
                 String modifier = string(a, "modifier");
                 Identifier modifierId = modifier != null && Identifier.tryParse(modifier) != null ? Identifier.tryParse(modifier)
                         : Identifier.fromNamespaceAndPath(Constants.MOD_ID, "edit_" + n);

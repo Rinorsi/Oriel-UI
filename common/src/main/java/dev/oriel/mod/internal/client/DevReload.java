@@ -1,6 +1,8 @@
 package dev.oriel.mod.internal.client;
 
 import dev.oriel.mod.client.DocumentDriver;
+import static dev.oriel.mod.internal.client.ClientText.t;
+import static dev.oriel.mod.internal.client.ClientText.plural;
 
 import com.google.gson.JsonObject;
 import dev.oriel.mod.internal.Constants;
@@ -113,14 +115,16 @@ public final class DevReload {
             List<Path> assets = res.stream().filter(f -> kind(f) == Kind.ASSET).toList();
             List<Path> meta = res.stream().filter(f -> kind(f) == Kind.RESTART).toList();
             if (!meta.isEmpty()) {
-                show("restart", meta.getFirst().getFileName() + (meta.size() > 1 ? " 等 " + meta.size() + " 个文件" : "") + " 改了：模组信息只在启动时读取，需要重启游戏", null);
+                show("restart", meta.size() > 1
+                        ? plural("oriel.dev.reload.restart_files", meta.size(), meta.getFirst().getFileName())
+                        : t("oriel.dev.reload.restart_file", meta.getFirst().getFileName()), null);
                 continue;
             }
             List<String> parts = new ArrayList<>();
-            if (sources > 0) parts.add("Java 源码 " + sources + " 个文件");
-            else if (classes > 0) parts.add(classes + " 个类已重新编译");
+            if (sources > 0) parts.add(plural("oriel.dev.reload.java_sources", sources));
+            else if (classes > 0) parts.add(plural("oriel.dev.reload.compiled_classes", classes));
             if (!assets.isEmpty()) parts.add(describe(assets));
-            if (!parts.isEmpty()) show("changed", String.join(" · ", parts) + "改动，还没生效", "热重载");
+            if (!parts.isEmpty()) show("changed", t("oriel.dev.reload.changed", String.join(t("oriel.dev.reload.change_separator"), parts)), t("oriel.dev.reload.action_reload"));
         }
     }
 
@@ -151,15 +155,15 @@ public final class DevReload {
         java.util.LinkedHashSet<String> what = new java.util.LinkedHashSet<>();
         for (Path f : assets) {
             String rel = relative(f), name = f.getFileName().toString();
-            if (rel.contains("/textures/icons/")) what.add("图标");
-            else if (name.endsWith(".png")) what.add("贴图");
-            else if (rel.contains("/font/")) what.add("字体");
-            else if (rel.contains("/lang/")) what.add("语言");
-            else if (rel.contains("/sounds") || name.endsWith(".ogg")) what.add("声音");
-            else if (rel.contains("/models/") || rel.contains("/blockstates/")) what.add("模型");
-            else what.add("资源");
+            if (rel.contains("/textures/icons/")) what.add(t("oriel.dev.reload.kind_icons"));
+            else if (name.endsWith(".png")) what.add(t("oriel.dev.reload.kind_textures"));
+            else if (rel.contains("/font/")) what.add(t("oriel.dev.reload.kind_fonts"));
+            else if (rel.contains("/lang/")) what.add(t("oriel.dev.reload.kind_language"));
+            else if (rel.contains("/sounds") || name.endsWith(".ogg")) what.add(t("oriel.dev.reload.kind_sounds"));
+            else if (rel.contains("/models/") || rel.contains("/blockstates/")) what.add(t("oriel.dev.reload.kind_models"));
+            else what.add(t("oriel.dev.reload.kind_resources"));
         }
-        return "资源 " + assets.size() + " 个文件（" + String.join("、", what) + "）";
+        return plural("oriel.dev.reload.resources", assets.size(), String.join(t("oriel.dev.reload.list_separator"), what));
     }
 
     /**
@@ -235,10 +239,10 @@ public final class DevReload {
                 boolean assets = !assetFiles.isEmpty();
                 String assetNote = assets ? describe(assetFiles) : null;
                 if (java || assets) {
-                    show("building", java ? "正在编译…" : "正在复制资源…", null);
+                    show("building", java ? t("oriel.dev.reload.compiling") : t("oriel.dev.reload.copying_resources"), null);
                     String error = compile();
                     if (error != null) {
-                        show("failed", "编译失败：" + error, "重试");
+                        show("failed", t("oriel.dev.reload.compile_failed", error), t("oriel.dev.reload.action_retry"));
                         return;
                     }
                     scan(sourceDirs, ".java", sourceTimes, true);
@@ -248,7 +252,7 @@ public final class DevReload {
                 Minecraft.getInstance().execute(() -> swap(classes, assetNote));
             } catch (RuntimeException e) {
                 Constants.LOG.error("Oriel dev reload failed", e);
-                show("failed", "热重载出错：" + e.getMessage(), "重试");
+                show("failed", t("oriel.dev.reload.reload_failed", e.getMessage()), t("oriel.dev.reload.action_retry"));
             } finally {
                 busy = false;
             }
@@ -273,16 +277,16 @@ public final class DevReload {
             }
             if (!process.waitFor(10, TimeUnit.MINUTES)) {
                 process.destroyForcibly();
-                return "超时";
+                return t("oriel.dev.reload.timeout");
             }
             if (process.exitValue() == 0) return null;
             for (String l : lines) if (l.contains("error:")) return l.substring(l.indexOf("error:")).trim();
-            return lines.isEmpty() ? "退出码 " + process.exitValue() : lines.getFirst();
+            return lines.isEmpty() ? t("oriel.dev.reload.exit_code", process.exitValue()) : lines.getFirst();
         } catch (IOException e) {
             return e.getMessage();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return "被打断";
+            return t("oriel.dev.reload.interrupted");
         }
     }
 
@@ -292,8 +296,8 @@ public final class DevReload {
      */
     private static void swap(List<Path> files, String assets) {
         if (assets != null) {
-            show("building", "正在重新加载资源…", null);
-            Minecraft.getInstance().reloadResourcePacks().thenRun(() -> Minecraft.getInstance().execute(() -> swapClasses(files, "已重新加载" + assets)));
+            show("building", t("oriel.dev.reload.reloading_resources"), null);
+            Minecraft.getInstance().reloadResourcePacks().thenRun(() -> Minecraft.getInstance().execute(() -> swapClasses(files, t("oriel.dev.reload.reloaded_resources", assets))));
             return;
         }
         swapClasses(files, null);
@@ -303,13 +307,13 @@ public final class DevReload {
     private static void swapClasses(List<Path> files, String reloaded) {
         if (files.isEmpty()) {
             DocumentDriver.reloadAll();
-            show("done", (reloaded != null ? reloaded : "已检查：代码没有变化") + "，页面已重新打开", null);
+            show("done", t("oriel.dev.reload.done", reloaded != null ? reloaded : t("oriel.dev.reload.unchanged")), null);
             return;
         }
         Instrumentation inst = instrumentation();
         if (inst == null) {
             snapshotClasses();
-            show("restart", "无法热替换（JVM 不允许自连接）：需要重启游戏", null);
+            show("restart", t("oriel.dev.reload.attach_denied"), null);
             return;
         }
         Map<String, List<Class<?>>> loaded = new HashMap<>();
@@ -348,11 +352,16 @@ public final class DevReload {
         snapshotClasses();
         DocumentDriver.reloadAll();
         if (!refused.isEmpty()) {
-            show("restart", (reloaded != null ? reloaded + "；" : "") + "已替换 " + (defs.size() - refused.size()) + " 个类；需要重启游戏：" + String.join("、", refused.stream().distinct().limit(4).toList())
-                    + (refused.size() > 4 ? " 等" : "") + "（新增或删除了字段、方法）", null);
+            String restart = plural(refused.size() > 4 ? "oriel.dev.reload.partial_restart_more" : "oriel.dev.reload.partial_restart",
+                    defs.size() - refused.size(), String.join(t("oriel.dev.reload.list_separator"), refused.stream().distinct().limit(4).toList()));
+            show("restart", reloaded == null ? restart : t("oriel.dev.reload.resources_restart", reloaded, restart), null);
         } else {
-            show("done", (reloaded != null ? reloaded + "，" : "") + (defs.isEmpty() ? "代码已更新" : "已热替换 " + defs.size() + " 个类")
-                    + (fresh > 0 ? "，新增 " + fresh + " 个类" : "") + "，页面已重新打开", null);
+            String code = defs.isEmpty() ? t("oriel.dev.reload.code_updated") : plural("oriel.dev.reload.replaced_classes", defs.size());
+            String added = fresh > 0 ? plural("oriel.dev.reload.added_classes", fresh) : null;
+            String done = reloaded == null
+                    ? added == null ? t("oriel.dev.reload.done", code) : t("oriel.dev.reload.done_added", code, added)
+                    : added == null ? t("oriel.dev.reload.resources_done", reloaded, code) : t("oriel.dev.reload.resources_done_added", reloaded, code, added);
+            show("done", done, null);
         }
     }
 

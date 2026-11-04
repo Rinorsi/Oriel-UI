@@ -75,7 +75,7 @@ class ItemEditorPresetTest {
         editor.save();
         JsonObject reply = new JsonObject();
         reply.addProperty("status", "rejected");
-        reply.addProperty("reason", "手里的物品已经变了");
+        reply.add("reason", dev.oriel.kit.LocalizedMessage.text("oriel.server.item_editor.item_changed").json());
         doc.patch("result", reply.toString());
         assertTrue(doc.getElementById("status").textContent().contains("手里的物品已经变了"));
         assertEquals(List.of("enchantments"), editor.changes(), "a refusal keeps the edit");

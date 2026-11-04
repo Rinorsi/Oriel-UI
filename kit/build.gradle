@@ -14,6 +14,13 @@ dependencies {
     testImplementation(project(':mc-extension'))
 }
 
+// Backend localization tests scan message references without introducing a Minecraft dependency into kit.
+tasks.named('test') {
+    inputs.files(['server/ItemEditor.java', 'client/DevReload.java', 'client/DevAutopilot.java'].collect {
+        rootProject.file('common/src/main/java/dev/oriel/mod/internal/' + it)
+    }).withPropertyName('backendMessageSources')
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.release = engine_java_release as int
     options.compilerArgs += ['-Xlint:all', '-Werror']

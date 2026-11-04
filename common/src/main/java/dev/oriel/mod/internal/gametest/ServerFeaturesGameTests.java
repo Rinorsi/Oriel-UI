@@ -21,6 +21,7 @@ import java.util.List;
 /** Server-only regressions for fallback, per-player routing and atomic forge inventory changes. */
 public final class ServerFeaturesGameTests {
     public static void init() {
+        GameTests.add("item_editor_localization", ItemEditorLocalizationGameTests::run);
         GameTests.add("runtime_version", h -> {
             String version = dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel");
             h.assertFalse(version.isBlank(), "loader supplies the running library version");
@@ -38,7 +39,7 @@ public final class ServerFeaturesGameTests {
             h.assertFalse(OrielNetwork.compatible(type -> type != dev.oriel.mod.internal.net.PatchPayload.TYPE), "incomplete protocol rejected");
             for (boolean installed : new boolean[] {false, true}) {
                 String reason = dev.oriel.mod.internal.net.ProtocolMessages.rejection(installed);
-                h.assertTrue(reason.contains("Oriel UI") && reason.contains("优易库") && reason.contains("1"),
+                h.assertTrue(reason.contains("Oriel UI") && reason.contains("优易库") && reason.contains(OrielNetwork.PROTOCOL_VERSION),
                         "language resources provide bilingual missing/version rejection");
             }
             h.succeed();

@@ -254,7 +254,8 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             toast(Lang.t(doc, "oriel.ui.item_editor.saved"));
         } else {
             Motion.play(saveButton, "m-error", 300);
-            status(Lang.t(doc, "oriel.ui.item_editor.server_rejected_it") + string(r, "reason"), "bad");
+            status(Lang.t(doc, "oriel.server.item_editor.rejected_reason",
+                    dev.oriel.kit.LocalizedMessage.fromJson(r.getAsJsonObject("reason")).render(doc)), "bad");
         }
     }
 
@@ -526,7 +527,8 @@ public final class ItemEditorPreset implements PageControllers.Controller {
         Element tree = Dom.byId(doc, "tree");
         tree.removeAllChildren();
         JsonObject all = work.has("components") && work.get("components").isJsonObject() ? work.getAsJsonObject("components") : new JsonObject();
-        for (Map.Entry<String, JsonElement> e : all.entrySet()) tree.appendChild(node(e.getKey(), e.getValue()));
+        for (Map.Entry<String, JsonElement> e : all.entrySet()) tree.appendChild(node(e.getKey(),
+                dev.oriel.kit.LocalizedMessage.componentValue(doc, work, e.getKey(), e.getValue())));
         if (all.isEmpty()) tree.appendChild(Dom.el(doc, "div", "empty", Lang.t(doc, "oriel.ui.item_editor.no_component_data")));
     }
 
