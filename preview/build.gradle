@@ -20,6 +20,25 @@ application {
     mainClass = 'dev.oriel.preview.Preview'
 }
 
+// Separate from check: machine load and CPU affect wall-clock timings; baselines require deliberate review.
+tasks.register('benchmarkFrames', JavaExec) {
+    group = 'verification'
+    description = 'Compare per-page ImageCanvas frame p50/p95 against the reviewed baseline.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.oriel.preview.FrameBenchmark'
+    workingDir = rootProject.projectDir
+    systemProperty('java.awt.headless', 'true')
+    minHeapSize = '1g'
+    maxHeapSize = '1g'
+    systemProperty('oriel.benchUpdate', project.hasProperty('updateFrameBaseline'))
+    ['benchWarmup', 'benchFrames', 'benchRounds', 'benchTolerance'].each { key ->
+        if (project.hasProperty(key)) systemProperty('oriel.' + key, project.property(key))
+    }
+    args(rootProject.file('kit/src/main/resources/assets/oriel/ui'),
+            project.findProperty('frameBaseline') ?: rootProject.file('preview/benchmarks/frames.json'),
+            project.findProperty('frameReport') ?: layout.buildDirectory.file('benchmarks/frames-actual.json').get().asFile)
+}
+
 tasks.named('run', JavaExec) {
     // Page paths in --args are typed relative to the repository root.
     workingDir = rootProject.projectDir
@@ -38,7 +57,7 @@ tasks.named('test', Test) {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
+    options.compilerArgs += ['-Xlint:all', '-Werror']
 }
 
 // `./gradlew :preview:checkUi [-Pui=<dir or page>]`: loads every kit page (or the given ones) headless with its

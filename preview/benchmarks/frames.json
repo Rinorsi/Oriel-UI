@@ -1,0 +1,98 @@
+{
+  "warmup": 60,
+  "frames": 120,
+  "rounds": 3,
+  "aggregate": "median-of-independent-rounds",
+  "viewport": "427x240@1",
+  "backend": "ImageCanvas",
+  "clearBeforeFrame": true,
+  "java": "25.0.5",
+  "os": "Windows 11 amd64",
+  "processors": 20,
+  "pages": {
+    "catalog.html": {
+      "p50_ms": 8.1004,
+      "p95_ms": 9.7598
+    },
+    "editor.html": {
+      "p50_ms": 12.3522,
+      "p95_ms": 12.8419
+    },
+    "forge.html": {
+      "p50_ms": 10.1301,
+      "p95_ms": 10.7109
+    },
+    "gallery.html": {
+      "p50_ms": 8.6751,
+      "p95_ms": 9.5877
+    },
+    "icons.html": {
+      "p50_ms": 7.6469,
+      "p95_ms": 8.3711
+    },
+    "inventory.html": {
+      "p50_ms": 9.9331,
+      "p95_ms": 10.8387
+    },
+    "inventory_effects.html": {
+      "p50_ms": 1.0874,
+      "p95_ms": 1.404
+    },
+    "item_editor.html": {
+      "p50_ms": 7.1242,
+      "p95_ms": 7.7235
+    },
+    "music.html": {
+      "p50_ms": 14.8309,
+      "p95_ms": 15.5798
+    },
+    "potions.html": {
+      "p50_ms": 1.2974,
+      "p95_ms": 1.621
+    },
+    "settings.html": {
+      "p50_ms": 8.0291,
+      "p95_ms": 8.5011
+    },
+    "styles.html": {
+      "p50_ms": 8.094,
+      "p95_ms": 8.5778
+    },
+    "styles/arcane.html": {
+      "p50_ms": 19.7532,
+      "p95_ms": 22.4081
+    },
+    "styles/dungeon.html": {
+      "p50_ms": 7.1318,
+      "p95_ms": 7.9071
+    },
+    "styles/fantasy.html": {
+      "p50_ms": 26.9129,
+      "p95_ms": 29.1287
+    },
+    "styles/mcdungeons.html": {
+      "p50_ms": 7.3909,
+      "p95_ms": 7.7763
+    },
+    "styles/military.html": {
+      "p50_ms": 6.9196,
+      "p95_ms": 7.5259
+    },
+    "styles/rpg.html": {
+      "p50_ms": 12.9525,
+      "p95_ms": 13.7303
+    },
+    "styles/scifi.html": {
+      "p50_ms": 18.399,
+      "p95_ms": 19.0911
+    },
+    "styles/terraria.html": {
+      "p50_ms": 13.4015,
+      "p95_ms": 14.8743
+    },
+    "styles/xianxia.html": {
+      "p50_ms": 19.8344,
+      "p95_ms": 20.6197
+    }
+  }
+}

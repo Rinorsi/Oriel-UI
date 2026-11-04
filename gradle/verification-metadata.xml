@@ -1493,6 +1493,9 @@
       </artifact>
     </component>
     <component group='net.neoforged' name='neoforge' version='26.1.2.126'>
+      <artifact name='neoforge-26.1.2.126-moddev-config.json'>
+        <sha256 value='82affcf4a10fc7e9dede74f65c522904bb16f6369a82271ef95b633452e27158' origin='Offline resolved cache; review required' />
+      </artifact>
       <artifact name='neoforge-26.1.2.126-sources.jar'>
         <sha256 value='953ce6adc84198f27b28135b9a8f584c451877137ff84a68ca9ac758d629b7ea' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1504,6 +1507,9 @@
       </artifact>
     </component>
     <component group='net.neoforged' name='neoforge' version='26.2.0.88'>
+      <artifact name='neoforge-26.2.0.88-moddev-config.json'>
+        <sha256 value='e9c9a2a0cac5e8f2ac284a011fd5ed1b2cfe81c077e80cd85b9260603a97fb3c' origin='Offline resolved cache; review required' />
+      </artifact>
       <artifact name='neoforge-26.2.0.88-sources.jar'>
         <sha256 value='4a2d5079b93659206e3078aee205311f86b549cfbd11eebf74bee36960d5f9e0' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1515,6 +1521,9 @@
       </artifact>
     </component>
     <component group='net.neoforged' name='neoforge' version='26.3.0.26-beta'>
+      <artifact name='neoforge-26.3.0.26-beta-moddev-config.json'>
+        <sha256 value='a9f3e7a460a39c65c47730a33e97cb85b2cf9c9a01472361b1c1e77b51469547' origin='Offline resolved cache; review required' />
+      </artifact>
       <artifact name='neoforge-26.3.0.26-beta-sources.jar'>
         <sha256 value='66b910bd4d3ae8eeae1cae89611fe7c0cd9c06558425300005fccb67ef9ab211' origin='Offline resolved cache; review required' />
       </artifact>

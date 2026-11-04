@@ -1,0 +1,91 @@
+# 后端构建与性能门禁
+
+这些任务不改页面、样式或黄金图。运行目录和验收日志放仓库外；完整验收使用项目 wrapper 与 JDK 25。
+
+## Gradle 10 准备
+
+用以下命令把实际执行路径中的 Gradle 弃用警告变成失败：
+
+```bash
+./gradlew --offline --no-configuration-cache compileJava :check --rerun-tasks --warning-mode fail
+```
+
+仓库已将 artifactId、exceptionFormat 改为赋值语法；Rhino 准备任务用注入的 FileSystemOperations 删除自己的生成目录；API 检查任务在配置期捕获文件、工具链和选项，避免执行期读取 Task.project。Shadow 的服务文件显式使用 INCLUDE，让合并器收到全部条目。
+
+验证环境是 Gradle 9.7.1，Loom 1.18.2、ModDevGradle 2.0.147、Stonecutter 0.9.8、Shadow 9.6.1。Rhino relocated runtime 也声明正式publication，避免script-rhino发布依赖指向未发布项目。
+
+**尚存插件弃用**：Loom 1.18.2 的 CompileConfiguration.getLockFile 调用执行期注入的 Project，嵌套模板构建中会触发 Gradle 10 禁用警告。因此全套 --warning-mode fail 当前仍会失败，不能称已完全兼容 Gradle 10。仓库没有绕过插件或隐藏该警告。上游追踪入口：[FabricMC/fabric-loom issues](https://github.com/FabricMC/fabric-loom/issues?q=is%3Aissue+%22injected+service%22)；本次网络查询失败，尚未核实对应issue编号，也没有擅自向上游发帖。升级 Loom 后用上述命令复查；普通 --warning-mode all 用于保留完整追踪。
+
+## JDK 25 编译警告
+
+engine、kit、preview、mc-extension 以及 common/两个加载器开启 -Xlint:all 和 -Werror，测试源码也受检查。预览 Swing 控件及服务端异常类补齐 serialVersionUID，过时的物品附魔访问改为数据组件，重复悬空 Javadoc 已整理。
+
+两处 Screen 构造器仅对 this-escape 作局部注解：DocumentDriver 构造器只保存 owner，不调用回调或发布它；实际回调从构造完成后的 init/resize 开始。保留可继承 API，不为消除静态分析误报把它改成 final。
+
+**外部依赖例外**：MC 26.3 的 JOML 1.10.9 在 Java 1.2 classfile 中带有 Java 8 类型注解，JDK 25 报 classfile 警告。上游已记录 [JOML #398](https://github.com/JOML-CI/JOML/issues/398)。不改 Minecraft 自带库、不重打包它；26.3 的游戏适配层暂时仅关闭 classfile 类别，其他源码警告仍为错误。26.1/26.2 不需要该例外。以下开关可恢复完整外部 classfile 检查，当前会复现该上游问题：
+
+```bash
+./gradlew --offline :common:26.3:compileJava --rerun-tasks -PstrictExternalClassfiles
+```
+
+没有启用 Error Prone 编译器。当前缓存只有 error_prone_annotations，没有可离线验证的 error_prone_core/Gradle 集成。compileOnly 的注解包用于让 javac 读懂 Gson/Guava 发布的类型注解，不是 Error Prone 插件，也不会打进运行时。
+
+## 依赖 SHA-256 校验
+
+gradle/verification-metadata.xml 由当前离线缓存中的实际构建、测试运行及 NeoForm 工具图生成。正常构建使用 Gradle 默认 strict 验证模式；没有全局关闭验证，也不信任整组通配依赖。
+
+唯一刷新命令：
+
+```bash
+./gradlew --offline --no-configuration-cache --dependency-verification off writeDependencyVerification
+```
+
+刷新是明确的信任更新：检查 XML diff、确认依赖变化来源，再提交。该命令只读取已解析的缓存文件并写 SHA-256，不下载或修改共享缓存。两个仅在 settings 中加载的插件也被显式固定；升级它们时同时更新任务中的版本。
+
+Gradle 自带的全量 --write-verification-metadata 模式会让本环境的 Loom 请求缓存缺少的可选平台描述，故刷新任务只解析实际构建图。XML 验证 JAR/ZIP 等工件内容，verify-metadata=false：不承诺 POM/module 描述或发布者签名验证。新增平台、依赖或工具版本时，缺少缓存会明确失败；先取得并核对所需缓存，再刷新。首次校验值来自本机缓存，不是独立的上游真实性证明。
+
+Rhino 源码归档另由 gradle.properties 固定的 rhino_sha256 检查；Minecraft/NeoForm 的专用下载由相应插件的清单机制管理，不能把它们误称为都由 Gradle 模块 XML 覆盖。
+
+```bash
+./gradlew --offline verifyDependencyGraph :check
+```
+
+verifyDependencyGraph 解析已声明的编译、运行、测试及 NeoForm 工具配置；出现未记录的工件或哈希变化即失败。
+
+## Jar-in-Jar 共存验收
+
+先构建当前模板和本地库产物，再分别启动两个仅监听本机的专用验收服务器：
+
+```bash
+./gradlew --offline templateCompile
+node tools/server-smoke.mjs fabric /external/jij-fabric --jij --accept-eula
+node tools/server-smoke.mjs neoforge /external/jij-neoforge --jij --accept-eula
+```
+
+EULA 必须由操作者确认；已有 eula=true 时不需要 --accept-eula。每次运行都有900秒上限，正常关闭使用 RCON stop，不停止全局 Gradle daemon。
+
+脚本在外部运行目录生成两个父模组，各内嵌一份当前 Oriel 代码，测试元数据版本分别为0.10.1和0.10.2，范围都为 [0.10.0,0.11.0)。Fabric 使用标准 nested jars 元数据，NeoForge 使用 JarJar 元数据。模板在该模式仅 compileOnly 依赖 Oriel，不在顶层运行时添加本库，防止顶层开发副本使测试失真。
+
+验收断言：两个父模组都加载、仅有一次 Oriel 初始化、运行版本为0.10.2，且真实 /oriel version 命令返回同一版本。日志与 result.json 留在外部目录。夹具的代码相同、元数据版本不同，证明加载器的选择和单实例启动；它不替代未来不同真实发行版本间的业务/API兼容测试。
+
+正常客户端和服务端启动均记录加载器实际选中的版本；/oriel version 在对应侧输出该版本，不读取编译期常量。
+
+## 单独的帧耗时回归任务
+
+```bash
+./gradlew --offline :preview:benchmarkFrames -PframeReport=/external/frames-actual.json
+```
+
+此任务不挂入 check：它受 CPU、JIT、GC 和其他程序负载影响，应在相同机器与空闲环境比较。需要 ORIEL_MC_JAR 或预览器能找到的相同 Minecraft 资源；缺图、控制器错误或页面集合变化会失败，不能用降级字体掩盖资源缺失。
+
+固定427×240、scale 1、1 GiB堆。每页默认三个独立轮次，每轮60帧预热、120帧测量；每帧清空目标后运行正常 document frame/脏布局更新及 ImageCanvas paint。时间步固定为60Hz，度量不含页面解析、资源初始化和清屏。每轮求p50/p95，再取三个轮次的中位数，减少单次JIT/调度抖动。检查每一页的两项成本是否超出已提交基线的25%，任何一项超限都失败并打印具体页面与数值。
+
+基线在 preview/benchmarks/frames.json，保留JDK、系统和处理器数量。它是 CPU 预览后端的成本，**不是游戏 GPU 帧率或视觉质量承诺**。页面的动画与脏标记照常执行，任务没有修改页面来制造较快结果。
+
+明确审查后才更新基线：
+
+```bash
+./gradlew --offline :preview:benchmarkFrames -PupdateFrameBaseline -PframeReport=/external/frames-new.json
+```
+
+可用 benchWarmup、benchFrames、benchRounds 调整采样；配置与基线必须相同。benchRounds 为至少3的奇数。benchTolerance 默认0.25，改变它应在验收记录说明，不以扩大阈值掩盖回退。frameBaseline 可指向仓库外文件，用于验证人为压低的基线确实会让门禁失败。不要在失败时自动覆盖基线。
