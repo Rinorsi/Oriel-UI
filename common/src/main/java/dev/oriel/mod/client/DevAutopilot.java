@@ -75,6 +75,13 @@ public final class DevAutopilot {
     /** With {@code -Pautopilot=scene}, only the scene showcase's steps run ({@link #scene}), for quick looks. */
     private static final String ONLY = System.getProperty("oriel.autopilot.only", "");
     /**
+     * {@code -Pautopilot=play}: hands-on acceptance. The same fresh test world, set up with things to try (an enchanted
+     * sword in hand, a few items, effects), the Oriel home page open, and then the player is in control: no pointer
+     * taken, no automatic steps, no quitting. With {@code oriel.play.test} it screenshots the ready state and quits
+     * (to check the mode itself).
+     */
+    private static final boolean PLAY = ONLY.equals("play");
+    /**
      * The fewest ticks before a page's screenshot, so the frame rate logged with it (counted over a second) is the
      * page's own; and how long to wait for a screen that is not a Oriel page.
      */
@@ -106,16 +113,18 @@ public final class DevAutopilot {
             // A fresh run directory first shows the accessibility onboarding screen instead of the title screen.
             if (!(McClient.screen() instanceof TitleScreen || McClient.screen() instanceof AccessibilityOnboardingScreen)) return;
             started = true;
-            // The pointer is the autopilot's from here on, wherever the real mouse is.
-            DevPointer.own();
+            // The pointer is the autopilot's from here on, wherever the real mouse is (not in play mode: it is yours).
+            if (!PLAY) DevPointer.own();
             mc.options.onboardingAccessibilityFinished();
             // The window may never have focus while the autopilot runs; don't pause or show tutorial toasts.
             mc.options.pauseOnLostFocus = false;
             mc.options.tutorialStep = net.minecraft.client.tutorial.TutorialSteps.NONE;
-            // Uncapped frame rates, so the logged fps measure what the pages cost.
-            mc.options.enableVsync().set(false);
-            mc.options.framerateLimit().set(Options.UNLIMITED_FRAMERATE_CUTOFF);
-            String id = "oriel-autopilot";
+            // Uncapped frame rates, so the logged fps measure what the pages cost (play mode keeps your settings).
+            if (!PLAY) {
+                mc.options.enableVsync().set(false);
+                mc.options.framerateLimit().set(Options.UNLIMITED_FRAMERATE_CUTOFF);
+            }
+            String id = PLAY ? "oriel-play" : "oriel-autopilot";
             //? if >=26 {
             LevelSettings settings = new LevelSettings(id, GameType.CREATIVE,
                     new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
@@ -133,7 +142,7 @@ public final class DevAutopilot {
             *///?}
             return;
         }
-        DevPointer.hold(); // after screens the server opened
+        if (!PLAY) DevPointer.hold(); // after screens the server opened
         if (!loaded) {
             if (mc.player == null || mc.level == null) return;
             loaded = true;
@@ -146,6 +155,11 @@ public final class DevAutopilot {
             return;
         }
         Runnable step = steps.poll();
+        if (step == null && PLAY && !Boolean.getBoolean("oriel.play.test")) {
+            finished = true;
+            Constants.LOG.info("Oriel play mode: ready, over to you");
+            return;
+        }
         if (step == null) {
             finished = true;
             String skips = skipped == 0 ? "" : ", " + skipped + " skipped (not ported to this Minecraft version)";
@@ -159,7 +173,7 @@ public final class DevAutopilot {
         } catch (RuntimeException e) {
             fail("a step failed", e);
         }
-        DevPointer.hold(); // after screens the step opened, before their first frame
+        if (!PLAY) DevPointer.hold(); // after screens the step opened, before their first frame
     }
 
     private static void plan(Minecraft mc) {
@@ -193,6 +207,10 @@ public final class DevAutopilot {
         }
         if (ONLY.equals("oriel")) {
             presets(mc);
+            return;
+        }
+        if (PLAY) {
+            play(mc);
             return;
         }
         serverPages(mc);
@@ -902,6 +920,35 @@ public final class DevAutopilot {
         pause(165);
         grab(mc, "preset_hud_later", 5);
         steps.add(OrielClientCommands::togglePotionHud);
+    }
+
+    /** Play mode: things to try, the home page open, and a chat note on what to look at. */
+    private static void play(Minecraft mc) {
+        command(mc, "clear @s");
+        command(mc, "item replace entity @s weapon.mainhand with minecraft:diamond_sword[minecraft:enchantments={\"minecraft:sharpness\":5,\"minecraft:looting\":3},minecraft:custom_name=\"龙牙\"]");
+        command(mc, "give @s minecraft:bow[minecraft:enchantments={\"minecraft:power\":4}]");
+        command(mc, "give @s minecraft:netherite_pickaxe");
+        command(mc, "give @s minecraft:golden_apple 8");
+        command(mc, "give @s minecraft:enchanted_book[minecraft:stored_enchantments={\"minecraft:mending\":1}]");
+        command(mc, "give @s minecraft:elytra");
+        command(mc, "give @s minecraft:diamond 32");
+        command(mc, "effect give @s minecraft:night_vision 600 0 true");
+        pause(20);
+        steps.add(() -> {
+            String[] lines = {"§a[优易库] 验收模式：首页已经打开，鼠标键盘都交给你了。",
+                    "§7  /oriel demo        首页（再输一次可回来）",
+                    "§7  /oriel demo catalog 组件与动效目录",
+                    "§7  /oriel edit        编辑手里的剑（物品编辑器）",
+                    "§7  /oriel demo hud    开关药水 HUD（按 T 打开聊天后能点它）",
+                    "§7  设置 → 控制 → 玩家名称：用系统输入法打中文，看候选窗位置",
+                    "§7  Esc 关闭界面；改 HTML/CSS 保存后界面会热重载"};
+            for (String l : lines) McClient.systemMessage(Component.literal(l));
+            OrielClientCommands.preset("gallery");
+        });
+        if (Boolean.getBoolean("oriel.play.test")) {
+            pause(60);
+            grab(mc, "play_ready", 5);
+        }
     }
 
     /** Waits {@code ticks} ticks before the next step. */
