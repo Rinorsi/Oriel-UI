@@ -42,6 +42,13 @@ public final class OrielNetwork {
 
     private OrielNetwork() {}
 
+    /** Capability query for menus or other operations that need a supporting client before sending vanilla packets. */
+    public static boolean canReceive(ServerPlayer player, CustomPacketPayload.Type<?> type) {
+        Network n = impl;
+        if (n == null) impl = n = Services.load(Network.class);
+        return n.canReceive(player, type);
+    }
+
     /** Sends a clientbound payload; false if the player's client cannot receive it (it lacks Oriel). */
     public static boolean sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
         BiConsumer<ServerPlayer, CustomPacketPayload> sink = interceptor;

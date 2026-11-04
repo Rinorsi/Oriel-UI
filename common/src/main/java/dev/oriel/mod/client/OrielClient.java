@@ -98,6 +98,7 @@ public final class OrielClient {
 
     /** Handles every clientbound payload in {@code OrielNetwork.CLIENTBOUND}; {@link ServerPages} decides what servers may show. */
     public static void handle(CustomPacketPayload payload) {
+        if (ServerProbeClient.ENABLED) ServerProbeClient.received(payload);
         switch (payload) {
             case OpenPayload p -> ServerPages.open(p);
             case DataPayload p -> ServerPages.data(p);
@@ -122,6 +123,7 @@ public final class OrielClient {
 
     /** Called by the loaders at the end of every client tick. */
     public static void tick() {
+        if (ServerProbeClient.ENABLED) ServerProbeClient.tick();
         ServerPages.tick();
         Mobdex.tick();
         PlayerEffects.tick();
