@@ -83,6 +83,35 @@ public record SmoothShape(boolean shadow, float x0, float y0, float x1, float y1
         return inset ? box * (1 - blurred) : blurred * (1 - box);
     }
 
+    /**
+     * Half the size of a box around the centre where {@link #coverage} is 0 for pixels {@code aa} wide: the hollow of a
+     * border or an inset shadow, the box under a cutout shadow. A software rasterizer skips it; null when there is
+     * none.
+     */
+    public float[] hollow(float aa) {
+        float hx, hy;
+        if (!shadow) {
+            if (a <= 0) return null;
+            hx = halfWidth - a;
+            hy = halfHeight - a;
+        } else if (inset) {
+            // Past 4 sigma inside, the blurred edge has faded to nothing.
+            float reach = b + 4 * Math.max(a, aa * 0.5f);
+            hx = halfWidth - reach;
+            hy = halfHeight - reach;
+        } else if (cutout) {
+            hx = halfWidth;
+            hy = halfHeight;
+        } else {
+            return null;
+        }
+        float r = 0;
+        for (float v : radii) r = Math.max(r, v);
+        hx -= r + aa;
+        hy -= r + aa;
+        return hx > 0 && hy > 0 ? new float[] {hx, hy} : null;
+    }
+
     /** The radius of the corner whose quadrant (x, y) is in (y down). */
     private static float cornerRadius(float x, float y, float[] r) {
         boolean right = !(x < 0), bottom = !(y < 0);

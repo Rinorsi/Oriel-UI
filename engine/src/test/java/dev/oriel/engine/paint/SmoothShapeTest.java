@@ -39,6 +39,24 @@ class SmoothShapeTest {
     }
 
     @Test
+    void nothingIsCoveredInTheHollowARasterizerSkips() {
+        SmoothShape[] shapes = {
+                SmoothShape.border(new float[] {0, 0, 80, 50}, radii(6), new float[] {3, 3, 3, 3}, new int[] {-1, -1, -1, -1}),
+                SmoothShape.shadow(new float[] {0, 0, 80, 50}, radii(6), new Shadow(0, 0, 6, 2, -1, true)),
+                SmoothShape.shadow(new float[] {0, 0, 80, 50}, radii(6), new Shadow(0, 0, 10, 0, -1, false))};
+        for (SmoothShape s : shapes) {
+            float[] h = s.hollow(0.5f);
+            assertNotNull(h);
+            for (float x = -h[0]; x <= h[0]; x += h[0] / 8) {
+                for (float y = -h[1]; y <= h[1]; y += h[1] / 8) {
+                    assertTrue(Math.round(255 * s.coverage(x, y, 0.5f)) == 0, s + " covers " + x + ", " + y);
+                }
+            }
+        }
+        assertNull(SmoothShape.box(0, 0, 40, 20, radii(8), 0, -1).hollow(0.5f), "a filled box has no hollow");
+    }
+
+    @Test
     void aBlurredShadowFadesOutAcrossTheEdge() {
         SmoothShape s = SmoothShape.shadow(new float[] {0, 0, 40, 40}, radii(4), new Shadow(0, 0, 8, 0, 0xFF000000, false));
         assertNotNull(s);

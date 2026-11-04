@@ -5,7 +5,6 @@ import dev.oriel.engine.paint.SmoothShape;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -17,7 +16,6 @@ final class ShapeRasterizer {
     private final int[] pixels;
     private final int stride;
     private final Rectangle2D.Float quad = new Rectangle2D.Float();
-    private final Point2D.Double point = new Point2D.Double();
 
     ShapeRasterizer(int[] pixels, int stride) {
         this.pixels = pixels;
@@ -39,11 +37,17 @@ final class ShapeRasterizer {
         quad.setRect(shape.x0() - edge, shape.y0() - edge, shape.x1() - shape.x0() + 2 * edge, shape.y1() - shape.y0() + 2 * edge);
         Rectangle area = guiToDevice.createTransformedShape(quad).getBounds().intersection(clip);
         int alpha = argb >>> 24, rgb = argb & 0xFFFFFF;
+        float[] hollow = shape.hollow(devicePixel);
+        // The pixel centres in shape space, stepped along each row rather than transformed one by one.
+        float m00 = (float) deviceToGui.getScaleX(), m01 = (float) deviceToGui.getShearX();
+        float m10 = (float) deviceToGui.getShearY(), m11 = (float) deviceToGui.getScaleY();
+        float tx = (float) deviceToGui.getTranslateX() - shape.cx(), ty = (float) deviceToGui.getTranslateY() - shape.cy();
         for (int y = area.y; y < area.y + area.height; y++) {
-            for (int x = area.x; x < area.x + area.width; x++) {
-                point.setLocation(x + 0.5, y + 0.5);
-                deviceToGui.transform(point, point);
-                float coverage = shape.coverage((float) point.x - shape.cx(), (float) point.y - shape.cy(), devicePixel);
+            float cx = area.x + 0.5f, cy = y + 0.5f;
+            float sx = m00 * cx + m01 * cy + tx, sy = m10 * cx + m11 * cy + ty;
+            for (int x = area.x; x < area.x + area.width; x++, sx += m00, sy += m10) {
+                if (hollow != null && Math.abs(sx) < hollow[0] && Math.abs(sy) < hollow[1]) continue;
+                float coverage = shape.coverage(sx, sy, devicePixel);
                 int a = Math.round(alpha * coverage);
                 if (a == 0) continue;
                 int i = y * stride + x;
