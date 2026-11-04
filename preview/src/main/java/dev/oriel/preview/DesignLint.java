@@ -4,6 +4,7 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.Node;
 import dev.oriel.engine.dom.Text;
+import dev.oriel.engine.host.FontFamilies;
 import dev.oriel.engine.style.ComputedStyle;
 import dev.oriel.engine.style.Overflow;
 import dev.oriel.engine.style.TextOverflow;
@@ -16,7 +17,7 @@ import java.util.Set;
 
 /**
  * Design rules ({@code checkUi}'s {@code design:} lines), the mistakes that make a screen look cheap, from
- * docs/zh/design.md: a tile inside a tile, type off the 8/16px scale, text the window or its box cuts off, text
+ * docs/zh/design.md: a tile inside a tile, pixel type off its 8/16px scale, text the window or its box cuts off, text
  * too faint to read on a solid background, and so many glowing things that nothing stands out. Warnings, not
  * failures: a page can have a reason. Runs on a laid-out document.
  */
@@ -42,13 +43,17 @@ final class DesignLint {
             }
             String text = ownText(e);
             if (text.isEmpty()) continue;
-            if (s.fontSize != 8 && s.fontSize != 16) out.add("字号 " + fmt(s.fontSize) + "px 不在 8/16 阶梯上（像素字会糊）: " + where);
+            int grid = pixelGrid(s);
+            if (grid > 0 && s.fontSize != grid && s.fontSize != 2 * grid) {
+                out.add("字号 " + fmt(s.fontSize) + "px 不在 " + grid + "/" + 2 * grid + " 阶梯上（像素字会糊）: " + where);
+            }
             float[] r = e.getBoundingClientRect();
             if (r[0] + r[2] > vw + 0.5f || r[1] + r[3] > vh + 0.5f || r[0] < -0.5f || r[1] < -0.5f) {
                 if (!inScroller(e) && !clippedInside(e, vw, vh)) out.add("文字超出窗口: " + where + " 「" + clip(text) + "」");
             }
+            // An animated box (a line typing itself out) is cut off on purpose while it plays.
             if ((s.overflowX == Overflow.HIDDEN || s.overflowX == Overflow.CLIP) && s.textOverflow != TextOverflow.ELLIPSIS
-                    && e.box.scrollWidth > e.box.paddingBoxWidth() + 1) {
+                    && s.animations.isEmpty() && e.box.scrollWidth > e.box.paddingBoxWidth() + 1) {
                 out.add("文字被截断（加 text-overflow: ellipsis 或放宽）: " + where + " 「" + clip(text) + "」");
             }
             Integer bg = background(e);
@@ -59,6 +64,16 @@ final class DesignLint {
         }
         if (glows > MAX_GLOWS) out.add("发光/动效元素 " + glows + " 个，超过 " + MAX_GLOWS + " 个就没有视觉重点了");
         return new ArrayList<>(out);
+    }
+
+    /**
+     * The size a pixel font is drawn sharp at (and twice it), or 0 for an outline font, which any size suits: Minecraft's
+     * own fonts and {@code oriel:pixel} are 8px, {@code oriel:pixel_12} 12px.
+     */
+    private static int pixelGrid(ComputedStyle s) {
+        String id = s.fontFamily.isEmpty() ? FontFamilies.DEFAULT : FontFamilies.fontId(s.fontFamily.get(0));
+        if (id.startsWith("minecraft:") || id.equals("oriel:pixel")) return 8;
+        return id.equals("oriel:pixel_12") ? 12 : 0;
     }
 
     private static boolean shown(Element e) {

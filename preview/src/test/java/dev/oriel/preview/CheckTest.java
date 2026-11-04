@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** {@code --check}: a clean page passes; a missing image fails; a CSS slip is listed. */
@@ -41,6 +42,8 @@ class CheckTest {
         Files.writeString(dir.resolve("ugly.html"), "<html><head><style>.o-tile { padding: 4px; }</style></head><body>"
                 + "<div class=\"o-tile\"><div class=\"o-tile\">inner</div></div>"
                 + "<div style=\"font-size: 11px\">odd size</div>"
+                + "<div style=\"font-family: oriel:kai; font-size: 13px\">outline fonts take any size</div>"
+                + "<div style=\"font-family: oriel:pixel_12; font-size: 16px\">twelve-pixel type</div>"
                 + "<div style=\"background-color: #303030; color: #3a3a3a\">faint</div></body></html>");
         PrintStream out = System.out;
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
@@ -54,6 +57,8 @@ class CheckTest {
         assertTrue(report.contains("WARN ugly.html"), report);
         assertTrue(report.contains("块里套块"), report);
         assertTrue(report.contains("字号 11px"), report);
+        assertTrue(report.contains("字号 16px 不在 12/24"), report);
+        assertFalse(report.contains("字号 13px"), report);
         assertTrue(report.contains("对比度"), report);
     }
 }
