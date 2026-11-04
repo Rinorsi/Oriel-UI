@@ -3,7 +3,9 @@ package dev.oriel.kit.preset;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.Modifiers;
+import dev.oriel.kit.GameEffects;
 import dev.oriel.kit.OrielKit;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -85,5 +87,51 @@ class PotionHudPresetTest {
         assertFalse(doc.getElementById("effects").hasClass("off"));
         assertTrue(doc.getElementById("details").hasClass("off"));
         assertTrue(doc.getElementById("effects").getBoundingClientRect()[3] > 200, "the panel takes the column's height");
+    }
+
+    @AfterEach
+    void fixturesAgain() {
+        GameEffects.useFixtures();
+    }
+
+    private static GameEffects.Entry entry(String id, int level, GameEffects.Kind kind, int seconds) {
+        return new GameEffects.Entry(id, id.substring(id.indexOf(':') + 1), level, kind, seconds,
+                "minecraft:textures/mob_effect/" + id.substring(id.indexOf(':') + 1) + ".png", false, true, true);
+    }
+
+    @Test
+    void inGameTheEffectsAreThePlayersOwn() {
+        GameEffects.Snapshot[] game = {new GameEffects.Snapshot(List.of())};
+        GameEffects.provide(() -> game[0]);
+        PotionHudPreset hud = new PotionHudPreset();
+        Document doc = host.open(OrielKit.POTIONS, hud);
+        assertTrue(doc.getElementById("hud").hasClass("empty"), "nothing to show yet");
+        assertEquals("身上没有药水效果", doc.querySelector(".hint").textContent());
+
+        game[0] = new GameEffects.Snapshot(List.of(entry("minecraft:speed", 2, GameEffects.Kind.BENEFICIAL, 30),
+                entry("minecraft:bad_omen", 7, GameEffects.Kind.NEUTRAL, -1)));
+        frame(doc, clock, 50);
+        assertFalse(doc.getElementById("hud").hasClass("empty"));
+        assertEquals(2, doc.getElementById("tiles").childCount());
+        assertTrue(doc.getElementById("toast").hasClass("on") || doc.getElementById("toast").childCount() > 0, "an arrival is announced");
+        PotionHudPreset.Running speed = hud.groups.get(PotionHudPreset.Kind.BENEFICIAL).getFirst();
+        assertEquals("speed II", speed.effect.name() + PotionHudPreset.level(speed.effect.level()));
+        assertEquals(" VII", PotionHudPreset.level(7));
+        assertEquals(" 11", PotionHudPreset.level(11));
+
+        // A paused game reports nothing new: the countdown stops at the second it reported, and nothing expires.
+        for (int i = 0; i < 100; i++) frame(doc, clock, 100);
+        assertEquals("0:30", time(speed));
+        assertEquals(2, doc.getElementById("tiles").childCount());
+
+        // The effect the game no longer has fades out.
+        game[0] = new GameEffects.Snapshot(List.of(entry("minecraft:bad_omen", 7, GameEffects.Kind.NEUTRAL, -1)));
+        for (int i = 0; i < 10; i++) frame(doc, clock, 100);
+        assertEquals(1, doc.getElementById("tiles").childCount());
+        assertEquals("**:**", time(hud.groups.get(PotionHudPreset.Kind.NEUTRAL).getFirst()));
+    }
+
+    private static String time(PotionHudPreset.Running r) {
+        return r.time.textContent();
     }
 }

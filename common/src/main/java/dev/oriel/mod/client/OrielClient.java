@@ -71,6 +71,8 @@ public final class OrielClient {
             }
             return all;
         });
+        // The potion HUD shows the player's own effects.
+        PlayerEffects.init();
         OrielHud.register(POTION_HUD, OrielKit.POTIONS, OrielHud.Input.WHEN_CHAT_OPEN);
         // The gallery's HUD card: show the potion HUD over the game, closing the gallery so it can be seen.
         OrielScreens.onPageLoad(OrielKit.GALLERY, driver -> driver.onMessage(OrielKit.CHANNEL, value -> {
@@ -82,6 +84,11 @@ public final class OrielClient {
                 });
             }
         }));
+    }
+
+    /** Whether vanilla's effect icons at the top right are left out: the potion HUD shows the effects instead. */
+    public static boolean hidesVanillaEffects() {
+        return OrielHud.isShown(POTION_HUD);
     }
 
     public static void sendToServer(CustomPacketPayload payload) {
@@ -116,5 +123,6 @@ public final class OrielClient {
     public static void tick() {
         ServerPages.tick();
         Mobdex.tick();
+        PlayerEffects.tick();
     }
 }

@@ -93,6 +93,10 @@ public final class OrielNeoForgeClient {
                 e.registerReloadListener((ResourceManagerReloadListener) resources -> OrielClient.onResourceReload()));
         *///?}
         modBus.addListener((RegisterGuiLayersEvent e) -> e.registerAbove(VanillaGuiLayers.TITLE, Constants.id("hud"), OrielHud::extract));
+        // The potion HUD shows the effects instead of vanilla's icons at the top right.
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre e) -> {
+            if (e.getName().equals(VanillaGuiLayers.EFFECTS) && OrielClient.hidesVanillaEffects()) e.setCanceled(true);
+        });
         modBus.addListener((RegisterMenuScreensEvent e) -> {
             for (OrielScreens.ContainerBinding<?> b : OrielScreens.takeContainers()) registerMenuScreen(e, b);
         });

@@ -65,6 +65,9 @@ public final class OrielFabricClient implements ClientModInitializer {
         });
         *///?}
         HudElementRegistry.attachElementAfter(VanillaHudElements.TITLE_AND_SUBTITLE, Constants.id("hud"), OrielHud::extract);
+        HudElementRegistry.replaceElement(VanillaHudElements.MOB_EFFECTS, vanilla -> (g, delta) -> {
+            if (!OrielClient.hidesVanillaEffects()) vanilla.extractRenderState(g, delta);
+        });
         //?} else
         //HudRenderCallback.EVENT.register(OrielHud::extract); // 1.21.1 has no HUD layers: after the whole HUD
         // Interactive HUD overlays: drawn above every screen and given its pointer input first (per-screen events).

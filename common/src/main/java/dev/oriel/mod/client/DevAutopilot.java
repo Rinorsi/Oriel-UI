@@ -221,6 +221,10 @@ public final class DevAutopilot {
             text(mc);
             return;
         }
+        if (ONLY.equals("potions")) {
+            potions(mc);
+            return;
+        }
         if (ONLY.equals("effects")) {
             effects(mc);
             return;
@@ -1037,6 +1041,33 @@ public final class DevAutopilot {
         pause(50); // past the resource reload's fading overlay
         grab(mc, "reload_done", 5);
         onPage("the result", p -> Constants.LOG.info("Oriel autopilot: reload bar says {}", p.text("#o-devbar .t").orElse("(gone)")));
+    }
+
+    /**
+     * {@code -Pautopilot=potions}: the potion HUD over the player's own effects: none, then a few (one infinite, one of
+     * a high level), the full panel, one taken away, and the inventory with its effects column.
+     */
+    private static void potions(Minecraft mc) {
+        steps.add(() -> command(mc, "effect clear @s"));
+        pause(5);
+        steps.add(() -> OrielHud.show(OrielClient.POTION_HUD));
+        pause(20);
+        grab(mc, "potions_none", 5);
+        steps.add(() -> {
+            command(mc, "effect give @s minecraft:speed 90 1");
+            command(mc, "effect give @s minecraft:night_vision infinite 0");
+            command(mc, "effect give @s minecraft:strength 25 6");
+            command(mc, "effect give @s minecraft:poison 12 0");
+        });
+        pause(10);
+        grab(mc, "potions_arrive", 5);
+        pause(60);
+        grab(mc, "potions_bar", 5);
+        steps.add(() -> command(mc, "effect clear @s minecraft:poison"));
+        pause(20);
+        grab(mc, "potions_cleared_one", 5);
+        steps.add(() -> command(mc, "effect clear @s"));
+        pause(5);
     }
 
     /**
