@@ -1,393 +1,100 @@
 package dev.oriel.engine.html;
 
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.Node;
+import dev.oriel.engine.dom.Text;
+import dev.oriel.engine.host.FontMetrics;
+import dev.oriel.engine.host.Host;
+import dev.oriel.engine.parse.ParserAudit;
+import dev.oriel.engine.parse.SourceLocation;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.BiConsumer;
 
-/**
- * A forgiving HTML parser. It is not the HTML5 tree-construction algorithm, but it handles what UI authors write:
- * implied {@code html}/{@code head}/{@code body}, void elements, self-closing syntax on any element
- * ({@code <slot index="0"/>}), raw-text {@code <script>}/{@code <style>}, RCDATA {@code <textarea>}/{@code <title>},
- * character references, comments, unquoted and boolean attributes, implied end tags for {@code p}, {@code li},
- * {@code dt}/{@code dd}, {@code option}, and stray end tags (ignored).
- *
- * <p>Markup nested deeper than the document's {@link dev.oriel.engine.Limits#maxDepth} is flattened, as browsers
- * do: an element at the deepest level takes no children, and what would have gone inside it follows it instead.
- */
+/** Stable entry point for HTML documents and inert markup fragments. */
 public final class HtmlParser {
-    static final Set<String> VOID = Set.of("area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
-            "source", "track", "wbr");
+    static final Set<String> VOID = Set.of("area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr");
     static final Set<String> RAW_TEXT = Set.of("script", "style");
-    private static final Set<String> RCDATA = Set.of("textarea", "title");
-    private static final Set<String> HEAD_ELEMENTS = Set.of("base", "link", "meta", "style", "title", "script", "template");
-    /** Start tags that close an open {@code <p>}. */
-    private static final Set<String> CLOSES_P = Set.of("address", "article", "aside", "blockquote", "details", "dialog",
-            "div", "dl", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6",
-            "header", "hgroup", "hr", "main", "menu", "nav", "ol", "p", "pre", "section", "table", "ul");
-    /** Elements that stop an implied end tag's search for the open element it closes ({@link #closeImplied}). */
-    private static final Set<String> P_BOUNDARIES = Set.of("button", "td", "th", "li", "dd", "dt");
-    private static final Set<String> LI_BOUNDARIES = Set.of("ul", "ol", "menu");
-    private static final Set<String> DL_BOUNDARIES = Set.of("dl");
-    private static final Set<String> OPTION_BOUNDARIES = Set.of("select", "datalist");
-    private static final Set<String> SELECT_BOUNDARIES = Set.of("select");
+    private HtmlParser() {}
 
-    private final Document doc;
-    private final String src;
-    private int pos;
-    private final List<Element> stack = new ArrayList<>();
-    private final Node root;
-    private final boolean fullDocument;
-    private Element html, head, body;
-    /** Text not yet in the tree, and the node it goes into: adjacent runs are joined before one text node is made. */
-    private final StringBuilder pendingText = new StringBuilder();
-    private Node pendingParent;
-
-    private HtmlParser(Document doc, String src, Node root, boolean fullDocument) {
-        this.doc = doc;
-        this.src = src == null ? "" : src;
-        this.root = root;
-        this.fullDocument = fullDocument;
-    }
-
-    /** Parses a full document into {@code doc}, which must be empty. Always produces html, head and body. */
-    public static void parseInto(Document doc, String html) {
-        HtmlParser p = new HtmlParser(doc, html, doc, true);
-        p.run();
-    }
-
-    /** Parses a fragment (for innerHTML); the returned nodes are detached and owned by {@code doc}. */
-    public static List<Node> parseFragment(Document doc, String html) {
-        Element container = doc.createElement("template");
-        HtmlParser p = new HtmlParser(doc, html, container, false);
-        p.run();
-        List<Node> out = new ArrayList<>(container.childNodes());
-        for (Node n : out) container.removeChild(n);
-        return out;
-    }
-
-    // ---- Tree building ----
-
-    private Node current() {
-        if (!stack.isEmpty()) return stack.get(stack.size() - 1);
-        if (fullDocument) return ensureBody();
-        return root;
-    }
-
-    private Element ensureHtml() {
-        if (html == null) {
-            html = doc.createElement("html");
-            doc.appendChild(html);
-        }
-        return html;
-    }
-
-    private Element ensureHead() {
-        if (head == null) {
-            head = doc.createElement("head");
-            Element h = ensureHtml();
-            h.insertBefore(head, h.firstChild());
-        }
-        return head;
-    }
-
-    private Element ensureBody() {
-        ensureHead();
-        if (body == null) {
-            body = doc.createElement("body");
-            ensureHtml().appendChild(body);
-            stack.clear();
-            stack.add(body);
-        }
-        return body;
-    }
-
-    private void run() {
-        try {
-            parse();
-        } finally {
-            flushText();
+    public static void parseInto(Document document, String markup) {
+        String source = markup == null ? "" : markup;
+        if (ParserAudit.mode() == ParserAudit.Mode.OLD) { LegacyHtmlParser.parseInto(document, source); return; }
+        Document reference = ParserAudit.mode() == ParserAudit.Mode.BOTH ? shadow(document) : null;
+        if (reference != null) LegacyHtmlParser.parseInto(reference, source);
+        int previous = document.diagnostics().all().size();
+        HtmlTreeBuilder.document(document, source, issues(document, source));
+        if (reference != null) {
+            ParserAudit.compare("html-dom", document.url(), fields(reference.childNodes()), fields(document.childNodes()));
+            ParserAudit.compare("html-diagnostics", document.url(), diagnostics(reference.diagnostics().all()),
+                    diagnostics(document.diagnostics().all().subList(previous, document.diagnostics().all().size())));
         }
     }
 
-    private void parse() {
-        while (pos < src.length()) {
-            char c = src.charAt(pos);
-            if (c == '<' && pos + 1 < src.length()) {
-                char n = src.charAt(pos + 1);
-                if (n == '!') { markupDeclaration(); continue; }
-                if (n == '/') { if (endTag()) continue; }
-                else if (n == '?') { skipUntil(">"); continue; }
-                else if (Character.isLetter(n)) { startTag(); continue; }
-            }
-            text();
+    public static List<Node> parseFragment(Document document, String markup) {
+        String source = markup == null ? "" : markup;
+        if (ParserAudit.mode() == ParserAudit.Mode.OLD) return LegacyHtmlParser.parseFragment(document, source);
+        Document reference = ParserAudit.mode() == ParserAudit.Mode.BOTH ? shadow(document) : null;
+        List<Node> old = reference == null ? null : LegacyHtmlParser.parseFragment(reference, source);
+        int previous = document.diagnostics().all().size();
+        List<Node> result = HtmlTreeBuilder.fragment(document, source, issues(document, source));
+        if (reference != null) {
+            ParserAudit.compare("html-fragment", document.url(), fields(old), fields(result));
+            ParserAudit.compare("html-fragment-diagnostics", document.url(), diagnostics(reference.diagnostics().all()),
+                    diagnostics(document.diagnostics().all().subList(previous, document.diagnostics().all().size())));
         }
-        if (fullDocument) {
-            ensureBody();
-        }
+        return result;
     }
 
-    private void text() {
-        int start = pos;
-        pos++;
-        while (pos < src.length()) {
-            if (src.charAt(pos) == '<' && pos + 1 < src.length()) {
-                char n = src.charAt(pos + 1);
-                if (n == '!' || n == '/' || n == '?' || Character.isLetter(n)) break;
-            }
-            pos++;
-        }
-        appendText(Entities.decode(src.substring(start, pos), false));
-    }
-
-    private void appendText(String text) {
-        if (text.isEmpty()) return;
-        if (fullDocument && body == null && stack.isEmpty()) {
-            // Before <body>: whitespace is dropped; other text starts the body.
-            if (text.isBlank()) return;
-        }
-        Node parent = current();
-        if (parent != pendingParent) flushText();
-        pendingParent = parent;
-        pendingText.append(text); // joined in one go: text split by many comments must not cost quadratic time
-    }
-
-    /** Puts the pending text in the tree, joined to a text node that ends its parent. */
-    private void flushText() {
-        if (pendingParent == null) return;
-        Node parent = pendingParent;
-        String text = pendingText.toString();
-        pendingParent = null;
-        pendingText.setLength(0);
-        if (parent.lastChild() instanceof dev.oriel.engine.dom.Text t) t.setData(t.data() + text);
-        else parent.appendChild(doc.createTextNode(text));
-    }
-
-    private void markupDeclaration() {
-        if (src.startsWith("<!--", pos)) {
-            int end = src.indexOf("-->", pos + 4);
-            pos = end < 0 ? src.length() : end + 3;
-        } else if (src.startsWith("<![CDATA[", pos)) {
-            int end = src.indexOf("]]>", pos + 9);
-            String data = src.substring(pos + 9, end < 0 ? src.length() : end);
-            pos = end < 0 ? src.length() : end + 3;
-            appendText(data);
-        } else {
-            skipUntil(">"); // <!DOCTYPE ...>
-        }
-    }
-
-    private void skipUntil(String s) {
-        int end = src.indexOf(s, pos);
-        pos = end < 0 ? src.length() : end + s.length();
-    }
-
-    private void startTag() {
-        flushText();
-        pos++; // <
-        String name = readName().toLowerCase();
-        List<String[]> attrs = new ArrayList<>();
-        boolean selfClosing = false;
-        while (pos < src.length()) {
-            skipWhitespace();
-            if (pos >= src.length()) break;
-            char c = src.charAt(pos);
-            if (c == '>') { pos++; break; }
-            if (c == '/') {
-                pos++;
-                if (pos < src.length() && src.charAt(pos) == '>') { selfClosing = true; pos++; break; }
-                continue;
-            }
-            String attrName = readAttrName();
-            if (attrName.isEmpty()) { pos++; continue; }
-            skipWhitespace();
-            String value = "";
-            if (pos < src.length() && src.charAt(pos) == '=') {
-                pos++;
-                skipWhitespace();
-                value = readAttrValue();
-            }
-            attrs.add(new String[] {attrName.toLowerCase(), value});
-        }
-
-        if (fullDocument && handleStructural(name, attrs)) return;
-
-        Element el = doc.createElement(name);
-        for (Element ancestor : stack) {
-            if (ancestor.tagName().equals("svg") || ancestor.tagName().equals("math")) {
-                UnsupportedElements.foreignChild(doc, name, ancestor.tagName());
-                break;
-            }
-        }
-        for (String[] a : attrs) if (!el.hasAttribute(a[0])) el.setAttribute(a[0], a[1]);
-        // Scripts created by fragment parsing (innerHTML, v-html) never run, as in browsers: server-sent markup
-        // must not be able to smuggle code past the page's own scripts.
-        if (!fullDocument && name.equals("script")) el.markAlreadyStarted();
-
-        if (fullDocument && body == null && HEAD_ELEMENTS.contains(name) && stack.isEmpty()) {
-            ensureHead().appendChild(el);
-            if (RAW_TEXT.contains(name) || RCDATA.contains(name)) readRawText(el, name);
-            else if (!VOID.contains(name) && !selfClosing && name.equals("template")) {
-                stack.add(el);
-            }
-            return;
-        }
-
-        closeImplied(name);
-        current().appendChild(el);
-        if (VOID.contains(name) || selfClosing) return;
-        if (RAW_TEXT.contains(name) || RCDATA.contains(name)) {
-            readRawText(el, name);
-            return;
-        }
-        if (level(el) < doc.limits().maxDepth()) stack.add(el); // at the deepest level it stays empty
-    }
-
-    /** How deep a node is: 1 for a child of the document or of the fragment's container. */
-    private static int level(Node n) {
-        int level = 0;
-        for (Node p = n; p != null && !(p instanceof Document); p = p.parentNode()) level++;
-        return level;
-    }
-
-    /** html, head and body tags: merge attributes into the implied elements. Returns true if handled. */
-    private boolean handleStructural(String name, List<String[]> attrs) {
-        Element h = switch (name) {
-            case "html" -> ensureHtml();
-            case "head" -> ensureHead();
-            case "body" -> ensureBody();
-            default -> null;
+    private static BiConsumer<Integer, String> issues(Document document, String source) {
+        return (offset, message) -> {
+            SourceLocation location = SourceLocation.at(source, offset);
+            document.diagnostics().report(new Diagnostic(Diagnostic.Severity.WARNING, "html-syntax", document.url(),
+                    location.line(), location.column(), message, "fix the markup at the reported position"));
         };
-        if (h == null) return false;
-        for (String[] a : attrs) if (!h.hasAttribute(a[0])) h.setAttribute(a[0], a[1]);
-        return true;
     }
 
-    private void closeImplied(String name) {
-        if (CLOSES_P.contains(name)) closeIfOpen("p", P_BOUNDARIES);
-        switch (name) {
-            case "li" -> closeIfOpen("li", LI_BOUNDARIES);
-            case "dt", "dd" -> { closeIfOpen("dt", DL_BOUNDARIES); closeIfOpen("dd", DL_BOUNDARIES); }
-            case "option" -> closeIfOpen("option", OPTION_BOUNDARIES);
-            case "optgroup" -> { closeIfOpen("option", SELECT_BOUNDARIES); closeIfOpen("optgroup", SELECT_BOUNDARIES); }
-            default -> { }
-        }
-    }
-
-    /** Pops up to and including the nearest open {@code tag}, unless a {@code boundary} element is closer. */
-    private void closeIfOpen(String tag, Set<String> boundaries) {
-        for (int i = stack.size() - 1; i >= 0; i--) {
-            String t = stack.get(i).tagName();
-            if (t.equals(tag)) {
-                while (stack.size() > i) stack.remove(stack.size() - 1);
-                return;
+    private static Document shadow(Document document) {
+        Document shadow = Document.create(new Host() {
+            public FontMetrics fonts() { return document.host().fonts(); }
+            public String loadText(String url) { return document.host().loadText(url); }
+            public dev.oriel.engine.Limits limits() { return document.limits(); }
+            public Map<String, java.util.function.Function<Element, dev.oriel.engine.host.ReplacedContent>> replacedElements() {
+                return document.host().replacedElements();
             }
-            if (boundaries.contains(t) || t.equals("body") || t.equals("template")) return;
-        }
+            public void diagnostic(Diagnostic diagnostic) {}
+        }, document.url());
+        shadow.removeAllChildren();
+        return shadow;
     }
 
-    private boolean endTag() {
-        flushText();
-        int save = pos;
-        pos += 2;
-        String name = readName().toLowerCase();
-        if (name.isEmpty()) {
-            pos = save;
-            return false; // "</" followed by junk is text
-        }
-        skipUntil(">");
-        if (fullDocument && (name.equals("html") || name.equals("body") || name.equals("head"))) return true;
-        if (name.equals("br")) { // </br> is treated as <br>
-            current().appendChild(doc.createElement("br"));
-            return true;
-        }
-        if (name.equals("p") && !hasOpen("p")) { // </p> without <p> makes an empty paragraph
-            current().appendChild(doc.createElement("p"));
-            return true;
-        }
-        for (int i = stack.size() - 1; i >= 0; i--) {
-            if (stack.get(i).tagName().equals(name)) {
-                while (stack.size() > i) stack.remove(stack.size() - 1);
-                if (fullDocument && stack.isEmpty() && body != null) stack.add(body);
-                return true;
-            }
-        }
-        return true; // stray end tag: ignored
+    private static Map<String, String> fields(List<Node> roots) {
+        Map<String, String> fields = new TreeMap<>();
+        fields.put("children", String.valueOf(roots.size()));
+        for (int i = 0; i < roots.size(); i++) fields(roots.get(i), "/" + i, fields);
+        return fields;
     }
-
-    private boolean hasOpen(String tag) {
-        for (Element e : stack) if (e.tagName().equals(tag)) return true;
-        return false;
+    private static void fields(Node node, String at, Map<String, String> fields) {
+        fields.put(at + "/type", node.nodeName());
+        if (node instanceof Text text) fields.put(at + "/data", text.data());
+        if (node instanceof Element element) element.attributes().forEach((key, value) -> fields.put(at + "/@" + key, value));
+        fields.put(at + "/children", String.valueOf(node.childNodes().size()));
+        for (int i = 0; i < node.childNodes().size(); i++) fields(node.childNodes().get(i), at + "/" + i, fields);
     }
-
-    private void readRawText(Element el, String name) {
-        String close = "</" + name;
-        int end = indexOfIgnoreCase(src, close, pos);
-        String text = src.substring(pos, end < 0 ? src.length() : end);
-        if (RCDATA.contains(name)) text = Entities.decode(text, false);
-        if (name.equals("textarea") && text.startsWith("\n")) text = text.substring(1);
-        if (!text.isEmpty()) el.appendChild(doc.createTextNode(text));
-        if (end < 0) {
-            pos = src.length();
-        } else {
-            pos = end;
-            skipUntil(">");
+    private static Map<String, String> diagnostics(List<Diagnostic> diagnostics) {
+        Map<String, String> fields = new TreeMap<>();
+        for (int i = 0; i < diagnostics.size(); i++) {
+            Diagnostic d = diagnostics.get(i); String at = "diagnostics/" + i;
+            fields.put(at + "/code", d.code()); fields.put(at + "/severity", d.severity().name());
+            fields.put(at + "/source", d.source()); fields.put(at + "/line", String.valueOf(d.line()));
+            fields.put(at + "/column", String.valueOf(d.column())); fields.put(at + "/message", d.message());
+            fields.put(at + "/suggestion", d.suggestion());
         }
-    }
-
-    private static int indexOfIgnoreCase(String s, String needle, int from) {
-        int n = needle.length();
-        for (int i = from; i + n <= s.length(); i++) {
-            if (s.regionMatches(true, i, needle, 0, n)) return i;
-        }
-        return -1;
-    }
-
-    // ---- Lexing helpers ----
-
-    private String readName() {
-        int start = pos;
-        while (pos < src.length()) {
-            char c = src.charAt(pos);
-            if (Character.isWhitespace(c) || c == '/' || c == '>') break;
-            pos++;
-        }
-        return src.substring(start, pos);
-    }
-
-    private String readAttrName() {
-        int start = pos;
-        while (pos < src.length()) {
-            char c = src.charAt(pos);
-            if (Character.isWhitespace(c) || c == '/' || c == '>' || c == '=') break;
-            if ((c == '"' || c == '\'' || c == '<') && pos > start) break;
-            pos++;
-        }
-        return src.substring(start, pos);
-    }
-
-    private String readAttrValue() {
-        if (pos >= src.length()) return "";
-        char q = src.charAt(pos);
-        if (q == '"' || q == '\'') {
-            int end = src.indexOf(q, pos + 1);
-            String raw = src.substring(pos + 1, end < 0 ? src.length() : end);
-            pos = end < 0 ? src.length() : end + 1;
-            return Entities.decode(raw, true);
-        }
-        int start = pos;
-        while (pos < src.length()) {
-            char c = src.charAt(pos);
-            if (Character.isWhitespace(c) || c == '>') break;
-            pos++;
-        }
-        return Entities.decode(src.substring(start, pos), true);
-    }
-
-    private void skipWhitespace() {
-        while (pos < src.length() && Character.isWhitespace(src.charAt(pos))) pos++;
+        return fields;
     }
 }
