@@ -38,6 +38,7 @@ import dev.oriel.engine.style.TimingFunction;
 import dev.oriel.engine.style.TransformFunction;
 import dev.oriel.engine.style.UserSelect;
 import dev.oriel.engine.style.VerticalAlign;
+import dev.oriel.engine.style.WritingMode;
 import dev.oriel.engine.style.Visibility;
 import dev.oriel.engine.style.WhiteSpace;
 import dev.oriel.engine.style.WordBreak;
@@ -124,6 +125,7 @@ final class Properties {
             initial(prefix + "width", "medium");
             initial(prefix + "color", "currentcolor");
         }
+        initial("-webkit-text-stroke-color", "currentcolor");
         alias("overflow-wrap", "word-break");
         alias("word-wrap", "word-break");
         alias("-webkit-line-clamp", "line-clamp");
@@ -285,6 +287,7 @@ final class Properties {
         add(Prop.WORD_SPACING, spacing, PX);
         add(Prop.TEXT_INDENT, (r, ctx) -> Numeric.px(r, ctx, true), PX);
         add(Prop.TEXT_ALIGN, Keywords.parser(TextAlign.class), KEYWORD);
+        add(Prop.WRITING_MODE, Keywords.parser(WritingMode.class), KEYWORD);
         add(Prop.TEXT_TRANSFORM, Keywords.parser(TextTransform.class), KEYWORD);
         add(Prop.TEXT_DECORATION_UNDERLINE, decorationLine("underline"), TEXT);
         add(Prop.TEXT_DECORATION_LINE_THROUGH, decorationLine("line-through"), TEXT);
@@ -300,6 +303,8 @@ final class Properties {
             return n == null || n < 1 ? null : n;
         }), v -> (Integer) v == 0 ? "none" : v.toString());
         add(Prop.TEXT_SHADOW, (r, ctx) -> Shadows.read(r, ctx, false), v -> Shadows.serialize(cast(v), false));
+        add(Prop.TEXT_STROKE_WIDTH, or(BORDER_WIDTHS, (r, ctx) -> Numeric.px(r, ctx, false)), PX);
+        add(Prop.TEXT_STROKE_COLOR, CssColors::read, COLOR);
         add(Prop.CURSOR, Properties::cursor, KEYWORD);
         add(Prop.TOOLTIP_DELAY, nonNegative(Numeric::time), SECONDS);
         add(Prop.POINTER_EVENTS, Keywords.parser(PointerEvents.class, Map.of("all", PointerEvents.AUTO)), KEYWORD);

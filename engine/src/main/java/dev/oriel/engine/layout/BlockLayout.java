@@ -16,6 +16,9 @@ final class BlockLayout implements FormattingContext {
     @Override
     public LayoutResult layoutContent(LayoutBox box, float contentWidth, float contentHeight, float percentHeight,
                                       boolean measure) {
+        if (box.inline != null && InlineLayout.vertical(box)) {
+            return pass.inline.layoutVertical(box, contentWidth, contentHeight, measure);
+        }
         if (box.inline != null) return pass.inline.layout(box, contentWidth, percentHeight, measure);
 
         // A box's margins adjoin its first/last child's when no border, padding or new formatting context separates

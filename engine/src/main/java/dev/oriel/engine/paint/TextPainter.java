@@ -7,7 +7,8 @@ import dev.oriel.engine.style.ComputedStyle;
 import dev.oriel.engine.style.Shadow;
 
 /**
- * Draws one line of styled text: its CSS text-shadows first (the first listed on top), then the text in its colour,
+ * Draws one line of styled text: its CSS text-shadows first (the first listed on top), then its
+ * {@code -webkit-text-stroke}, then the text in its colour,
  * with the style's decorations; {@code text-shadow: minecraft} has the host draw its native shadow with the text.
  * Letter- or word-spaced text is drawn in its {@link SpacedText} parts. Positions snap to device pixels. The painter's
  * text runs and form controls both draw text through here.
@@ -44,7 +45,30 @@ public final class TextPainter {
                         false, devicePixel);
             }
         }
+        if (s.textStrokeWidth > 0 && !Colors.isTransparent(s.textStrokeColor)) {
+            stroke(canvas, text, spaced, x, y, font, s.textStrokeColor, decorations, s.textStrokeWidth / 2, devicePixel);
+        }
         if (!Colors.isTransparent(color)) line(canvas, text, spaced, x, y, font, color, decorations, nativeShadow, devicePixel);
+    }
+
+    /**
+     * The stroke: the glyphs in the stroke colour, offset all round by up to {@code reach} (half the stroke width,
+     * the part of a centred stroke that shows outside the glyphs), under the fill, which stays whole, as with
+     * {@code paint-order: stroke}. Bitmap glyphs have no outline to stroke, so the copies trace it.
+     */
+    private static void stroke(Canvas canvas, String text, SpacedText spaced, float x, float y, FontSpec font, int argb,
+                               int decorations, float reach, float dp) {
+        reach = Math.max(reach, dp);
+        int rings = Math.max(1, Math.round(reach / dp / 2));
+        for (int ring = 1; ring <= rings; ring++) {
+            float r = reach * ring / rings;
+            int directions = r > 2 * dp ? 16 : 8;
+            for (int i = 0; i < directions; i++) {
+                double a = 2 * Math.PI * i / directions;
+                line(canvas, text, spaced, x + r * (float) Math.cos(a), y + r * (float) Math.sin(a), font, argb,
+                        decorations, false, dp);
+            }
+        }
     }
 
     /** The glyphs (and decoration lines) alone, without shadows: the shape {@code background-clip: text} paints. */

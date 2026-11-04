@@ -105,6 +105,7 @@ public final class ComputedStyle implements Cloneable {
     public float wordSpacing;
     public float textIndent;
     public TextAlign textAlign = TextAlign.START;
+    public WritingMode writingMode = WritingMode.HORIZONTAL_TB;
     public TextTransform textTransform = TextTransform.NONE;
     /**
      * Text decorations. Unlike CSS these inherit (CSS propagates them to inline descendants, which looks the
@@ -119,6 +120,9 @@ public final class ComputedStyle implements Cloneable {
     /** Line clamp ({@code -webkit-line-clamp} / {@code line-clamp}); 0 for none. */
     public int lineClamp;
     public List<Shadow> textShadow = List.of();
+    /** {@code -webkit-text-stroke}: an outline around the glyphs, px (0 for none) and colour. */
+    public float textStrokeWidth;
+    public int textStrokeColor = Colors.BLACK;
     public Cursor cursor = Cursor.AUTO;
     public PointerEvents pointerEvents = PointerEvents.AUTO;
     public UserSelect userSelect = UserSelect.AUTO;
@@ -248,6 +252,7 @@ public final class ComputedStyle implements Cloneable {
         wordSpacing = parent.wordSpacing;
         textIndent = parent.textIndent;
         textAlign = parent.textAlign;
+        writingMode = parent.writingMode;
         textTransform = parent.textTransform;
         underline = parent.underline;
         lineThrough = parent.lineThrough;
@@ -255,6 +260,8 @@ public final class ComputedStyle implements Cloneable {
         whiteSpace = parent.whiteSpace;
         wordBreak = parent.wordBreak;
         textShadow = parent.textShadow;
+        textStrokeWidth = parent.textStrokeWidth;
+        textStrokeColor = parent.textStrokeColor;
         cursor = parent.cursor;
         pointerEvents = parent.pointerEvents;
         userSelect = parent.userSelect;
@@ -279,8 +286,9 @@ public final class ComputedStyle implements Cloneable {
                 && same(lineHeight, o.lineHeight) && same(lineHeightFactor, o.lineHeightFactor)
                 && same(letterSpacing, o.letterSpacing) && same(wordSpacing, o.wordSpacing)
                 && same(textIndent, o.textIndent) && textAlign == o.textAlign && textTransform == o.textTransform
-                && underline == o.underline && lineThrough == o.lineThrough && obfuscated == o.obfuscated && whiteSpace == o.whiteSpace
-                && wordBreak == o.wordBreak && textShadow.equals(o.textShadow) && cursor == o.cursor
+                && writingMode == o.writingMode && underline == o.underline && lineThrough == o.lineThrough && obfuscated == o.obfuscated && whiteSpace == o.whiteSpace
+                && wordBreak == o.wordBreak && textShadow.equals(o.textShadow) && same(textStrokeWidth, o.textStrokeWidth)
+                && textStrokeColor == o.textStrokeColor && cursor == o.cursor
                 && pointerEvents == o.pointerEvents && userSelect == o.userSelect
                 && imageRendering == o.imageRendering && accentColor == o.accentColor && tint == o.tint
                 && scrollbarThumbColor == o.scrollbarThumbColor && scrollbarTrackColor == o.scrollbarTrackColor
@@ -324,7 +332,8 @@ public final class ComputedStyle implements Cloneable {
                 && fontItalic == o.fontItalic && same(lineHeight, o.lineHeight)
                 && same(letterSpacing, o.letterSpacing) && same(wordSpacing, o.wordSpacing)
                 && same(textIndent, o.textIndent) && textAlign == o.textAlign && textTransform == o.textTransform
-                && whiteSpace == o.whiteSpace && wordBreak == o.wordBreak && lineClamp == o.lineClamp
+                && writingMode == o.writingMode && whiteSpace == o.whiteSpace && wordBreak == o.wordBreak
+                && lineClamp == o.lineClamp
                 && Objects.equals(content, o.content) && scrollbarWidth == o.scrollbarWidth;
     }
 
@@ -347,6 +356,7 @@ public final class ComputedStyle implements Cloneable {
                 && objectPositionX.equals(o.objectPositionX) && objectPositionY.equals(o.objectPositionY)
                 && color == o.color && same(lineHeightFactor, o.lineHeightFactor) && underline == o.underline
                 && lineThrough == o.lineThrough && obfuscated == o.obfuscated && textOverflow == o.textOverflow && textShadow.equals(o.textShadow)
+                && same(textStrokeWidth, o.textStrokeWidth) && textStrokeColor == o.textStrokeColor
                 && cursor == o.cursor && pointerEvents == o.pointerEvents && userSelect == o.userSelect
                 && imageRendering == o.imageRendering && accentColor == o.accentColor
                 && backgroundColor == o.backgroundColor && backgroundLayers.equals(o.backgroundLayers)

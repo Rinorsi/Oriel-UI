@@ -253,6 +253,26 @@ class InlineLayoutTest {
     }
 
     @Test
+    void verticalTextRunsInColumnsAsWideAsItsLines() {
+        Page page = new TestHost().load("<div id=p style='writing-mode: vertical-rl; font-size: 8px; line-height: 10px;"
+                + " height: 16px'>一二三四</div><div id=q style='writing-mode: vertical-lr; font-size: 8px;"
+                + " line-height: 10px; letter-spacing: 2px'>一二</div>");
+        Box p = page.byId("p").box;
+        assertEquals(20, p.width, 0.01, "two columns of a line height");
+        assertEquals(16, p.height, 0.01);
+        List<Fragment.TextRun> runs = runs(p);
+        assertEquals(List.of("一", "二", "三", "四"), runs.stream().map(Fragment.TextRun::text).toList());
+        assertEquals(runs.get(0).y() + 8, runs.get(1).y(), 0.01, "an em down the column");
+        assertEquals(runs.get(0).y(), runs.get(2).y(), 0.01, "the next column starts at the top");
+        assertEquals(runs.get(0).x() - 10, runs.get(2).x(), 0.01, "vertical-rl: columns right to left");
+
+        Box q = page.byId("q").box;
+        assertEquals(10, q.width, 0.01, "one column when the height is the content's");
+        assertEquals(20, q.height, 0.01, "an em plus letter-spacing per character");
+        assertEquals("vertical-lr", page.computed("#q", "writing-mode"));
+    }
+
+    @Test
     void pseudoElements() {
         Page page = new TestHost().load("""
                 <style>
