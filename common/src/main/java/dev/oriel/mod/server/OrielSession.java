@@ -23,6 +23,10 @@ import java.util.function.BiConsumer;
  * {@code oriel.send(channel, value)} messages, and close it. Use it on the server thread only.
  */
 public final class OrielSession {
+    /** SENT means delivery was attempted on a negotiated channel, not that the client accepted or rendered it. */
+    public enum OpenStatus { SENT, CLIENT_UNSUPPORTED }
+
+    private OpenStatus openStatus = OpenStatus.SENT;
     private final int id;
     private final ServerPlayer player;
     private final Map<String, List<BiConsumer<ServerPlayer, JsonElement>>> handlers = new HashMap<>();
@@ -48,6 +52,21 @@ public final class OrielSession {
 
     public boolean isOpen() {
         return open;
+    }
+
+    /** The synchronous result of opening, retained after the session closes. */
+    public OpenStatus openStatus() {
+        return openStatus;
+    }
+
+    /** Runs immediately when opening failed, including when registered after the already-closed result was returned. */
+    public OrielSession onOpenFailure(java.util.function.Consumer<OpenStatus> handler) {
+        if (openStatus != OpenStatus.SENT) handler.accept(openStatus);
+        return this;
+    }
+
+    void unsupportedClient() {
+        openStatus = OpenStatus.CLIENT_UNSUPPORTED;
     }
 
     /** Replaces {@code oriel.data} on the client; the page's {@code oriel.on('data', fn)} listeners run. */

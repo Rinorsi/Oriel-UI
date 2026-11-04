@@ -50,7 +50,7 @@ public final class ItemEditor {
 
     private ItemEditor() {}
 
-    /** Opens the editor on {@code player}'s main-hand item; false (with a message) when the hand is empty. */
+    /** Opens the editor on the main-hand item; false for an empty hand or a client without Oriel. */
     public static boolean open(ServerPlayer player) {
         ItemStack held = player.getMainHandItem();
         if (held.isEmpty()) {
@@ -82,7 +82,7 @@ public final class ItemEditor {
                     }
                     session[0].patch("result", reply);
                 });
-        return true;
+        return session[0].openStatus() == OrielSession.OpenStatus.SENT;
     }
 
     /** A refused save; the message is shown to the player. */

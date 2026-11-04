@@ -7,6 +7,11 @@ import net.minecraft.server.level.ServerPlayer;
 
 public final class FabricNetwork implements Network {
     @Override
+    public boolean canReceive(ServerPlayer player, CustomPacketPayload.Type<?> type) {
+        return ServerPlayNetworking.canSend(player, type);
+    }
+
+    @Override
     public boolean sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
         if (!ServerPlayNetworking.canSend(player, payload.type())) return false;
         ServerPlayNetworking.send(player, payload);

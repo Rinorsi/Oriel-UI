@@ -19,11 +19,13 @@ public final class OrielCommon {
     public static void init() {
         OrielConfig.load();
         OrielDemos.init();
+        dev.oriel.mod.server.ForgeMenu.init();
         OrielGameTests.init();
     }
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         OrielCommand.register(dispatcher);
+        dev.oriel.mod.server.ServerProbe.register(dispatcher);
     }
 
     public static void onPlayerLeft(ServerPlayer player) {
