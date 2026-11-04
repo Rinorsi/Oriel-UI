@@ -1,5 +1,7 @@
 # Oriel mod template
 
+模板不会自动转译 H5，也不会替业务生成权限校验与菜单。开发见 [制作流程](../docs/zh/ui-workflow.md)、[Java API](../docs/zh/java-api.md)，完成后按 [验收工具](../docs/zh/validation.md)验证。
+
 Two small mods to start from, one for NeoForge and one for Fabric, on Minecraft 26.3. Each adds a `/notes` command that
 opens a notes page: the mod gives the page your notes, and the page sends back what you add and remove.
 

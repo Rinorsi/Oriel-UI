@@ -1,29 +1,21 @@
-# Oriel docs
+# Oriel UI 文档
 
-Oriel shows HTML, CSS and JavaScript pages as Minecraft screens, inventories and HUD overlays. The Java API is the same
-on NeoForge and Fabric, and on Minecraft 26.3, 26.2 and 26.1.2 apart from the differences listed where they apply.
+**统一入口：[中文制作与接入手册](zh/index.md)。**
 
-中文文档（实现原理、接入指南、服务端篇、CSS 支持参考）：[zh/index.md](zh/index.md)。
+- 制作：[能力](zh/capabilities.md)、[流程](zh/ui-workflow.md)、[设计](zh/design.md)、[组件](zh/components.md)、[动效](zh/motion.md)、[布局配方](zh/recipes.md)。
+- 参数：[CSS](zh/css-guide.md)、[HTML/MC 元素](zh/elements.md)、[脚本与 DOM](zh/scripting.md)、[物品编辑器字段](zh/item-editor.md)。
+- 接入：[依赖与资源](zh/integration.md)、[Java API](zh/java-api.md)、[服务端/容器](zh/server.md)。
+- 验收：[预览、动作、MCP 与游戏](zh/validation.md)。
+- 维护：[文档同步合同](zh/maintenance.md)、[架构](zh/architecture.md)。
 
-## Java API
+## 细节补充
 
-- [Setting up](api/setup.md): how to depend on Oriel, and which parts of its API are stable.
-- [Opening pages](api/pages.md): opening a page from the client or from the server, exchanging data and messages with it, and pages players edit in a folder.
-- [Container screens](api/containers.md): inventories and other menus whose slots are `<slot>` elements on a page.
-- [HUD overlays](api/hud.md): pages drawn over the HUD, and overlays that take input over chosen screens.
-- [Minecraft elements](api/elements.md): items, slots, entities, models, player heads and sprites on a page, and how your entities are drawn in them.
-- [Narration](api/narration.md): what Minecraft's narrator reads from a page.
-- [Security](api/security.md): what players are protected from, what a page can still do, what mod and server authors must do, and every setting in `config/oriel.properties`.
-- [Development](api/development.md): commands, hot reload, and driving pages from code for autopilots and tests.
+以下为本 fork 的专题补充，不能用上游历史结论覆盖当前中文能力表：
 
-## Pages and scripts
+- [页面生命周期](api/pages.md)、[HUD](api/hud.md)、[容器](api/containers.md)、[实体渲染扩展](api/elements.md)、[朗读](api/narration.md)。
+- [安全与完整配置键](api/security.md)、[游戏内自动化](api/development.md)、[脚本详细语义](SCRIPTING.md)。
+- [原生 Screen 迁移](MIGRATING.md)、[预览器](../preview/README.md)、[H5 对照工具](../tools/h5ref/README.md)。
 
-- [Scripting](SCRIPTING.md): the JavaScript dialect, templates and the `oriel` object pages use.
-- [Porting a screen](MIGRATING.md): moving a hand-drawn screen to a Oriel page.
+## 引擎维护资料
 
-## Internals
-
-- [Minecraft versions](versions.md): what differs on 26.1/26.2, and how the versions build from one source tree.
-- [Minecraft 26.3 GUI notes](MC_26_3_GUI_API.md): how the 26.3 GUI renderer works, for working on Oriel itself.
-- [Design: SDF boxes](design/sdf-boxes.md): a proposal to draw rounded boxes, borders and shadows with a shader.
-- [Previewer](../preview/README.md) and [patched Rhino](../rhino/README.md).
+[版本适配](versions.md)、[26.3 GUI API 笔记](MC_26_3_GUI_API.md)、[SDF 设计提案](design/sdf-boxes.md)、[Rhino 补丁](../rhino/README.md)。提案不是已实现承诺。第三方 AUI/Vellum 研究、实施计划与验收记录留在仓库外工作区。

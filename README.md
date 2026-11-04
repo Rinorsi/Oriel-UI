@@ -19,6 +19,8 @@
 
 ## 文档
 
+制作与接入从 [中文手册入口](docs/zh/index.md)开始，查 [能力与限制](docs/zh/capabilities.md)、[完整流程](docs/zh/ui-workflow.md)、[Java API](docs/zh/java-api.md)。能力修改须同步 [维护合同](docs/zh/maintenance.md)。
+
 从 [docs/zh/index.md](docs/zh/index.md) 开始：
 
 | | |

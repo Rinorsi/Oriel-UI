@@ -27,7 +27,7 @@ C 和 D 的原理与完整例子见 [服务端篇](server.md)。
 
 支持的组合：Minecraft 26.1.2 / 26.2 / 26.3，Fabric 与 NeoForge，Java 25。
 
-0.9 系列推荐依赖范围：Fabric `>=0.9.0 <0.10.0`，NeoForge `[0.9.0,0.10.0)`。1.0 之前不兼容的公共 API 变更提升 minor 版本。必需外部依赖是推荐路径，Jar-in-Jar 仅为可选便利。仓库 `./gradlew templateCompile` 会将当前产物发布到 build/template-maven 并编译两个模板，不使用上游 Vellum Maven。
+0.10 系列推荐依赖范围：Fabric `>=0.10.0 <0.11.0`，NeoForge `[0.10.0,0.11.0)`。1.0 之前不兼容的公共 API 变更提升 minor 版本。必需外部依赖是推荐路径，Jar-in-Jar 仅为可选便利。仓库 `./gradlew templateCompile` 会将当前产物发布到 build/template-maven 并编译两个模板，不使用上游 Vellum Maven。
 
 可选依赖（你的模组没有本库也能运行时）：先判断本库是否加载（`ModList.get().isLoaded("oriel")` / `FabricLoader.getInstance().isModLoaded("oriel")`），再使用 `dev.oriel` 的类；把用到本库的代码放进单独的类，没装时它不会被加载。
 

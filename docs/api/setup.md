@@ -4,6 +4,8 @@ How to depend on Oriel, and which parts of its API are stable. [All docs](../ind
 
 ## Depending on Oriel
 
+中文接入与参数见 [接入指南](../zh/integration.md)、[Java API](../zh/java-api.md)。服务器装库要求客户端安装并匹配协议，见 [服务端](../zh/server.md)。
+
 To start a new mod, copy one of the [templates](../../template/README.md). Build this Oriel checkout and publish its
 artifacts locally with `./gradlew publishToMavenLocal`. No public Oriel Maven endpoint is promised yet; do not use
 the upstream Vellum repository for this fork:
