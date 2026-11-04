@@ -83,6 +83,11 @@ final class McHost implements Host {
     }
 
     @Override
+    public boolean imageFailed(String url) {
+        return McImages.textureSize(url) == null;
+    }
+
+    @Override
     public float @Nullable [] spriteSize(String id) {
         return McImages.spriteSize(id);
     }

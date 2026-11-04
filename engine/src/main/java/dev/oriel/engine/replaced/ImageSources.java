@@ -1,6 +1,7 @@
 package dev.oriel.engine.replaced;
 
 import dev.oriel.engine.dom.Document;
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.style.Image;
 
 /**
@@ -26,11 +27,29 @@ public final class ImageSources {
     /** {@link #size(Document, Image)} with the image's {@link #canvas} already looked up. */
     public static float[] size(Document document, Image image, CanvasContent canvas) {
         return switch (image) {
-            case Image.Url url -> document.host().imageSize(url.url());
+            case Image.Url url -> textureSize(document, url.url());
             case Image.Sprite sprite -> document.host().spriteSize(sprite.id());
             case Image.Canvas c -> canvas == null ? null : canvas.size();
             default -> null;
         };
+    }
+
+    private static float[] textureSize(Document document, String url) {
+        if (url.regionMatches(true, 0, "data:", 0, 5)) {
+            document.diagnostics().reportOnce("unsupported-url:" + url, () -> new Diagnostic(
+                    Diagnostic.Severity.WARNING, "unsupported-url", document.url(), 0,
+                    "Data image URLs are not supported: " + url,
+                    "save the image as a PNG file and reference it with <img src=\"image.png\"> or url(image.png)"));
+            return null;
+        }
+        float[] size = document.host().imageSize(url);
+        if (size == null && document.host().imageFailed(url)) {
+            document.diagnostics().reportOnce("missing-image:" + url, () -> new Diagnostic(
+                    Diagnostic.Severity.WARNING, "missing-image", document.url(), 0,
+                    "Cannot load image '" + url + "'",
+                    "check the image path relative to the page or stylesheet and supply a readable PNG file"));
+        }
+        return size;
     }
 
     /**

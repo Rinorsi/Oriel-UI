@@ -12,6 +12,7 @@ import dev.oriel.engine.host.Host;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.engine.host.ReplacedContent;
 import dev.oriel.engine.html.HtmlParser;
+import dev.oriel.engine.html.UnsupportedElements;
 import dev.oriel.engine.input.InputHandler;
 import dev.oriel.engine.layout.LayoutEngine;
 import dev.oriel.engine.paint.Canvas;
@@ -207,7 +208,9 @@ public final class Document extends Node {
     }
 
     public Element createElement(String tag) {
-        return new Element(this, tag);
+        Element element = new Element(this, tag);
+        UnsupportedElements.check(this, element);
+        return element;
     }
 
     public Text createTextNode(String data) {

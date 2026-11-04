@@ -216,6 +216,12 @@ public final class HtmlParser {
         if (fullDocument && handleStructural(name, attrs)) return;
 
         Element el = doc.createElement(name);
+        for (Element ancestor : stack) {
+            if (ancestor.tagName().equals("svg") || ancestor.tagName().equals("math")) {
+                UnsupportedElements.foreignChild(doc, name, ancestor.tagName());
+                break;
+            }
+        }
         for (String[] a : attrs) if (!el.hasAttribute(a[0])) el.setAttribute(a[0], a[1]);
         // Scripts created by fragment parsing (innerHTML, v-html) never run, as in browsers: server-sent markup
         // must not be able to smuggle code past the page's own scripts.
