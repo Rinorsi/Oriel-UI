@@ -70,6 +70,8 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
      * @param extra fields to add to {@code oriel.data}, from the menu (called on open and every client tick; the
      *              page gets new data when its result changes), or null
      */
+    // DocumentDriver only retains the owner; callbacks start at init/resize after construction, never in its constructor.
+    @SuppressWarnings("this-escape")
     public OrielContainerScreen(M menu, Inventory inventory, Component title, String url,
                                  @Nullable Function<? super M, ? extends JsonObject> extra) {
         super(menu, inventory, title);

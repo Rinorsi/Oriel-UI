@@ -47,6 +47,8 @@ public final class OrielClientCommands {
                 .executes(c -> later(() -> OrielScreens.open(showcaseUrl("index"))));
         for (String name : SHOWCASE) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> OrielScreens.open(showcaseUrl(name)))));
         return LiteralArgumentBuilder.<S>literal("oriel")
+                .then(LiteralArgumentBuilder.<S>literal("version").executes(c -> later(() -> McClient.systemMessage(
+                        Component.literal("Oriel UI runtime version: " + dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel"))))))
                 .then(LiteralArgumentBuilder.<S>literal("open")
                         .then(RequiredArgumentBuilder.<S, String>argument("url", StringArgumentType.greedyString())
                                 .executes(c -> {

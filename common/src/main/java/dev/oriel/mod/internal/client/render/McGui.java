@@ -193,15 +193,12 @@ public final class McGui {
         if (decorations) g.itemDecorations(Minecraft.getInstance().font, stack, 0, 0);
     }
 
-    /**
-     * A 3D scene in a screen box, a block {@code scale} GUI px, multiplied by {@code color}: a picture, blitted with the
-     * colour premultiplied as the picture is, so fading scales every channel.
-     */
     /** One of McCanvas's groups, drawn by {@link LayerRenderer}. */
     public void layer(LayerRenderState layer) {
         g.guiRenderState.addPicturesInPictureState(layer.moved(ox, oy));
     }
 
+    /** A 3D scene, with premultiplied colour so fading scales every channel. */
     public void scene(Scene scene, int color, int x0, int y0, int x1, int y1, float scale, @Nullable ScreenRectangle scissor) {
         g.guiRenderState.addPicturesInPictureState(new GuiSceneRenderState(scene, premultiplied(color), x0 - ox, y0 - oy, x1 - ox,
                 y1 - oy, scale, at(scissor)));

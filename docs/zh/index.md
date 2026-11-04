@@ -37,6 +37,8 @@ node tools/mcp/oriel-preview.mjs              MCP 服务：oriel_pages / oriel_c
 
 **中文（本项目撰写）**
 
+- [后端构建与性能门禁](backend-maintenance.md)——Gradle/JDK25、依赖哈希、Jar-in-Jar共存与帧耗时回归
+
 - [实现原理](architecture.md)、[接入指南](integration.md)、[服务端篇](server.md)
 - [CSS 支持参考](css-reference.md)——生成文件，不要手改；改了引擎的 CSS 支持后用 `ORIEL_UPDATE_DOCS=1 ./gradlew :engine:test --tests '*CssReferenceTest'` 重新生成，否则测试失败
 - [做一个新页面](making-a-page.md)、[设计规范](design.md)、[布局套路](recipes.md)、[动效](motion.md)

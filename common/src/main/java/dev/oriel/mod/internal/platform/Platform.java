@@ -10,4 +10,7 @@ public interface Platform {
     public Path configDir();
 
     public boolean isModLoaded(String modId);
+
+    /** Version selected by the loader after dependency and nested-JAR resolution. */
+    public String modVersion(String modId);
 }

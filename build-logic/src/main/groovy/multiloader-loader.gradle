@@ -108,6 +108,7 @@ if (project.hasProperty('probeRole')) {
     if (!(role in ['A', 'B'])) throw new GradleException('probeRole must be A or B')
     clientRunProperties['oriel.probeRole'] = role
     if (project.hasProperty('probeProtocol')) clientRunProperties['oriel.probeProtocol'] = project.property('probeProtocol').toString()
+    if (project.hasProperty('probeMissing')) clientRunProperties['oriel.probeMissing'] = 'true'
     clientRunArgs.addAll('--username', 'OrielProbe' + role, '--quickPlayMultiplayer',
             project.findProperty('probeAddress')?.toString() ?: '127.0.0.1:25565')
 }

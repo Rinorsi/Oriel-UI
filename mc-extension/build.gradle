@@ -9,7 +9,7 @@ dependencies { api(project(':engine')) }
 
 tasks.withType(JavaCompile).configureEach {
     options.release = engine_java_release as int
-    options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
+    options.compilerArgs += ['-Xlint:all', '-Werror']
     options.debugOptions.debugLevel = 'source,lines'
 }
 

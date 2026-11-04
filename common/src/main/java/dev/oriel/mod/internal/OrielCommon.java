@@ -18,6 +18,10 @@ public final class OrielCommon {
 
     /** Reads the settings and declares every registry entry. Call before the loader registers {@code OrielRegistry.entries()}. */
     public static void init() {
+        Constants.LOG.info("Oriel UI runtime version: {}", dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion(Constants.MOD_ID));
+        if (Boolean.getBoolean("oriel.jijProbe")) Constants.LOG.info("ORIEL_JIJ_PROBE parents={},{}",
+                dev.oriel.mod.internal.platform.Services.PLATFORM.isModLoaded("oriel_bundle_1"),
+                dev.oriel.mod.internal.platform.Services.PLATFORM.isModLoaded("oriel_bundle_2"));
         OrielConfig.load();
         OrielDemos.init();
         dev.oriel.mod.server.ForgeMenu.init();

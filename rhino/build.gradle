@@ -13,6 +13,7 @@ import java.util.zip.ZipFile
 
 plugins {
     id 'oriel-java'
+    id 'maven-publish'
     id 'com.gradleup.shadow' version '9.6.1'
 }
 
@@ -22,6 +23,11 @@ def archiveFile = new File(gradle.gradleUserHomeDir, "caches/oriel-rhino/rhino-$
 def patchesDir = layout.projectDirectory.dir('patches')
 def sourceDir = layout.buildDirectory.dir('rhino-src')
 def workDir = layout.projectDirectory.dir('work')
+
+abstract class RhinoFileServices {
+    @javax.inject.Inject abstract org.gradle.api.file.FileSystemOperations getFiles()
+}
+def fileOperations = objects.newInstance(RhinoFileServices).files
 
 static String sha256(File file) {
     MessageDigest digest = MessageDigest.getInstance('SHA-256')
@@ -98,7 +104,7 @@ def prepareRhinoSources = tasks.register('prepareRhinoSources') {
     outputs.dir(sourceDir)
     doLast {
         File dest = sourceDir.get().asFile
-        project.delete(dest)
+        fileOperations.delete { delete(dest) }
         dest.mkdirs()
         unpack(archiveFile, 'rhino/src/main/', dest)
         // Rhino's license and notices ship in the jar, with where the patched source is (MPL-2.0 section 3.2).
@@ -116,7 +122,7 @@ def prepareRhinoSources = tasks.register('prepareRhinoSources') {
         patchFiles(patchesDir.asFile).each { File patch ->
             git(dest, "Applying ${patch.name}", ['apply', '--whitespace=nowarn', '--include=rhino/src/main/*', patch.absolutePath])
         }
-        project.delete(new File(dest, '.git'))
+        fileOperations.delete { delete(new File(dest, '.git')) }
     }
 }
 
@@ -149,6 +155,7 @@ tasks.named('shadowJar') {
     relocate('org.mozilla.javascript', 'dev.oriel.shadow.rhino')
     relocate('org.mozilla.classfile', 'dev.oriel.shadow.rhino.classfile')
     mergeServiceFiles()
+    filesMatching('META-INF/services/**') { duplicatesStrategy = DuplicatesStrategy.INCLUDE }
     dependsOn(prepareRhinoSources)
     from(sourceDir) {
         include('LICENSE.txt', 'NOTICE.txt', 'SOURCE.txt')
@@ -158,6 +165,18 @@ tasks.named('shadowJar') {
 }
 
 tasks.named('jar') { enabled = false }
+
+// script-rhino publishes a dependency on this relocated runtime, so it needs real publication coordinates.
+java { withSourcesJar() }
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId = 'oriel-rhino'
+            artifact(tasks.named('shadowJar'))
+            artifact(tasks.named('sourcesJar'))
+        }
+    }
+}
 
 configurations {
     relocated { canBeResolved = false; canBeConsumed = true }

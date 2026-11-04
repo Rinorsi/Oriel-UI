@@ -34,7 +34,8 @@ tasks.register('templateCompile') {
         startParameter.offline = gradle.startParameter.offline
         startParameter.projectProperties = ['orielRepository': layout.buildDirectory.dir('template-maven').get().asFile.absolutePath]
         dependsOn(":" + loader + ':26.3:publishAllPublicationsToTemplateLocalRepository',
-                ':engine:publishAllPublicationsToTemplateLocalRepository')
+                ':engine:publishAllPublicationsToTemplateLocalRepository', ':mc-extension:publishAllPublicationsToTemplateLocalRepository',
+                ':script-rhino:publishAllPublicationsToTemplateLocalRepository', ':rhino:publishAllPublicationsToTemplateLocalRepository')
     }
     tasks.named('templateCompile') { dependsOn(gate) }
 }
@@ -46,6 +47,91 @@ tasks.register('checkBackendBoundaries', Exec) {
 }
 tasks.named('check') { dependsOn('checkBackendBoundaries') }
 tasks.named('check') { dependsOn(':engine:test', ':kit:test', ':preview:test') }
+
+// Resolve exactly the build/test runtime classpaths, including native runtime dependencies for this platform.
+def verificationClasspaths = []
+allprojects { candidate ->
+    verificationClasspaths.add(candidate.buildscript.configurations.named('classpath'))
+    candidate.configurations.configureEach { configuration ->
+        if (configuration.canBeResolved && (configuration.name.startsWith('neoForm') || configuration.name == 'neoForgeConfigOnly'))
+            verificationClasspaths.add(candidate.configurations.named(configuration.name))
+    }
+    candidate.plugins.withId('java') {
+        ['compileClasspath', 'runtimeClasspath', 'testCompileClasspath', 'testRuntimeClasspath'].each { name ->
+            verificationClasspaths.add(candidate.configurations.named(name))
+        }
+    }
+}
+tasks.register('verifyDependencyGraph') {
+    group = 'verification'
+    description = 'Resolve build and runtime graphs for offline SHA-256 dependency verification.'
+    doLast {
+        verificationClasspaths.each { provider ->
+            def configuration = provider.get()
+            logger.lifecycle("Resolved " + configuration.name + ": " + configuration.files.size() + " entries")
+        }
+    }
+}
+
+// Unlike Gradle's global --write-verification-metadata mode, this resolves only the actual graphs above.
+// Loom's global write mode requests uncached optional-platform descriptors even on an offline Windows build.
+def verificationFile = layout.projectDirectory.file('gradle/verification-metadata.xml').asFile
+def dependencyCache = new File(gradle.gradleUserHomeDir, 'caches/modules-2/files-2.1')
+tasks.register('writeDependencyVerification') {
+    group = 'verification'
+    description = 'Refresh SHA-256 trust from the resolved offline cache; review the XML diff before committing.'
+    doLast {
+        def artifacts = new TreeMap<String, Map>()
+        def add = { String group, String module, String version, File file ->
+            def key = group + ':' + module + ':' + version
+            def component = artifacts.computeIfAbsent(key) { [group:group, name:module, version:version, files:new TreeMap<String, Set>()] }
+            def digest = java.security.MessageDigest.getInstance('SHA-256')
+            file.withInputStream { input ->
+                byte[] buffer = new byte[65536]
+                int n
+                while ((n = input.read(buffer)) > 0) digest.update(buffer, 0, n)
+            }
+            component.files.computeIfAbsent(file.name) { new TreeSet<String>() }.add(digest.digest().encodeHex().toString())
+        }
+        verificationClasspaths.each { provider ->
+            provider.get().incoming.artifacts.artifacts.each { artifact ->
+                def id = artifact.id.componentIdentifier
+                if (id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier)
+                    add(id.group, id.module, id.version, artifact.file)
+            }
+        }
+        // The settings-only toolchain resolver isn't on a project classpath; pin its one declared version too.
+        [['org.gradle.toolchains', 'foojay-resolver', '1.0.0'], ['dev.kikugie', 'stonecutter', '0.9.8']].each { coordinates ->
+            def cached = new File(dependencyCache, coordinates.join('/'))
+            cached.eachFileRecurse { file ->
+                if (file.name.endsWith('.jar')) add(coordinates[0], coordinates[1], coordinates[2], file)
+            }
+        }
+        def writer = new StringWriter()
+        def xml = new groovy.xml.MarkupBuilder(writer)
+        xml.mkp.xmlDeclaration(version:'1.0', encoding:'UTF-8')
+        xml.'verification-metadata'(xmlns:'https://schema.gradle.org/dependency-verification') {
+            configuration {
+                'verify-metadata'('false')
+                'verify-signatures'('false')
+            }
+            xml.components {
+                artifacts.values().each { entry ->
+                    component(group:entry.group, name:entry.name, version:entry.version) {
+                        entry.files.each { name, hashes ->
+                            artifact(name:name) {
+                                hashes.each { hash -> sha256(value:hash, origin:'Offline resolved cache; review required') }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        verificationFile.parentFile.mkdirs()
+        verificationFile.setText(writer.toString() + System.lineSeparator(), 'UTF-8')
+        logger.lifecycle('Wrote SHA-256 verification for ' + artifacts.size() + ' resolved components')
+    }
+}
 
 stonecutter.parameters { sc ->
     // The version's settings from stonecutter.properties.toml become project properties.

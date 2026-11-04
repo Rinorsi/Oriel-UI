@@ -26,7 +26,7 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.release = engine_java_release as int
-    options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
+    options.compilerArgs += ['-Xlint:all', '-Werror']
     // Line numbers for stack traces, no local variable tables, as for the loaders (multiloader-common.gradle): these
     // classes ship in every loader jar.
     options.debugOptions.debugLevel = 'source,lines'

@@ -42,11 +42,11 @@ public final class ServerProbeClient {
 
     public static void tick() {
         Minecraft mc = Minecraft.getInstance();
-        if (System.getProperty("oriel.probeProtocol") != null
+        if ((System.getProperty("oriel.probeProtocol") != null || Boolean.getBoolean("oriel.probeMissing"))
                 && (McClient.screen() instanceof net.minecraft.client.gui.screens.DisconnectedScreen
                 || McClient.screen() != null && McClient.screen().getClass().getName().equals(
                         "net.neoforged.neoforge.client.gui.ModMismatchDisconnectedScreen"))) {
-            Constants.LOG.info("ORIEL_CLIENT_PROBE PASS mismatched protocol disconnected");
+            Constants.LOG.info("ORIEL_CLIENT_PROBE PASS {} disconnected", Boolean.getBoolean("oriel.probeMissing") ? "missing client" : "mismatched protocol");
             mc.stop();
             return;
         }

@@ -2337,5 +2337,7 @@
   "oriel.ui.styles.view.menu.title": "界面与菜单",
   "oriel.ui.styles.view.theme.title": "主题氛围",
   "oriel.ui.catalog.sections.one": "%s 节",
-  "oriel.ui.catalog.sections.other": "%s 节"
+  "oriel.ui.catalog.sections.other": "%s 节",
+  "oriel.disconnect.required": "此服务器要求客户端安装优易库（Oriel UI），协议版本为 %s。请安装后重新连接。",
+  "oriel.disconnect.protocol": "优易库（Oriel UI）协议版本不匹配。此服务器要求协议 %s，请安装兼容的客户端版本后重新连接。"
 }

@@ -2337,5 +2337,7 @@
   "oriel.ui.styles.view.menu.title": "Screens & Menus",
   "oriel.ui.styles.view.theme.title": "Themes & Moods",
   "oriel.ui.catalog.sections.one": "%s section",
-  "oriel.ui.catalog.sections.other": "%s sections"
+  "oriel.ui.catalog.sections.other": "%s sections",
+  "oriel.disconnect.required": "This server requires Oriel UI on the client (protocol %s). Install it and reconnect.",
+  "oriel.disconnect.protocol": "Oriel UI protocol mismatch. This server requires protocol %s. Install a compatible client version and reconnect."
 }

@@ -22,14 +22,18 @@ tasks.register('checkPublicApi', Exec) {
     group = 'verification'
     dependsOn('compileJava')
     def cpFile = layout.buildDirectory.file('api-check/classpath.txt')
+    def apiClasspath = sourceSets.main.output.classesDirs + sourceSets.main.compileClasspath
+    def apiSources = sourceSets.main.java.srcDirs
+    def apiTool = rootProject.file('tools/api/ApiCheck.java')
+    def apiSnapshot = rootProject.file('api/' + project.name + '.txt')
+    def updateApi = project.hasProperty('updateApi')
+    def apiJava = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
     doFirst {
         cpFile.get().asFile.parentFile.mkdirs()
-        cpFile.get().asFile.text = sourceSets.main.output.classesDirs.asPath + File.pathSeparator + sourceSets.main.compileClasspath.asPath
-        def source = sourceSets.main.java.srcDirs.find { new File(it, 'dev/oriel/mod/server/OrielServer.java').exists() }
-        def javaBin = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }.get().executablePath.asFile
-        def parameters = [javaBin, rootProject.file('tools/api/ApiCheck.java'), source,
-                cpFile.get().asFile, rootProject.file('api/' + project.name + '.txt')]
-        if (project.hasProperty('updateApi')) parameters.add('--update')
+        cpFile.get().asFile.text = apiClasspath.asPath
+        def source = apiSources.find { new File(it, 'dev/oriel/mod/server/OrielServer.java').exists() }
+        def parameters = [apiJava.get().executablePath.asFile, apiTool, source, cpFile.get().asFile, apiSnapshot]
+        if (updateApi) parameters.add('--update')
         commandLine(parameters)
     }
 }

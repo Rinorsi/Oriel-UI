@@ -86,10 +86,6 @@ public final class McClient {
         return mc.playerSkinRenderCache().getOrDefault(ResolvableProfile.createResolved(mc.getGameProfile())).playerSkin().body().texturePath();
     }
 
-    /**
-     * Text input (SDL's, which {@code charTyped} needs) on or off for a text field of {@code owner}. On 26.2 GLFW always
-     * sends typed characters, so there is nothing to switch.
-     */
     /** Turns text input (and with it the input method) on or off for {@code owner}; every 26.x has this. */
     public static void textInput(Screen owner, boolean on) {
         Minecraft.getInstance().onTextInputFocusChange(owner, on);
