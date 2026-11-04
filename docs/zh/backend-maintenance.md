@@ -14,7 +14,7 @@
 
 验证环境是 Gradle 9.7.1，Loom 1.18.2、ModDevGradle 2.0.147、Stonecutter 0.9.8、Shadow 9.6.1。Rhino relocated runtime 也声明正式publication，避免script-rhino发布依赖指向未发布项目。
 
-**尚存插件弃用**：Loom 1.18.2 的 CompileConfiguration.getLockFile 调用执行期注入的 Project，嵌套模板构建中会触发 Gradle 10 禁用警告。因此全套 --warning-mode fail 当前仍会失败，不能称已完全兼容 Gradle 10。仓库没有绕过插件或隐藏该警告。上游追踪入口：[FabricMC/fabric-loom issues](https://github.com/FabricMC/fabric-loom/issues?q=is%3Aissue+%22injected+service%22)；本次网络查询失败，尚未核实对应issue编号，也没有擅自向上游发帖。升级 Loom 后用上述命令复查；普通 --warning-mode all 用于保留完整追踪。
+**尚存插件弃用**：Loom 1.18.2 的 CompileConfiguration.getLockFile 调用执行期注入的 Project，嵌套模板构建中会触发 Gradle 10 禁用警告。因此全套 --warning-mode fail 当前仍会失败，不能称已完全兼容 Gradle 10。仓库没有绕过插件或隐藏该警告。上游相关记录：[Loom #1582](https://github.com/FabricMC/fabric-loom/issues/1582)（已关闭，旧版本的执行期Project访问报告；调用点不同，不代表本问题已修复）。2026-11-05检索getLockFile未找到精确匹配的issue；没有擅自发帖。升级 Loom 后用上述命令复查；普通 --warning-mode all 用于保留完整追踪。
 
 ## JDK 25 编译警告
 
