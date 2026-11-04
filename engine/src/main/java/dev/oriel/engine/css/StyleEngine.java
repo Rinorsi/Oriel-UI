@@ -141,6 +141,8 @@ public final class StyleEngine {
             readsAttributes |= cascade.readAttributes();
             el.placeholderStyle = el.isTextControl()
                     ? pseudo(el, base, rem, PseudoElement.PLACEHOLDER, el.placeholderStyle) : null;
+            readsAttributes |= cascade.readAttributes();
+            el.firstLetterStyle = pseudo(el, base, rem, PseudoElement.FIRST_LETTER, el.firstLetterStyle);
             state.remember(parent, container, generation, readsAttributes, inheritsExplicitly);
         }
         if (parent == null && base.fontSize != rootFontSize) {
@@ -165,7 +167,7 @@ public final class StyleEngine {
             if (e.selector().pseudoElement != which) continue;
             s = cascade.compute(el, style, style, rem, matched, which, null, null);
             if (s.content == ComputedStyle.LIST_MARKER) s.content = s.listStyleType.marker;
-            if (which != PseudoElement.PLACEHOLDER && s.content == null) s = null;
+            if ((which == PseudoElement.BEFORE || which == PseudoElement.AFTER) && s.content == null) s = null;
             break;
         }
         if (s != null) return reuseIfEqual(old, s);

@@ -186,6 +186,7 @@ final class SelectorParser {
                 case "before" -> { return PseudoElement.BEFORE; }
                 case "after" -> { return PseudoElement.AFTER; }
                 case "placeholder" -> { if (doubleColon) return PseudoElement.PLACEHOLDER; }
+                case "first-letter" -> { return PseudoElement.FIRST_LETTER; }
                 default -> { }
             }
         }

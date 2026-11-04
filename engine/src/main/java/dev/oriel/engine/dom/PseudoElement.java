@@ -2,7 +2,7 @@ package dev.oriel.engine.dom;
 
 /** What a style or a selector is for: an element itself, or one of its pseudo-elements. */
 public enum PseudoElement {
-    NONE(""), BEFORE("::before"), AFTER("::after"), PLACEHOLDER("::placeholder");
+    NONE(""), BEFORE("::before"), AFTER("::after"), PLACEHOLDER("::placeholder"), FIRST_LETTER("::first-letter");
 
     /** The CSS name, as events report it ({@code ""} for the element itself). */
     public final String cssName;

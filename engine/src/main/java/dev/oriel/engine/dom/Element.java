@@ -58,6 +58,8 @@ public class Element extends Node {
     public ComputedStyle beforeStyle, afterStyle;
     /** Style of the ::placeholder pseudo-element for text controls, or null. */
     public ComputedStyle placeholderStyle;
+    /** Style of the ::first-letter pseudo-element, or null when no rule targets it. Not animated. */
+    public ComputedStyle firstLetterStyle;
     /** The principal layout box, or null when the element generates no box (display: none, detached). */
     public Box box;
     /** Host-provided content for replaced elements (img, item, slot, entity, canvas...). */

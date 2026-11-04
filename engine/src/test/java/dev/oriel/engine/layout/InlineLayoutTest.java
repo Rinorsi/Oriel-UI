@@ -273,6 +273,21 @@ class InlineLayoutTest {
     }
 
     @Test
+    void theFirstLetterWithItsPunctuationTakesItsOwnStyle() {
+        Page page = new TestHost().load("<style>#p::first-letter { font-size: 16px } #q::first-letter { color: red }</style>"
+                + "<div id=p>  “Hi”, she said</div><div id=q><div>block first</div>no letter</div>");
+        List<Fragment.TextRun> runs = runs(page, "p");
+        assertEquals("“H", runs.get(0).text());
+        assertEquals(16, runs.get(0).style().fontSize, 0.01);
+        assertEquals("i”, she said", runs.get(1).text());
+        assertEquals(8, runs.get(1).style().fontSize, 0.01);
+        Element q = page.byId("q");
+        for (Box b : q.box.children) for (Fragment.TextRun r : runs(b)) {
+            assertEquals(q.style.color, r.style().color, "only the first line counts, and a block took it: " + r.text());
+        }
+    }
+
+    @Test
     void pseudoElements() {
         Page page = new TestHost().load("""
                 <style>
