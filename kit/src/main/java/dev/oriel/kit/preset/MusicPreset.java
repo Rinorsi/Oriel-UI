@@ -51,7 +51,19 @@ public final class MusicPreset implements PageControllers.Controller {
     private Element screen, playIcon, miniPlayIcon, miniTitle;
     private Dom.Style miniLine;
     private Particles.Emitter notes;
-    private boolean shuffle;
+    /** The play mode, one button cycling through them as desktop players do. */
+    enum Mode {
+        ORDER("list", "顺序播放"), LOOP("repeat", "列表循环"), ONE("repeat", "单曲循环"), SHUFFLE("shuffle", "随机播放");
+
+        final String icon, label;
+
+        Mode(String icon, String label) {
+            this.icon = icon;
+            this.label = label;
+        }
+    }
+
+    Mode mode = Mode.LOOP;
     private final Random random = new Random(3);
     private double last = -1, retarget;
     // Row dragging.
@@ -116,9 +128,10 @@ public final class MusicPreset implements PageControllers.Controller {
         Shell.activate(Dom.byId(doc, "mini-play"), this::toggle);
         Shell.activate(Dom.byId(doc, "mini"), () -> screen.addClass("mini"));
         Shell.activate(Dom.byId(doc, "expand"), () -> screen.removeClass("mini"));
-        Element shuffleButton = Dom.byId(doc, "shuffle"), repeat = Dom.byId(doc, "repeat");
-        Shell.activate(shuffleButton, () -> shuffleButton.toggleClass("on", shuffle = !shuffle));
-        Shell.activate(repeat, () -> repeat.toggleClass("on"));
+        Element modeButton = Dom.byId(doc, "mode");
+        Shell.activate(modeButton, () -> setMode(Mode.values()[(mode.ordinal() + 1) % Mode.values().length]));
+        setMode(mode);
+        Shell.activate(Dom.byId(doc, "queue-btn"), () -> Dom.query(doc, "[data-show='#queue']").click());
         Dom.onKey(doc, e -> {
             if (doc.focusedElement() != null && doc.focusedElement().isTextControl()) return;
             if (e.code.equals("Space")) {
@@ -183,10 +196,36 @@ public final class MusicPreset implements PageControllers.Controller {
         lyricsBox.scrollTo(0, Math.max(0, top), Element.ScrollBehavior.SMOOTH);
     }
 
+    void setMode(Mode m) {
+        mode = m;
+        Element button = Dom.byId(doc, "mode");
+        Dom.attr(Dom.byId(doc, "mode-icon"), "src", "../textures/icons/" + m.icon + ".png");
+        button.setAttribute("title", m.label);
+        button.toggleClass("one", m == Mode.ONE);
+        Dom.text(Dom.byId(doc, "mode-label"), m.label);
+    }
+
+    /** The previous or next track (by hand): random in shuffle, else round the list. */
     void skip(int delta) {
-        int next = shuffle && playlist.size() > 1 ? Math.floorMod(current + 1 + random.nextInt(playlist.size() - 1), playlist.size())
+        int next = mode == Mode.SHUFFLE && playlist.size() > 1
+                ? Math.floorMod(current + 1 + random.nextInt(playlist.size() - 1), playlist.size())
                 : Math.floorMod(current + delta, playlist.size());
         select(next, true);
+    }
+
+    /** A track played to its end: the mode decides what follows (in order, the last one stops). */
+    void ended() {
+        switch (mode) {
+            case ONE -> select(current, true);
+            case ORDER -> {
+                if (current + 1 < playlist.size()) select(current + 1, true);
+                else {
+                    position = track().seconds();
+                    if (playing) toggle();
+                }
+            }
+            default -> skip(1);
+        }
     }
 
     void select(int index, boolean restart) {
@@ -231,7 +270,7 @@ public final class MusicPreset implements PageControllers.Controller {
         last = now;
         if (playing && !seek.dragging()) {
             position += dt;
-            if (position >= track().seconds()) skip(1);
+            if (position >= track().seconds()) ended();
             renderTime();
         }
         // Equalizer: while playing, each bar eases towards a target that changes a few times a second; the caps

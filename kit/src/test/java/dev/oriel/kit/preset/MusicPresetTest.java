@@ -76,4 +76,23 @@ class MusicPresetTest {
         assertEquals("3:05", MusicPreset.time(185));
         assertEquals("0:09", MusicPreset.time(9));
     }
+
+    @Test
+    void theModeButtonCyclesAndDecidesWhatFollows() {
+        MusicPreset music = new MusicPreset();
+        Document doc = host.open(OrielKit.MUSIC, music, 640, 360);
+        assertEquals(MusicPreset.Mode.LOOP, music.mode);
+        click(doc, "#mode", 0, Modifiers.NONE, clock);
+        assertEquals(MusicPreset.Mode.ONE, music.mode);
+        assertTrue(doc.getElementById("mode").hasClass("one"));
+        assertEquals("单曲循环", doc.getElementById("mode-label").textContent());
+        music.ended();
+        assertEquals(0, music.current, "single repeat plays the same track again");
+        click(doc, "#mode", 0, Modifiers.NONE, clock);
+        click(doc, "#mode", 0, Modifiers.NONE, clock);
+        assertEquals(MusicPreset.Mode.ORDER, music.mode, "shuffle, then in order");
+        music.select(music.playlist.size() - 1, true);
+        music.ended();
+        assertEquals(music.playlist.size() - 1, music.current, "in order, the last track stops");
+    }
 }

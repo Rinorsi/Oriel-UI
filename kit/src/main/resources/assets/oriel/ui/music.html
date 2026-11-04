@@ -107,7 +107,11 @@
 .controls .side.right { justify-content: flex-end; }
 .controls .ore-btn { min-height: 20px; }
 .controls .ore-btn.big { min-width: 34px; min-height: 22px; }
-.controls .toggle.on .o-ico { -mc-tint: var(--o-accent-strong); }
+/* The play mode button: its icon says the mode; single-track repeat carries a small 1. */
+.mode { position: relative; }
+.mode b { display: none; position: absolute; right: 1px; bottom: 1px; font-weight: normal; color: var(--o-accent-strong); line-height: 8px; }
+.mode.one b { display: block; }
+.mode-label { color: var(--o-text-dim); white-space: nowrap; }
 .volume { display: flex; align-items: center; gap: 4px; width: 100px; }
 .volume .o-ico { -mc-tint: var(--o-text-dim); }
 .vol { color: var(--o-text-faint); width: 44px; text-align: right; white-space: nowrap; }
@@ -187,12 +191,12 @@
         <div class="time right" id="length">0:00</div>
       </div>
       <div class="controls">
-        <div class="side"><div class="o-hints"><span><span class="o-kbd">空格</span>播放</span><span><span class="o-kbd">←</span><span class="o-kbd">→</span>切歌</span></div></div>
-        <div class="ore-btn icon toggle" id="shuffle" tabindex="0" title="随机"><img class="o-ico" src="../textures/icons/shuffle.png"></div>
+        <div class="side"><span class="mode-label" id="mode-label">列表循环</span><div class="o-hints"><span><span class="o-kbd">空格</span>播放</span></div></div>
+        <div class="ore-btn icon mode" id="mode" tabindex="0" title="列表循环"><img class="o-ico" id="mode-icon" src="../textures/icons/repeat.png"><b>1</b></div>
         <div class="ore-btn icon" id="prev" tabindex="0" title="上一首"><img class="o-ico" src="../textures/icons/prev.png"></div>
         <div class="ore-btn hero big" id="play" tabindex="0" title="播放 (空格)"><img class="o-ico" id="play-icon" src="../textures/icons/play.png"></div>
         <div class="ore-btn icon" id="next" tabindex="0" title="下一首"><img class="o-ico" src="../textures/icons/next.png"></div>
-        <div class="ore-btn icon toggle on" id="repeat" tabindex="0" title="列表循环"><img class="o-ico" src="../textures/icons/repeat.png"></div>
+        <div class="ore-btn icon" id="queue-btn" tabindex="0" title="播放队列"><img class="o-ico" src="../textures/icons/list.png"></div>
         <div class="side right">
           <div class="volume">
             <img class="o-ico" id="vol-icon" src="../textures/icons/volume.png">
