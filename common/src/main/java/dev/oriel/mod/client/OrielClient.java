@@ -75,16 +75,40 @@ public final class OrielClient {
         PlayerEffects.init();
         InventoryEffects.init();
         OrielHud.register(POTION_HUD, OrielKit.POTIONS, OrielHud.Input.WHEN_CHAT_OPEN);
-        // The gallery's HUD card: show the potion HUD over the game, closing the gallery so it can be seen.
+        // The gallery's HUD card: every lasting effect on the player (to see the HUD and the inventory's panel full),
+        // then the potion HUD over the game, closing the gallery so it can be seen.
         OrielScreens.onPageLoad(OrielKit.GALLERY, driver -> driver.onMessage(OrielKit.CHANNEL, value -> {
             if (value.isJsonPrimitive() && value.getAsString().equals("hud")) {
                 // After the click that sent it has been handled: the page must not close under its own event.
                 Minecraft.getInstance().schedule(() -> {
                     McClient.setScreen(null);
+                    giveEveryLastingEffect();
                     if (!OrielHud.isShown(POTION_HUD)) OrielHud.show(POTION_HUD);
                 });
             }
         }));
+    }
+
+    /**
+     * Gives the player every registered effect that lasts (instant ones such as instant health are left out), at
+     * varied levels and durations, through {@code /effect}: so it works only where the player may cheat, and says so
+     * in chat otherwise, as the command does.
+     */
+    static void giveEveryLastingEffect() {
+        var player = Minecraft.getInstance().player;
+        if (player == null) return;
+        int i = 0;
+        for (net.minecraft.world.effect.MobEffect effect : BuiltInRegistries.MOB_EFFECT) {
+            //? if >=26.2 {
+            if (effect.isInstantaneous()) continue;
+            //?} else
+            //if (effect.isInstantenous()) continue;
+            Identifier id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+            int seconds = 40 + (i * 53) % 560, amplifier = i % 3;
+            // With their particles: hiding them hides the effect's icon too (vanilla ties showIcon to them).
+            player.connection.sendCommand("effect give @s " + id + " " + seconds + " " + amplifier);
+            i++;
+        }
     }
 
     /** Whether vanilla's effect icons at the top right are left out: the potion HUD shows the effects instead. */
