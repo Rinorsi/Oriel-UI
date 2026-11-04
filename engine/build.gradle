@@ -17,8 +17,9 @@ dependencies {
     // Provided by Minecraft at runtime.
     compileOnly("com.google.code.gson:gson:${gson_version}")
     compileOnly('org.jspecify:jspecify:1.0.0')
-    // Relocated Rhino: compileOnly here because consumers copy its classes into their own output.
-    compileOnly(project(path: ':rhino', configuration: 'relocated'))
+    // Script conformance tests opt into the runtime; the production engine does not depend on it.
+    testImplementation(project(':script-rhino'))
+    testImplementation(project(':mc-extension'))
     testImplementation(project(path: ':rhino', configuration: 'relocated'))
     testImplementation("com.google.code.gson:gson:${gson_version}")
 }

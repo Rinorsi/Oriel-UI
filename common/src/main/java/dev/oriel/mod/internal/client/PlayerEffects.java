@@ -44,9 +44,13 @@ public final class PlayerEffects {
         List<GameEffects.Entry> next = new ArrayList<>();
         for (State state : states) {
             Identifier id = BuiltInRegistries.MOB_EFFECT.getKey(state.effect());
+            // What it does: our language files' oriel.effect.<namespace>.<path>.desc (other mods' effects may have none).
+            String key = "oriel.effect." + id.getNamespace() + "." + id.getPath() + ".desc";
+            String description = currentLanguage.has(key) ? currentLanguage.getOrDefault(key) : null;
             next.add(new GameEffects.Entry(id.toString(), state.effect().getDisplayName().getString(), state.level(),
                     GameEffects.Kind.valueOf(state.effect().getCategory().name()), state.seconds(),
-                    id.getNamespace() + ":textures/mob_effect/" + id.getPath() + ".png", state.ambient(), state.visible(), state.showIcon()));
+                    id.getNamespace() + ":textures/mob_effect/" + id.getPath() + ".png", state.ambient(), state.visible(),
+                    state.showIcon(), description));
         }
         next.sort(Comparator.comparing(GameEffects.Entry::id));
         if (!next.equals(snapshot.effects())) snapshot = new GameEffects.Snapshot(next);

@@ -11,11 +11,17 @@ public final class GameEffects {
     /**
      * Level is one-based; seconds is rounded up, or -1 for an infinite duration. Ambient is not proof of a beacon.
      * Visible controls particles; showIcon is the vanilla icon flag. Neither removes an active effect from this list.
+     * Description is what the effect does, in the game's language, or null when there is none.
      */
     public record Entry(String id, String name, int level, Kind kind, int seconds, String icon,
-                        boolean ambient, boolean visible, boolean showIcon) {
+                        boolean ambient, boolean visible, boolean showIcon, String description) {
         public Entry(String id, String name, int level, Kind kind, int seconds, String icon, boolean ambient, boolean visible) {
-            this(id, name, level, kind, seconds, icon, ambient, visible, true);
+            this(id, name, level, kind, seconds, icon, ambient, visible, true, null);
+        }
+
+        public Entry(String id, String name, int level, Kind kind, int seconds, String icon, boolean ambient, boolean visible,
+                     boolean showIcon) {
+            this(id, name, level, kind, seconds, icon, ambient, visible, showIcon, null);
         }
         public Entry {
             Objects.requireNonNull(id);

@@ -81,10 +81,10 @@ final class Backgrounds {
         g.area(layer.clip(), area, areaRadii);
         g.area(BackgroundLayer.Box.PADDING_BOX, origin, scratchRadii);
         if (area[2] <= 0 || area[3] <= 0) return;
-        if (image instanceof Image.Sprite sprite && layer.sizeKeyword() == null
+        if (dev.oriel.engine.css.ImageProviders.handles(image) && layer.sizeKeyword() == null
                 && !layer.width().isFixed() && !layer.height().isFixed()) {
             // A sprite scales itself (stretch, tile, nine-slice): by default it fills the painting area.
-            canvas.drawSprite(sprite.id(), area[0], area[1], area[2], area[3], s.tint);
+            dev.oriel.engine.css.ImageProviders.paint(canvas, image, area[0], area[1], area[2], area[3], s.tint);
             return;
         }
         // Textures and canvases are drawn through a URL; a canvas that is missing draws nothing.
@@ -104,7 +104,7 @@ final class Backgrounds {
             return;
         }
         // Sprites cannot be cut through UVs: clip them when tiles stick out of the painting area.
-        boolean clipTiles = image instanceof Image.Sprite && tilesOverflow();
+        boolean clipTiles = dev.oriel.engine.css.ImageProviders.handles(image) && tilesOverflow();
         if (clipTiles) {
             canvas.save();
             canvas.clipRect(area[0], area[1], area[2], area[3]);
@@ -114,8 +114,8 @@ final class Backgrounds {
                 float x = tiling[0] + i * tiling[1], y = tiling[3] + j * tiling[4];
                 if (texture != null) {
                     texture(canvas, texture, x, y, false, false, s.tint, smooth);
-                } else if (image instanceof Image.Sprite sprite) {
-                    canvas.drawSprite(sprite.id(), x, y, tileW, tileH, s.tint);
+                } else if (dev.oriel.engine.css.ImageProviders.handles(image)) {
+                    dev.oriel.engine.css.ImageProviders.paint(canvas, image, x, y, tileW, tileH, s.tint);
                 } else {
                     batch.setClip(area[0], area[1], area[2], area[3], areaRadii, dp);
                     batch.intersectClip(x, y, tileW, tileH);

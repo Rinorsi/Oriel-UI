@@ -1,0 +1,44 @@
+# The former fourth SCENE_DOMAIN item (Properties parser) moved to mc-extension; three typed shells remain.
+# Inherited boundary at main 9fe6925. Delete exact entries as dependencies move out.
+# category<TAB>source path<TAB>matched symbol<TAB>occurrences. New entries require explicit review.
+# compatibility shell: removed in the API migration stage
+FONT_POLICY	src/main/java/dev/oriel/engine/css/Properties.java	FontFamilies	2
+# compatibility shell: removed in the API migration stage
+FONT_POLICY	src/main/java/dev/oriel/engine/host/FontFamilies.java	FontFamilies	2
+# compatibility shell: removed in the API migration stage
+FONT_POLICY	src/main/java/dev/oriel/engine/inspect/BoxHighlight.java	FontFamilies	1
+# compatibility shell: removed in the API migration stage
+FONT_POLICY	src/main/java/dev/oriel/engine/style/ComputedStyle.java	DEFAULT_FONT_SIZE	1
+# compatibility shell: removed in the API migration stage
+FONT_POLICY	src/main/java/dev/oriel/engine/style/ComputedStyle.java	FontFamilies	2
+# compatibility shell: removed in the API migration stage
+FONT_POLICY	src/main/java/dev/oriel/engine/style/ComputedStyle.java	NORMAL_LINE_HEIGHT	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-entity-focus	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-gaze-reach	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-model-scale	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-obfuscated	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-pitch	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-roll	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-tint	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-tooltip-delay	1
+# compatibility shell: removed in the API migration stage
+MC_STYLE	src/main/java/dev/oriel/engine/style/Prop.java	-mc-yaw	1
+# compatibility shell: removed in the API migration stage
+SCENE_DOMAIN	src/main/java/dev/oriel/engine/style/ComputedStyle.java	EntityFocus	2
+# compatibility shell: removed in the API migration stage
+SCENE_DOMAIN	src/main/java/dev/oriel/engine/style/EntityFocus.java	EntityFocus	1
+# compatibility shell: removed in the API migration stage
+SCENE_DOMAIN	src/main/java/dev/oriel/engine/style/Prop.java	EntityFocus	1
+
+# compatibility shell: compile-time constant retained; removed in the API migration stage
+MC_RESOURCE	src/main/java/dev/oriel/engine/host/FontFamilies.java	minecraft:default	1
+# compatibility shell: compile-time constant retained; removed in the API migration stage
+MC_RESOURCE	src/main/java/dev/oriel/engine/host/FontFamilies.java	minecraft:uniform	1

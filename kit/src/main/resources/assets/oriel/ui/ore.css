@@ -744,6 +744,32 @@ canvas.fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; poin
 }
 .o-effects .more:hover { color: var(--o-text); }
 @keyframes eff-in { from { opacity: 0; transform: translateX(24px); } }
+/* The card a hovered row shows (PotionHudPreset): the icon large, the name and level, its kind, what it does, and the
+   time left of the whole duration. Beside the panel, never under the pointer. */
+.o-efftip {
+    --kind: #6cc349; position: absolute; z-index: 100; width: 138px; padding: 6px 6px 5px; display: none; flex-direction: column; gap: 4px;
+    pointer-events: none; background: var(--o-tile); border: 1px solid var(--o-line-strong);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55), inset 0 1px 0 var(--o-tile-hi);
+}
+.o-efftip.harmful { --kind: #e25a5a; }
+.o-efftip.neutral { --kind: #ffb52b; }
+.o-efftip.on { display: flex; animation: efftip-in 160ms var(--o-ease-out); }
+@keyframes efftip-in { from { opacity: 0; transform: translateY(3px); } }
+.o-efftip::before { content: ""; position: absolute; left: -1px; right: -1px; top: -1px; height: 2px; background: var(--kind); box-shadow: 0 0 6px var(--kind); }
+.o-efftip .top { display: flex; align-items: center; gap: 5px; }
+.o-efftip .top img { flex: none; width: 18px; height: 18px; padding: 2px;
+    background: color-mix(in srgb, var(--kind) 16%, transparent); border: 1px solid color-mix(in srgb, var(--kind) 45%, transparent); }
+.o-efftip .top div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.o-efftip .top b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.o-efftip .top .kind { color: var(--kind); }
+.o-efftip .lv { flex: none; padding: 1px 3px; color: var(--o-text); background: var(--o-well); border: 1px solid var(--o-line-strong); }
+.o-efftip .lv.none, .o-efftip .desc.none { display: none; }
+.o-efftip .desc { color: var(--o-text-dim); line-height: 10px; }
+.o-efftip .bar { height: 3px; background: var(--o-well); }
+.o-efftip .bar i { display: block; height: 3px; background: var(--kind); box-shadow: 0 0 4px var(--kind); transition: width 1000ms linear; }
+.o-efftip .meta { display: flex; justify-content: space-between; gap: 4px; color: var(--o-text-dim); white-space: nowrap; }
+.o-efftip .id { margin-top: -2px; color: var(--o-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.o-effects .eff:hover { border-color: var(--o-line-strong); }
 @keyframes eff-blink { from { opacity: 1; } to { opacity: 0.35; } }
 canvas.fx.off { display: none; }
 [data-theme=light] .r-uncommon { --tier: #2f7d1d; }

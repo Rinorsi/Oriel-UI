@@ -1,0 +1,33 @@
+// Minecraft-domain models shared by the game adapters and the previewer, outside the generic engine.
+plugins {
+    id 'java-library'
+    id 'oriel-java'
+    id 'maven-publish'
+}
+
+dependencies { api(project(':engine')) }
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = engine_java_release as int
+    options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
+    options.debugOptions.debugLevel = 'source,lines'
+}
+
+configurations {
+    mcExtensionClasses { canBeResolved = false; canBeConsumed = true }
+}
+artifacts {
+    mcExtensionClasses(tasks.named('compileJava').flatMap { it.destinationDirectory })
+    mcExtensionClasses(sourceSets.main.output.resourcesDir) { builtBy(tasks.named('processResources')) }
+}
+
+java { withSourcesJar() }
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId = 'oriel-mc-extension'
+            from components.java
+        }
+    }
+}

@@ -12,6 +12,8 @@ neoForge {
 
 dependencies {
     implementation(project(':engine'))
+    implementation(project(':script-rhino'))
+    implementation(project(':mc-extension'))
     implementation(project(':kit'))
     compileOnly(project(path: ':rhino', configuration: 'relocated'))
 }

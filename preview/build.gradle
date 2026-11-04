@@ -10,7 +10,8 @@ dependencies {
     implementation(project(':engine'))
     // The Ore theme and presets, so their pages preview with their controllers.
     implementation(project(':kit'))
-    implementation(project(path: ':rhino', configuration: 'relocated'))
+    implementation(project(':script-rhino'))
+    implementation(project(':mc-extension'))
     // The engine only compiles against Gson (Minecraft provides it in game).
     implementation("com.google.code.gson:gson:${gson_version}")
 }

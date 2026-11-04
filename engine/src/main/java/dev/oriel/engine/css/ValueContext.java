@@ -19,7 +19,7 @@ import java.util.Set;
  * element; otherwise it is recomputed per element.
  */
 final class ValueContext {
-    private float em = ComputedStyle.DEFAULT_FONT_SIZE, rem = ComputedStyle.DEFAULT_FONT_SIZE;
+    private float em = dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize(), rem = dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize();
     private float viewportWidth = 320, viewportHeight = 240, devicePixelRatio = 1;
     private int currentColor = Colors.BLACK, parentFontWeight = 400;
     private Element element;
@@ -76,7 +76,7 @@ final class ValueContext {
     void element(Element element, ComputedStyle parent, float rem) {
         this.element = element;
         this.rem = rem;
-        this.em = parent == null ? ComputedStyle.DEFAULT_FONT_SIZE : parent.fontSize;
+        this.em = parent == null ? dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize() : parent.fontSize;
         this.currentColor = parent == null ? ComputedStyle.INITIAL.color : parent.color;
         this.parentFontWeight = parent == null ? 400 : parent.fontWeight;
     }

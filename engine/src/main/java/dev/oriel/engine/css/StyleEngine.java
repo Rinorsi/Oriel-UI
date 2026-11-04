@@ -69,7 +69,7 @@ public final class StyleEngine {
     private MediaQuery.Environment environment;
     /** Bumped whenever something every element depends on changes: sheets, media, viewport, root font size. */
     private int generation;
-    private float rootFontSize = ComputedStyle.DEFAULT_FONT_SIZE;
+    private float rootFontSize = dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize();
     /** Parsed {@code <style>} contents by text, kept while some element still uses them. */
     private Map<String, Stylesheet> styleSheets = new HashMap<>();
     /** Linked and imported sheets by URL, for the life of the document. */
@@ -130,7 +130,7 @@ public final class StyleEngine {
         ComputedStyle base = old;
         if (old == null || !sameMatches || !state.sameInputs(parent, container, generation)) {
             if (!rematch) state.matchesInto(matched);
-            float rem = parent == null ? ComputedStyle.DEFAULT_FONT_SIZE : rootFontSize;
+            float rem = parent == null ? dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize() : rootFontSize;
             base = reuseIfEqual(old, cascade.compute(el, parent, container, rem, matched, PseudoElement.NONE,
                     state.inline, null));
             boolean inheritsExplicitly = cascade.inheritedExplicitly();
@@ -240,7 +240,7 @@ public final class StyleEngine {
         if (!parentAnimated && !ownAnimated) return base;
         usedMatches.clear();
         state.matchesInto(usedMatches);
-        float rem = from == null ? ComputedStyle.DEFAULT_FONT_SIZE : rootFontSize;
+        float rem = from == null ? dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize() : rootFontSize;
         ComputedStyle container = which == PseudoElement.NONE ? container(el) : el.baseStyle;
         return cascade.compute(el, parent, container, rem, usedMatches, which,
                 which == PseudoElement.NONE ? state.inline : null, own);
@@ -309,13 +309,8 @@ public final class StyleEngine {
     }
 
     private static Stylesheet loadUserAgentSheet() {
-        try (InputStream in = StyleEngine.class.getResourceAsStream("/oriel/ua.css")) {
-            if (in == null) throw new IllegalStateException("Missing /oriel/ua.css");
-            String css = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-            return Stylesheet.parse(css, "oriel:ua.css", null, d -> System.err.println("[oriel] " + d.format()));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String css = dev.oriel.engine.host.ExtensionRegistry.compatibility().userAgentStyle();
+        return Stylesheet.parse(css, "oriel:ua.css", null, d -> System.err.println("[oriel] " + d.format()));
     }
 
     // ---- Keyframes and script-provided declarations ----
@@ -368,7 +363,7 @@ public final class StyleEngine {
         }
         Element from = which == PseudoElement.NONE ? element.parentElement() : element;
         ComputedStyle parent = from == null ? null : from.baseStyle;
-        float rem = from == null ? ComputedStyle.DEFAULT_FONT_SIZE : rootFontSize;
+        float rem = from == null ? dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize() : rootFontSize;
         Set<Prop> props = EnumSet.noneOf(Prop.class);
         ComputedStyle style = cascade.apply(element, parent, rem, base, applied, props);
         return new ResolvedKeyframe(offset, timing, style, Collections.unmodifiableSet(props));

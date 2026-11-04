@@ -18,8 +18,8 @@ import dev.oriel.engine.style.ComputedStyle;
  * any text; what a control draws is kept in its {@code controlState} between frames.
  */
 public final class Controls {
-    private static final String THUMB = "minecraft:widget/slider_handle";
-    private static final String THUMB_HIGHLIGHTED = "minecraft:widget/slider_handle_highlighted";
+    private static final String THUMB = dev.oriel.engine.host.ExtensionRegistry.compatibility().rangeThumb(false);
+    private static final String THUMB_HIGHLIGHTED = dev.oriel.engine.host.ExtensionRegistry.compatibility().rangeThumb(true);
     private static final String ARROW = "▼";
     private static final float PLACEHOLDER_ALPHA = 0.5f, SELECTION_ALPHA = 0.45f;
 

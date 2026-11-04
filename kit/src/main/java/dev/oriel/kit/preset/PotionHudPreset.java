@@ -31,12 +31,21 @@ import java.util.Map;
  */
 public final class PotionHudPreset implements PageControllers.Controller {
     static final int SHOWN = 3, BAR_TILES = 5;
+    /** Rows a group shows beside the inventory before the rest fold under "另有 N 个效果". */
+    static final int PANEL_SHOWN = 4;
     static final double ARRIVAL_SECONDS = 9, FRESH_SECONDS = 4, ANNOUNCE_SECONDS = 2.6;
 
     enum Kind { BENEFICIAL, HARMFUL, NEUTRAL }
 
-    /** {@code id} is a registry id ("minecraft:speed") or a vanilla one's path; {@code seconds} may be infinite. */
-    record Effect(String id, String name, int level, Kind kind, double seconds) {}
+    /**
+     * {@code id} is a registry id ("minecraft:speed") or a vanilla one's path; {@code seconds} may be infinite;
+     * {@code description} is what it does, or null.
+     */
+    record Effect(String id, String name, int level, Kind kind, double seconds, String description) {
+        Effect(String id, String name, int level, Kind kind, double seconds) {
+            this(id, name, level, kind, seconds, null);
+        }
+    }
 
     /** One running effect: when it ends (in page seconds), its panel row and its bar tile. */
     static final class Running {
@@ -99,8 +108,11 @@ public final class PotionHudPreset implements PageControllers.Controller {
     private final Deque<Effect> queue = new ArrayDeque<>();
     private Document doc;
     private Element toast, tiles, more, hud;
-    /** Every row of every group, with no "more" fold (the panel has a place of its own). */
-    private boolean everyRow;
+    /** Rows a group shows folded (the rest under its "more"). */
+    private int shown = SHOWN;
+    /** The card a hovered row shows, and the effect it is showing. */
+    private Element tip;
+    private Running tipFor;
     private double now, nextArrival = ARRIVAL_SECONDS, toastUntil;
     /** The game's effects last seen, or null for fixtures. */
     private GameEffects.Snapshot game;
@@ -126,16 +138,22 @@ public final class PotionHudPreset implements PageControllers.Controller {
 
     /**
      * The full panel alone, inside {@code where} of another page (the inventory's effects column); {@code folded}
-     * starts every group folded to its strip of icons, else every row shows (the place scrolls when they overflow).
+     * starts every group folded to its strip of icons. A group shows {@link #PANEL_SHOWN} rows and folds the rest
+     * under its "more"; the place scrolls when they overflow it.
      */
     public void mountPanel(Document document, Element where, boolean folded) {
         doc = document;
-        everyRow = !folded;
+        shown = PANEL_SHOWN;
         start(where);
         if (folded) for (Element g : groupElements.values()) g.addClass("folded");
     }
 
     private void start(Element panel) {
+        tip = Dom.html(doc, "<div class=\"o-efftip\"><div class=\"top\"><img><div><b></b><span class=\"kind\"></span></div>"
+                + "<span class=\"lv\"></span></div><div class=\"desc\"></div><div class=\"bar\"><i></i></div>"
+                + "<div class=\"meta\"><span class=\"left\"></span></div><div class=\"id\"></div></div>");
+        Element body = doc.body();
+        (body != null ? body : panel).appendChild(tip);
         for (Kind k : Kind.values()) {
             groups.put(k, new ArrayList<>());
             expanded.put(k, false);
@@ -192,6 +210,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             queue.add(e);
             announce(e);
         }
+        if (tipFor != null) updateTip();
         if (toast != null && now > toastUntil && toast.hasClass("on")) {
             toast.removeClass("on");
             toast.addClass("folding");
@@ -230,6 +249,10 @@ public final class PotionHudPreset implements PageControllers.Controller {
                 + "<span class=\"time\"></span></div>");
         Dom.query(row, "img").setAttribute("src", icon(e));
         Dom.text(Dom.query(row, ".name"), e.name() + level(e.level()));
+        Dom.onMouse(row, "mouseenter", ev -> showTip(r));
+        Dom.onMouse(row, "mouseleave", ev -> {
+            if (tipFor == r) hideTip();
+        });
         r.row = row;
         r.time = Dom.query(row, ".time");
         r.bar = new Dom.Style(Dom.query(row, ".remain"));
@@ -286,7 +309,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
             }
         }
         for (GameEffects.Entry e : wanted.values()) {
-            Effect effect = new Effect(e.id(), e.name(), e.level(), kind(e), e.seconds() < 0 ? Double.POSITIVE_INFINITY : e.seconds());
+            Effect effect = new Effect(e.id(), e.name(), e.level(), kind(e), e.seconds() < 0 ? Double.POSITIVE_INFINITY : e.seconds(),
+                    e.description());
             add(effect, fresh);
             Running r = find(effect);
             if (r != null) r.reported = e.seconds();
@@ -302,7 +326,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         r.reported = e.seconds();
         r.total = Math.max(r.total, e.seconds() < 0 ? Double.POSITIVE_INFINITY : e.seconds());
         if (!e.name().equals(r.effect.name())) { // the language changed
-            r.effect = new Effect(r.effect.id(), e.name(), r.effect.level(), r.effect.kind(), r.effect.seconds());
+            r.effect = new Effect(r.effect.id(), e.name(), r.effect.level(), r.effect.kind(), r.effect.seconds(), e.description());
             Dom.text(Dom.query(r.row, ".name"), e.name() + level(e.level()));
             if (r.tile != null) r.tile.setAttribute("title", e.name() + level(e.level()));
         }
@@ -326,6 +350,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
     }
 
     private void remove(Kind k, Running r) {
+        if (tipFor == r) hideTip();
         groups.get(k).remove(r);
         r.row.remove();
         if (r.tile != null) r.tile.remove();
@@ -352,7 +377,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
     void refresh(Kind k) {
         Element g = groupElements.get(k), list = Dom.query(g, ".list"), strip = Dom.query(g, ".strip"), more = Dom.query(g, ".more");
         List<Running> effects = groups.get(k);
-        int limit = everyRow || expanded.get(k) ? Integer.MAX_VALUE : SHOWN;
+        int limit = expanded.get(k) ? Integer.MAX_VALUE : shown;
         // The first rows, plus any effect that has just started: an arrival always slides into view.
         List<Element> want = new ArrayList<>();
         for (int i = 0; i < effects.size(); i++) {
@@ -367,7 +392,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             strip.appendChild(img);
         }
         int hidden = effects.size() - want.size();
-        more.setAttribute("style", everyRow || hidden == 0 && !expanded.get(k) ? "display: none" : "");
+        more.setAttribute("style", hidden == 0 && !expanded.get(k) ? "display: none" : "");
         Dom.text(more, expanded.get(k) ? "收起 ▴" : "另有 " + hidden + " 个效果 ▾");
         Dom.text(Dom.query(g, ".n"), Integer.toString(effects.size()));
         g.toggleClass("empty", effects.isEmpty());
@@ -394,6 +419,55 @@ public final class PotionHudPreset implements PageControllers.Controller {
             hud.toggleClass("empty", empty);
             if (hint != null) Dom.text(hint, empty ? "身上没有药水效果" : "打开聊天栏后可展开全部效果");
         }
+    }
+
+    // ---- The card on hover ----
+
+    /**
+     * The hovered row's card, beside the panel (right of it when there is room, else left): the icon, the name and
+     * level, its kind, what it does, and the time left of its whole duration, kept up to date while it shows.
+     */
+    private void showTip(Running r) {
+        if (tip == null || r.row == null) return;
+        tipFor = r;
+        Effect e = r.effect;
+        tip.setAttribute("class", "o-efftip on " + GROUP_CLASSES[e.kind().ordinal()]);
+        Dom.query(tip, "img").setAttribute("src", icon(e));
+        Dom.text(Dom.query(tip, "b"), e.name());
+        Dom.text(Dom.query(tip, ".kind"), GROUP_TITLES[e.kind().ordinal()]);
+        String lv = level(e.level()).trim();
+        Element badge = Dom.query(tip, ".lv");
+        Dom.text(badge, lv);
+        badge.toggleClass("none", lv.isEmpty());
+        Element desc = Dom.query(tip, ".desc");
+        Dom.text(desc, e.description() == null ? "" : e.description());
+        desc.toggleClass("none", e.description() == null);
+        Dom.text(Dom.query(tip, ".id"), e.id().contains(":") ? e.id() : "minecraft:" + e.id());
+        updateTip();
+        // Beside the panel the row is in, level with the row, kept inside the window.
+        Element panel = r.row.closest(".o-effects");
+        float[] row = r.row.getBoundingClientRect(), box = (panel != null ? panel : r.row).getBoundingClientRect();
+        float width = 138, height = 74, vw = doc.viewportWidth(), vh = doc.viewportHeight();
+        float x = box[0] + box[2] + 6 + width <= vw ? box[0] + box[2] + 6 : Math.max(2, box[0] - 6 - width);
+        float y = Math.max(2, Math.min(row[1] - 4, vh - height - 2));
+        new Dom.Style(tip).set("left", x + "px").set("top", y + "px").apply();
+    }
+
+    /** The card's time: left of the whole duration, as a bar and words. */
+    private void updateTip() {
+        Running r = tipFor;
+        if (r == null) return;
+        double left = r.remaining(now);
+        boolean infinite = Double.isInfinite(r.end);
+        new Dom.Style(Dom.query(tip, ".bar i")).set("width", infinite || r.total <= 0 ? "100%"
+                : Math.round(Math.min(1, left / r.total) * 1000) / 10.0 + "%").apply();
+        Dom.text(Dom.query(tip, ".left"), infinite ? "无限持续" : "剩余 " + clock((int) Math.ceil(left))
+                + (Double.isInfinite(r.total) ? "" : " / " + clock((int) Math.ceil(r.total))));
+    }
+
+    private void hideTip() {
+        tipFor = null;
+        if (tip != null) tip.removeClass("on");
     }
 
     /** Puts {@code want} into {@code parent} in order, moving only what must move (re-inserting replays slide-ins). */

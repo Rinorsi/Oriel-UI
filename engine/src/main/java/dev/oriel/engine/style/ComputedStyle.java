@@ -27,7 +27,7 @@ public final class ComputedStyle implements Cloneable {
     public static final String DEFAULT_FONT = FontFamilies.DEFAULT;
     // Shared initial values; declared before INITIAL, which is built while the class initialises.
     private static final List<GridTrack> AUTO_TRACKS = List.of(new GridTrack.Keyword(Length.AUTO));
-    private static final List<String> DEFAULT_FAMILIES = List.of(DEFAULT_FONT);
+    private static final List<String> DEFAULT_FAMILIES = List.of(dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultFamily());
 
     // ---- Box ----
     public Display display = Display.INLINE;
@@ -94,7 +94,7 @@ public final class ComputedStyle implements Cloneable {
     public int color = Colors.BLACK;
     /** Font family names in preference order. Minecraft font ids ({@code minecraft:uniform}) or aliases. */
     public List<String> fontFamily = DEFAULT_FAMILIES;
-    public float fontSize = DEFAULT_FONT_SIZE;
+    public float fontSize = dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize();
     public int fontWeight = 400;
     public boolean fontItalic;
     /** Resolved line height in px, or NaN for {@code normal} ({@link #NORMAL_LINE_HEIGHT} times the font size). */
@@ -404,7 +404,7 @@ public final class ComputedStyle implements Cloneable {
     /** The used line height in px. */
     public float usedLineHeight() {
         if (!Float.isNaN(lineHeight)) return lineHeight;
-        return fontSize * NORMAL_LINE_HEIGHT;
+        return fontSize * dev.oriel.engine.host.ExtensionRegistry.compatibility().normalLineHeight();
     }
 
     public boolean isBold() { return fontWeight >= 600; }

@@ -77,8 +77,8 @@ import java.util.function.Function;
  * the frame's GUI is drawn, and the next frame's page is painted after it. Targets are too, and the ones a group only
  * needs on the way (filter steps, masks) are {@link #release released} as soon as they have been read, for the
  * next group of the frame: the GPU runs the passes in the order they are recorded. Targets no frame has used for a
- * while (after a resize, say) are freed. Targets have no depth buffer (vanilla's GUI renderer draws without one when
- * a target has none), to halve their memory, unless the loader asks for one ({@link #withDepth}).
+ * while (after a resize, say) are freed. Targets have a depth buffer: a 3D scene in a group (an entity in a rounded,
+ * clipped frame) is depth-tested in it, and NeoForge's picture-in-picture renderers read its format.
  */
 public final class Layers {
     private Layers() {}
@@ -112,15 +112,6 @@ public final class Layers {
         renderers = factory;
     }
 
-    private static boolean depth;
-
-    /**
-     * Gives the targets a depth buffer: NeoForge's picture-in-picture renderers (items, entities) read the format of
-     * the main target's depth, and inside a layer the main target is the layer's.
-     */
-    public static void withDepth() {
-        depth = true;
-    }
 
     private static final List<Layer> layers = new ArrayList<>();
     private static int layersUsed;
@@ -325,11 +316,11 @@ public final class Layers {
 
     private static RenderTarget newTarget(int width, int height) {
         //? if >=26.3 {
-        return new TextureTarget("oriel layer", width, height, GpuFormat.RGBA8_UNORM, depth ? GpuFormat.D32_FLOAT : null);
+        return new TextureTarget("oriel layer", width, height, GpuFormat.RGBA8_UNORM, GpuFormat.D32_FLOAT);
         //?} else if >=26.2 {
-        /*return new TextureTarget("oriel layer", width, height, depth, GpuFormat.RGBA8_UNORM);
+        /*return new TextureTarget("oriel layer", width, height, true, GpuFormat.RGBA8_UNORM);
         *///?} else
-        //return new TextureTarget("oriel layer", width, height, depth);
+        //return new TextureTarget("oriel layer", width, height, true);
     }
 
     // ---- Filters ----

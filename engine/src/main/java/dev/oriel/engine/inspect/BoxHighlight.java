@@ -20,7 +20,7 @@ import java.util.Locale;
  */
 public final class BoxHighlight {
     private static final int MARGIN = 0x80F6B26B, BORDER = 0x80FFE08A, PADDING = 0x8093C47D, CONTENT = 0x806FA8DC;
-    private static final FontSpec LABEL_FONT = new FontSpec(List.of(FontFamilies.DEFAULT), 8, false, false);
+    private static final FontSpec LABEL_FONT = new FontSpec(List.of(dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultFamily()), dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize(), false, false);
 
     private BoxHighlight() {}
 

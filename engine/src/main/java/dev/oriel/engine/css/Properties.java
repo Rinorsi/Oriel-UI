@@ -18,7 +18,6 @@ import dev.oriel.engine.style.BoxSizing;
 import dev.oriel.engine.style.ComputedStyle;
 import dev.oriel.engine.style.Cursor;
 import dev.oriel.engine.style.Display;
-import dev.oriel.engine.style.EntityFocus;
 import dev.oriel.engine.style.FlexDirection;
 import dev.oriel.engine.style.FlexWrap;
 import dev.oriel.engine.style.GridAutoFlow;
@@ -88,9 +87,8 @@ final class Properties {
     private static final Map<String, Length> NORMAL_GAP = Map.of("normal", Length.ZERO);
     private static final Map<String, Float> BORDER_WIDTHS = Map.of("thin", 1f, "medium", 2f, "thick", 3f);
     private static final Map<String, Float> NORMAL_SPACING = Map.of("normal", 0f);
-    private static final Map<String, Float> FONT_SIZES = Map.of("xx-small", 4f, "x-small", 5f, "small", 6f,
-            "medium", 8f, "large", 12f, "x-large", 16f, "xx-large", 24f, "xxx-large", 32f);
-    private static final float FONT_SIZE_STEP = 1.5f;
+    private static final Map<String, Float> FONT_SIZES = dev.oriel.engine.host.ExtensionRegistry.compatibility().sizeKeywords();
+    private static final float FONT_SIZE_STEP = dev.oriel.engine.host.ExtensionRegistry.compatibility().sizeStep();
     private static final Map<String, BackgroundLayer.Repeat> REPEATS =
             Keywords.table(BackgroundLayer.Repeat.class, Map.of());
     static final Set<String> DECORATION_LINES = Set.of("underline", "overline", "line-through", "blink");
@@ -115,7 +113,7 @@ final class Properties {
         registerDecoration();
         registerLists();
         for (Prop p : Prop.values()) {
-            boolean derived = p == Prop.CUSTOM_PROPERTIES || BY_PROP[p.ordinal()] != null
+            boolean derived = p == Prop.CUSTOM_PROPERTIES || BY_PROP[p.ordinal()] != null || PropertySchema.uninstalledCompatibilitySlot(p)
                     || List.of(Prop.BACKGROUND_LAYERS, Prop.TRANSITION, Prop.ANIMATION).contains(p);
             if (!derived) throw new IllegalStateException("No CSS longhand for " + p);
         }
@@ -164,14 +162,14 @@ final class Properties {
 
     // ---- Registration ----
 
-    private static void add(Prop prop, Parser parser, Function<Object, String> serializer) {
+    static void add(Prop prop, Parser parser, Function<Object, String> serializer) {
         Longhand l = new Longhand(ALL.size(), prop.cssName, prop, null, 0, parser, serializer);
         ALL.add(l);
         BY_NAME.put(l.name, l);
         BY_PROP[prop.ordinal()] = l;
     }
 
-    private static void add(List<Prop> props, Parser parser, Function<Object, String> serializer) {
+    static void add(List<Prop> props, Parser parser, Function<Object, String> serializer) {
         for (Prop p : props) add(p, parser, serializer);
     }
 
@@ -306,7 +304,7 @@ final class Properties {
         add(Prop.TEXT_STROKE_WIDTH, or(BORDER_WIDTHS, (r, ctx) -> Numeric.px(r, ctx, false)), PX);
         add(Prop.TEXT_STROKE_COLOR, CssColors::read, COLOR);
         add(Prop.CURSOR, Properties::cursor, KEYWORD);
-        add(Prop.TOOLTIP_DELAY, nonNegative(Numeric::time), SECONDS);
+        PropertySchema.registerAll(PropertySchema.Phase.TEXT);
         add(Prop.POINTER_EVENTS, Keywords.parser(PointerEvents.class, Map.of("all", PointerEvents.AUTO)), KEYWORD);
         add(Prop.USER_SELECT, Keywords.parser(UserSelect.class, Map.of("contain", UserSelect.AUTO)), KEYWORD);
         add(Prop.IMAGE_RENDERING, Keywords.parser(Map.of("auto", ImageRendering.SMOOTH, "smooth", ImageRendering.SMOOTH,
@@ -330,7 +328,7 @@ final class Properties {
         add(Prop.TRANSFORM, Transforms::read, v -> Transforms.serialize(Properties.<TransformFunction>cast(v)));
         add(Prop.TRANSFORM_ORIGIN_X, (r, ctx) -> Images.axis(r, ctx, "left", "right"), TEXT);
         add(Prop.TRANSFORM_ORIGIN_Y, (r, ctx) -> Images.axis(r, ctx, "top", "bottom"), TEXT);
-        add(Prop.TINT, CssColors::read, COLOR);
+        PropertySchema.registerAll(PropertySchema.Phase.TINT);
         add(Prop.FILTER, Effects::filters, v -> Effects.serializeFilters(cast(v)));
         add(Prop.BACKDROP_FILTER, Effects::filters, v -> Effects.serializeFilters(cast(v)));
         add(Prop.CLIP_PATH, Effects::clipPath, v -> Effects.serializeClipPath((ClipShape) v));
@@ -340,20 +338,7 @@ final class Properties {
         add(Prop.MASK_CLIP, Effects::maskClips, v -> CssText.join(Properties.<BackgroundLayer.Box>cast(v), ", ", Keywords::css));
         add(Prop.MIX_BLEND_MODE, Keywords.parser(BlendMode.class), KEYWORD);
         add(Prop.ISOLATION, Keywords.parser(Map.of("auto", false, "isolate", true)), v -> (Boolean) v ? "isolate" : "auto");
-        add(Prop.OBFUSCATED, Keywords.parser(Map.of("on", true, "off", false, "none", false)), v -> (Boolean) v ? "on" : "off");
-        add(List.of(Prop.MODEL_YAW, Prop.MODEL_PITCH, Prop.MODEL_ROLL), Numeric::angle, v -> CssText.deg((Float) v));
-        add(Prop.MODEL_SCALE, nonNegative(Numeric::number), NUMBER);
-        add(Prop.ENTITY_FOCUS, Keywords.parser(EntityFocus.class), KEYWORD);
-        add(Prop.GAZE_REACH, (r, ctx) -> Numeric.px(r, ctx, false), PX);
-        // -mc-gaze-limit's parts: magnitudes, or none (NaN, so it flips rather than interpolates).
-        add(List.of(Prop.GAZE_LIMIT_YAW, Prop.GAZE_LIMIT_UP, Prop.GAZE_LIMIT_DOWN),
-                or(Map.of("none", Float.NaN), nonNegative(Numeric::angle)),
-                v -> Float.isNaN((Float) v) ? "none" : CssText.deg((Float) v));
-        add(List.of(Prop.TRANSLATE_X, Prop.TRANSLATE_Y, Prop.TRANSLATE_Z), Numeric::number, NUMBER);
-        // -mc-scene-center's parts: block coordinates, or auto (NaN, so it flips rather than interpolates).
-        add(List.of(Prop.SCENE_CENTER_X, Prop.SCENE_CENTER_Y, Prop.SCENE_CENTER_Z),
-                or(Map.of("auto", Float.NaN), Numeric::number),
-                v -> Float.isNaN((Float) v) ? "auto" : CssText.number((Float) v));
+        PropertySchema.registerAll(PropertySchema.Phase.MODEL);
         add(Prop.SCROLL_BEHAVIOR, Keywords.parser(Map.of("auto", false, "smooth", true)),
                 v -> (Boolean) v ? "smooth" : "auto");
         add(Prop.SCROLLBAR_WIDTH, Keywords.parser(Map.of("auto", 2, "thin", 1, "none", 0)),
@@ -436,7 +421,7 @@ final class Properties {
     }
 
     /** What {@code number} reads (a number, time or angle), unless it is negative. */
-    private static Parser nonNegative(Parser number) {
+    static Parser nonNegative(Parser number) {
         return (r, ctx) -> {
             Object v = number.parse(r, ctx);
             return v instanceof Float f && f < 0 ? null : v;

@@ -52,8 +52,8 @@
 .party { flex-direction: row-reverse; }
 .unit { position: relative; width: 40px; display: flex; flex-direction: column; align-items: center; }
 .unit entity { width: 40px; height: 66px; }
-.party entity { -mc-yaw: -55deg; }
-.foes entity { -mc-yaw: 55deg; }
+.party entity { -mc-yaw: 55deg; }
+.foes entity { -mc-yaw: -55deg; }
 .hp { width: 34px; height: 3px; margin-top: 2px; background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9); }
 .hp i { display: block; height: 3px; background: linear-gradient(#d23a2c, var(--blood)); }
 .stress { display: flex; gap: 1px; margin-top: 2px; }
@@ -65,9 +65,13 @@
     border-bottom: 5px solid var(--gilt); animation: bob 1s ease-in-out infinite; }
 .unit.active .name { color: var(--gilt); }
 @keyframes bob { 50% { transform: translateY(-2px); } }
-.unit.target::before { content: ""; position: absolute; left: 2px; top: 16px; width: 36px; height: 36px; border-radius: 50%;
-    border: 1px dashed rgba(220, 50, 40, 0.8); animation: aim 4s linear infinite; }
-@keyframes aim { to { transform: rotate(360deg); } }
+/* The foe in the sights: a red glow on the flagstones at its feet, and a marker over its head. */
+.unit.target::before { content: ""; position: absolute; left: -4px; right: -4px; top: 56px; height: 10px; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255, 70, 50, 0.55), rgba(200, 30, 20, 0.25) 55%, transparent 72%);
+    box-shadow: 0 0 0 1px rgba(255, 90, 70, 0.55); animation: aim 1.4s ease-in-out infinite; }
+@keyframes aim { 50% { opacity: 0.55; transform: scale(0.9); } }
+.unit.target::after { content: ""; position: absolute; left: 50%; top: -9px; margin-left: -4px; border: 4px solid transparent;
+    border-top: 5px solid #e8473a; filter: drop-shadow(0 0 3px rgba(255, 60, 40, 0.9)); animation: bob 1s ease-in-out infinite; }
 .unit.target .name { color: #ff6a5a; }
 /* An affliction: the stress full, the hero breaks. */
 .unit.broken .stress b.on { background: #ff4a4a; box-shadow: 0 0 3px #ff2a2a; }
@@ -105,6 +109,7 @@
 
 @media (min-width: 560px) {
     .unit { width: 52px; } .unit entity { width: 52px; height: 84px; }
+    .unit.target::before { top: 74px; }
     .line { height: 120px; margin-top: -70px; padding: 0 40px; }
     .hp { width: 44px; }
     .bar-wrap { width: 340px; margin-left: -170px; bottom: 14px; }
