@@ -65,6 +65,9 @@ class EditorPresetTest {
         EditorPreset editor = open();
         int title = editor.parts.get(1).id, sub = editor.parts.get(2).id;
         click(doc, ".node[data-id='" + title + "']", 0, Modifiers.NONE, clock);
+        doc.querySelector(".layer[data-id='" + sub + "']").scrollIntoView(dev.oriel.engine.dom.Element.ScrollAlign.CENTER,
+                dev.oriel.engine.dom.Element.ScrollAlign.NEAREST, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+        frame(doc, clock, 16);
         click(doc, ".layer[data-id='" + sub + "']", 0, new Modifiers(false, true, false, false), clock);
         assertEquals(2, editor.selection.size());
         editor.align("top");
@@ -93,6 +96,7 @@ class EditorPresetTest {
     @Test
     void aNewCanvasHasItsSizeAndAnEmptyHistory() {
         EditorPreset editor = open();
+        click(doc, "#menus .o-menu:nth-child(1) .title", 0, Modifiers.NONE, clock);
         click(doc, "#new", 0, Modifiers.NONE, clock);
         assertTrue(doc.getElementById("new-box").hasClass("on"));
         click(doc, "#new-sizes .size[data-w='176']", 0, Modifiers.NONE, clock);
@@ -140,5 +144,25 @@ class EditorPresetTest {
         click(doc, "#pick-grid .pick", 0, Modifiers.NONE, clock);
         assertEquals("minecraft:emerald", slot.text);
         assertFalse(doc.getElementById("pick-box").hasClass("on"));
+    }
+
+    @Test
+    void menusAndTheRightClickMenuRunCommands() {
+        EditorPreset editor = open();
+        click(doc, "#menus .o-menu:nth-child(2) .title", 0, Modifiers.NONE, clock);
+        assertTrue(doc.querySelector("#menus .o-menu:nth-child(2)").hasClass("open"), "the 编辑 menu opens");
+        click(doc, "#menus .o-menu:nth-child(2) [data-cmd=all]", 0, Modifiers.NONE, clock);
+        assertFalse(doc.querySelector("#menus .o-menu:nth-child(2)").hasClass("open"), "choosing closes it");
+        assertEquals(editor.parts.size(), editor.selection.size());
+        // A right press on a part selects it and opens the menu there.
+        int before = editor.parts.size();
+        editor.selection.clear();
+        editor.render();
+        click(doc, ".node.k-slot", 2, Modifiers.NONE, clock);
+        assertTrue(doc.getElementById("ctx").hasClass("open"));
+        assertEquals(1, editor.selection.size());
+        click(doc, "#ctx [data-cmd=dup]", 0, Modifiers.NONE, clock);
+        assertFalse(doc.getElementById("ctx").hasClass("open"));
+        assertEquals(before + 1, editor.parts.size());
     }
 }

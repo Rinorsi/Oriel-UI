@@ -4,31 +4,35 @@
 <title>优易库 · 药水 HUD</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* Drawn over the world, so everything sits on glass. The bar is the always-on form: one 22px tile per effect, its
-   dark drain growing from the top as time runs out (like an item cooldown), the level in the corner and the time
-   under it. A new effect's card slides out under the bar and folds back into its tile. The handle opens the full
+/* Drawn over the world. The bar is the always-on form: up to five 22px tiles, each its own small glass square with
+   its dark drain growing from the top as time runs out (like an item cooldown), the level on the corner outside the
+   icon and the time under the square; more effects fold into "+N". A new effect's card slides out under the bar and folds back into its tile. The handle opens the full
    panel (shared with the inventory: .o-effects in ore.css). */
 html, body { background: none; }
 .hud { position: absolute; top: 4px; right: 4px; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 
-.hud-bar { display: flex; align-items: flex-start; gap: 2px; padding: 3px; border: 2px solid transparent; border-image: url(../textures/ore/panel_glass.png) 2 fill; }
-.tiles { display: flex; gap: 2px; }
-.tile { --kind: #6cc349; position: relative; width: 22px; height: 31px; display: flex; flex-direction: column; align-items: center;
+.hud-bar { display: flex; align-items: flex-start; gap: 3px; }
+.tiles { display: flex; gap: 3px; }
+.tile { --kind: #6cc349; position: relative; width: 22px; height: 33px; display: flex; flex-direction: column; align-items: center;
     animation: tile-in 360ms var(--o-ease-back) backwards; transition: opacity 600ms, transform 600ms; }
 .tile.harmful { --kind: #e25a5a; }
 .tile.neutral { --kind: #ffb52b; }
-.tile::before { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; background: rgba(0, 0, 0, 0.42);
-    border: 1px solid color-mix(in srgb, var(--kind) 70%, #000000); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10); }
+.tile::before { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; background: rgba(12, 12, 16, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.10); box-shadow: inset 0 -2px 0 var(--kind), 0 1px 3px rgba(0, 0, 0, 0.5); }
 .tile img { position: relative; margin-top: 3px; width: 16px; height: 16px; }
 .tile .drain { position: absolute; left: 1px; top: 1px; width: 20px; height: 0; background: rgba(0, 0, 0, 0.55); pointer-events: none; }
-.tile .lv { position: absolute; right: 1px; top: 12px; color: #ffffff; text-shadow: 1px 1px 0 #000000; font-weight: normal; }
-.tile .t { margin-top: 2px; color: #e6e7e9; text-shadow: 1px 1px 0 #000000; }
+.tile .lv { position: absolute; right: -3px; top: -3px; min-width: 7px; padding: 0 1px; text-align: center; color: #ffffff; font-weight: normal;
+    background: rgba(12, 12, 16, 0.85); border: 1px solid rgba(255, 255, 255, 0.16); line-height: 8px; }
+.tile .lv { display: none; }
+.tile.leveled .lv { display: block; }
+.tile .t { margin-top: 6px; color: #e6e7e9; text-shadow: 1px 1px 0 #000000; white-space: nowrap; }
 .tile.low .t { color: #ff8a8a; animation: eff-blink 0.8s steps(2) infinite; }
-.tile.low::before { border-color: #e25a5a; }
+.tile.low::before { border-color: rgba(226, 90, 90, 0.8); }
 .tile.fresh::before { border-color: #ffd36b; box-shadow: 0 0 6px rgba(255, 200, 80, 0.9); }
 .tile.gone { opacity: 0; transform: translateY(-6px) scale(0.8); }
 @keyframes tile-in { from { opacity: 0; transform: scale(0.4); } }
-.more-tiles { align-self: center; padding: 0 2px; color: #c4c5c8; }
+.more-tiles { height: 22px; display: flex; align-items: center; padding: 0 4px; color: #e6e7e9; text-shadow: 1px 1px 0 #000000;
+    background: rgba(12, 12, 16, 0.62); border: 1px solid rgba(255, 255, 255, 0.10); }
 .more-tiles.none { display: none; }
 .handle { width: 14px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer;
     -mc-tint: #8c8d90; transition: -mc-tint 120ms; }

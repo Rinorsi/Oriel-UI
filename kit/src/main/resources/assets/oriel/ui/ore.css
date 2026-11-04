@@ -337,25 +337,65 @@ input.ore-field::placeholder { color: var(--ore-text-faint); }
 .o-apptabs > div { display: flex; align-items: center; gap: 3px; height: 18px; padding: 0 5px; color: var(--o-text-faint); cursor: pointer; -mc-tint: var(--o-text-faint); transition: color 120ms; }
 .o-apptabs > div:hover, .o-apptabs > div.on { color: var(--o-text); -mc-tint: var(--o-text); }
 .o-apptabs > div.on { cursor: default; }
-@media (max-width: 600px) { .o-brand span, .o-apptabs em, .o-apptabs ~ .o-crumb { display: none; } .o-apptabs > div { padding: 0 4px; } }
+/* The page tabs: a row of their own under the title bar (like a browser's), so any number of pages fit; the row
+   scrolls sideways when they do not. */
+.o-tabbar { position: relative; flex: none; display: flex; align-items: flex-end; height: 21px; padding: 0 6px; overflow: hidden;
+    background: var(--o-well); border-bottom: 1px solid var(--o-line-strong); }
+.o-tabbar .o-apptabs { margin-left: 0; height: 21px; align-items: flex-end; gap: 1px; }
+.o-tabbar .o-apptabs > div { height: 19px; padding: 0 8px; border: 1px solid transparent; border-bottom: none; }
+.o-tabbar .o-apptabs > div.on { background: var(--o-tile); border-color: var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi); }
+.o-tabbar .m-indicator { bottom: auto; top: 0; }
+@media (max-width: 600px) { .o-brand span, .o-apptabs ~ .o-crumb { display: none; } }
+
+/* Menus in a title bar (Widgets opens them): .o-menubar > .o-menu > .title + .list > .item (with an optional
+   <span class="k"> shortcut and <i class="check">) and <i class="sep">. */
+.o-menubar { display: flex; align-items: center; margin-left: 8px; height: 24px; flex: none; }
+.o-menu { position: relative; }
+.o-menu > .title { height: 18px; display: flex; align-items: center; padding: 0 6px; color: var(--o-text-dim); cursor: pointer; }
+.o-menu > .title:hover, .o-menu.open > .title { color: var(--o-text); background: var(--o-line); }
+.o-menu > .list { display: none; position: absolute; left: 0; top: 20px; z-index: 80; min-width: 124px; padding: 2px; flex-direction: column;
+    background: var(--o-tile); border: 1px solid var(--o-tile-edge); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 4px 12px rgba(0, 0, 0, 0.5); }
+.o-menu.open > .list { display: flex; animation: fx-rise 120ms var(--o-ease-out); }
+.o-menu .item { position: relative; display: flex; align-items: center; height: 16px; padding: 0 6px 0 14px; color: var(--o-text); cursor: pointer; white-space: nowrap; }
+.o-menu .item:hover, .o-menu .item.active { background: color-mix(in srgb, var(--o-accent) 35%, transparent); }
+.o-menu .item .k { margin-left: auto; padding-left: 14px; color: var(--o-text-faint); }
+.o-menu .item.disabled { color: var(--o-text-faint); pointer-events: none; }
+.o-menu .item .check { position: absolute; left: 5px; top: 6px; width: 4px; height: 4px; }
+.o-menu .item.on .check { background: var(--o-accent-strong); box-shadow: 0 0 3px var(--o-accent); }
+.o-menu .sep { display: block; height: 1px; margin: 2px; background: var(--o-line-strong); }
+[data-style=smooth] .o-menu > .list { border-radius: var(--s-radius); }
+/* Right-click menus (data-context="id" on the element, the menu anywhere in the page; Widgets places it). */
+.o-context { position: absolute; z-index: 85; display: none; flex-direction: column; min-width: 124px; padding: 2px;
+    background: var(--o-tile); border: 1px solid var(--o-tile-edge); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 4px 12px rgba(0, 0, 0, 0.5); }
+.o-context.open { display: flex; animation: fx-rise 100ms var(--o-ease-out); }
+.o-context .item { position: relative; display: flex; align-items: center; height: 16px; padding: 0 6px 0 14px; color: var(--o-text); cursor: pointer; white-space: nowrap; }
+.o-context .item:hover { background: color-mix(in srgb, var(--o-accent) 35%, transparent); }
+.o-context .item .k { margin-left: auto; padding-left: 14px; color: var(--o-text-faint); }
+.o-context .item.disabled { color: var(--o-text-faint); pointer-events: none; }
+.o-context .sep { display: block; height: 1px; margin: 2px; background: var(--o-line-strong); }
+[data-style=smooth] .o-context { border-radius: var(--s-radius); }
 
 /* Entering a page: the frame stays, the content arrives (never from transparent, so there is no dark frame). */
 .o-body { animation: o-content-in 260ms var(--o-ease-out) both; }
 @keyframes o-content-in { from { opacity: 0.35; transform: translateY(4px); } }
 /* Page transitions (Shell.go): the old content leaves, the new arrives from the matching side. Tabs: next / prev;
    back to the launcher: back. Only .o-body moves; the window behind it stays. */
+.o-body.m-page-forward { animation: m-page-forward 260ms var(--o-ease-out) both; }
+.o-body.m-page-leave-forward { animation: m-page-leave-forward 130ms ease-in both; }
+@keyframes m-page-forward { from { opacity: 0.3; transform: scale(0.985); } }
+@keyframes m-page-leave-forward { to { opacity: 0.3; transform: scale(1.015); } }
 .o-body.m-page-next { animation: m-page-next 240ms var(--o-ease-out) both; }
 .o-body.m-page-prev { animation: m-page-prev 240ms var(--o-ease-out) both; }
 .o-body.m-page-back { animation: m-page-back 260ms var(--o-ease-out) both; }
 .o-body.m-page-leave-next { animation: m-page-leave-next 130ms ease-in both; }
 .o-body.m-page-leave-prev { animation: m-page-leave-prev 130ms ease-in both; }
 .o-body.m-page-leave-back { animation: m-page-leave-back 130ms ease-in both; }
-@keyframes m-page-next { from { opacity: 0; transform: translateX(28px); } }
-@keyframes m-page-prev { from { opacity: 0; transform: translateX(-28px); } }
-@keyframes m-page-back { from { opacity: 0; transform: scale(1.03); } }
-@keyframes m-page-leave-next { to { opacity: 0; transform: translateX(-28px); } }
-@keyframes m-page-leave-prev { to { opacity: 0; transform: translateX(28px); } }
-@keyframes m-page-leave-back { to { opacity: 0; transform: scale(0.97); } }
+@keyframes m-page-next { from { opacity: 0.3; transform: translateX(28px); } }
+@keyframes m-page-prev { from { opacity: 0.3; transform: translateX(-28px); } }
+@keyframes m-page-back { from { opacity: 0.3; transform: scale(1.03); } }
+@keyframes m-page-leave-next { to { opacity: 0.3; transform: translateX(-28px); } }
+@keyframes m-page-leave-prev { to { opacity: 0.3; transform: translateX(28px); } }
+@keyframes m-page-leave-back { to { opacity: 0.3; transform: scale(0.97); } }
 .m-snap { transition: none !important; }
 
 .o-titlebar {
@@ -667,9 +707,10 @@ canvas.fx.off { display: none; }
 .m-leaving .o-body, .m-leaving.o-body { animation: m-leave var(--m-slow) var(--m-in) both; }
 @keyframes m-leave { to { opacity: 0.25; } }
 /* The zoom transition's growing panel (Motion.zoomInto). */
-.m-zoom { position: absolute; z-index: 90; pointer-events: none; background: var(--o-tile); border: 1px solid var(--o-tile-edge);
-    box-shadow: 0 0 16px rgba(0, 0, 0, 0.45);
-    transition: left var(--m-slow) var(--m-in-out), top var(--m-slow) var(--m-in-out), width var(--m-slow) var(--m-in-out), height var(--m-slow) var(--m-in-out); }
+.m-zoom { position: absolute; z-index: 90; pointer-events: none; border: 1px solid var(--o-accent-strong);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--o-accent) 45%, transparent), inset 0 0 10px color-mix(in srgb, var(--o-accent) 25%, transparent);
+    transition: left var(--m-slow) var(--m-out), top var(--m-slow) var(--m-out), width var(--m-slow) var(--m-out), height var(--m-slow) var(--m-out),
+        opacity var(--m-slow) ease-in; }
 
 /* Expand and collapse (Motion.toggle animates the height); the caret turns with m-open on the parent. */
 .m-caret { transition: transform var(--m-base) var(--m-out); }

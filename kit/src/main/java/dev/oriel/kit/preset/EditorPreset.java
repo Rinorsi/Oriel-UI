@@ -129,10 +129,13 @@ public final class EditorPreset implements PageControllers.Controller {
         Shell.activate(Dom.byId(doc, "redo"), this::redo);
         Shell.activate(Dom.byId(doc, "dup"), this::duplicate);
         Shell.activate(Dom.byId(doc, "del"), this::delete);
-        Shell.activate(Dom.byId(doc, "snap"), () -> {
-            snap = !snap;
-            Dom.byId(doc, "snap").toggleClass("off", !snap);
-        });
+        Shell.activate(Dom.byId(doc, "snap"), this::toggleSnap);
+        // Menu items and options-bar tools name their command.
+        for (Element e : doc.querySelectorAll("[data-cmd]")) {
+            String cmd = e.getAttribute("data-cmd");
+            Shell.activate(e, () -> command(cmd));
+        }
+        Dom.query(doc, "[data-cmd=snap]").toggleClass("on", snap);
         Shell.activate(Dom.byId(doc, "preview"), this::togglePreview);
         Shell.activate(Dom.byId(doc, "export"), this::export);
         Shell.activate(Dom.byId(doc, "export-close"), () -> Dom.byId(doc, "export-box").removeClass("on"));
@@ -226,6 +229,7 @@ public final class EditorPreset implements PageControllers.Controller {
             render();
         }
         status((cut ? "剪切了 " : "复制了 ") + clipboard.size() + " 个组件");
+        for (Element t : doc.querySelectorAll("#ctx .clip")) t.toggleClass("disabled", false);
     }
 
     void paste() {
@@ -529,10 +533,47 @@ public final class EditorPreset implements PageControllers.Controller {
         render();
     }
 
+    /** A menu or options-bar command. */
+    void command(String cmd) {
+        switch (cmd) {
+            case "export" -> export();
+            case "cut" -> copy(true);
+            case "copy" -> copy(false);
+            case "paste" -> paste();
+            case "all" -> selectAll();
+            case "align-left" -> align("left");
+            case "align-top" -> align("top");
+            case "align-centre" -> align("centre");
+            case "align-spread" -> align("spread");
+            case "front" -> restack(true);
+            case "back" -> restack(false);
+            case "preview" -> togglePreview();
+            case "dup" -> duplicate();
+            case "delete" -> delete();
+            case "new" -> openNew();
+            case "snap" -> toggleSnap();
+            default -> { }
+        }
+    }
+
+    void selectAll() {
+        selection.clear();
+        for (Part p : parts) if (p.visible) selection.add(p.id);
+        render();
+    }
+
+    void toggleSnap() {
+        snap = !snap;
+        Dom.byId(doc, "snap").toggleClass("off", !snap);
+        Dom.query(doc, "[data-cmd=snap]").toggleClass("on", snap);
+        status(snap ? "吸附网格：开" : "吸附网格：关");
+    }
+
     private void togglePreview() {
         preview = !preview;
         Dom.byId(doc, "viewport").toggleClass("preview-mode", preview);
         Dom.byId(doc, "preview").toggleClass("on", preview);
+        Dom.query(doc, "[data-cmd=preview]").toggleClass("on", preview);
         status(preview ? "预览：选择框已隐藏" : "编辑");
     }
 
@@ -544,6 +585,19 @@ public final class EditorPreset implements PageControllers.Controller {
     }
 
     private void boardPress(MouseEvent e) {
+        if (e.button == 2 && !preview) {
+            // A right press selects what it is on (keeping a selection it is part of), then the menu opens.
+            Element hit = Dom.closest(e, ".node");
+            Integer id = hit == null ? null : Integer.valueOf(hit.getAttribute("data-id"));
+            if (id == null) selection.clear();
+            else if (!selection.contains(id)) {
+                selection.clear();
+                selection.add(id);
+            }
+            // Redrawn next frame: the menu still looks up the pressed element during this event.
+            doc.scheduler().requestAnimationFrame(t -> render());
+            return;
+        }
         if (e.button != 0 || preview) return;
         float[] at = boardPoint(e);
         Element grab = Dom.closest(e, ".grab");
@@ -703,6 +757,7 @@ public final class EditorPreset implements PageControllers.Controller {
     // ---- Keys ----
 
     private void key(KeyboardEvent e) {
+        if (e.defaultPrevented()) return; // an open menu took it
         Element focus = doc.focusedElement();
         if (focus != null && focus.isTextControl()) {
             if (e.key.equals("Escape") && doc.querySelector(".m-modal.on") != null) {
@@ -753,12 +808,8 @@ public final class EditorPreset implements PageControllers.Controller {
             }
             case "F1", "?" -> Dom.byId(doc, "keys-box").toggleClass("on");
             case "a", "A" -> {
-                if (!ctrl) handled = false;
-                else {
-                    selection.clear();
-                    for (Part p : parts) if (p.visible) selection.add(p.id);
-                    render();
-                }
+                if (ctrl) selectAll();
+                else handled = false;
             }
             case "Delete", "Backspace" -> delete();
             case "Escape" -> {
@@ -787,6 +838,10 @@ public final class EditorPreset implements PageControllers.Controller {
         new Dom.Style(board).px("width", boardW).px("height", boardH).apply();
         Dom.text(Dom.byId(doc, "board-label"), docName + " · " + boardW + " × " + boardH);
         Dom.text(Dom.byId(doc, "doc-name"), "/ " + docName);
+        Dom.text(Dom.byId(doc, "board-size"), boardW + " × " + boardH);
+        for (Element t : doc.querySelectorAll(".optbar .multi")) t.toggleClass("disabled", selection.size() < 2);
+        for (Element t : doc.querySelectorAll(".optbar .single, #ctx .sel")) t.toggleClass("disabled", selection.isEmpty());
+        for (Element t : doc.querySelectorAll("#ctx .clip")) t.toggleClass("disabled", clipboard.isEmpty());
         renderBoard();
         renderTree();
         renderInspector();
@@ -878,7 +933,6 @@ public final class EditorPreset implements PageControllers.Controller {
     private void renderInspector() {
         inspector.removeAllChildren();
         List<Part> sel = selected();
-        inspector.appendChild(Dom.el(doc, "div", "o-caps", "属性"));
         if (sel.isEmpty()) {
             inspector.appendChild(Dom.el(doc, "div", "empty-sel", "在画板上点选组件，或从左侧拖入新组件。"));
             inspector.appendChild(Dom.el(doc, "div", "o-caps", "画板"));
@@ -920,30 +974,6 @@ public final class EditorPreset implements PageControllers.Controller {
             }
             inspector.appendChild(tiers);
         }
-        if (sel.size() > 1) {
-            inspector.appendChild(Dom.el(doc, "div", "o-caps", "对齐"));
-            Element aligns = Dom.el(doc, "div", "aligns", null);
-            String[][] actions = {{"left", "back", "左对齐"}, {"centre", "move", "居中"}, {"top", "up", "顶对齐"}, {"spread", "sliders", "均分"}};
-            for (String[] a : actions) {
-                Element b = Dom.el(doc, "div", "ore-btn icon", null);
-                b.setAttribute("title", a[2]);
-                b.appendChild(icon(a[1], "o-ico"));
-                Shell.activate(b, () -> align(a[0]));
-                aligns.appendChild(b);
-            }
-            inspector.appendChild(aligns);
-        }
-        inspector.appendChild(Dom.el(doc, "div", "o-caps", "层级"));
-        Element order = Dom.el(doc, "div", "aligns", null);
-        String[][] moves = {{"front", "up", "置顶"}, {"back", "down", "置底"}};
-        for (String[] m : moves) {
-            Element b = Dom.el(doc, "div", "ore-btn icon", null);
-            b.setAttribute("title", m[2]);
-            b.appendChild(icon(m[1], "o-ico"));
-            Shell.activate(b, () -> restack(m[0].equals("front")));
-            order.appendChild(b);
-        }
-        inspector.appendChild(order);
     }
 
     void restack(boolean front) {

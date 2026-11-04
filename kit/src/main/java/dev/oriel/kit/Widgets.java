@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
  * code: tabs ({@code .ore-tabs > .ore-tab}) and segments ({@code .o-seg > *}) select the one clicked, a toggle
  * ({@code .ore-toggle}) and a hot chip ({@code .o-chip.hot}) flip {@code on}, and a slider ({@code .ore-slider}) can be
  * dragged, starting from its {@code .fill} width, and a select ({@code .ore-select} with {@code .value} and a {@code .menu}
- * of {@code .option}s) opens, picks (the arrow keys and Enter too) and closes (Escape, or a press elsewhere). A {@code .m-indicator} inside a tab or segment group glides under
+ * of {@code .option}s) opens, picks (the arrow keys and Enter too) and closes (Escape, or a press elsewhere), and a
+ * menu bar ({@code .o-menubar}) opens its menus, and {@code data-context} opens a right-click menu. A {@code .m-indicator} inside a tab or segment group glides under
  * the selected one.
  *
  * <p>Toggles, chips and sliders with an {@code id} are left to the page's controller (it wires them itself, from its
@@ -34,6 +35,8 @@ public final class Widgets {
         for (Element c : doc.querySelectorAll(".o-chip.hot")) {
             if (!c.hasAttribute("id")) Shell.activate(c, () -> c.toggleClass("on", !c.hasClass("on")));
         }
+        for (Element bar : doc.querySelectorAll(".o-menubar")) menubar(doc, bar);
+        if (!doc.querySelectorAll(".o-context").isEmpty()) contextMenus(doc);
         for (Element sel : doc.querySelectorAll(".ore-select")) {
             if (!sel.hasAttribute("id") && sel.querySelector(".value") != null && sel.querySelector(".menu") != null) select(doc, sel);
         }
@@ -44,6 +47,73 @@ public final class Widgets {
             Matcher m = style == null ? null : WIDTH.matcher(style);
             slider.set(m != null && m.find() ? Double.parseDouble(m.group(1)) / 100 : 0.5);
         }
+    }
+
+    /**
+     * A menu bar: a title opens its list; while one is open, pointing at another title opens that one; choosing an
+     * item, pressing elsewhere or Escape closes it. The items' own listeners (the page's) do the work.
+     */
+    private static void menubar(Document doc, Element bar) {
+        List<Element> menus = bar.children().stream().filter(c -> c.hasClass("o-menu")).toList();
+        Element[] open = {null};
+        java.util.function.Consumer<Element> show = m -> {
+            for (Element x : menus) x.toggleClass("open", x == m);
+            open[0] = m;
+        };
+        for (Element m : menus) {
+            Element title = m.querySelector(".title");
+            if (title == null) continue;
+            Dom.onMouse(title, "mousedown", e -> show.accept(open[0] == m ? null : m));
+            Dom.onMouse(title, "mouseenter", e -> {
+                if (open[0] != null && open[0] != m) show.accept(m);
+            });
+            for (Element item : m.querySelectorAll(".item")) Dom.onClick(item, e -> show.accept(null));
+        }
+        Dom.onMouse(doc, "mousedown", e -> {
+            if (open[0] != null && Dom.closest(e, ".o-menubar") != bar) show.accept(null);
+        });
+        Dom.onKey(doc, e -> {
+            if (open[0] != null && e.key.equals("Escape")) {
+                e.preventDefault();
+                show.accept(null);
+            }
+        });
+    }
+
+    /**
+     * Right-click menus: a right press on (or in) an element with {@code data-context="id"} opens the
+     * {@code .o-context} with that id at the pointer, kept inside its parent; choosing an item, pressing elsewhere or
+     * Escape closes it. Items are {@code .item}s like a menu bar's; the page's own listeners do the work.
+     */
+    private static void contextMenus(Document doc) {
+        Element[] open = {null};
+        Runnable close = () -> {
+            if (open[0] != null) open[0].removeClass("open");
+            open[0] = null;
+        };
+        for (Element menu : doc.querySelectorAll(".o-context")) {
+            for (Element item : menu.querySelectorAll(".item")) Dom.onClick(item, e -> close.run());
+        }
+        Dom.onMouse(doc, "mousedown", e -> {
+            if (open[0] != null && Dom.closest(e, ".o-context") != open[0]) close.run();
+            if (e.button != 2) return;
+            Element host = Dom.closest(e, "[data-context]");
+            Element menu = host == null ? null : doc.getElementById(host.getAttribute("data-context"));
+            if (menu == null) return;
+            e.preventDefault();
+            float[] box = menu.parentElement().getBoundingClientRect();
+            menu.addClass("open");
+            open[0] = menu;
+            float[] size = menu.getBoundingClientRect();
+            float x = Math.min(e.clientX - box[0], box[2] - size[2] - 2), y = Math.min(e.clientY - box[1], box[3] - size[3] - 2);
+            new Dom.Style(menu).px("left", Math.max(2, x)).px("top", Math.max(2, y)).apply();
+        });
+        Dom.onKey(doc, e -> {
+            if (open[0] != null && e.key.equals("Escape")) {
+                e.preventDefault();
+                close.run();
+            }
+        });
     }
 
     private static void select(Document doc, Element sel) {

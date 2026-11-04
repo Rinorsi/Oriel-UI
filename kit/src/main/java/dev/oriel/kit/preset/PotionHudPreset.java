@@ -26,7 +26,7 @@ import java.util.Map;
  * Effects blink in their last ten seconds and fade out when they end; new ones keep arriving from a queue.
  */
 public final class PotionHudPreset implements PageControllers.Controller {
-    static final int SHOWN = 3, BAR_TILES = 9;
+    static final int SHOWN = 3, BAR_TILES = 5;
     static final double ARRIVAL_SECONDS = 9, FRESH_SECONDS = 4, ANNOUNCE_SECONDS = 2.6;
 
     enum Kind { BENEFICIAL, HARMFUL, NEUTRAL }
@@ -207,6 +207,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
                     + "<i class=\"drain\"></i><b class=\"lv\"></b><span class=\"t\"></span></div>");
             Dom.query(tile, "img").setAttribute("src", icon(e));
             Dom.text(Dom.query(tile, ".lv"), ROMAN[e.level()].trim());
+            tile.toggleClass("leveled", !ROMAN[e.level()].isBlank());
             tile.setAttribute("title", e.name() + ROMAN[e.level()]);
             r.tile = tile;
             r.tileTime = Dom.query(tile, ".t");

@@ -4,42 +4,43 @@
 <title>优易库 · 组件编辑器</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* A small layout editor made of the kit's own parts: the component library and the layer tree on the left, the
-   artboard on a dotted grid in the middle (drag to move, the corner handle resizes, everything snaps to 4px), the
-   inspector on the right, and a status bar. EditorPreset holds the document model, the selection and the history. */
-.toolbar { display: flex; align-items: center; gap: 2px; }
-/* The document name is on the artboard; the title bar keeps the tabs and the tools. */
+/* A layout editor laid out like an image editor: menus in the title bar, an options bar under it, the tool strip
+   (the component library) down the left, the artboard on a grid in the middle (drag to move, the corner handle
+   resizes, everything snaps to 4px), the properties and layers panels on the right, and a status bar.
+   EditorPreset holds the document model, the selection and the history. */
 .o-titlebar .o-crumb { display: none; }
-.toolbar .ore-btn { min-height: 18px; }
-.toolbar .ore-btn.icon { min-width: 18px; }
-.toolbar .sep { width: 1px; height: 14px; margin: 0 3px; background: var(--o-line-strong); box-shadow: 1px 0 0 var(--o-line); }
-.toolbar .ore-btn.off .o-ico { -mc-tint: #58585a; }
+.o-titlebar .ore-btn.primary { min-height: 18px; }
 
-.left { flex: none; width: 128px; display: flex; flex-direction: column; gap: 4px; padding: 5px; background: var(--o-well);
+/* Options bar: the toggles and the arrange actions. */
+.optbar { flex: none; display: flex; align-items: center; gap: 2px; height: 22px; min-width: 0; overflow: visible; padding: 0 4px;
+    border-bottom: 1px solid var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); background: var(--o-well); }
+.optbar .tool { flex: none; white-space: nowrap; display: flex; align-items: center; gap: 3px; height: 16px; padding: 0 4px; color: var(--o-text-dim); cursor: pointer;
+    -mc-tint: var(--o-text-dim); border: 1px solid transparent; }
+.optbar .tool:hover { color: var(--o-text); -mc-tint: var(--o-text); background: var(--o-line); }
+.optbar .tool.on, .optbar .tool.toggle { color: var(--o-text); -mc-tint: var(--o-accent-strong); border-color: var(--o-line-strong); background: var(--o-tile); }
+.optbar .tool.toggle.off { color: var(--o-text-faint); -mc-tint: var(--o-text-faint); border-color: transparent; background: none; }
+.optbar .tool.disabled { opacity: 0.35; pointer-events: none; }
+.optbar .sep { width: 1px; height: 12px; margin: 0 4px; background: var(--o-line-strong); }
+.optbar .size { color: var(--o-text-faint); }
+.optbar .o-menubar { margin-left: 0; height: 22px; }
+
+/* Tool strip: the components, one icon each; drag onto the artboard or click to add in the middle. */
+.tools { flex: none; width: 28px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
-.palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
-.palette .part { height: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; cursor: grab;
-    -mc-tint: var(--o-text-dim); }
-.palette .part:hover { -mc-tint: var(--o-accent-strong); }
+.palette { display: flex; flex-direction: column; gap: 2px; }
+.palette .part { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: grab; -mc-tint: var(--o-text-dim);
+    border: 1px solid transparent; }
+.palette .part:hover { -mc-tint: var(--o-accent-strong); background: var(--o-line); border-color: var(--o-line-strong); }
 .palette .part span { display: none; }
-.search { position: relative; display: flex; }
-.search input { flex: 1; width: 10px; padding-left: 18px; height: 16px; }
-.search .o-ico { position: absolute; left: 2px; top: 0; -mc-tint: var(--o-text-faint); pointer-events: none; }
-.tree { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
-.layer { display: flex; align-items: center; gap: 3px; height: 16px; padding: 0 2px; cursor: pointer; color: var(--o-text-dim); -mc-tint: var(--o-text-faint); }
-.layer:hover { background: var(--o-line); }
-.layer.sel { background: color-mix(in srgb, var(--o-accent) 26%, transparent); color: var(--o-text); box-shadow: inset 2px 0 0 var(--o-accent-strong); -mc-tint: var(--o-accent-strong); }
-.layer .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.layer .tg { width: 16px; height: 16px; opacity: 0.35; -mc-tint: var(--o-text-dim); }
-.layer .tg:hover { opacity: 1; }
-.layer .tg.on { opacity: 1; -mc-tint: #ffb52b; }
-.layer.hidden .nm { color: var(--o-text-faint); text-decoration-line: line-through; }
 
+/* The artboard on a grid (lines drawn by one gradient each, at any size). */
 .viewport { position: relative; flex: 1; min-width: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.09) 0 1px, rgba(0, 0, 0, 0) 1px) 0 0 / 8px 8px, #1b1b1c; }
-[data-theme=light] .viewport { background: radial-gradient(circle, rgba(0, 0, 0, 0.16) 0 1px, rgba(0, 0, 0, 0) 1px) 0 0 / 8px 8px, #b9b9b9; }
+    background: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0) 1px 16px),
+        repeating-linear-gradient(rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0) 1px 16px), #1b1b1c; }
+[data-theme=light] .viewport { background: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.07) 0 1px, rgba(0, 0, 0, 0) 1px 16px),
+    repeating-linear-gradient(rgba(0, 0, 0, 0.07) 0 1px, rgba(0, 0, 0, 0) 1px 16px), #b9b9b9; }
 .board { position: relative; width: 264px; height: 172px; background: rgba(12, 12, 14, 0.55); box-shadow: 0 0 0 1px #0f0f10, 0 0 0 2px rgba(255, 255, 255, 0.06), 0 6px 16px rgba(0, 0, 0, 0.5); }
-.board-label { position: absolute; left: 0; top: -11px; color: var(--o-text-faint); }
+.board-label { position: absolute; left: 0; top: -11px; color: var(--o-text-faint); white-space: nowrap; }
 .node { position: absolute; }
 .node > .body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
 .node.k-text > .body { justify-content: flex-start; color: var(--o-text); }
@@ -65,8 +66,25 @@
 .ghost { position: absolute; z-index: 40; pointer-events: none; display: none; padding: 2px 4px; background: rgba(30, 30, 31, 0.9); border: 1px solid #55c8ff; color: #ffffff; }
 .ghost.on { display: block; }
 
-.inspector { flex: none; width: 138px; display: flex; flex-direction: column; gap: 4px; padding: 5px; overflow-y: auto; background: var(--o-well);
+/* Panels: properties over layers, each with a header. */
+.panels { flex: none; width: 150px; display: flex; flex-direction: column; background: var(--o-well);
     border-left: 1px solid var(--o-line-strong); box-shadow: inset 1px 0 0 var(--o-line); }
+.panel-head { flex: none; display: flex; align-items: center; gap: 4px; height: 16px; padding: 0 5px; color: var(--o-text-dim);
+    background: var(--o-line); border-bottom: 1px solid var(--o-line-strong); -mc-tint: var(--o-text-faint); }
+.inspector { flex: 0 1 auto; max-height: 52%; display: flex; flex-direction: column; gap: 4px; padding: 5px; overflow-y: auto; }
+.layers { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 3px; padding: 4px 5px 5px; border-top: 1px solid var(--o-line-strong); }
+.search { position: relative; display: flex; }
+.search input { flex: 1; width: 10px; padding-left: 18px; height: 16px; }
+.search .o-ico { position: absolute; left: 2px; top: 0; -mc-tint: var(--o-text-faint); pointer-events: none; }
+.tree { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.layer { display: flex; align-items: center; gap: 3px; height: 16px; padding: 0 2px; cursor: pointer; color: var(--o-text-dim); -mc-tint: var(--o-text-faint); }
+.layer:hover { background: var(--o-line); }
+.layer.sel { background: color-mix(in srgb, var(--o-accent) 26%, transparent); color: var(--o-text); box-shadow: inset 2px 0 0 var(--o-accent-strong); -mc-tint: var(--o-accent-strong); }
+.layer .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.layer .tg { width: 16px; height: 16px; opacity: 0.35; -mc-tint: var(--o-text-dim); }
+.layer .tg:hover { opacity: 1; }
+.layer .tg.on { opacity: 1; -mc-tint: #ffb52b; }
+.layer.hidden .nm { color: var(--o-text-faint); text-decoration-line: line-through; }
 .field { display: flex; align-items: center; gap: 4px; }
 .field > label { width: 26px; flex: none; color: var(--o-text-faint); }
 .field input.ore-field { flex: 1; width: 10px; height: 16px; padding: 0 3px; }
@@ -74,8 +92,6 @@
 .field .ore-select > .value { height: 16px; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 .kind { display: flex; align-items: center; gap: 4px; color: var(--o-text); -mc-tint: var(--o-accent-strong); }
-.aligns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
-.aligns .ore-btn { min-height: 16px; padding: 0; }
 .empty-sel { color: var(--o-text-faint); line-height: 10px; }
 .tiers { display: flex; gap: 2px; }
 .tiers span { flex: 1; height: 10px; background: var(--tier); cursor: pointer; border: 1px solid rgba(0, 0, 0, 0.6); }
@@ -121,10 +137,10 @@
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; color: var(--o-text-dim); }
 .keys > div { display: flex; gap: 2px; }
 
-/* Small windows: the artboard keeps its size; the library and inspector make way. */
+/* Small windows: the artboard keeps its size; the panels make way (the menus and the tool strip stay). */
 @media (max-width: 600px) {
-    .left, .inspector { display: none; }
-    .status span:last-child { display: none; }
+    .panels { display: none; }
+    .status span:last-child, .optbar .size { display: none; }
 }
 .export { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.6); }
 .export.on { display: flex; animation: fx-rise 220ms var(--o-ease-out); }
@@ -138,56 +154,69 @@
   <div class="o-window">
     <div class="o-titlebar">
       <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
+      <span class="o-crumb" id="doc-name">/ 商店界面</span>
+      <div class="o-grow"></div>
+      <div class="ore-btn primary" id="export" tabindex="0"><img class="o-ico" src="../textures/icons/file.png">导出</div>
+      <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
+    </div>
+    <div class="o-tabbar">
       <div class="o-apptabs">
         <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
         <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
         <div class="on" data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
         <i class="m-indicator"></i>
       </div>
-      <span class="o-crumb" id="doc-name">/ 商店界面</span>
+    </div>
+    <div class="optbar">
+      <div class="o-menubar" id="menus">
+          <div class="o-menu"><div class="title">文件</div><div class="list"><div class="item" id="new" tabindex="0"><span>新建画布…</span><span class="k">Ctrl+N</span></div><div class="item" data-cmd="export" tabindex="0"><span>导出 HTML</span><span class="k">Ctrl+S</span></div></div></div>
+          <div class="o-menu"><div class="title">编辑</div><div class="list"><div class="item" id="undo" tabindex="0"><span>撤销</span><span class="k">Ctrl+Z</span></div><div class="item" id="redo" tabindex="0"><span>重做</span><span class="k">Ctrl+Y</span></div><i class="sep"></i><div class="item" data-cmd="cut" tabindex="0"><span>剪切</span><span class="k">Ctrl+X</span></div><div class="item" data-cmd="copy" tabindex="0"><span>复制</span><span class="k">Ctrl+C</span></div><div class="item" data-cmd="paste" tabindex="0"><span>粘贴</span><span class="k">Ctrl+V</span></div><div class="item" id="dup" tabindex="0"><span>原地复制</span><span class="k">Ctrl+D</span></div><div class="item" id="del" tabindex="0"><span>删除</span><span class="k">Delete</span></div><i class="sep"></i><div class="item" data-cmd="all" tabindex="0"><span>全选</span><span class="k">Ctrl+A</span></div></div></div>
+          <div class="o-menu"><div class="title">排列</div><div class="list"><div class="item" data-cmd="align-left" tabindex="0"><span>左对齐</span></div><div class="item" data-cmd="align-top" tabindex="0"><span>顶对齐</span></div><div class="item" data-cmd="align-centre" tabindex="0"><span>水平居中</span></div><div class="item" data-cmd="align-spread" tabindex="0"><span>均匀分布</span></div><i class="sep"></i><div class="item" data-cmd="front" tabindex="0"><span>置于顶层</span></div><div class="item" data-cmd="back" tabindex="0"><span>置于底层</span></div></div></div>
+          <div class="o-menu"><div class="title">视图</div><div class="list"><div class="item" data-cmd="preview" tabindex="0"><i class="check"></i><span>预览</span><span class="k">P</span></div><div class="item" data-cmd="snap" tabindex="0"><i class="check"></i><span>吸附网格</span></div><i class="sep"></i><div class="item" id="keys" tabindex="0"><span>快捷键</span><span class="k">F1</span></div></div></div>
+        </div>
+      <i class="sep"></i>
+      <div class="tool toggle" id="snap" tabindex="0" title="吸附网格"><img class="o-ico" src="../textures/icons/grid.png">吸附</div>
+      <div class="tool" id="preview" tabindex="0" title="预览 P"><img class="o-ico" src="../textures/icons/eye.png">预览</div>
+      <i class="sep"></i>
+      <div class="tool multi" data-cmd="align-left" tabindex="0" title="左对齐"><img class="o-ico" src="../textures/icons/back.png"></div>
+      <div class="tool multi" data-cmd="align-top" tabindex="0" title="顶对齐"><img class="o-ico" src="../textures/icons/up.png"></div>
+      <div class="tool multi" data-cmd="align-centre" tabindex="0" title="水平居中"><img class="o-ico" src="../textures/icons/move.png"></div>
+      <div class="tool multi" data-cmd="align-spread" tabindex="0" title="均匀分布"><img class="o-ico" src="../textures/icons/sliders.png"></div>
+      <i class="sep"></i>
+      <div class="tool single" data-cmd="front" tabindex="0" title="置于顶层"><img class="o-ico" src="../textures/icons/up.png">顶层</div>
+      <div class="tool single" data-cmd="back" tabindex="0" title="置于底层"><img class="o-ico" src="../textures/icons/down.png">底层</div>
       <div class="o-grow"></div>
-      <div class="toolbar">
-        <div class="ore-btn icon" id="new" tabindex="0" title="新建画布 Ctrl+N"><img class="o-ico" src="../textures/icons/plus.png"></div>
-        <span class="sep"></span>
-        <div class="ore-btn icon" id="undo" tabindex="0" title="撤销 Ctrl+Z"><img class="o-ico" src="../textures/icons/undo.png"></div>
-        <div class="ore-btn icon" id="redo" tabindex="0" title="重做 Ctrl+Y"><img class="o-ico" src="../textures/icons/redo.png"></div>
-        <span class="sep"></span>
-        <div class="ore-btn icon" id="dup" tabindex="0" title="复制 Ctrl+D"><img class="o-ico" src="../textures/icons/copy.png"></div>
-        <div class="ore-btn icon" id="del" tabindex="0" title="删除 Delete"><img class="o-ico" src="../textures/icons/trash.png"></div>
-        <span class="sep"></span>
-        <div class="ore-btn icon" id="snap" tabindex="0" title="吸附网格"><img class="o-ico" src="../textures/icons/grid.png"></div>
-        <div class="ore-btn icon" id="preview" tabindex="0" title="预览 P"><img class="o-ico" src="../textures/icons/eye.png"></div>
-        <span class="sep"></span>
-        <div class="ore-btn icon" id="keys" tabindex="0" title="快捷键 F1"><img class="o-ico" src="../textures/icons/keyboard.png"></div>
-        <div class="ore-btn primary" id="export" tabindex="0"><img class="o-ico" src="../textures/icons/file.png">导出</div>
-      </div>
-      <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
+      <span class="size" id="board-size"></span>
     </div>
     <div class="o-body">
-      <div class="left">
-        <div class="o-caps">组件</div>
+      <div class="tools">
         <div class="palette" id="palette">
-          <div class="part o-tile" data-kind="button" title="按钮"><img class="o-ico" src="../textures/icons/mouse.png"><span>按钮</span></div>
-          <div class="part o-tile" data-kind="panel" title="面板"><img class="o-ico" src="../textures/icons/layers.png"><span>面板</span></div>
-          <div class="part o-tile" data-kind="title" title="标题"><img class="o-ico" src="../textures/icons/file.png"><span>标题</span></div>
-          <div class="part o-tile" data-kind="text" title="文本"><img class="o-ico" src="../textures/icons/list.png"><span>文本</span></div>
-          <div class="part o-tile" data-kind="slot" title="物品格"><img class="o-ico" src="../textures/icons/gem.png"><span>物品格</span></div>
-          <div class="part o-tile" data-kind="toggle" title="开关"><img class="o-ico" src="../textures/icons/sliders.png"><span>开关</span></div>
-          <div class="part o-tile" data-kind="meter" title="进度条"><img class="o-ico" src="../textures/icons/bolt.png"><span>进度条</span></div>
-          <div class="part o-tile" data-kind="block" title="3D 方块"><img class="o-ico" src="../textures/icons/cube.png"><span>3D 方块</span></div>
+          <div class="part" data-kind="button" title="按钮"><img class="o-ico" src="../textures/icons/mouse.png"><span>按钮</span></div>
+          <div class="part" data-kind="panel" title="面板"><img class="o-ico" src="../textures/icons/layers.png"><span>面板</span></div>
+          <div class="part" data-kind="title" title="标题"><img class="o-ico" src="../textures/icons/file.png"><span>标题</span></div>
+          <div class="part" data-kind="text" title="文本"><img class="o-ico" src="../textures/icons/list.png"><span>文本</span></div>
+          <div class="part" data-kind="slot" title="物品格"><img class="o-ico" src="../textures/icons/gem.png"><span>物品格</span></div>
+          <div class="part" data-kind="toggle" title="开关"><img class="o-ico" src="../textures/icons/sliders.png"><span>开关</span></div>
+          <div class="part" data-kind="meter" title="进度条"><img class="o-ico" src="../textures/icons/bolt.png"><span>进度条</span></div>
+          <div class="part" data-kind="block" title="3D 方块"><img class="o-ico" src="../textures/icons/cube.png"><span>3D 方块</span></div>
         </div>
-        <div class="o-caps">图层</div>
-        <div class="search"><input class="ore-field" id="filter" placeholder="搜索图层"><img class="o-ico" src="../textures/icons/search.png"></div>
-        <div class="tree" id="tree"></div>
       </div>
-      <div class="viewport" id="viewport">
+      <div class="viewport" id="viewport" data-context="ctx">
         <div class="board" id="board">
           <span class="board-label" id="board-label"></span>
           <div class="guide v" id="guide-v"></div>
           <div class="guide h" id="guide-h"></div>
         </div>
       </div>
-      <div class="inspector" id="inspector"></div>
+      <div class="panels">
+        <div class="panel-head"><img class="o-ico" src="../textures/icons/sliders.png">属性</div>
+        <div class="inspector" id="inspector"></div>
+        <div class="panel-head"><img class="o-ico" src="../textures/icons/layers.png">图层</div>
+        <div class="layers">
+          <div class="search"><input class="ore-field" id="filter" placeholder="搜索图层"><img class="o-ico" src="../textures/icons/search.png"></div>
+          <div class="tree" id="tree"></div>
+        </div>
+      </div>
     </div>
     <div class="status">
       <span id="sel-count">未选择</span>
@@ -199,6 +228,7 @@
     </div>
   </div>
   <div class="ghost" id="ghost"></div>
+  <div class="o-context" id="ctx"><div class="item sel" data-cmd="cut" tabindex="0"><span>剪切</span><span class="k">Ctrl+X</span></div><div class="item sel" data-cmd="copy" tabindex="0"><span>复制</span><span class="k">Ctrl+C</span></div><div class="item clip" data-cmd="paste" tabindex="0"><span>粘贴</span><span class="k">Ctrl+V</span></div><div class="item sel" data-cmd="dup" tabindex="0"><span>原地复制</span><span class="k">Ctrl+D</span></div><div class="item sel" data-cmd="delete" tabindex="0"><span>删除</span><span class="k">Delete</span></div><i class="sep"></i><div class="item sel" data-cmd="front" tabindex="0"><span>置于顶层</span></div><div class="item sel" data-cmd="back" tabindex="0"><span>置于底层</span></div><i class="sep"></i><div class="item" data-cmd="all" tabindex="0"><span>全选</span><span class="k">Ctrl+A</span></div><div class="item" data-cmd="new" tabindex="0"><span>新建画布…</span><span class="k">Ctrl+N</span></div></div>
   <div class="m-modal" id="new-box">
     <div class="dlg ore-panel">
       <div class="head"><img class="o-ico" src="../textures/icons/plus.png"><span>新建画布</span></div>

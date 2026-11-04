@@ -136,27 +136,34 @@ public final class Motion {
     }
 
     /**
-     * The zoom transition: a panel grows from {@code from}'s box to the window's while the page fades, then
-     * {@code then} runs (usually a navigation, whose window then zooms in). The card seems to open into the page.
+     * The zoom transition: a lit outline grows from {@code from}'s box to the window's and fades ({@link #zoomRing})
+     * while the content leaves, then {@code then} runs (usually a navigation). Nothing ever covers the window, so the
+     * page under it never shows an empty frame.
      */
     public static void zoomInto(Element from, Runnable then) {
+        Document doc = from.ownerDocument();
+        zoomRing(from);
+        Element body = doc.querySelector(".o-body");
+        if (body != null) body.addClass("m-page-leave-forward");
+        doc.scheduler().setTimeout(then, FAST);
+    }
+
+    /** Just the outline of {@link #zoomInto}: from {@code from}'s box to the window's, fading out on the way. */
+    public static void zoomRing(Element from) {
         Document doc = from.ownerDocument();
         Element window = doc.querySelector(".o-window");
         if (window == null) window = doc.querySelector(".home");
         Element app = doc.querySelector(".o-app");
-        if (window == null || app == null) {
-            then.run();
-            return;
-        }
+        if (window == null || app == null) return;
         float[] f = from.getBoundingClientRect(), w = window.getBoundingClientRect();
-        Element ghost = Dom.el(doc, "div", "m-zoom", null);
-        Dom.Style st = new Dom.Style(ghost);
+        Element ring = Dom.el(doc, "div", "m-zoom", null);
+        Dom.Style st = new Dom.Style(ring);
         st.px("left", f[0]).px("top", f[1]).px("width", f[2]).px("height", f[3]).apply();
-        app.appendChild(ghost);
-        Element leaving = window;
-        leaving.addClass("m-leaving");
-        doc.scheduler().requestAnimationFrame(t -> st.px("left", w[0]).px("top", w[1]).px("width", w[2]).px("height", w[3]).apply());
-        doc.scheduler().setTimeout(then, SLOW);
+        app.appendChild(ring);
+        // Styled once where it starts, then moved: the move transitions.
+        doc.scheduler().requestAnimationFrame(t -> doc.scheduler().requestAnimationFrame(t2 ->
+                st.px("left", w[0]).px("top", w[1]).px("width", w[2]).px("height", w[3]).set("opacity", "0").apply()));
+        doc.scheduler().setTimeout(ring::remove, SLOW + 100);
     }
 
     /** Wires the declarative parts of the library: ripples, spotlights, staggered lists and counters. */

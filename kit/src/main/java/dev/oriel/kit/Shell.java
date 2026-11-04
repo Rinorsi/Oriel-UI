@@ -10,8 +10,8 @@ import java.util.List;
  * What every kit page shares, wired from markup so a page needs no code for it:
  * <ul>
  *   <li>the theme: {@code data-theme} on {@code <html>} ({@link #theme()}, kept across pages);</li>
- *   <li>{@code data-go="forge"}: opens that kit page (Enter / Space too); with {@code data-zoom} the element
- *   grows into the page first ({@link Motion#zoomInto});</li>
+ *   <li>{@code data-go="forge"}: opens that kit page (Enter / Space too) with the forward transition; with
+ *   {@code data-zoom} a lit outline also grows from the element to the window ({@link Motion#zoomRing});</li>
  *   <li>{@code data-count="2235"}: the number counts up when the page opens;</li>
  *   <li>{@code data-action="close" | "back" | "theme"}: closes the screen, returns to the gallery, flips the theme;</li>
  *   <li>{@code canvas[data-fx]}: particles ({@link Particles});</li>
@@ -23,7 +23,7 @@ import java.util.List;
  *   <li>the controls' default behaviour ({@link Widgets}).</li>
  * </ul>
  * <p>Page transitions: {@link #go} plays a leaving animation on {@code .o-body}, opens the page and gives the new
- * page's {@code .o-body} the matching entrance ({@code m-page-next}, {@code m-page-prev}, {@code m-page-back}; see
+ * page's {@code .o-body} the matching entrance ({@code m-page-forward}, {@code -next}, {@code -prev}, {@code -back}; see
  * {@code ore.css}). Only the content moves; the backdrop and the window frame are the same on every page, so nothing
  * flashes.
  * Controllers call {@link #setup} first and keep the returned particles for bursts.
@@ -118,8 +118,12 @@ public final class Shell {
         for (Element e : doc.querySelectorAll("[data-go]")) {
             if (e.closest(".o-apptabs") != null) continue;
             String page = e.getAttribute("data-go");
-            Runnable go = () -> doc.navigate(OrielKit.page(page));
-            activate(e, e.hasAttribute("data-zoom") ? () -> Motion.zoomInto(e, go) : go);
+            boolean zoom = e.hasAttribute("data-zoom");
+            activate(e, () -> {
+                fromTab = -1;
+                if (zoom) Motion.zoomRing(e);
+                go(doc, OrielKit.page(page), "forward");
+            });
         }
         for (Element e : doc.querySelectorAll("[data-action]")) {
             switch (e.getAttribute("data-action")) {
