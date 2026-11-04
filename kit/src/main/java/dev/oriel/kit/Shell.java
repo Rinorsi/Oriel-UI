@@ -29,7 +29,7 @@ import java.util.List;
  * Controllers call {@link #setup} first and keep the returned particles for bursts.
  */
 public final class Shell {
-    private static volatile String theme = "dark", style = "ore", window = "mini", icons = "bold", font = "mc";
+    private static volatile String theme = "dark", style = "ore", window = "mini", icons = "regular", font = "mc";
     /** The entrance for the next page's content, and the app tab it was opened from (-1: none). */
     private static volatile String enter;
     private static volatile int fromTab = -1;
@@ -101,17 +101,17 @@ public final class Shell {
         for (Element e : doc.querySelectorAll(".ore-select[data-font-select] .value")) Dom.text(e, Fonts.byId(font).name());
     }
 
-    /** The icon weight, {@code bold} or {@code thin}. */
+    /** The icon weight: {@code thin} (wireframe, 1px), {@code regular} (2px) or {@code bold} (3px). */
     public static String icons() {
         return icons;
     }
 
     /**
      * Sets the icon weight for this page and the pages opened after it: every {@code textures/icons/} image (and those
-     * added later) uses {@code icons/} or {@code icons/thin/}. {@code data-icons} on {@code <html>} says which.
+     * added later) uses {@code icons/thin/}, {@code icons/} or {@code icons/bold/}. {@code data-icons} on {@code <html>} says which.
      */
     public static void icons(Document doc, String weight) {
-        icons = weight.equals("thin") ? "thin" : "bold";
+        icons = weight.equals("thin") || weight.equals("bold") ? weight : "regular";
         Element root = doc.documentElement();
         if (root != null) root.setAttribute("data-icons", icons);
         for (Element e : doc.querySelectorAll("[data-icons-pick]")) e.toggleClass("on", e.getAttribute("data-icons-pick").equals(icons));
@@ -122,8 +122,8 @@ public final class Shell {
         for (Element img : doc.querySelectorAll("img")) {
             String src = img.getAttribute("src");
             if (src == null || !src.contains("textures/icons/")) continue;
-            String bold = src.replace("textures/icons/thin/", "textures/icons/");
-            String want = icons.equals("thin") ? bold.replace("textures/icons/", "textures/icons/thin/") : bold;
+            String regular = src.replace("textures/icons/thin/", "textures/icons/").replace("textures/icons/bold/", "textures/icons/");
+            String want = icons.equals("regular") ? regular : regular.replace("textures/icons/", "textures/icons/" + icons + "/");
             if (!want.equals(src)) img.setAttribute("src", want);
         }
     }
@@ -135,7 +135,7 @@ public final class Shell {
             @Override
             public void accept(double t) {
                 if (doc.domVersion() != seen[0]) {
-                    if (icons.equals("thin")) swapIcons(doc);
+                    if (!icons.equals("regular")) swapIcons(doc);
                     seen[0] = doc.domVersion();
                 }
                 doc.scheduler().requestAnimationFrame(this);

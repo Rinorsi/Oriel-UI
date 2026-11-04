@@ -20,10 +20,10 @@ class IconsPresetTest {
     void theGridLoadsFiltersAndShowsTheChosenIcon() {
         IconsPreset icons = new IconsPreset();
         Document doc = host.open(OrielKit.ICONS, icons, 640, 360);
-        assertEquals(200, icons.icons.size());
-        assertTrue(doc.getElementById("grid").childCount() < 200, "the first batch only");
+        assertEquals(202, icons.icons.size());
+        assertTrue(doc.getElementById("grid").childCount() < 202, "the first batch only");
         for (int i = 0; i < 10; i++) frame(doc, clock, 16);
-        assertEquals(200, doc.getElementById("grid").childCount(), "then the rest, a batch per frame");
+        assertEquals(202, doc.getElementById("grid").childCount(), "then the rest, a batch per frame");
         click(doc, "#cats [data-cat=combat]", 0, Modifiers.NONE, clock);
         for (int i = 0; i < 4; i++) frame(doc, clock, 16);
         assertEquals(22, doc.getElementById("grid").childCount());

@@ -135,7 +135,7 @@ class ShellTest {
         frame(home, clock, 16);
         frame(home, clock, 16);
         assertTrue(added.getAttribute("src").contains("icons/thin/"), "images added later follow");
-        Shell.icons(home, "bold");
+        Shell.icons(home, "regular");
         assertTrue(home.querySelector("#close img").getAttribute("src").endsWith("icons/close.png"));
     }
 }

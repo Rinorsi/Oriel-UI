@@ -9,12 +9,12 @@
    three sizes and in the theme's colours, with the markup to copy. IconsPreset reads icons.json. */
 .cats { flex: none; width: 124px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
-.cats .cat { position: relative; display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
+.cats .cat { flex: none; position: relative; display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
     -mc-tint: var(--o-text-faint); }
 .cats .cat.on { -mc-tint: var(--o-accent-strong); }
 .cats .cat:hover { background: var(--o-line); color: var(--o-text); }
 .cats .cat.on { background: var(--o-tile); color: var(--o-text); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
-.cats .cat.on::before { content: ""; position: absolute; left: -4px; top: 3px; width: 2px; height: 12px; background: var(--o-accent-strong); }
+.cats .cat.on::before { content: ""; position: absolute; left: -4px; top: 4px; width: 2px; height: 12px; background: var(--o-accent-strong); }
 .cats .cat .n { margin-left: auto; color: var(--o-text-faint); }
 
 .main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 6px; }
@@ -82,7 +82,7 @@
           <div class="search"><input class="ore-field" id="q" placeholder="搜索名称、拼写或标签"><img class="o-ico" src="../textures/icons/search.png"></div>
           <span class="count" id="count"></span>
           <span class="o-caps">粗细</span>
-          <div class="o-seg" title="全部图标的粗细，换页后保持"><span data-icons-pick="bold">粗</span><span data-icons-pick="thin">细</span></div>
+          <div class="o-seg" title="全部图标的粗细，换页后保持"><span data-icons-pick="thin">线框</span><span data-icons-pick="regular">正常</span><span data-icons-pick="bold">加粗</span></div>
         </div>
         <div class="grid o-auto" id="grid" style="--min: 52px; --gap: 3px"></div>
       </div>

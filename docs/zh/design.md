@@ -77,7 +77,7 @@
 
 ## 8. 图标
 
-- 75 个 16×16 白色像素图标在 `textures/icons/`（`tools/gen-icons.mjs` 生成）。用法：`<img class="o-ico" src="../textures/icons/gear.png">`，颜色由 `-mc-tint` / `--ico` 决定。
+- 202 个 16×16 白色像素图标，三档粗细：`textures/icons/`（正常 2px）、`icons/thin/`（线框 1px）、`icons/bold/`（加粗 3px），由工作区 `tools/icons` 几何生成；加载转圈用 `spinner` / `spinner_dots`（无投影，圆心在 8,8，可直接旋转）。用法：`<img class="o-ico" src="../textures/icons/gear.png">`，颜色由 `-mc-tint` / `--ico` 决定。
 - AI 生成的图（如徽标）用工作区的 `tools/pixelize.mjs` 转成真像素：去背景 → 按格取主色 → 限色 → 描边。
 
 ## 9. 两种风格
