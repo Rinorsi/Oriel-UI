@@ -91,12 +91,12 @@ MenuType 和菜单工厂属于公共注册，实际菜单实例在服务端拥�
 现有 /oriel demo chest 是最小可运行参考：OrielDemos.CHEST 注册为独立 MenuType；服务端 OrielDemos.openChest(player) 打开 27 格样例容器；客户端初始化已经注册 OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE)。可以直接从自己的服务端命令调用：
 
 ```java
-import dev.oriel.mod.server.OrielDemos;
+import dev.oriel.mod.server.ForgeMenu;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class ContainerExample {
     public static void open(ServerPlayer player) {
-        OrielDemos.openChest(player);
+        ForgeMenu.open(player);
     }
 }
 ```
@@ -174,6 +174,8 @@ node tools/server-smoke.mjs neoforge /absolute/external/neoforge --multiplayer -
 
 脚本对每个 Gradle 进程设 900 秒上限，启动一个专用服务器和 A/B 两个真实客户端。服务器只给 A 打开现有 templates 页面；A 等到真实文档加载后回消息；B 验证没有收到打开包／没有打开页面，并伪造 A 的消息和关闭包。服务端检查仅收到一次合法回调。最后客户端自行退出、脚本经 RCON stop 正常关闭服务器，保存 result.json 和三个日志。去掉 --multiplayer 可只验专用服务器启动／关闭。
 
-GameTest 新增 unsupported_client、player_isolation、forge_menu，分别验证无协商通道的明确结果／回调、玩家隔离和菜单加工／防重复领取。GameTest 的 mock 连接不等于“完全未安装模组的真实客户端登录”；这种登录兼容性需按加载器与注册表另做实机验证。
+GameTest 包含 unsupported_client、player_isolation、forge_menu、protocol_compatibility，分别验证无协商通道的明确结果／回调、玩家隔离、菜单加工／防重复领取和协议能力。正常游戏服务器要求客户端安装匹配协议的 Oriel；未安装或协议不匹配会在加入时断开。openStatus 的失败结果仍保留为防御性 API，不代表缺库客户端可正常进入服务器。
+
+使用 server-smoke.mjs 的 --mismatch 参数可额外启动协议 999 的测试客户端，检查清晰的拒绝原因与正常退出；该覆盖与成功双客户端流程可一起运行。GameTestServer 的 mock 不进行网络协商，只对测试服务器豁免加入检查，正式专用／集成服务器均不豁免。
 
 手动复现多人隔离：开启专用测试服务器，让两个装库客户端分别用 A/B 身份进入；控制台针对 A 调用自己的 OrielServer.open 命令（或启用 -PserverProbe 后执行 oriel-probe start OrielProbeA OrielProbeB），确认 B 仍在原屏幕。A 发送消息后服务端仅处理 A 的状态。若改用真实未装库的客户端，连接成功后调用 OrielServer.open，调用方必须收到 CLIENT_UNSUPPORTED；不能把客户端被加载器的注册表兼容检查拒绝登录误记为打开失败回调通过。
