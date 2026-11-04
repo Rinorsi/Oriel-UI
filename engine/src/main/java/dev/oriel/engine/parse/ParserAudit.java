@@ -12,15 +12,23 @@ import java.util.TreeSet;
 /** Migration-only field comparisons. Reports are explicit external files, never implicit repository outputs. */
 public final class ParserAudit {
     public enum Mode { OLD, NEW, BOTH }
+    private static final ThreadLocal<Mode> OVERRIDE = new ThreadLocal<>();
     private ParserAudit() {}
 
     public static Mode mode() {
+        if (OVERRIDE.get() != null) return OVERRIDE.get();
         return switch (System.getProperty("oriel.parser", "old")) {
             case "old" -> Mode.OLD;
             case "new" -> Mode.NEW;
             case "both" -> Mode.BOTH;
             default -> throw new IllegalArgumentException("oriel.parser must be old, new or both");
         };
+    }
+
+    public static <T> T using(Mode mode, java.util.function.Supplier<T> operation) {
+        Mode before = OVERRIDE.get(); OVERRIDE.set(mode);
+        try { return operation.get(); }
+        finally { if (before == null) OVERRIDE.remove(); else OVERRIDE.set(before); }
     }
 
     public static void compare(String kind, String source, Map<String, String> oldFields, Map<String, String> newFields) {

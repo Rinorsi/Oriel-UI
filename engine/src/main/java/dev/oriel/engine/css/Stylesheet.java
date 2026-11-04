@@ -48,13 +48,14 @@ final class Stylesheet {
      * and reported to {@code log}; so are features only approximated ({@code @layer}, {@code position: sticky}).
      */
     static Stylesheet parse(String css, String url, Host host, Consumer<Diagnostic> log) {
-        Builder b = new Builder(url, host, log);
-        return new Stylesheet(url, b.rules(CssParser.parseRules(css), true));
+        if (dev.oriel.engine.parse.ParserAudit.mode() == dev.oriel.engine.parse.ParserAudit.Mode.BOTH) return CssAudit.sheet(css, url, host, log);
+        return CssIssues.in(url, log, () -> new Stylesheet(url, new Builder(url, host, log).rules(CssParser.parseRules(css), true)));
     }
 
     /** Parses a declaration list (a {@code style} attribute) into longhand declarations. */
     static List<Decl> declarations(String css, String url, Host host, Consumer<Diagnostic> log) {
-        return new Builder(url, host, log).declarations(CssParser.parseComponentValues(css), false);
+        if (dev.oriel.engine.parse.ParserAudit.mode() == dev.oriel.engine.parse.ParserAudit.Mode.BOTH) return CssAudit.inline(css, url, host, log);
+        return CssIssues.in(url, log, () -> new Builder(url, host, log).declarations(CssParser.parseComponentValues(css), false));
     }
 
     private record Builder(String url, Host host, Consumer<Diagnostic> log) {
