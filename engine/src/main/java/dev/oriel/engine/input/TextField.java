@@ -390,6 +390,20 @@ final class TextField {
 
     // ---- Editing ----
 
+    /** Replaces {@code [start, end)} with {@code text} as one undoable edit, with the input events typing fires. */
+    void replace(int start, int end, String text) {
+        int length = editor.text().length();
+        start = Math.clamp(start, 0, length);
+        end = Math.clamp(end, start, length);
+        perform(new TextEditor.Edit(start, end, text, "insertReplacementText"));
+    }
+
+    /** Selects from {@code anchor} to {@code caret} (equal for a bare caret). */
+    void select(int anchor, int caret) {
+        editor.select(anchor, caret);
+        caretMoved();
+    }
+
     /** Fires beforeinput, applies the edit unless cancelled, then fires input. */
     private void perform(TextEditor.Edit edit) {
         if (edit == null || !Forms.isEditable(element) || !beforeInput(edit.data(), edit.inputType())) return;

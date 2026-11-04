@@ -311,6 +311,7 @@ final class Properties {
         add(Prop.TRANSFORM_ORIGIN_X, (r, ctx) -> Images.axis(r, ctx, "left", "right"), TEXT);
         add(Prop.TRANSFORM_ORIGIN_Y, (r, ctx) -> Images.axis(r, ctx, "top", "bottom"), TEXT);
         add(Prop.TINT, CssColors::read, COLOR);
+        add(Prop.OBFUSCATED, Keywords.parser(Map.of("on", true, "off", false, "none", false)), v -> (Boolean) v ? "on" : "off");
         add(List.of(Prop.MODEL_YAW, Prop.MODEL_PITCH, Prop.MODEL_ROLL), Numeric::angle, v -> CssText.deg((Float) v));
         add(Prop.MODEL_SCALE, nonNegative(Numeric::number), NUMBER);
         add(Prop.ENTITY_FOCUS, Keywords.parser(EntityFocus.class), KEYWORD);

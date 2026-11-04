@@ -81,10 +81,49 @@ public final class McFontMetrics implements FontMetrics {
                 : FormattedCharSequence.forward(text, style);
     }
 
+    /**
+     * Obfuscated text ({@link Canvas#OBFUSCATED}, §k) for this frame: each character becomes another of the same
+     * width, changing about twenty times a second. The game's own §k picks from every glyph of the font (Unifont's
+     * tens of thousands), so each frame bakes new glyphs into new atlas pages and drawing slows down for good; a
+     * small pool bakes a bounded set once.
+     */
+    public String obfuscate(String text, FontSpec font) {
+        Map<Integer, int[]> pool = obfuscatePools.computeIfAbsent(new Key(font.families(), font.bold(), font.italic()), k -> pool(font));
+        long tick = System.currentTimeMillis() / 50;
+        StringBuilder out = new StringBuilder(text.length());
+        int i = 0, n = 0;
+        while (i < text.length()) {
+            int cp = text.codePointAt(i);
+            i += Character.charCount(cp);
+            int[] same = Character.isWhitespace(cp) ? null : pool.get(Math.round(charWidth(cp, font) / font.scale() * 2));
+            if (same == null || same.length == 0) {
+                out.appendCodePoint(cp);
+            } else {
+                long h = (tick * 31 + n++) * 0x9E3779B97F4A7C15L;
+                out.appendCodePoint(same[(int) ((h >>> 33) % same.length)]);
+            }
+        }
+        return out.toString();
+    }
+
+    /** Pool characters by width (in half px at the native size). */
+    private Map<Integer, int[]> pool(FontSpec font) {
+        Map<Integer, List<Integer>> by = new HashMap<>();
+        POOL.codePoints().forEach(cp -> by.computeIfAbsent(Math.round(charWidth(cp, font) / font.scale() * 2), w -> new java.util.ArrayList<>()).add(cp));
+        Map<Integer, int[]> out = new HashMap<>();
+        by.forEach((w, cps) -> out.put(w, cps.stream().mapToInt(Integer::intValue).toArray()));
+        return out;
+    }
+
+    private static final String POOL = "!#$%&()*+-/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz{|}~"
+            + "的一是不了在人有我他这个们中来上大为和国地到以说时要就出会可也你对生能而子那得于着下自之年过发后作里用道行所然家种事成方多经么去法学如都同现当没动面起看定天分还进好小部其些主样理心";
+    private final Map<Key, Map<Integer, int[]>> obfuscatePools = new HashMap<>();
+
     /** Forgets resolved fonts; resource packs may have added or removed some. */
     public void clearCache() {
         styles.clear();
         knownFonts.clear();
+        obfuscatePools.clear();
         generation++;
     }
 

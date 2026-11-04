@@ -132,6 +132,8 @@ public enum Prop {
     TRANSFORM_ORIGIN_X("-oriel-transform-origin-x", false, false, Interp.LENGTH, s -> s.transformOriginX, (s, v) -> s.transformOriginX = (Length) v),
     TRANSFORM_ORIGIN_Y("-oriel-transform-origin-y", false, false, Interp.LENGTH, s -> s.transformOriginY, (s, v) -> s.transformOriginY = (Length) v),
     TINT("-mc-tint", true, false, Interp.COLOR, s -> s.tint, (s, v) -> s.tint = (Integer) v),
+    /** {@code -mc-obfuscated: on}: Minecraft's §k text, every glyph swapped for a random one of the same width each frame. */
+    OBFUSCATED("-mc-obfuscated", true, false, Interp.DISCRETE, s -> s.obfuscated, (s, v) -> s.obfuscated = (Boolean) v),
     MODEL_YAW("-mc-yaw", false, false, Interp.FLOAT, s -> s.modelYaw, (s, v) -> s.modelYaw = (Float) v),
     MODEL_PITCH("-mc-pitch", false, false, Interp.FLOAT, s -> s.modelPitch, (s, v) -> s.modelPitch = (Float) v),
     /** {@code -mc-roll}: tips a block group in a {@code <scene>} about the z axis. */

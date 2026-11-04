@@ -32,7 +32,8 @@ public final class TextPainter {
     /** {@link #draw} snapping to {@code devicePixel}, which the painter tracks per transform. */
     static void draw(Canvas canvas, String text, SpacedText spaced, float x, float y, FontSpec font,
                      ComputedStyle s, int color, float devicePixel) {
-        int decorations = (s.underline ? Canvas.UNDERLINE : 0) | (s.lineThrough ? Canvas.STRIKETHROUGH : 0);
+        int decorations = (s.underline ? Canvas.UNDERLINE : 0) | (s.lineThrough ? Canvas.STRIKETHROUGH : 0)
+                | (s.obfuscated ? Canvas.OBFUSCATED : 0);
         boolean nativeShadow = false;
         for (int i = s.textShadow.size() - 1; i >= 0; i--) {
             Shadow shadow = s.textShadow.get(i);

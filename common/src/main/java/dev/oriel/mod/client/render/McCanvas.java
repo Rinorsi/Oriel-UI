@@ -217,6 +217,7 @@ public final class McCanvas implements Canvas {
         int c = color(argb);
         if (text.isEmpty() || !McGui.textVisible(c)) return;
         McFontMetrics fonts = McFontMetrics.INSTANCE;
+        if ((decorations & Canvas.OBFUSCATED) != 0) text = fonts.obfuscate(text, font);
         gui.text(m, x, y, font.scale(), fonts.sequence(text, fonts.style(font, decorations)), c, shadow);
     }
 

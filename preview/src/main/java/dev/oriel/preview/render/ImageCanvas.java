@@ -214,7 +214,27 @@ public final class ImageCanvas implements Canvas {
     public void drawText(String text, float x, float y, FontSpec spec, int argb, int decorations, boolean shadow) {
         textSink.x = x;
         textSink.y = y;
-        font.draw(text, spec, modulate(argb), decorations, shadow, textSink);
+        font.draw((decorations & Canvas.OBFUSCATED) != 0 ? scramble(text) : text, spec, modulate(argb), decorations, shadow, textSink);
+    }
+
+    /**
+     * Obfuscated text for a still image: each letter or digit becomes another (the same for the same text, so
+     * previews compare), CJK becomes a CJK character; spaces stay.
+     */
+    static String scramble(String text) {
+        String latin = "ABCDEFGHJKLMNOPRSTUVWXYZabdeghknopqrsuvwxyz0123456789";
+        StringBuilder out = new StringBuilder(text.length());
+        int seed = text.hashCode();
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            i += Character.charCount(cp);
+            seed = seed * 1103515245 + 12345;
+            int pick = (seed >>> 8) & 0xFFFF;
+            if (Character.isWhitespace(cp)) out.appendCodePoint(cp);
+            else if (cp >= 0x4E00 && cp <= 0x9FFF) out.appendCodePoint(0x4E00 + pick % 0x5000);
+            else out.append(latin.charAt(pick % latin.length()));
+        }
+        return out.toString();
     }
 
     /** Unknown textures draw the missing texture. */

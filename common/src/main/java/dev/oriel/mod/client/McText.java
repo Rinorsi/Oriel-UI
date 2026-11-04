@@ -20,7 +20,7 @@ import java.util.Optional;
 
 /**
  * Chat components for {@code <mc-text json>} ({@link Host#formatText}): the component's text (translations
- * resolved), as runs styled with CSS for its colour, bold, italic, underline, strikethrough and font. The engine
+ * resolved), as runs styled with CSS for its colour, bold, italic, underline, strikethrough, obfuscation and font. The engine
  * turns the runs into the element's children. {@code title-json} tooltips parse the same way ({@link #component}), and
  * come apart into lines at newlines ({@link #lines}).
  */
@@ -74,6 +74,7 @@ final class McText {
         if (style.getColor() != null) css.append("color:").append(CssColors.serialize(0xFF000000 | style.getColor().getValue())).append(';');
         if (style.isBold()) css.append("font-weight:bold;");
         if (style.isItalic()) css.append("font-style:italic;");
+        if (style.isObfuscated()) css.append("-mc-obfuscated:on;");
         if (style.isUnderlined() || style.isStrikethrough()) {
             css.append("text-decoration:").append(style.isUnderlined() ? "underline " : "").append(style.isStrikethrough() ? "line-through" : "").append(';');
         }

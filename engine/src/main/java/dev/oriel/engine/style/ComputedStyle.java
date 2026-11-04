@@ -109,6 +109,8 @@ public final class ComputedStyle implements Cloneable {
      * same for text). They map onto Minecraft's underline and strikethrough styles.
      */
     public boolean underline, lineThrough;
+    /** Minecraft's obfuscated text ({@code -mc-obfuscated}, §k); inherited like the decorations. */
+    public boolean obfuscated;
     public WhiteSpace whiteSpace = WhiteSpace.NORMAL;
     public WordBreak wordBreak = WordBreak.NORMAL;
     public TextOverflow textOverflow = TextOverflow.CLIP;
@@ -239,6 +241,7 @@ public final class ComputedStyle implements Cloneable {
         textTransform = parent.textTransform;
         underline = parent.underline;
         lineThrough = parent.lineThrough;
+        obfuscated = parent.obfuscated;
         whiteSpace = parent.whiteSpace;
         wordBreak = parent.wordBreak;
         textShadow = parent.textShadow;
@@ -266,7 +269,7 @@ public final class ComputedStyle implements Cloneable {
                 && same(lineHeight, o.lineHeight) && same(lineHeightFactor, o.lineHeightFactor)
                 && same(letterSpacing, o.letterSpacing) && same(wordSpacing, o.wordSpacing)
                 && same(textIndent, o.textIndent) && textAlign == o.textAlign && textTransform == o.textTransform
-                && underline == o.underline && lineThrough == o.lineThrough && whiteSpace == o.whiteSpace
+                && underline == o.underline && lineThrough == o.lineThrough && obfuscated == o.obfuscated && whiteSpace == o.whiteSpace
                 && wordBreak == o.wordBreak && textShadow.equals(o.textShadow) && cursor == o.cursor
                 && pointerEvents == o.pointerEvents && userSelect == o.userSelect
                 && imageRendering == o.imageRendering && accentColor == o.accentColor && tint == o.tint
@@ -333,7 +336,7 @@ public final class ComputedStyle implements Cloneable {
                 && visibility == o.visibility && objectFit == o.objectFit
                 && objectPositionX.equals(o.objectPositionX) && objectPositionY.equals(o.objectPositionY)
                 && color == o.color && same(lineHeightFactor, o.lineHeightFactor) && underline == o.underline
-                && lineThrough == o.lineThrough && textOverflow == o.textOverflow && textShadow.equals(o.textShadow)
+                && lineThrough == o.lineThrough && obfuscated == o.obfuscated && textOverflow == o.textOverflow && textShadow.equals(o.textShadow)
                 && cursor == o.cursor && pointerEvents == o.pointerEvents && userSelect == o.userSelect
                 && imageRendering == o.imageRendering && accentColor == o.accentColor
                 && backgroundColor == o.backgroundColor && backgroundLayers.equals(o.backgroundLayers)

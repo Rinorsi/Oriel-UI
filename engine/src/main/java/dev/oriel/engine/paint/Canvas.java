@@ -15,7 +15,7 @@ import dev.oriel.engine.style.Shadow;
  */
 public interface Canvas {
     /** Text decoration flags for {@link #drawText}. */
-    int UNDERLINE = 1, STRIKETHROUGH = 2;
+    int UNDERLINE = 1, STRIKETHROUGH = 2, OBFUSCATED = 4;
 
     // ---- State ----
 
