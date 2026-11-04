@@ -106,7 +106,7 @@ public final class MusicPreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "prev"), e -> skip(-1));
         Dom.onClick(Dom.byId(doc, "next"), e -> skip(1));
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
+        Dom.onClick(Dom.byId(doc, "back"), e -> Shell.back(doc));
         Shell.activate(Dom.byId(doc, "mini-play"), this::toggle);
         Shell.activate(Dom.byId(doc, "mini"), () -> screen.addClass("mini"));
         Shell.activate(Dom.byId(doc, "expand"), () -> screen.removeClass("mini"));

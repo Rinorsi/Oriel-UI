@@ -209,6 +209,10 @@ public final class DevAutopilot {
             presets(mc);
             return;
         }
+        if (ONLY.equals("home")) {
+            home(mc);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -920,6 +924,79 @@ public final class DevAutopilot {
         pause(165);
         grab(mc, "preset_hud_later", 5);
         steps.add(OrielClientCommands::togglePotionHud);
+    }
+
+    /**
+     * {@code -Pautopilot=home}: the launcher at a large and a small GUI (with a sword in hand, as in play mode), the
+     * title bar tabs mid-transition and after, and the window mode switch.
+     */
+    private static void home(Minecraft mc) {
+        command(mc, "item replace entity @s weapon.mainhand with minecraft:diamond_sword[minecraft:enchantments={\"minecraft:sharpness\":5}]");
+        command(mc, "effect give @s minecraft:speed 600 1 true");
+        guiScale(mc, 2);
+        shoot(mc, "home_gui2", () -> OrielClientCommands.preset("gallery"));
+        onPage("the catalog tab", p -> p.click(".o-apptabs [data-go=catalog]"));
+        pause(4);
+        grab(mc, "home_tab_mid", 1);
+        pause(20);
+        grab(mc, "home_tab_catalog", 5);
+        onPage("the segment demo", p -> {
+            p.click("#list .item[data-sec=tabs]");
+        });
+        pause(10);
+        onPage("a demo tab", p -> {
+            p.click(".sec.on .ore-tabs .ore-tab:nth-child(2)");
+            p.click("#seg-demo span:nth-child(3)");
+        });
+        pause(10);
+        grab(mc, "home_catalog_demo", 5);
+        onPage("the list jumps to a section", p -> p.click("#list .item[data-sec=models]"));
+        pause(30);
+        grab(mc, "home_catalog_jump", 5);
+        onPage("the select demo", p -> {
+            p.click("#list .item[data-sec=inputs]");
+        });
+        pause(30);
+        onPage("open the select", p -> p.click(".sec .ore-select .value"));
+        pause(8);
+        grab(mc, "home_catalog_select", 5);
+        onPage("pick an option", p -> p.click(".sec .ore-select .option:nth-child(2)"));
+        onPage("the window switch", p -> p.click("[data-action=window]"));
+        pause(20);
+        grab(mc, "home_catalog_mini", 5);
+        onPage("the home tab", p -> p.click(".o-apptabs [data-go=gallery]"));
+        pause(30);
+        grab(mc, "home_mini", 5);
+        onPage("maximize", p -> p.click("[data-action=window]"));
+        pause(10);
+        onPage("the editor tab", p -> p.click(".o-apptabs [data-go=editor]"));
+        pause(30);
+        onPage("new canvas", p -> p.click("#new"));
+        pause(12);
+        grab(mc, "home_editor_new", 5);
+        onPage("cancel", p -> p.click("#new-cancel"));
+        onPage("select the slot", p -> p.click(".node.k-slot"));
+        pause(4);
+        onPage("open the picker", p -> p.click("#picked"));
+        pause(10);
+        onPage("search", p -> {
+            p.click("#pick-q");
+            p.type("剑");
+        });
+        pause(12);
+        grab(mc, "home_editor_picker", 5);
+        onPage("close the picker", p -> p.key("Escape"));
+        shoot(mc, "home_inventory", () -> OrielClientCommands.preset("inventory"));
+        onPage("the effects tab", p -> p.click("#info-tabs [data-pane=effects]"));
+        pause(12);
+        grab(mc, "home_inventory_effects", 5);
+        guiScale(mc, 3);
+        shoot(mc, "home_gui3", () -> OrielClientCommands.preset("gallery"));
+        onPage("light", p -> p.click("[data-theme-pick=light]"));
+        pause(10);
+        grab(mc, "home_gui3_light", 5);
+        onPage("dark", p -> p.click("[data-theme-pick=dark]"));
+        guiScale(mc, 2);
     }
 
     /** Play mode: things to try, the home page open, and a chat note on what to look at. */

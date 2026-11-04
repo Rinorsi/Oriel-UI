@@ -6,6 +6,7 @@ import dev.oriel.engine.event.KeyboardEvent;
 import dev.oriel.engine.event.MouseEvent;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.GameRegistry;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
 
@@ -28,7 +29,10 @@ import java.util.Set;
  * P to preview. "导出" shows the screen as HTML on the Ore theme.
  */
 public final class EditorPreset implements PageControllers.Controller {
-    static final int BOARD_W = 264, BOARD_H = 172, GRID = 4, SNAP_RANGE = 3;
+    static final int GRID = 4, SNAP_RANGE = 3;
+    /** New canvas sizes: a name and width x height in GUI pixels. */
+    static final String[][] SIZES = {{"默认", "264", "172"}, {"箱子", "176", "166"}, {"宽屏", "320", "200"},
+            {"全屏 · 小", "427", "240"}, {"全屏 · 中", "640", "360"}, {"弹窗", "200", "120"}};
 
     /** One part on the artboard. */
     static final class Part {
@@ -66,6 +70,15 @@ public final class EditorPreset implements PageControllers.Controller {
     final Set<Integer> selection = new LinkedHashSet<>();
     final Deque<List<Part>> undo = new ArrayDeque<>(), redo = new ArrayDeque<>();
     private int nextId = 1;
+    /** The artboard's size and the document's name (a new canvas sets both). */
+    int boardW = 264, boardH = 172;
+    String docName = "商店界面";
+    /** Ctrl+C / Ctrl+X copies, pasted by Ctrl+V (kept across documents, like a clipboard). */
+    private static final List<Part> clipboard = new ArrayList<>();
+    private int pastes;
+    /** The part whose item the picker is choosing, and the picker's filter. */
+    private Part picking;
+    private String pickKind = "all";
     boolean snap = true, preview;
     private String filter = "";
 
@@ -124,15 +137,190 @@ public final class EditorPreset implements PageControllers.Controller {
         Shell.activate(Dom.byId(doc, "export"), this::export);
         Shell.activate(Dom.byId(doc, "export-close"), () -> Dom.byId(doc, "export-box").removeClass("on"));
         Shell.activate(Dom.byId(doc, "close"), () -> doc.host().close());
-        Shell.activate(Dom.byId(doc, "back"), () -> doc.navigate(OrielKit.GALLERY));
+        Shell.activate(Dom.byId(doc, "new"), this::openNew);
+        Shell.activate(Dom.byId(doc, "keys"), () -> Dom.byId(doc, "keys-box").toggleClass("on"));
+        Shell.activate(Dom.byId(doc, "keys-close"), () -> Dom.byId(doc, "keys-box").removeClass("on"));
+        wireNew();
+        wirePicker();
         render();
     }
 
-    private record State(List<Part> parts, Set<Integer> selection, Deque<List<Part>> undo, Deque<List<Part>> redo, int nextId) {}
+    // ---- New canvas ----
+
+    private void wireNew() {
+        Element sizes = Dom.byId(doc, "new-sizes");
+        for (String[] size : SIZES) {
+            Element tile = Dom.el(doc, "div", "size o-tile hot", null);
+            tile.setAttribute("tabindex", "0");
+            tile.setAttribute("data-w", size[1]);
+            tile.setAttribute("data-h", size[2]);
+            // The shape at 1/16 scale, so the sizes compare at a glance.
+            Element shape = Dom.el(doc, "i", "shape", null);
+            new Dom.Style(shape).px("width", Integer.parseInt(size[1]) / 16f).px("height", Integer.parseInt(size[2]) / 16f).apply();
+            tile.appendChild(shape);
+            tile.appendChild(Dom.el(doc, "b", null, size[0]));
+            tile.appendChild(Dom.el(doc, "span", null, size[1] + " × " + size[2]));
+            Shell.activate(tile, () -> {
+                for (Element t : sizes.children()) t.toggleClass("sel", t == tile);
+                Dom.byId(doc, "new-w").setValue(size[1]);
+                Dom.byId(doc, "new-h").setValue(size[2]);
+            });
+            sizes.appendChild(tile);
+        }
+        Shell.activate(Dom.byId(doc, "new-cancel"), () -> Dom.byId(doc, "new-box").removeClass("on"));
+        Shell.activate(Dom.byId(doc, "new-ok"), () -> {
+            int w = parse(Dom.byId(doc, "new-w").value(), boardW), h = parse(Dom.byId(doc, "new-h").value(), boardH);
+            String name = Dom.byId(doc, "new-name").value().trim();
+            boolean withSample = Dom.byId(doc, "new-sample").hasClass("on");
+            Dom.byId(doc, "new-box").removeClass("on");
+            newCanvas(name.isEmpty() ? "未命名界面" : name, clamp(w, 64, 640), clamp(h, 48, 360), withSample);
+        });
+    }
+
+    void openNew() {
+        Dom.byId(doc, "new-name").setValue("新界面");
+        Dom.byId(doc, "new-w").setValue(Integer.toString(boardW));
+        Dom.byId(doc, "new-h").setValue(Integer.toString(boardH));
+        for (Element t : Dom.byId(doc, "new-sizes").children()) {
+            t.toggleClass("sel", t.getAttribute("data-w").equals(Integer.toString(boardW))
+                    && t.getAttribute("data-h").equals(Integer.toString(boardH)));
+        }
+        Dom.byId(doc, "new-box").addClass("on");
+        Dom.byId(doc, "new-name").focus();
+    }
+
+    /** Starts a new document: an empty artboard of this size (or the sample on it), with a fresh history. */
+    void newCanvas(String name, int w, int h, boolean withSample) {
+        parts.clear();
+        selection.clear();
+        undo.clear();
+        redo.clear();
+        nextId = 1;
+        boardW = w;
+        boardH = h;
+        docName = name;
+        if (withSample) sample();
+        render();
+        status("新建了「" + name + "」 · " + w + " × " + h);
+    }
+
+    private static int parse(String v, int fallback) {
+        try {
+            return Integer.parseInt(v.trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    // ---- Clipboard ----
+
+    void copy(boolean cut) {
+        if (selection.isEmpty()) return;
+        clipboard.clear();
+        for (Part p : selected()) clipboard.add(p.copy());
+        pastes = 0;
+        if (cut) {
+            checkpoint();
+            parts.removeIf(p -> selection.contains(p.id));
+            selection.clear();
+            render();
+        }
+        status((cut ? "剪切了 " : "复制了 ") + clipboard.size() + " 个组件");
+    }
+
+    void paste() {
+        if (clipboard.isEmpty()) return;
+        checkpoint();
+        int offset = 8 * ++pastes;
+        selection.clear();
+        for (Part c : clipboard) {
+            Part p = c.copy();
+            p.id = nextId++;
+            p.w = Math.min(p.w, boardW);
+            p.h = Math.min(p.h, boardH);
+            p.x = clamp(c.x + offset, 0, boardW - p.w);
+            p.y = clamp(c.y + offset, 0, boardH - p.h);
+            parts.add(p);
+            selection.add(p.id);
+        }
+        render();
+        status("粘贴了 " + clipboard.size() + " 个组件");
+    }
+
+    // ---- Item picker ----
+
+    static final int PICK_LIMIT = 120;
+
+    private void wirePicker() {
+        Dom.byId(doc, "pick-q").addEventListener("input", e -> renderPicker());
+        for (Element k : doc.querySelectorAll("#pick-kind [data-k]")) {
+            Shell.activate(k, () -> {
+                pickKind = k.getAttribute("data-k");
+                renderPicker();
+            });
+        }
+        Shell.activate(Dom.byId(doc, "pick-close"), this::closePicker);
+    }
+
+    /** Opens the picker for {@code p}'s item (a slot) or block (a 3D block), listing what the game has registered. */
+    void openPicker(Part p) {
+        picking = p;
+        GameRegistry.refresh();
+        pickKind = p.kind.equals("block") ? "block" : "all";
+        for (Element k : doc.querySelectorAll("#pick-kind [data-k]")) k.toggleClass("on", k.getAttribute("data-k").equals(pickKind));
+        Dom.text(Dom.byId(doc, "pick-title"), p.kind.equals("block") ? "选择方块" : "选择物品");
+        Dom.byId(doc, "pick-q").setValue("");
+        Dom.text(Dom.byId(doc, "pick-hover"), "");
+        Dom.byId(doc, "pick-box").addClass("on");
+        Dom.byId(doc, "pick-q").focus();
+        renderPicker();
+    }
+
+    private void closePicker() {
+        picking = null;
+        Dom.byId(doc, "pick-box").removeClass("on");
+    }
+
+    private void renderPicker() {
+        Element grid = Dom.byId(doc, "pick-grid");
+        grid.removeAllChildren();
+        String query = Dom.byId(doc, "pick-q").value().trim().toLowerCase(Locale.ROOT);
+        int total = 0;
+        for (GameRegistry.Entry e : GameRegistry.entries()) {
+            if (pickKind.equals("block") && !e.block() || pickKind.equals("item") && e.block()) continue;
+            if (!e.matches(query)) continue;
+            if (++total > PICK_LIMIT) continue;
+            Element cell = Dom.el(doc, "div", "pick", null);
+            cell.setAttribute("data-id", e.id());
+            cell.toggleClass("on", picking != null && e.id().equals(picking.text));
+            Element item = Dom.el(doc, "item", null, null);
+            item.setAttribute("id", e.id());
+            cell.appendChild(item);
+            cell.appendChild(Dom.el(doc, "span", "nm", e.name()));
+            Dom.onMouse(cell, "mouseenter", ev -> Dom.text(Dom.byId(doc, "pick-hover"), e.name() + "  " + e.id()));
+            Shell.activate(cell, () -> choose(e));
+            grid.appendChild(cell);
+        }
+        Dom.text(Dom.byId(doc, "pick-count"), total == 0 ? "没有找到" : total > PICK_LIMIT
+                ? "共 " + total + " 个，显示前 " + PICK_LIMIT + " 个，继续输入可缩小范围" : "共 " + total + " 个");
+    }
+
+    private void choose(GameRegistry.Entry e) {
+        Part p = picking;
+        closePicker();
+        if (p == null) return;
+        edit(() -> p.text = e.id());
+        status("换成了 " + e.name());
+    }
+
+
+    private record State(List<Part> parts, Set<Integer> selection, Deque<List<Part>> undo, Deque<List<Part>> redo, int nextId,
+                         int boardW, int boardH, String docName) {}
 
     @Override
     public Object saveState() {
-        return new State(snapshot(), new LinkedHashSet<>(selection), new ArrayDeque<>(undo), new ArrayDeque<>(redo), nextId);
+        return new State(snapshot(), new LinkedHashSet<>(selection), new ArrayDeque<>(undo), new ArrayDeque<>(redo), nextId,
+                boardW, boardH, docName);
     }
 
     @Override
@@ -147,6 +335,9 @@ public final class EditorPreset implements PageControllers.Controller {
         redo.clear();
         redo.addAll(s.redo());
         nextId = s.nextId();
+        boardW = s.boardW();
+        boardH = s.boardH();
+        docName = s.docName();
         render();
     }
 
@@ -219,7 +410,7 @@ public final class EditorPreset implements PageControllers.Controller {
     void place(String kind, int x, int y) {
         checkpoint();
         int[] size = defaultSize(kind);
-        Part p = add(kind, clamp(snap(x - size[0] / 2), 0, BOARD_W - size[0]), clamp(snap(y - size[1] / 2), 0, BOARD_H - size[1]), size[0], size[1]);
+        Part p = add(kind, clamp(snap(x - size[0] / 2), 0, boardW - size[0]), clamp(snap(y - size[1] / 2), 0, boardH - size[1]), size[0], size[1]);
         selection.clear();
         selection.add(p.id);
         render();
@@ -282,8 +473,8 @@ public final class EditorPreset implements PageControllers.Controller {
             Part c = p.copy();
             c.id = nextId++;
             c.name = p.name + " 副本";
-            c.x = clamp(p.x + 8, 0, BOARD_W - p.w);
-            c.y = clamp(p.y + 8, 0, BOARD_H - p.h);
+            c.x = clamp(p.x + 8, 0, boardW - p.w);
+            c.y = clamp(p.y + 8, 0, boardH - p.h);
             parts.add(c);
             copies.add(c.id);
         }
@@ -298,8 +489,8 @@ public final class EditorPreset implements PageControllers.Controller {
         checkpoint();
         for (Part p : selected()) {
             if (p.locked) continue;
-            p.x = clamp(p.x + dx, 0, BOARD_W - p.w);
-            p.y = clamp(p.y + dy, 0, BOARD_H - p.h);
+            p.x = clamp(p.x + dx, 0, boardW - p.w);
+            p.y = clamp(p.y + dy, 0, boardH - p.h);
         }
         render();
     }
@@ -427,8 +618,8 @@ public final class EditorPreset implements PageControllers.Controller {
         for (Part p : selected()) {
             if (p.locked) continue;
             int[] po = origin.get(p.id);
-            p.x = clamp(po[0] + ddx, 0, BOARD_W - p.w);
-            p.y = clamp(po[1] + ddy, 0, BOARD_H - p.h);
+            p.x = clamp(po[0] + ddx, 0, boardW - p.w);
+            p.y = clamp(po[1] + ddy, 0, boardH - p.h);
         }
         renderBoard();
         renderInspector();
@@ -437,7 +628,7 @@ public final class EditorPreset implements PageControllers.Controller {
     /** Snaps a position to the nearest line within {@link #SNAP_RANGE}; returns {position, guide line or -1}. */
     private int[] guide(int pos, int size, boolean horizontal) {
         List<Integer> lines = new ArrayList<>();
-        lines.add((horizontal ? BOARD_W : BOARD_H) / 2);
+        lines.add((horizontal ? boardW : boardH) / 2);
         for (Part p : parts) {
             if (selection.contains(p.id) || !p.visible) continue;
             int a = horizontal ? p.x : p.y, s = horizontal ? p.w : p.h;
@@ -475,8 +666,8 @@ public final class EditorPreset implements PageControllers.Controller {
             h = snap(h);
         }
         moved = true;
-        p.w = clamp(w, 4, BOARD_W - p.x);
-        p.h = clamp(h, 4, BOARD_H - p.y);
+        p.w = clamp(w, 4, boardW - p.x);
+        p.h = clamp(h, 4, boardH - p.y);
         renderBoard();
         renderInspector();
     }
@@ -486,9 +677,9 @@ public final class EditorPreset implements PageControllers.Controller {
             ghost.removeClass("on");
             float[] r = board.getBoundingClientRect(), at = boardPoint(e);
             boolean onBoard = at[0] >= 0 && at[1] >= 0 && at[0] < r[2] && at[1] < r[3];
-            if (!moved) place(placing, BOARD_W / 2, BOARD_H / 2);
+            if (!moved) place(placing, boardW / 2, boardH / 2);
             else if (onBoard) place(placing, Math.round(at[0]), Math.round(at[1]));
-        } else if ((gesture == Gesture.MOVE || gesture == Gesture.RESIZE) && moved) {
+        } else if ((gesture == Gesture.MOVE || gesture == Gesture.RESIZE) && moved && changedSince(before)) {
             undo.push(before);
             redo.clear();
             status(gesture == Gesture.MOVE ? "移动了 " + selection.size() + " 个组件" : "调整了大小");
@@ -499,11 +690,30 @@ public final class EditorPreset implements PageControllers.Controller {
         guideH.removeClass("on");
     }
 
+    /** Whether any part's box differs from {@code state} (a press that snapped back to where it was is no edit). */
+    private boolean changedSince(List<Part> state) {
+        if (state.size() != parts.size()) return true;
+        for (Part old : state) {
+            Part now = find(old.id);
+            if (now == null || now.x != old.x || now.y != old.y || now.w != old.w || now.h != old.h) return true;
+        }
+        return false;
+    }
+
     // ---- Keys ----
 
     private void key(KeyboardEvent e) {
         Element focus = doc.focusedElement();
-        if (focus != null && focus.isTextControl()) return;
+        if (focus != null && focus.isTextControl()) {
+            if (e.key.equals("Escape") && doc.querySelector(".m-modal.on") != null) {
+                doc.querySelector(".m-modal.on").removeClass("on");
+                picking = null;
+                e.preventDefault();
+            }
+            return;
+        }
+        // With a dialog open, only Escape and the shortcut sheet reach the artboard.
+        if (doc.querySelector(".m-modal.on") != null && !e.key.equals("Escape") && !e.key.equals("F1")) return;
         boolean ctrl = e.modifiers.ctrl() || e.modifiers.meta();
         int step = e.modifiers.shift() ? GRID : 1;
         boolean handled = true;
@@ -521,6 +731,27 @@ public final class EditorPreset implements PageControllers.Controller {
                 if (ctrl) duplicate();
                 else handled = false;
             }
+            case "c", "C" -> {
+                if (ctrl) copy(false);
+                else handled = false;
+            }
+            case "x", "X" -> {
+                if (ctrl) copy(true);
+                else handled = false;
+            }
+            case "v", "V" -> {
+                if (ctrl) paste();
+                else handled = false;
+            }
+            case "n", "N" -> {
+                if (ctrl) openNew();
+                else handled = false;
+            }
+            case "s", "S" -> {
+                if (ctrl) export();
+                else handled = false;
+            }
+            case "F1", "?" -> Dom.byId(doc, "keys-box").toggleClass("on");
             case "a", "A" -> {
                 if (!ctrl) handled = false;
                 else {
@@ -531,8 +762,14 @@ public final class EditorPreset implements PageControllers.Controller {
             }
             case "Delete", "Backspace" -> delete();
             case "Escape" -> {
-                selection.clear();
-                render();
+                Element open = doc.querySelector(".m-modal.on");
+                if (open != null) {
+                    open.removeClass("on");
+                    picking = null;
+                } else {
+                    selection.clear();
+                    render();
+                }
             }
             case "ArrowLeft" -> nudge(-step, 0);
             case "ArrowRight" -> nudge(step, 0);
@@ -547,6 +784,9 @@ public final class EditorPreset implements PageControllers.Controller {
     // ---- View ----
 
     void render() {
+        new Dom.Style(board).px("width", boardW).px("height", boardH).apply();
+        Dom.text(Dom.byId(doc, "board-label"), docName + " · " + boardW + " × " + boardH);
+        Dom.text(Dom.byId(doc, "doc-name"), "/ " + docName);
         renderBoard();
         renderTree();
         renderInspector();
@@ -603,6 +843,7 @@ public final class EditorPreset implements PageControllers.Controller {
             row.setAttribute("data-id", Integer.toString(p.id));
             row.appendChild(icon(KIND_ICONS.getOrDefault(p.kind, "layers"), "o-ico"));
             row.appendChild(Dom.el(doc, "span", "nm", p.name));
+            if (p.kind.equals("slot") || p.kind.equals("block")) row.setAttribute("title", GameRegistry.name(p.text) + " · " + p.text);
             Element eye = icon(p.visible ? "eye" : "minus", "o-ico tg" + (p.visible ? "" : " on"));
             Element lock = icon(p.locked ? "lock" : "unlock", "o-ico tg" + (p.locked ? " on" : ""));
             row.appendChild(eye);
@@ -641,7 +882,7 @@ public final class EditorPreset implements PageControllers.Controller {
         if (sel.isEmpty()) {
             inspector.appendChild(Dom.el(doc, "div", "empty-sel", "在画板上点选组件，或从左侧拖入新组件。"));
             inspector.appendChild(Dom.el(doc, "div", "o-caps", "画板"));
-            inspector.appendChild(Dom.el(doc, "div", "empty-sel", BOARD_W + " × " + BOARD_H + " · " + parts.size() + " 个组件"));
+            inspector.appendChild(Dom.el(doc, "div", "empty-sel", boardW + " × " + boardH + " · " + parts.size() + " 个组件"));
             return;
         }
         Part p = sel.getFirst();
@@ -651,13 +892,13 @@ public final class EditorPreset implements PageControllers.Controller {
         inspector.appendChild(kind);
         inspector.appendChild(field("名称", p.name, v -> p.name = v));
         Element pos = Dom.el(doc, "div", "pair", null);
-        pos.appendChild(number("X", p.x, v -> p.x = clamp(v, 0, BOARD_W - p.w)));
-        pos.appendChild(number("Y", p.y, v -> p.y = clamp(v, 0, BOARD_H - p.h)));
-        pos.appendChild(number("宽", p.w, v -> p.w = clamp(v, 4, BOARD_W - p.x)));
-        pos.appendChild(number("高", p.h, v -> p.h = clamp(v, 4, BOARD_H - p.y)));
+        pos.appendChild(number("X", p.x, v -> p.x = clamp(v, 0, boardW - p.w)));
+        pos.appendChild(number("Y", p.y, v -> p.y = clamp(v, 0, boardH - p.h)));
+        pos.appendChild(number("宽", p.w, v -> p.w = clamp(v, 4, boardW - p.x)));
+        pos.appendChild(number("高", p.h, v -> p.h = clamp(v, 4, boardH - p.y)));
         inspector.appendChild(pos);
         if (List.of("button", "title", "text").contains(p.kind)) inspector.appendChild(field("文字", p.text, v -> p.text = v));
-        if (List.of("slot", "block").contains(p.kind)) inspector.appendChild(field("ID", p.text, v -> p.text = v));
+        if (List.of("slot", "block").contains(p.kind)) inspector.appendChild(picked(p));
         if (p.kind.equals("button")) {
             inspector.appendChild(Dom.el(doc, "div", "o-caps", "样式"));
             Element seg = Dom.el(doc, "div", "o-seg", null);
@@ -715,6 +956,23 @@ public final class EditorPreset implements PageControllers.Controller {
         render();
     }
 
+    /** The item a slot or block shows: its icon, the game's name for it and the id; a press opens the picker. */
+    private Element picked(Part p) {
+        Element card = Dom.el(doc, "div", "picked o-tile hot", null);
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("id", "picked");
+        Element item = Dom.el(doc, "item", null, null);
+        item.setAttribute("id", p.text);
+        card.appendChild(item);
+        Element words = Dom.el(doc, "div", "words", null);
+        words.appendChild(Dom.el(doc, "b", null, GameRegistry.name(p.text)));
+        words.appendChild(Dom.el(doc, "span", null, p.text));
+        card.appendChild(words);
+        card.appendChild(icon("search", "o-ico"));
+        Shell.activate(card, () -> openPicker(p));
+        return card;
+    }
+
     private Element field(String label, String value, java.util.function.Consumer<String> apply) {
         Element f = Dom.el(doc, "div", "field", null);
         f.appendChild(Dom.el(doc, "label", null, label));
@@ -758,7 +1016,7 @@ public final class EditorPreset implements PageControllers.Controller {
     String html() {
         StringBuilder b = new StringBuilder();
         b.append("<!doctype html>\n<html>\n<head>\n<link rel=\"stylesheet\" href=\"ore.css\">\n<style>\n")
-                .append(".screen { position: relative; width: ").append(BOARD_W).append("px; height: ").append(BOARD_H).append("px; }\n")
+                .append(".screen { position: relative; width: ").append(boardW).append("px; height: ").append(boardH).append("px; }\n")
                 .append(".screen > * { position: absolute; display: flex; align-items: center; }\n</style>\n</head>\n<body>\n")
                 .append("<div class=\"o-app\">\n  <div class=\"screen\">\n");
         for (Part p : parts) {

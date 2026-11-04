@@ -7,8 +7,9 @@
 /* A small layout editor made of the kit's own parts: the component library and the layer tree on the left, the
    artboard on a dotted grid in the middle (drag to move, the corner handle resizes, everything snaps to 4px), the
    inspector on the right, and a status bar. EditorPreset holds the document model, the selection and the history. */
-.o-window { width: 632px; height: 350px; }
 .toolbar { display: flex; align-items: center; gap: 2px; }
+/* The document name is on the artboard; the title bar keeps the tabs and the tools. */
+.o-titlebar .o-crumb { display: none; }
 .toolbar .ore-btn { min-height: 18px; }
 .toolbar .ore-btn.icon { min-width: 18px; }
 .toolbar .sep { width: 1px; height: 14px; margin: 0 3px; background: var(--o-line-strong); box-shadow: 1px 0 0 var(--o-line); }
@@ -84,6 +85,42 @@
     border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
 .status b { color: var(--o-text-dim); font-weight: normal; }
 
+/* The picked item in the inspector: its icon, the game's name, the id. */
+.picked { display: flex; align-items: center; gap: 5px; padding: 3px 4px; cursor: pointer; -mc-tint: var(--o-text-faint); }
+.picked item { width: 16px; height: 16px; flex: none; }
+.picked .words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.picked .words b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picked .words span { color: var(--o-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picked:hover { -mc-tint: var(--o-accent-strong); }
+
+/* Dialogs: new canvas, the item picker, the shortcut sheet. */
+.m-modal { background: rgba(0, 0, 0, 0.55); }
+.dlg { width: 260px; max-height: calc(100% - 16px); display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+.dlg .head { display: flex; align-items: center; gap: 4px; color: var(--o-text); }
+.dlg .field.wide > label { width: 26px; }
+.dlg .field .o-seg { flex: 1; }
+.dlg .field .o-seg > span { flex: 1; justify-content: center; }
+.dlg .actions { display: flex; justify-content: flex-end; gap: 4px; }
+.sizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+.sizes .size { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 2px 4px; color: var(--o-text-dim); }
+.sizes .size .shape { height: 10px; border: 1px solid var(--o-text-faint); margin-bottom: 2px; }
+.sizes .size b { font-weight: normal; color: var(--o-text); }
+.sizes .size span { color: var(--o-text-faint); }
+.sizes .size.sel .shape { border-color: var(--o-accent-strong); }
+.dlg.picker { width: 340px; height: calc(100% - 24px); max-height: 300px; }
+.pick-bar { display: flex; gap: 4px; }
+.pick-bar .search { flex: 1; }
+.pick-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 2px; align-content: start; }
+.pick { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px 3px; cursor: pointer; background: var(--o-well);
+    border: 1px solid transparent; color: var(--o-text-dim); }
+.pick item { width: 16px; height: 16px; }
+.pick .nm { width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick:hover { background: var(--o-line); color: var(--o-text); }
+.pick.on { border-color: var(--o-accent-strong); color: var(--o-text); }
+.pick-foot { display: flex; gap: 6px; color: var(--o-text-faint); }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; color: var(--o-text-dim); }
+.keys > div { display: flex; gap: 2px; }
+
 /* Small windows: the artboard keeps its size; the library and inspector make way. */
 @media (max-width: 600px) {
     .left, .inspector { display: none; }
@@ -100,11 +137,18 @@
 <div class="o-app" id="app">
   <div class="o-window">
     <div class="o-titlebar">
-      <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
-      <img class="o-mark" src="../textures/icons/layers.png">
-      <h1>组件编辑器</h1><span class="o-crumb" id="doc-name">/ 商店界面</span>
+      <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
+      <div class="o-apptabs">
+        <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
+        <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
+        <div class="on" data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
+        <i class="m-indicator"></i>
+      </div>
+      <span class="o-crumb" id="doc-name">/ 商店界面</span>
       <div class="o-grow"></div>
       <div class="toolbar">
+        <div class="ore-btn icon" id="new" tabindex="0" title="新建画布 Ctrl+N"><img class="o-ico" src="../textures/icons/plus.png"></div>
+        <span class="sep"></span>
         <div class="ore-btn icon" id="undo" tabindex="0" title="撤销 Ctrl+Z"><img class="o-ico" src="../textures/icons/undo.png"></div>
         <div class="ore-btn icon" id="redo" tabindex="0" title="重做 Ctrl+Y"><img class="o-ico" src="../textures/icons/redo.png"></div>
         <span class="sep"></span>
@@ -114,6 +158,7 @@
         <div class="ore-btn icon" id="snap" tabindex="0" title="吸附网格"><img class="o-ico" src="../textures/icons/grid.png"></div>
         <div class="ore-btn icon" id="preview" tabindex="0" title="预览 P"><img class="o-ico" src="../textures/icons/eye.png"></div>
         <span class="sep"></span>
+        <div class="ore-btn icon" id="keys" tabindex="0" title="快捷键 F1"><img class="o-ico" src="../textures/icons/keyboard.png"></div>
         <div class="ore-btn primary" id="export" tabindex="0"><img class="o-ico" src="../textures/icons/file.png">导出</div>
       </div>
       <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
@@ -137,7 +182,7 @@
       </div>
       <div class="viewport" id="viewport">
         <div class="board" id="board">
-          <span class="board-label">界面 · 264 × 172</span>
+          <span class="board-label" id="board-label"></span>
           <div class="guide v" id="guide-v"></div>
           <div class="guide h" id="guide-h"></div>
         </div>
@@ -150,10 +195,54 @@
       <span>历史 <b id="history">0</b></span>
       <span class="o-accent" id="msg"></span>
       <div class="o-grow"></div>
-      <span>Ctrl+点击 多选 · 方向键 微调 · Ctrl+A 全选</span>
+      <span><span class="o-kbd">F1</span> 快捷键</span>
     </div>
   </div>
   <div class="ghost" id="ghost"></div>
+  <div class="m-modal" id="new-box">
+    <div class="dlg ore-panel">
+      <div class="head"><img class="o-ico" src="../textures/icons/plus.png"><span>新建画布</span></div>
+      <div class="field wide"><label>名称</label><input class="ore-field" id="new-name"></div>
+      <div class="sizes" id="new-sizes"></div>
+      <div class="pair"><div class="field"><label>宽</label><input class="ore-field" id="new-w"></div><div class="field"><label>高</label><input class="ore-field" id="new-h"></div></div>
+      <div class="field wide"><label>内容</label><div class="o-seg" id="new-start"><span class="on">空白</span><span id="new-sample">示例</span></div></div>
+      <div class="actions"><div class="ore-btn secondary" id="new-cancel" tabindex="0">取消</div><div class="ore-btn primary" id="new-ok" tabindex="0">创建</div></div>
+    </div>
+  </div>
+  <div class="m-modal" id="pick-box">
+    <div class="dlg picker ore-panel">
+      <div class="head"><img class="o-ico" src="../textures/icons/gem.png"><span id="pick-title">选择物品</span><div class="o-grow"></div>
+        <div class="ore-btn icon" id="pick-close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
+      <div class="pick-bar">
+        <div class="search"><input class="ore-field" id="pick-q" placeholder="搜索名称或 ID"><img class="o-ico" src="../textures/icons/search.png"></div>
+        <div class="o-seg" id="pick-kind"><span class="on" data-k="all">全部</span><span data-k="block">方块</span><span data-k="item">物品</span></div>
+      </div>
+      <div class="pick-grid" id="pick-grid"></div>
+      <div class="pick-foot"><span id="pick-count"></span><div class="o-grow"></div><span id="pick-hover"></span></div>
+    </div>
+  </div>
+  <div class="m-modal" id="keys-box">
+    <div class="dlg ore-panel">
+      <div class="head"><img class="o-ico" src="../textures/icons/keyboard.png"><span>快捷键</span><div class="o-grow"></div>
+        <div class="ore-btn icon" id="keys-close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
+      <div class="keys">
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">N</span></div><span>新建画布</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">S</span></div><span>导出 HTML</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">Z</span></div><span>撤销</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">Y</span></div><span>重做</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">C</span></div><span>复制</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">X</span></div><span>剪切</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">V</span></div><span>粘贴</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">D</span></div><span>原地复制一份</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">A</span></div><span>全选</span>
+        <div><span class="o-kbd">Delete</span></div><span>删除</span>
+        <div><span class="o-kbd">←</span><span class="o-kbd">→</span><span class="o-kbd">↑</span><span class="o-kbd">↓</span></div><span>微调 1px（加 Shift 4px）</span>
+        <div><span class="o-kbd">Ctrl</span><span class="o-kbd">点击</span></div><span>加选</span>
+        <div><span class="o-kbd">P</span></div><span>预览</span>
+        <div><span class="o-kbd">Esc</span></div><span>取消选择 / 关闭弹窗</span>
+      </div>
+    </div>
+  </div>
   <div class="export" id="export-box">
     <div class="box ore-panel">
       <div class="head"><img class="o-ico" src="../textures/icons/file.png"><span>导出的 HTML</span><div class="o-grow"></div>

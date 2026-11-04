@@ -4,248 +4,190 @@
 <title>优易库 · Oriel UI</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* The launcher, full screen: a slim top bar, then a bento grid of tiles of different sizes, each a live piece of
-   the kit. The hero is a 3D cottage that builds itself and turns; the inventory tile is the player, following the
-   pointer; music and the HUD tiles run; the numbers count up. Every tile has the pointer spotlight and opens its
-   screen with the zoom transition. */
-.home { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 10px;
-    background: radial-gradient(ellipse at 30% 0%, rgba(120, 80, 220, 0.20), rgba(0, 0, 0, 0) 55%),
-        radial-gradient(ellipse at 100% 100%, rgba(60, 133, 39, 0.16), rgba(0, 0, 0, 0) 50%),
-        linear-gradient(rgba(10, 10, 14, 0.72), rgba(6, 6, 9, 0.9)); }
-[data-theme=light] .home { background: radial-gradient(ellipse at 30% 0%, rgba(150, 110, 240, 0.22), rgba(0, 0, 0, 0) 55%),
-    linear-gradient(rgba(214, 214, 220, 0.94), rgba(190, 190, 198, 0.96)); }
+/* The launcher, in the same window as every other page (moving between pages changes only the content). Left: the
+   hero, a pixel night landscape with the headline. Right: the
+   destinations, one row each, every row with a live preview that grows with the row, so a large GUI gets bigger
+   previews rather than empty tiles. */
 
-/* Top bar. */
-.top { flex: none; position: relative; display: flex; align-items: center; gap: 8px; height: 22px; animation: m-slide-right var(--m-slow) var(--m-out) both; }
-.brand { display: flex; align-items: center; gap: 5px; }
-.brand img { width: 16px; height: 16px; }
-.brand b { font-weight: normal; color: var(--o-text); }
-.brand span { color: var(--o-text-faint); }
-.nav { position: relative; display: flex; gap: 2px; margin-left: 10px; height: 22px; align-items: center; }
-.nav > div { display: flex; align-items: center; gap: 3px; height: 18px; padding: 0 6px; color: var(--o-text-faint); cursor: pointer; -mc-tint: var(--o-text-faint); transition: color 120ms; }
-.nav > div:hover { color: var(--o-text); -mc-tint: var(--o-text); }
-.nav > div.on { color: var(--o-text); -mc-tint: var(--o-accent-strong); }
-.top .o-grow { flex: 1; }
+/* Title bar: brand and tabs (shared with the other top-level pages), key hints, the look switches. */
+.o-seg > span { gap: 3px; }
 
-/* The grid. */
-.bento { flex: 1; min-height: 0; display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr; grid-template-rows: 1fr 1fr 0.9fr; gap: 6px; }
-.card { position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 7px; animation: m-pop var(--m-slow) var(--m-spring) both; }
-.card .label { position: relative; display: flex; align-items: center; gap: 4px; color: var(--o-text); }
-.card .label .o-ico { -mc-tint: var(--tier); }
-.card .sub { position: relative; color: var(--o-text-dim); line-height: 10px; }
-.card .go { position: absolute; right: 6px; top: 7px; opacity: 0; transform: translateX(-4px); transition: opacity 160ms, transform 160ms var(--m-out); -mc-tint: var(--tier); }
+.home-body { flex: 1; min-width: 0; display: flex; gap: 6px; padding: 6px; }
+
+/* Hero: one picture, a headline and two buttons, with room to breathe. The picture leaves the upper left open for
+   the words; it stays a night scene in both themes, so its text is always light. */
+.hero { flex: 1.35; min-width: 0; position: relative; overflow: hidden; background-color: #1b1838;
+    background-image: url(../textures/ui/hero_bg.png); background-size: cover; background-position: 78% 50%; image-rendering: pixelated;
+    animation: m-pop var(--m-slow) var(--m-spring) both; }
+.hero .scrim { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 0% 20%, rgba(14, 12, 34, 0.55), rgba(14, 12, 34, 0) 60%); }
+.hero .pitch { position: absolute; left: 7%; top: 13%; right: 30%; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+    animation: fx-rise 700ms var(--o-ease-out) 120ms both; }
+.hero .tag { color: #b9b2e0; letter-spacing: 1px; white-space: nowrap; }
+.hero .o-h1 { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
+.hero .o-h1 em { font-style: normal; color: #a8f2dc; }
+.hero .actions { display: flex; gap: 4px; margin-top: 4px; }
+.hero .actions .ore-btn { flex: none; white-space: nowrap; min-height: 18px; padding: 0 8px; }
+
+/* Destinations. */
+.dests { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 4px; }
+.card { position: relative; flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; gap: 6px; padding: 3px 3px 3px 6px;
+    animation: m-pop var(--m-slow) var(--m-spring) both; }
+.card .ic { flex: none; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: var(--o-well); border: 1px solid var(--o-line-strong); }
+.card .ic .o-ico { -mc-tint: var(--o-text-dim); transition: -mc-tint 160ms; }
+.card.hot:hover .ic .o-ico, .card.hot:focus .ic .o-ico { -mc-tint: var(--o-accent-strong); }
+.card .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.card .label { color: var(--o-text); }
+.card .sub { color: var(--o-text-dim); line-height: 10px; }
+/* The live preview: a recessed well at the row's right end, as tall as the row. */
+.card .thumb { position: relative; flex: none; align-self: stretch; width: 38%; overflow: hidden; background: var(--o-well); border: 1px solid var(--o-line); }
+.card .go { position: absolute; right: 4px; top: 50%; margin-top: -8px; opacity: 0; transform: translateX(-4px); transition: opacity 160ms, transform 160ms var(--m-out); -mc-tint: var(--o-text); }
 .card:hover .go { opacity: 1; transform: none; }
-.card .glow { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
-    background: radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--tier) 26%, transparent), rgba(0, 0, 0, 0) 65%); }
+.card:hover .thumb { border-color: var(--o-line-strong); }
 
-/* Hero: the cottage, a reading scrim, the pitch. */
-.hero { grid-column: 1 / 3; grid-row: 1 / 3; padding: 0; --tier: #c46aff; background: linear-gradient(#1c2238, #141018); }
-[data-theme=light] .hero { background: linear-gradient(#cfd8f2, #e7dcff); }
-.hero scene { position: absolute; left: 30%; top: -4%; width: 76%; height: 96%; -mc-pitch: 22deg; -mc-model-scale: 0.95; animation: spin 40s linear infinite; }
-@keyframes spin { from { -mc-yaw: -120deg; } to { -mc-yaw: 240deg; } }
-.hero block-group { animation: drop 900ms cubic-bezier(0.25, 0.8, 0.3, 1.15) both; }
-.hero #g-foundation { animation-delay: 300ms; }
-.hero #g-walls { animation-delay: 700ms; }
-.hero #g-inside { animation-delay: 1000ms; animation-name: rise; }
-.hero #g-roof-n { animation-delay: 1300ms; }
-.hero #g-roof-s { animation-delay: 1500ms; }
-.hero #g-chimney { animation-delay: 1800ms; animation-name: rise; }
-.hero #g-garden { animation-delay: 2100ms; animation-name: rise; }
-.hero #g-tree { animation-delay: 2400ms; animation-name: grow; animation-duration: 1100ms; }
-@keyframes drop { from { opacity: 0; -mc-translate: 0 5 0; } 45% { opacity: 1; } to { -mc-translate: 0 0 0; } }
-@keyframes rise { from { opacity: 0; -mc-translate: 0 -1.2 0; } to { opacity: 1; -mc-translate: 0 0 0; } }
-@keyframes grow { from { opacity: 0; -mc-translate: 0 -3 0; } 40% { opacity: 1; } }
-.hero .scrim { position: absolute; left: 0; top: 0; bottom: 0; width: 78%; pointer-events: none;
-    background: linear-gradient(to right, rgba(10, 8, 18, 0.92), rgba(10, 8, 18, 0.65) 55%, rgba(10, 8, 18, 0)); }
-[data-theme=light] .hero .scrim { background: linear-gradient(to right, rgba(236, 232, 248, 0.95), rgba(236, 232, 248, 0.7) 55%, rgba(236, 232, 248, 0)); }
-.hero .pitch { position: absolute; left: 12px; top: 12px; bottom: 12px; width: 196px; display: flex; flex-direction: column; gap: 6px; }
-.hero .eyebrow { display: flex; gap: 3px; }
-.hero .o-h1 { color: #ffffff; }
-.hero .o-h1 em { font-style: normal; color: #d9b8ff; }
-[data-theme=light] .hero .o-h1 { color: #2b2b2b; }
-[data-theme=light] .hero .o-h1 em { color: #6a35c9; }
-.hero .lede { color: #c9c3e6; line-height: 10px; }
-[data-theme=light] .hero .lede { color: #4a4a4a; }
-.hero .actions { display: flex; gap: 4px; margin-top: auto; }
-.hero .actions .ore-btn { min-height: 18px; padding: 0 7px; }
-.hero .badges { display: flex; gap: 6px; color: #a9a3c6; }
-[data-theme=light] .hero .badges { color: #5a5a5a; }
-.hero .badges span { display: flex; align-items: center; gap: 2px; }
-.hero .badges i { width: 4px; height: 4px; background: #86d562; box-shadow: 0 0 3px #6cc349; }
-
-/* Inventory: the player, tall. */
-.inv { grid-column: 3; grid-row: 1 / 3; --tier: #55c8ff; }
-.inv entity { position: absolute; left: 10%; top: 26px; width: 80%; bottom: 24px; -mc-model-scale: 1.3; }
-.inv .floor { position: absolute; left: 15%; right: 15%; bottom: 20px; height: 14px; pointer-events: none;
-    background: radial-gradient(ellipse, rgba(85, 200, 255, 0.35), rgba(0, 0, 0, 0) 70%); }
-.inv .sub { position: absolute; left: 7px; bottom: 7px; right: 7px; }
-
-/* Forge: the anvil and embers. */
-.forge { grid-column: 4; grid-row: 1; --tier: #ffb52b; }
-.forge model { position: absolute; right: 4px; bottom: 2px; width: 62px; height: 62px; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
+.inv entity { position: absolute; left: 0; top: 0; right: 0; bottom: 0; -mc-entity-focus: center; -mc-model-scale: 1.7; -mc-pitch: 6deg; }
+.forge model { position: absolute; left: 10%; top: 4%; width: 80%; height: 92%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
 .forge:hover model { -mc-yaw: 210deg; }
-.forge .sub { margin-top: auto; width: 55%; }
+.editor model { position: absolute; right: 2%; top: 8%; width: 40%; height: 84%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
+.editor:hover model { -mc-yaw: 210deg; }
 
-/* Music: a live spectrum. */
-.music { grid-column: 4; grid-row: 2; --tier: #c46aff; }
-.spectrum { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; margin-top: 4px; }
-.spectrum i { flex: 1; height: 30%; background: repeating-linear-gradient(to top, var(--c) 0 2px, rgba(0, 0, 0, 0) 2px 3px);
+.spectrum { position: absolute; left: 6px; right: 6px; top: 4px; bottom: 4px; display: flex; align-items: flex-end; gap: 2px; }
+.spectrum i { flex: 1; height: 30%; background: repeating-linear-gradient(to top, var(--o-accent-strong) 0 2px, rgba(0, 0, 0, 0) 2px 3px);
     animation: band 900ms ease-in-out infinite alternate; }
 @keyframes band { from { height: 15%; } to { height: 95%; } }
-.spectrum i:nth-child(1) { --c: #55c8ff; animation-delay: -0.1s; }
-.spectrum i:nth-child(2) { --c: #6eb8ff; animation-delay: -0.5s; }
-.spectrum i:nth-child(3) { --c: #88a6ff; animation-delay: -0.3s; }
-.spectrum i:nth-child(4) { --c: #a294ff; animation-delay: -0.8s; }
-.spectrum i:nth-child(5) { --c: #bb80ff; animation-delay: -0.2s; }
-.spectrum i:nth-child(6) { --c: #cf72f0; animation-delay: -0.6s; }
-.spectrum i:nth-child(7) { --c: #e066d0; animation-delay: -0.4s; }
-.spectrum i:nth-child(8) { --c: #f05cb4; animation-delay: -0.9s; }
-.spectrum i:nth-child(9) { --c: #ff5a9a; animation-delay: -0.15s; }
-.spectrum i:nth-child(10) { --c: #ff6a8a; animation-delay: -0.7s; }
+.spectrum i:nth-child(2) { animation-delay: -0.5s; }
+.spectrum i:nth-child(3) { animation-delay: -0.3s; }
+.spectrum i:nth-child(4) { animation-delay: -0.8s; }
+.spectrum i:nth-child(5) { animation-delay: -0.2s; }
+.spectrum i:nth-child(6) { animation-delay: -0.6s; }
+.spectrum i:nth-child(7) { animation-delay: -0.4s; }
+.spectrum i:nth-child(8) { animation-delay: -0.9s; }
 
-/* Row 3. */
-.hud { grid-column: 1; grid-row: 3; --tier: #6cc349; }
-.tiles { position: relative; display: flex; gap: 2px; margin-top: auto; }
-.tiles span { position: relative; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4);
-    border: 1px solid color-mix(in srgb, var(--k) 70%, #000000); }
-.tiles span img { width: 16px; height: 16px; }
-.tiles span i { position: absolute; left: 0; top: 0; right: 0; height: 0; background: rgba(0, 0, 0, 0.55); animation: drain 6s linear infinite; }
-@keyframes drain { to { height: 100%; } }
-.tiles span:nth-child(2) i { animation-duration: 9s; }
-.tiles span:nth-child(3) i { animation-duration: 4s; }
-.tiles span:nth-child(4) i { animation-duration: 12s; }
-.editor { grid-column: 2; grid-row: 3; --tier: #ff5a6a; }
-.editor model { position: absolute; right: 6px; bottom: 4px; width: 48px; height: 48px; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
-.editor:hover model { -mc-yaw: 210deg; }
-.editor .new { position: absolute; right: 6px; top: 6px; padding: 0 3px; background: #ca3636; color: #ffffff; }
-.editor:hover .new { opacity: 0; }
-.editor .sub, .settings .sub, .hud .sub { width: 62%; }
-.settings { grid-column: 3; grid-row: 3; --tier: #c9cacd; }
-.settings .toggles { position: relative; display: flex; flex-direction: column; gap: 3px; margin-top: auto; }
-.settings .toggles div { display: flex; align-items: center; justify-content: space-between; color: var(--o-text-dim); }
-.stats { grid-column: 4; grid-row: 3; --tier: #ffb52b; cursor: default; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 6px; }
-.stats .s { display: flex; flex-direction: column; justify-content: center; }
-.stats .v { color: var(--o-text); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
-.stats .k { color: var(--o-text-faint); }
+/* The game's own effect textures (any mod's effect has one at <namespace>:textures/mob_effect/<path>.png). */
+.effs { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; gap: 2px; }
+.effs span { position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--o-line-strong); }
+.effs span.good { border-bottom-color: #6cc349; }
+.effs span.bad { border-bottom-color: #e25a5a; }
+.effs img { width: 16px; height: 16px; }
 
-.bento > .card:nth-child(1) { animation-delay: 0ms; }
-.bento > .card:nth-child(2) { animation-delay: 60ms; }
-.bento > .card:nth-child(3) { animation-delay: 100ms; }
-.bento > .card:nth-child(4) { animation-delay: 140ms; }
-.bento > .card:nth-child(5) { animation-delay: 180ms; }
-.bento > .card:nth-child(6) { animation-delay: 220ms; }
-.bento > .card:nth-child(7) { animation-delay: 260ms; }
-.bento > .card:nth-child(8) { animation-delay: 300ms; }
+.mock { position: absolute; left: 4px; top: 4px; bottom: 4px; right: 44%;
+    background-image: repeating-linear-gradient(to right, var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px), repeating-linear-gradient(var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px); }
+.mock i { position: absolute; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
+.mock .a { left: 8%; top: 12%; width: 60%; height: 26%; }
+.mock .b { left: 8%; top: 50%; width: 26%; height: 38%; }
+.mock .c { left: 42%; top: 50%; width: 46%; height: 38%; border-color: var(--o-accent-strong); animation: nudge 3.2s var(--m-out) infinite; }
+@keyframes nudge { 0%, 40% { left: 42%; } 60%, 100% { left: 50%; } }
 
+.settings .thumb { display: flex; flex-direction: column; justify-content: center; gap: 3px; padding: 0 6px; }
+.settings .thumb div { display: flex; align-items: center; justify-content: space-between; color: var(--o-text-dim); }
+
+.dests > .card:nth-child(1) { animation-delay: 60ms; }
+.dests > .card:nth-child(2) { animation-delay: 100ms; }
+.dests > .card:nth-child(3) { animation-delay: 140ms; }
+.dests > .card:nth-child(4) { animation-delay: 180ms; }
+.dests > .card:nth-child(5) { animation-delay: 220ms; }
+.dests > .card:nth-child(6) { animation-delay: 260ms; }
+
+/* Small GUIs (427×240 is 1280×720 at GUI scale 3): icons only in the title bar, one line per row. */
+@media (max-width: 560px) {
+    .o-seg em { display: none; }
+}
+@media (max-width: 700px) { .o-hints { display: none; } }
+[data-window=mini] .o-hints { display: none; }
 @media (max-height: 300px) {
-    .card .sub, .hero .lede, .hero .badges, .stats { display: none; }
-    .bento { grid-template-rows: 1fr 1fr 0.7fr; }
+    .card .sub { display: none; }
+    .hero .pitch { left: 10px; top: 12px; right: 6px; gap: 6px; }
+    .settings .thumb div:nth-child(2) { display: none; }
+    .settings .thumb div { justify-content: center; font-size: 0; }
+    .effs span:nth-child(n+4) { display: none; }
+}
+/* Large GUIs, maximized (the window mode decides the room, not only the screen): a bigger headline, roomier rows. */
+@media (min-width: 760px) and (min-height: 400px) {
+    [data-window=max] .hero .pitch { gap: 12px; }
+    [data-window=max] .hero .o-h1 { font-size: 24px; line-height: 26px; }
+    [data-window=max] .card { gap: 8px; padding: 4px 4px 4px 8px; }
+    [data-window=max] .card .ic { width: 28px; height: 28px; }
+    [data-window=max] .effs span { width: 22px; height: 22px; }
 }
 </style>
 </head>
 <body>
 <div class="o-app">
-<div class="home" id="home">
-  <div class="top">
-    <div class="brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
-    <div class="nav" id="nav">
-      <div class="on" data-nav="home"><img class="o-ico" src="../textures/icons/home.png">首页</div>
-      <div data-go="catalog" data-zoom><img class="o-ico" src="../textures/icons/grid.png">组件与动效</div>
-      <div data-go="editor" data-zoom><img class="o-ico" src="../textures/icons/layers.png">编辑器</div>
+<div class="o-window" id="home">
+  <div class="o-titlebar">
+    <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
+    <div class="o-apptabs" id="nav">
+      <div class="on" data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
+      <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
+      <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
       <i class="m-indicator" id="indicator"></i>
     </div>
     <div class="o-grow"></div>
+    <div class="o-hints"><span><span class="o-kbd">T</span>主题</span><span><span class="o-kbd">Tab</span>焦点</span><span><span class="o-kbd">Esc</span>关闭</span></div>
     <div class="o-seg">
-      <span data-style-pick="ore" title="像素斜角"><img class="o-ico" src="../textures/icons/grid.png">像素</span>
-      <span data-style-pick="smooth" title="圆角与柔和阴影"><img class="o-ico" src="../textures/icons/layers.png">平滑</span>
+      <span data-style-pick="ore" title="像素斜角"><img class="o-ico" src="../textures/icons/grid.png"><em>像素</em></span>
+      <span data-style-pick="smooth" title="圆角与柔和阴影"><img class="o-ico" src="../textures/icons/layers.png"><em>平滑</em></span>
     </div>
     <div class="o-seg" id="theme-seg">
-      <span class="dark on" data-theme-pick="dark"><img class="o-ico" src="../textures/icons/moon.png">暗</span>
-      <span class="light" data-theme-pick="light"><img class="o-ico" src="../textures/icons/sun.png">亮</span>
+      <span class="dark on" data-theme-pick="dark" title="暗色"><img class="o-ico" src="../textures/icons/moon.png"><em>暗</em></span>
+      <span class="light" data-theme-pick="light" title="亮色"><img class="o-ico" src="../textures/icons/sun.png"><em>亮</em></span>
     </div>
     <div class="ore-btn icon" id="close" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
   </div>
 
-  <div class="bento" id="cards">
-    <div class="card hero o-tile m-spot">
-      <scene structure="oriel:structures/cottage.nbt">
-        <block-group id="g-foundation" x="2..8" y="1" z="2..8"></block-group>
-        <block-group id="g-inside" x="3..7" y="2..3" z="3..6"></block-group>
-        <block-group id="g-walls" x="2..8" y="2..4" z="2..8"></block-group>
-        <block-group id="g-chimney" x="7" y="5..10" z="3"></block-group>
-        <block-group id="g-roof-n" x="1..9" y="5..9" z="1..4"></block-group>
-        <block-group id="g-roof-s" x="1..9" y="5..9" z="5..8"></block-group>
-        <block-group id="g-garden" x="0..13" y="1" z="8..10"></block-group>
-        <block-group id="g-tree" x="10..13" y="1..9" z="0..7"></block-group>
-      </scene>
-      <canvas class="fx" data-fx="stars" data-rate="3" data-seed="11"></canvas>
+  <div class="o-body">
+  <div class="home-body">
+    <div class="hero o-tile">
+      <canvas class="fx" data-fx="stars" data-rate="2" data-seed="11"></canvas>
       <div class="scrim"></div>
       <div class="pitch">
-        <div class="eyebrow"><span class="o-chip"><img class="o-ico" src="../textures/icons/sparkle.png">0.2 预览</span><span class="o-chip">26.1 – 26.3</span></div>
+        <div class="tag">0.2 预览 · Minecraft 26.1 – 26.3</div>
         <div class="o-h1">用网页的方式<br><em>做 Minecraft 界面</em></div>
-        <div class="lede">HTML 与 CSS 声明界面，Java 控制器写交互。像素主题、3D 模型、粒子与动效开箱即用。</div>
-        <div class="badges"><span><i></i>Fabric</span><span><i></i>NeoForge</span><span><i></i>热重载</span></div>
         <div class="actions">
           <div class="ore-btn hero m-ripple" data-go="inventory" data-zoom tabindex="0"><img class="o-ico" src="../textures/icons/play.png">开始体验</div>
-          <div class="ore-btn secondary m-ripple" data-go="catalog" data-zoom tabindex="0"><img class="o-ico" src="../textures/icons/grid.png">组件目录</div>
+          <div class="ore-btn secondary m-ripple" data-go="catalog" tabindex="0"><img class="o-ico" src="../textures/icons/grid.png">组件目录</div>
         </div>
       </div>
     </div>
 
-    <div class="card inv o-tile hot m-spot" tabindex="0" data-go="inventory" data-zoom>
-      <div class="glow"></div>
-      <div class="label"><img class="o-ico" src="../textures/icons/bag.png">背包</div>
-      <entity player follow-mouse></entity>
-      <div class="floor"></div>
-      <div class="sub">3D 角色 · 分类 · 稀有度光效 · 拖拽整理</div>
-      <img class="o-ico go" src="../textures/icons/forward.png">
-    </div>
-
-    <div class="card forge o-tile hot m-spot" tabindex="0" data-go="forge" data-zoom>
-      <canvas class="fx" data-fx="embers" data-rate="7" data-seed="2"></canvas>
-      <div class="label"><img class="o-ico" src="../textures/icons/hammer.png">锻造台</div>
-      <model block="minecraft:anvil"></model>
-      <div class="sub">火星、节奏、出炉</div>
-    </div>
-
-    <div class="card music o-tile hot m-spot" tabindex="0" data-go="music" data-zoom>
-      <div class="label"><img class="o-ico" src="../textures/icons/music.png">音乐播放器</div>
-      <div class="spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <img class="o-ico go" src="../textures/icons/forward.png">
-    </div>
-
-    <div class="card hud o-tile hot m-spot" tabindex="0" data-page="potions">
-      <div class="label"><img class="o-ico" src="../textures/icons/flask.png">药水 HUD</div>
-      <div class="sub">常驻图标栏，新效果弹出</div>
-      <div class="tiles">
-        <span style="--k: #6cc349"><img src="minecraft:textures/mob_effect/speed.png"><i></i></span>
-        <span style="--k: #6cc349"><img src="minecraft:textures/mob_effect/strength.png"><i></i></span>
-        <span style="--k: #e25a5a"><img src="minecraft:textures/mob_effect/poison.png"><i></i></span>
-        <span style="--k: #ffb52b"><img src="minecraft:textures/mob_effect/glowing.png"><i></i></span>
+    <div class="dests" id="cards">
+      <div class="card inv o-tile hot m-spot" tabindex="0" data-go="inventory" data-zoom>
+        <div class="ic"><img class="o-ico" src="../textures/icons/bag.png"></div>
+        <div class="txt"><div class="label">背包</div></div>
+        <div class="thumb"><entity player follow-mouse></entity></div>
+      </div>
+      <div class="card forge o-tile hot m-spot" tabindex="0" data-go="forge" data-zoom>
+        <div class="ic"><img class="o-ico" src="../textures/icons/hammer.png"></div>
+        <div class="txt"><div class="label">锻造台</div></div>
+        <div class="thumb"><canvas class="fx" data-fx="embers" data-rate="7" data-seed="2"></canvas><model block="minecraft:anvil"></model></div>
+      </div>
+      <div class="card hud o-tile hot m-spot" tabindex="0" data-page="potions">
+        <div class="ic"><img class="o-ico" src="../textures/icons/flask.png"></div>
+        <div class="txt"><div class="label">药水 HUD</div></div>
+        <div class="thumb"><div class="effs">
+          <span class="good"><img src="minecraft:textures/mob_effect/speed.png"></span>
+          <span class="good"><img src="minecraft:textures/mob_effect/strength.png"></span>
+          <span class="bad"><img src="minecraft:textures/mob_effect/poison.png"></span>
+          <span class="good"><img src="minecraft:textures/mob_effect/night_vision.png"></span>
+        </div></div>
+      </div>
+      <div class="card music o-tile hot m-spot" tabindex="0" data-go="music" data-zoom>
+        <div class="ic"><img class="o-ico" src="../textures/icons/music.png"></div>
+        <div class="txt"><div class="label">音乐播放器</div></div>
+        <div class="thumb"><div class="spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      </div>
+      <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
+        <div class="ic"><img class="o-ico" src="../textures/icons/layers.png"></div>
+        <div class="txt"><div class="label">组件编辑器</div></div>
+        <div class="thumb"><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><model block="minecraft:crafting_table"></model></div>
+      </div>
+      <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
+        <div class="ic"><img class="o-ico" src="../textures/icons/gear.png"></div>
+        <div class="txt"><div class="label">设置</div></div>
+        <div class="thumb"><div>垂直同步<span class="ore-toggle on"></span></div><div>粒子效果<span class="ore-toggle on"></span></div></div>
       </div>
     </div>
-
-    <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
-      <div class="label"><img class="o-ico" src="../textures/icons/layers.png">组件编辑器</div>
-      <div class="sub">拖拽摆放、撤销重做、导出 HTML</div>
-      <model block="minecraft:crafting_table"></model>
-      <span class="new">新</span>
-    </div>
-
-    <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
-      <div class="label"><img class="o-ico" src="../textures/icons/gear.png">设置</div>
-      <div class="toggles">
-        <div>垂直同步<span class="ore-toggle on"></span></div>
-        <div>粒子效果<span class="ore-toggle on"></span></div>
-      </div>
-    </div>
-
-    <div class="card stats o-tile">
-      <div class="s"><span class="v o-h1" data-count="75">0</span><span class="k">像素图标</span></div>
-      <div class="s"><span class="v o-h1" data-count="8">0</span><span class="k">粒子预设</span></div>
-      <div class="s"><span class="v o-h1" data-count="2235">0</span><span class="k">引擎测试</span></div>
-      <div class="s"><span class="v o-h1" data-count="6">0</span><span class="k">构建目标</span></div>
-    </div>
+  </div>
   </div>
 </div>
 </div>

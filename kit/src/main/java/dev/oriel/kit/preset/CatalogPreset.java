@@ -22,6 +22,7 @@ public final class CatalogPreset implements PageControllers.Controller {
     int current = -1;
     private Document doc;
     private boolean accOpen;
+    private double pinnedUntil;
 
     @Override
     public void attach(Document document) {
@@ -42,9 +43,9 @@ public final class CatalogPreset implements PageControllers.Controller {
             items.add(item);
             Shell.activate(item, () -> show(index));
         }
-        Dom.text(Dom.byId(doc, "count"), sections.size() + " 节 · 每一项都是活的");
+        Dom.text(Dom.byId(doc, "count"), sections.size() + " 节");
         Dom.onKey(doc, e -> {
-            if (e.key.equals("ArrowDown") || e.key.equals("ArrowUp")) {
+            if (!e.defaultPrevented() && (e.key.equals("ArrowDown") || e.key.equals("ArrowUp"))) {
                 e.preventDefault();
                 show(Math.floorMod(current + (e.key.equals("ArrowDown") ? 1 : -1), sections.size()));
                 items.get(current).focus();
@@ -60,10 +61,34 @@ public final class CatalogPreset implements PageControllers.Controller {
         Shell.activate(Dom.byId(doc, "modal-close"), () -> Dom.byId(doc, "modal").removeClass("on"));
         burstOnClick(fx, "sparks-box", "sparks-demo", "sparks");
         burstOnClick(fx, "hearts-box", "hearts-demo", "hearts");
-        show(0);
+        // All sections are one long page; scrolling marks the section being read.
+        Element pane = Dom.byId(doc, "pane");
+        pane.addEventListener("scroll", e -> {
+            if (doc.scheduler().now() < pinnedUntil) return;
+            mark(reading(pane));
+        });
+        mark(0);
     }
 
+    /** Scrolls to section {@code index} and marks it. */
     void show(int index) {
+        Element pane = Dom.byId(doc, "pane");
+        float top = sections.get(index).getBoundingClientRect()[1] - pane.getBoundingClientRect()[1] + pane.scrollTop() - 8;
+        pinnedUntil = doc.scheduler().now() + 600; // the smooth scroll passes other sections on its way
+        pane.scrollTo(0, Math.max(0, top), Element.ScrollBehavior.SMOOTH);
+        mark(index);
+    }
+
+    /** The section under the top of the pane (the last one when scrolled to the end). */
+    private int reading(Element pane) {
+        if (pane.scrollTop() + pane.clientHeight() >= pane.scrollHeight() - 2) return sections.size() - 1;
+        float top = pane.getBoundingClientRect()[1] + 24;
+        int index = 0;
+        for (int i = 0; i < sections.size(); i++) if (sections.get(i).getBoundingClientRect()[1] <= top) index = i;
+        return index;
+    }
+
+    private void mark(int index) {
         if (index == current) return;
         current = index;
         for (int i = 0; i < sections.size(); i++) {
@@ -71,8 +96,6 @@ public final class CatalogPreset implements PageControllers.Controller {
             items.get(i).toggleClass("on", i == index);
         }
         Dom.text(Dom.byId(doc, "crumb"), "/ " + sections.get(index).getAttribute("data-title"));
-        Element pane = Dom.byId(doc, "pane");
-        pane.scrollTo(0, 0, Element.ScrollBehavior.INSTANT);
     }
 
     void demo(String name, Element target) {
@@ -82,8 +105,7 @@ public final class CatalogPreset implements PageControllers.Controller {
             case "success" -> Motion.play(target, "m-success", 560);
             case "attention" -> target.toggleClass("m-attention");
             case "stagger" -> {
-                Element box = Dom.byId(doc, "stagger");
-                for (Element c : box.children()) Motion.play(c, "m-rise", 600);
+                Motion.stagger(Dom.byId(doc, "stagger"));
             }
             case "count" -> Motion.count(Dom.byId(doc, "count-demo"), 0, 2235, 1200, "");
             case "modal" -> Dom.byId(doc, "modal").addClass("on");

@@ -32,7 +32,13 @@
 .level { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; }
 .level .row { display: flex; justify-content: space-between; }
 .level .lv { color: #b6f08f; text-shadow: 1px 1px 0 #1d4d13; }
+/* The info column: the hovered item, or every status effect (as many as the column holds, then it scrolls). */
+.info-tabs { flex: none; }
+.info-tabs > span { flex: 1; justify-content: center; gap: 3px; }
+.info .pane.off { display: none; }
 .effects { flex: 1; min-height: 0; }
+.paper { flex: 1; min-height: 0; }
+.equip { flex: 1; grid-template-rows: repeat(4, minmax(24px, 1fr)); align-items: center; }
 .o-meter.xp { --fill-hi: #d8ff9a; --fill: #8fe04a; --fill-lo: #4c9a1e; }
 
 /* Tabs and search share a toolbar. */
@@ -107,7 +113,6 @@
 
 .ghost { position: absolute; width: 24px; height: 24px; z-index: 40; pointer-events: none; transform: rotate(-10deg) scale(1.25); display: none; }
 .ghost.on { display: block; animation: lift 0.16s var(--o-ease-out); }
-.ghost .shadow { position: absolute; left: 6px; top: 8px; width: 16px; height: 16px; background: rgba(0, 0, 0, 0.35); }
 .ghost item { position: absolute; left: 4px; top: 4px; width: 16px; height: 16px; }
 /* Small screens (GUI 427x240): drop the paper doll and the extras, keep the bag whole. */
 @media (max-width: 560px) {
@@ -115,7 +120,7 @@
     .info { width: 120px; }
 }
 @media (max-height: 300px) {
-    .effects, .doll .o-caps, .keys, .capacity, .bag .o-caps, .foot .o-hints { display: none; }
+    .doll .o-caps, .keys, .capacity, .bag .o-caps, .foot .o-hints { display: none; }
     .bag { gap: 3px; }
 }
 @keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.25); } }
@@ -153,8 +158,6 @@
           <div class="row"><span class="o-dim">经验等级</span><span class="lv">32</span></div>
           <div class="o-meter xp" style="--value: 0.64"><i></i></div>
         </div>
-        <div class="o-caps">状态效果</div>
-        <div class="o-effects o-scroll effects" id="effects"></div>
       </div>
       <div class="col bag">
         <div class="bar">
@@ -179,7 +182,9 @@
         </div>
       </div>
       <div class="col info">
-        <div class="details r-common" id="details"></div>
+        <div class="o-seg info-tabs" id="info-tabs"><span class="on" data-pane="details"><img class="o-ico" src="../textures/icons/gem.png">物品</span><span data-pane="effects"><img class="o-ico" src="../textures/icons/flask.png">状态效果</span></div>
+        <div class="details r-common pane" id="details"></div>
+        <div class="o-effects o-scroll effects pane off" id="effects"></div>
       </div>
     </div>
     <div class="foot">
@@ -188,7 +193,7 @@
       <div class="o-hints"><span><span class="o-kbd">Esc</span>关闭</span></div>
     </div>
   </div>
-  <div class="ghost" id="ghost"><div class="shadow"></div></div>
+  <div class="ghost" id="ghost"></div>
   <div class="ore-tooltip" id="tip" style="display: none"></div>
 </div>
 </body>

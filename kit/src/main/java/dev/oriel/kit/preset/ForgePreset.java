@@ -139,7 +139,7 @@ public final class ForgePreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "quench"), e -> quench());
         Dom.onClick(Dom.byId(doc, "again"), e -> reset());
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
+        Dom.onClick(Dom.byId(doc, "back"), e -> Shell.back(doc));
         Dom.onKey(doc, this::key);
         doc.addEventListener("keyup", e -> {
             if (((KeyboardEvent) e).code.equals("KeyB")) model.bellows = false;

@@ -4,7 +4,6 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
-import dev.oriel.kit.Motion;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
 
@@ -25,8 +24,6 @@ public final class GalleryPreset implements PageControllers.Controller {
             if (e.key.equalsIgnoreCase("t") && !e.defaultPrevented()) theme(doc, Shell.theme().equals("light") ? "dark" : "light");
         });
         theme(doc, Shell.theme());
-        Element indicator = doc.getElementById("indicator"), on = doc.querySelector("#nav .on");
-        if (indicator != null && on != null) doc.scheduler().requestAnimationFrame(t -> Motion.indicator(indicator, on));
     }
 
     private static void theme(Document doc, String name) {

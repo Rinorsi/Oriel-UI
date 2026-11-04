@@ -31,6 +31,15 @@ public final class Motion {
     }
 
     /**
+     * Replays a {@code .m-stagger} list's entrance: the class comes off for a frame (so the children's animation
+     * stops) and goes back on, and the children rise again one after another.
+     */
+    public static void stagger(Element list) {
+        list.removeClass("m-stagger");
+        list.ownerDocument().scheduler().requestAnimationFrame(t -> list.addClass("m-stagger"));
+    }
+
+    /**
      * Makes every {@code .m-ripple} element of {@code doc} answer a press with the pixel ripple (a square ring
      * growing from the press point) and a little spring.
      */
@@ -161,7 +170,7 @@ public final class Motion {
         List<Element> stagger = doc.querySelectorAll(".m-stagger");
         for (Element list : stagger) {
             int i = 0;
-            for (Element c : list.children()) new Dom.Style(c).set("animation-delay", (i++ * 40) + "ms").apply();
+            for (Element c : list.children()) new Dom.Style(c).set("animation-delay", (i++ * 60) + "ms").apply();
         }
     }
 }

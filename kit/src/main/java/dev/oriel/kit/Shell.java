@@ -4,6 +4,8 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.kit.fx.Particles;
 
+import java.util.List;
+
 /**
  * What every kit page shares, wired from markup so a page needs no code for it:
  * <ul>
@@ -12,12 +14,25 @@ import dev.oriel.kit.fx.Particles;
  *   grows into the page first ({@link Motion#zoomInto});</li>
  *   <li>{@code data-count="2235"}: the number counts up when the page opens;</li>
  *   <li>{@code data-action="close" | "back" | "theme"}: closes the screen, returns to the gallery, flips the theme;</li>
- *   <li>{@code canvas[data-fx]}: particles ({@link Particles}).</li>
+ *   <li>{@code canvas[data-fx]}: particles ({@link Particles});</li>
+ *   <li>{@code .o-apptabs}: the top-level pages' tabs in the title bar. Its {@code data-go} items switch pages as tabs:
+ *   the title bar stays, the indicator glides from the old tab to the new one and the content slides in from the side
+ *   of the new tab ({@link #go});</li>
+ *   <li>the window mode: {@code data-window="max"} (the window fills the screen) or {@code "mini"} (a centred window
+ *   over the game), kept across pages; every title bar gets the switch before its close button;</li>
+ *   <li>the controls' default behaviour ({@link Widgets}).</li>
  * </ul>
+ * <p>Page transitions: {@link #go} plays a leaving animation on {@code .o-body}, opens the page and gives the new
+ * page's {@code .o-body} the matching entrance ({@code m-page-next}, {@code m-page-prev}, {@code m-page-back}; see
+ * {@code ore.css}). Only the content moves; the backdrop and the window frame are the same on every page, so nothing
+ * flashes.
  * Controllers call {@link #setup} first and keep the returned particles for bursts.
  */
 public final class Shell {
-    private static volatile String theme = "dark", style = "ore";
+    private static volatile String theme = "dark", style = "ore", window = "max";
+    /** The entrance for the next page's content, and the app tab it was opened from (-1: none). */
+    private static volatile String enter;
+    private static volatile int fromTab = -1;
 
     private Shell() {}
 
@@ -57,12 +72,51 @@ public final class Shell {
         for (Element e : doc.querySelectorAll("[data-action=theme]")) e.toggleClass("on", theme.equals("light"));
     }
 
+    /** The window mode, {@code max} or {@code mini}. */
+    public static String window() {
+        return window;
+    }
+
+    /** Sets the window mode ({@code data-window} on {@code <html>}) for this page and the pages opened after it. */
+    public static void window(Document doc, String mode) {
+        window = mode.equals("mini") ? "mini" : "max";
+        Element root = doc.documentElement();
+        if (root != null) root.setAttribute("data-window", window);
+    }
+
+    /**
+     * Opens {@code url} with a transition: {@code .o-body} plays {@code m-page-leave-<kind>}, then the page opens
+     * and its {@code .o-body} plays {@code m-page-<kind>}. Kinds: {@code next} (to a tab on the right: the content
+     * moves left), {@code prev} (the other way), {@code back} (returning to the launcher).
+     */
+    public static void go(Document doc, String url, String kind) {
+        Element body = doc.querySelector(".o-body");
+        enter = "m-page-" + kind;
+        if (body == null) {
+            doc.navigate(url);
+            return;
+        }
+        body.addClass("m-page-leave-" + kind);
+        doc.scheduler().setTimeout(() -> doc.navigate(url), Motion.FAST);
+    }
+
+    /** Back to the launcher, with the back transition. */
+    public static void back(Document doc) {
+        fromTab = -1;
+        go(doc, OrielKit.GALLERY, "back");
+    }
+
     /** Applies the theme, wires the shared attributes and starts the page's particles. */
     public static Particles setup(Document doc) {
         theme(doc, theme);
         style(doc, style);
+        window(doc, window);
+        windowSwitch(doc);
+        enter(doc);
+        appTabs(doc);
         for (Element e : doc.querySelectorAll("[data-style-pick]")) activate(e, () -> style(doc, e.getAttribute("data-style-pick")));
         for (Element e : doc.querySelectorAll("[data-go]")) {
+            if (e.closest(".o-apptabs") != null) continue;
             String page = e.getAttribute("data-go");
             Runnable go = () -> doc.navigate(OrielKit.page(page));
             activate(e, e.hasAttribute("data-zoom") ? () -> Motion.zoomInto(e, go) : go);
@@ -70,13 +124,70 @@ public final class Shell {
         for (Element e : doc.querySelectorAll("[data-action]")) {
             switch (e.getAttribute("data-action")) {
                 case "close" -> activate(e, () -> doc.host().close());
-                case "back" -> activate(e, () -> doc.navigate(OrielKit.GALLERY));
+                case "back" -> activate(e, () -> back(doc));
                 case "theme" -> activate(e, () -> theme(doc, theme.equals("light") ? "dark" : "light"));
                 default -> { }
             }
         }
+        Widgets.attach(doc);
         Motion.attach(doc);
         return Particles.attach(doc);
+    }
+
+    /** The entrance chosen by the page that opened this one (or the default, {@code o-content-in}). */
+    private static void enter(Document doc) {
+        String cls = enter;
+        enter = null;
+        Element body = doc.querySelector(".o-body");
+        if (cls != null && body != null) body.addClass(cls);
+    }
+
+    /** The title bar tabs: switch with a direction, and the indicator starts under the tab we came from. */
+    private static void appTabs(Document doc) {
+        Element bar = doc.querySelector(".o-apptabs");
+        int from = fromTab;
+        fromTab = -1;
+        if (bar == null) return;
+        List<Element> tabs = bar.children().stream().filter(c -> !c.hasClass("m-indicator")).toList();
+        int current = 0;
+        for (int i = 0; i < tabs.size(); i++) if (tabs.get(i).hasClass("on")) current = i;
+        int here = current;
+        for (int i = 0; i < tabs.size(); i++) {
+            Element tab = tabs.get(i);
+            String page = tab.getAttribute("data-go");
+            int index = i;
+            if (page == null || index == here) continue;
+            activate(tab, () -> {
+                fromTab = here;
+                go(doc, OrielKit.page(page), index > here ? "next" : "prev");
+            });
+        }
+        Element indicator = bar.children().stream().filter(c -> c.hasClass("m-indicator")).findFirst().orElse(null);
+        if (indicator == null) return;
+        Element target = tabs.get(here), start = from >= 0 && from < tabs.size() ? tabs.get(from) : target;
+        // First frame: under the old tab, without transition; the next frame glides it to this page's tab.
+        indicator.addClass("m-snap");
+        doc.scheduler().requestAnimationFrame(t -> {
+            Motion.indicator(indicator, start);
+            doc.scheduler().requestAnimationFrame(t2 -> {
+                indicator.removeClass("m-snap");
+                Motion.indicator(indicator, target);
+            });
+        });
+    }
+
+    /** Every title bar with a close button gets the window/maximize switch before it. */
+    private static void windowSwitch(Document doc) {
+        for (Element bar : doc.querySelectorAll(".o-titlebar")) {
+            Element close = bar.querySelector("[data-action=close]");
+            if (close == null) close = bar.querySelector("#close");
+            if (close == null || bar.querySelector("[data-action=window]") != null) continue;
+            Element button = Dom.html(doc, "<div class=\"ore-btn icon o-winbtn\" data-action=\"window\" tabindex=\"0\" title=\"窗口化 / 最大化\">"
+                    + "<img class=\"o-ico i-restore\" src=\"../textures/icons/restore.png\">"
+                    + "<img class=\"o-ico i-max\" src=\"../textures/icons/maximize.png\"></div>");
+            close.parentElement().insertBefore(button, close);
+            activate(button, () -> window(doc, window.equals("max") ? "mini" : "max"));
+        }
     }
 
     /** Runs {@code action} on a click, and on Enter or Space while focused. */

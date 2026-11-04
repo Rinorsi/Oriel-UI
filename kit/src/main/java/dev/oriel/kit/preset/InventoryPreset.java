@@ -100,10 +100,18 @@ public final class InventoryPreset implements PageControllers.Controller {
         search.addEventListener("input", e -> filter(search.value()));
         Dom.onClick(Dom.byId(doc, "sort"), e -> sort());
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
+        Dom.onClick(Dom.byId(doc, "back"), e -> Shell.back(doc));
         for (Element tab : doc.querySelectorAll("[data-cat]")) Shell.activate(tab, () -> category(tab));
         Element effects = doc.getElementById("effects");
-        if (effects != null) new PotionHudPreset().mountPanel(doc, effects, true);
+        if (effects != null) new PotionHudPreset().mountPanel(doc, effects, false);
+        // The info column's tabs: the item under the pointer, or the status effects with the column's full height.
+        for (Element tab : doc.querySelectorAll("#info-tabs [data-pane]")) {
+            Shell.activate(tab, () -> {
+                for (Element pane : doc.querySelectorAll(".info .pane")) {
+                    pane.toggleClass("off", !pane.getAttribute("id").equals(tab.getAttribute("data-pane")));
+                }
+            });
+        }
         ready = true;
         summary();
         showOverview();

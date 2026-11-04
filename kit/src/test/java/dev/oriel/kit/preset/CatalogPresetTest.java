@@ -23,6 +23,9 @@ class CatalogPresetTest {
         assertTrue(catalog.sections.size() >= 10);
         click(doc, "#list .item[data-sec=motion]", 0, Modifiers.NONE, clock);
         assertTrue(doc.querySelector(".sec[data-sec=motion]").hasClass("on"));
+        for (int i = 0; i < 40; i++) frame(doc, clock, 16);
+        float paneTop = doc.getElementById("pane").getBoundingClientRect()[1];
+        assertEquals(paneTop + 8, doc.querySelector(".sec[data-sec=motion]").getBoundingClientRect()[1], 2f, "scrolled to the section");
         click(doc, "[data-demo=modal]", 0, Modifiers.NONE, clock);
         assertTrue(doc.getElementById("modal").hasClass("on"));
         click(doc, "#modal-close", 0, Modifiers.NONE, clock);
@@ -33,5 +36,10 @@ class CatalogPresetTest {
         for (int i = 0; i < 20; i++) frame(doc, clock, 16);
         assertTrue(doc.getElementById("acc").hasClass("m-open"));
         assertTrue(doc.getElementById("acc-body").getBoundingClientRect()[3] > 10, "the accordion opened");
+        // Scrolling back up marks the section being read.
+        doc.getElementById("pane").scrollTo(0, 0, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+        frame(doc, clock, 700);
+        frame(doc, clock, 16);
+        assertTrue(doc.querySelector(".sec[data-sec=buttons]").hasClass("on"));
     }
 }

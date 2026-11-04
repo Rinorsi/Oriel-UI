@@ -5,9 +5,8 @@
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The catalog: every component in every state, every effect and motion, live, with the markup to copy. A list on
-   the left picks a section; the section slides in on the right. Also the reference an AI reads before building a
+   the left jumps to a section and follows the one being read; all sections run down one scrolling page. Also the reference an AI reads before building a
    screen (docs/zh/recipes.md points here). */
-.o-window { width: 628px; height: 348px; }
 .list { flex: none; width: 118px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
 .list .item { position: relative; display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
@@ -17,9 +16,9 @@
 .list .item.on::before { content: ""; position: absolute; left: -4px; top: 3px; width: 2px; height: 14px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
 .list .n { margin-left: auto; color: var(--o-text-faint); }
 
-.pane { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 8px 10px; }
-.sec { display: none; flex-direction: column; gap: 8px; }
-.sec.on { display: flex; animation: m-slide-left var(--m-slow) var(--m-out) both; }
+.pane { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 8px 10px 40px; display: flex; flex-direction: column; gap: 10px; }
+.sec { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--o-line); }
+.sec:last-child { border-bottom: none; }
 .sec-head { display: flex; align-items: baseline; gap: 8px; }
 .sec-head .o-faint { line-height: 10px; }
 .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -53,9 +52,14 @@
 <div class="o-app" id="app">
   <div class="o-window">
     <div class="o-titlebar">
-      <div class="ore-btn icon" data-action="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
-      <img class="o-mark" src="../textures/icons/grid.png">
-      <h1>组件与动效</h1><span class="o-crumb" id="crumb">/ 按钮</span>
+      <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
+      <div class="o-apptabs">
+        <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
+        <div class="on" data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
+        <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
+        <i class="m-indicator"></i>
+      </div>
+      <span class="o-crumb" id="crumb">/ 按钮</span>
       <div class="o-grow"></div>
       <div class="o-seg"><span data-style-pick="ore">像素</span><span data-style-pick="smooth">平滑</span></div>
       <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
@@ -85,7 +89,7 @@
         <section class="sec" data-sec="inputs" data-title="输入" data-icon="keyboard">
           <div class="sec-head"><span class="o-h1">输入</span><span class="o-faint">支持中文输入法：预编辑内联显示，候选窗跟随光标</span></div>
           <div class="row"><span class="cap">文本框</span><input class="ore-field" placeholder="输入名字…" style="width: 140px"><input class="ore-field" value="史蒂夫" style="width: 100px"></div>
-          <div class="row"><span class="cap">下拉框</span><div class="ore-select" style="width: 120px"><div class="value">高品质</div></div></div>
+          <div class="row"><span class="cap">下拉框</span><div class="ore-select" style="width: 120px"><div class="value">高品质</div><div class="menu"><div class="option chosen">高品质</div><div class="option">均衡</div><div class="option">流畅</div></div></div></div>
 <pre class="code">&lt;input class="ore-field" placeholder="输入名字…"&gt;
 &lt;div class="ore-select"&gt;&lt;div class="value"&gt;高品质&lt;/div&gt;&lt;div class="menu"&gt;…&lt;/div&gt;&lt;/div&gt;</pre>
         </section>

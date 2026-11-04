@@ -30,12 +30,30 @@
 | 展开收起 | `Motion.toggle(body, open)`；箭头 `m-caret` | 高度平滑过渡，箭头转 180° |
 | 指示条 | `<i class="m-indicator">` + `Motion.indicator(bar, tab)` | 一根光条滑到选中的标签下 |
 | 数字 | `data-count="2235"`，或 `Motion.count(el, 0, n, ms, 后缀)` | 数字滚动到目标 |
-| 转场 | 链接写 `data-go="forge" data-zoom` | 卡片放大成新页面，旧页淡出，新窗口放大进来 |
+| 转场（进入） | 链接写 `data-go="forge" data-zoom` | 卡片放大成新页面，旧内容变暗，新内容浮入 |
+| 切页（页签） | 标题栏 `.o-apptabs` 里的 `data-go` | 标题栏不动；旧内容向一侧滑出，新内容从新页签那侧滑入；指示条从旧页签滑到新页签 |
+| 返回 | `data-action="back"` 或 `Shell.back(doc)` | 旧内容缩小淡出，首页内容从略大缩回 |
+| 自定义切页 | `Shell.go(doc, url, "next" / "prev" / "back")` | 同上三种，任意按钮都能用 |
+| 窗口化 / 最大化 | Shell 自动给每个标题栏加切换按钮；`Shell.window(doc, "mini")` | 窗口平滑缩成居中小窗（640×360）或铺满；所有页面记住同一个模式 |
 | 弹层 | `.m-modal` 加 `on` | 背景淡入，面板弹起 |
 | 提示 | `.o-toast` | 右上角滑入，2.6 秒后淡出 |
 | 加载 | `.m-skeleton` | 灰色占位块上扫过一道光 |
 | 成功 / 失败 / 提醒 | `Motion.play(el, "m-success"/"m-error", ms)`；`m-attention` | 放大一下发绿光 / 左右抖 + 红框 / 持续金色脉冲 |
 | 一次性动画重播 | `Motion.play(el, 类名, 毫秒)` | 去掉再加上类名，保证每次都从头播 |
+
+### 切页动画是怎么做的
+
+每个页面都是同一个外壳：全屏背景 `.o-app`，里面是窗口 `.o-window`，窗口里有标题栏 `.o-titlebar` 和内容 `.o-body`。切页时只有 `.o-body` 在动，背景和窗口框在两个页面上完全一样，所以不会闪黑。
+
+1. `Shell.go(doc, url, kind)` 先给当前 `.o-body` 加 `m-page-leave-<kind>`（130ms 滑出或缩小淡出），再打开新页面。
+2. 新页面的 `Shell.setup` 给它的 `.o-body` 加 `m-page-<kind>`（240ms 从对应方向滑入）。
+3. 页签之间切换时，Shell 记住旧页签的序号；新页面第一帧把指示条放在旧页签下（`m-snap` 关掉过渡），下一帧再滑到当前页签。
+
+想改动画：改 `ore.css` 里的 `@keyframes m-page-*`。想加新的种类：写一对 `.o-body.m-page-xxx` / `.o-body.m-page-leave-xxx`，然后 `Shell.go(doc, url, "xxx")`。
+
+### 控件默认就能点
+
+写在 HTML 里的控件不用写 Java 也能交互（`Widgets`）：`.ore-tabs > .ore-tab` 和 `.o-seg > *` 点哪个选哪个（里面放 `<i class="m-indicator">` 会跟着滑），`.ore-toggle` 和 `.o-chip.hot` 点了切换 `on`，`.ore-slider` 能拖。带 `id` 的开关、芯片、滑块留给页面控制器自己接。
 
 ## 3. 什么时候用什么
 

@@ -89,4 +89,56 @@ class EditorPresetTest {
         assertTrue(doc.getElementById("export-box").hasClass("on"));
         assertNotNull(doc.getElementById("code").textContent());
     }
+
+    @Test
+    void aNewCanvasHasItsSizeAndAnEmptyHistory() {
+        EditorPreset editor = open();
+        click(doc, "#new", 0, Modifiers.NONE, clock);
+        assertTrue(doc.getElementById("new-box").hasClass("on"));
+        click(doc, "#new-sizes .size[data-w='176']", 0, Modifiers.NONE, clock);
+        assertEquals("166", doc.getElementById("new-h").value());
+        click(doc, "#new-ok", 0, Modifiers.NONE, clock);
+        assertFalse(doc.getElementById("new-box").hasClass("on"));
+        assertEquals(0, editor.parts.size(), "blank");
+        assertTrue(editor.undo.isEmpty());
+        frame(doc, clock, 16);
+        float[] board = doc.getElementById("board").getBoundingClientRect();
+        assertEquals(176, board[2], 0.5f);
+        assertEquals(166, board[3], 0.5f);
+        assertTrue(doc.getElementById("board-label").textContent().contains("176 × 166"));
+    }
+
+    @Test
+    void copyCutAndPaste() {
+        EditorPreset editor = open();
+        int before = editor.parts.size();
+        editor.selection.add(editor.parts.getLast().id);
+        doc.input().keyDown("c", "KeyC", new Modifiers(false, true, false, false));
+        doc.input().keyDown("v", "KeyV", new Modifiers(false, true, false, false));
+        assertEquals(before + 1, editor.parts.size());
+        doc.input().keyDown("x", "KeyX", new Modifiers(false, true, false, false));
+        assertEquals(before, editor.parts.size(), "the pasted copy was cut");
+        doc.input().keyDown("v", "KeyV", new Modifiers(false, true, false, false));
+        assertEquals(before + 1, editor.parts.size());
+    }
+
+    @Test
+    void thePickerListsItemsByName() {
+        EditorPreset editor = open();
+        EditorPreset.Part slot = editor.parts.stream().filter(p -> p.kind.equals("slot")).findFirst().orElseThrow();
+        editor.selection.clear();
+        editor.selection.add(slot.id);
+        editor.render();
+        frame(doc, clock, 16);
+        assertTrue(doc.getElementById("picked").textContent().contains("钻石剑"), "the game's name, not only the id");
+        click(doc, "#picked", 0, Modifiers.NONE, clock);
+        assertTrue(doc.getElementById("pick-box").hasClass("on"));
+        var q = doc.getElementById("pick-q");
+        q.setValue("绿宝石");
+        q.dispatchEvent(new dev.oriel.engine.event.Event("input", true, false));
+        assertEquals(1, doc.querySelectorAll("#pick-grid .pick").size());
+        click(doc, "#pick-grid .pick", 0, Modifiers.NONE, clock);
+        assertEquals("minecraft:emerald", slot.text);
+        assertFalse(doc.getElementById("pick-box").hasClass("on"));
+    }
 }

@@ -1,5 +1,6 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.kit.GameRegistry;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.mod.Constants;
 import dev.oriel.mod.client.render.FolderTextures;
@@ -14,8 +15,15 @@ import dev.oriel.mod.net.OpenPayload;
 import dev.oriel.mod.server.OrielDemos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -42,6 +50,16 @@ public final class OrielClient {
         OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
         OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
         OrielKit.register();
+        // Pickers list every registered item (vanilla and modded) by the name the game shows in its language.
+        GameRegistry.provide(() -> {
+            List<GameRegistry.Entry> all = new ArrayList<>();
+            for (Item item : BuiltInRegistries.ITEM) {
+                if (item == Items.AIR) continue;
+                String name = new ItemStack(item).getHoverName().getString();
+                all.add(new GameRegistry.Entry(BuiltInRegistries.ITEM.getKey(item).toString(), name, item instanceof BlockItem));
+            }
+            return all;
+        });
         OrielHud.register(POTION_HUD, OrielKit.POTIONS, OrielHud.Input.WHEN_CHAT_OPEN);
         // The gallery's HUD card: show the potion HUD over the game, closing the gallery so it can be seen.
         OrielScreens.onPageLoad(OrielKit.GALLERY, driver -> driver.onMessage(OrielKit.CHANNEL, value -> {

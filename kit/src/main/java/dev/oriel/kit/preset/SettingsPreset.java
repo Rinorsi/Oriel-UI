@@ -135,7 +135,7 @@ public final class SettingsPreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "done"), e -> doc.host().close());
         Dom.onClick(Dom.byId(doc, "cancel"), e -> doc.host().close());
         Dom.onClick(Dom.byId(doc, "close"), e -> doc.host().close());
-        Dom.onClick(Dom.byId(doc, "back"), e -> doc.navigate(OrielKit.GALLERY));
+        Dom.onClick(Dom.byId(doc, "back"), e -> Shell.back(doc));
         // A press outside an open dropdown closes it.
         Dom.onMouse(doc, "mousedown", e -> {
             if (openSelect != null && Dom.closest(e, ".ore-select") != openSelect) closeSelect();

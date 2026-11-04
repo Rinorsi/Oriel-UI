@@ -45,13 +45,6 @@ class GalleryPresetTest {
     }
 
     @Test
-    void countersCountUp() {
-        Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
-        for (int i = 0; i < 90; i++) frame(doc, clock, 16);
-        assertEquals("2235", doc.querySelector("[data-count='2235']").textContent());
-    }
-
-    @Test
     void particlesFillTheirCanvases() {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
         frame(doc, clock, 2000);

@@ -88,6 +88,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
     private final Deque<Effect> queue = new ArrayDeque<>();
     private Document doc;
     private Element toast, tiles, more, hud;
+    /** Every row of every group, with no "more" fold (the panel has a place of its own). */
+    private boolean everyRow;
     private double now, nextArrival = ARRIVAL_SECONDS, toastUntil;
 
     /** The HUD page: bar, announcements and the folding full panel. */
@@ -109,10 +111,11 @@ public final class PotionHudPreset implements PageControllers.Controller {
 
     /**
      * The full panel alone, inside {@code where} of another page (the inventory's effects column); {@code folded}
-     * starts every group folded to its strip of icons.
+     * starts every group folded to its strip of icons, else every row shows (the place scrolls when they overflow).
      */
     public void mountPanel(Document document, Element where, boolean folded) {
         doc = document;
+        everyRow = !folded;
         start(where);
         if (folded) for (Element g : groupElements.values()) g.addClass("folded");
     }
@@ -192,13 +195,13 @@ public final class PotionHudPreset implements PageControllers.Controller {
         for (Running r : List.copyOf(list)) if (r.effect.id().equals(e.id()) && !r.leaving) remove(e.kind(), r);
         Running r = new Running(e, now);
         r.freshUntil = fresh ? now + FRESH_SECONDS : 0;
-        Element row = Dom.html(doc, "<div class=\"eff\"><img><span class=\"name\"></span><span class=\"time\"></span>"
-                + "<div class=\"bar\"><div class=\"left\"></div></div></div>");
+        Element row = Dom.html(doc, "<div class=\"eff\"><i class=\"remain\"></i><img><span class=\"name\"></span>"
+                + "<span class=\"time\"></span></div>");
         Dom.query(row, "img").setAttribute("src", icon(e));
         Dom.text(Dom.query(row, ".name"), e.name() + ROMAN[e.level()]);
         r.row = row;
         r.time = Dom.query(row, ".time");
-        r.bar = new Dom.Style(Dom.query(row, ".left"));
+        r.bar = new Dom.Style(Dom.query(row, ".remain"));
         if (tiles != null) {
             Element tile = Dom.html(doc, "<div class=\"tile " + GROUP_CLASSES[e.kind().ordinal()] + "\"><img>"
                     + "<i class=\"drain\"></i><b class=\"lv\"></b><span class=\"t\"></span></div>");
@@ -259,7 +262,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
     void refresh(Kind k) {
         Element g = groupElements.get(k), list = Dom.query(g, ".list"), strip = Dom.query(g, ".strip"), more = Dom.query(g, ".more");
         List<Running> effects = groups.get(k);
-        int limit = expanded.get(k) ? Integer.MAX_VALUE : SHOWN;
+        int limit = everyRow || expanded.get(k) ? Integer.MAX_VALUE : SHOWN;
         // The first rows, plus any effect that has just started: an arrival always slides into view.
         List<Element> want = new ArrayList<>();
         for (int i = 0; i < effects.size(); i++) {
@@ -274,7 +277,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             strip.appendChild(img);
         }
         int hidden = effects.size() - want.size();
-        more.setAttribute("style", hidden == 0 && !expanded.get(k) ? "display: none" : "");
+        more.setAttribute("style", everyRow || hidden == 0 && !expanded.get(k) ? "display: none" : "");
         Dom.text(more, expanded.get(k) ? "收起 ▴" : "另有 " + hidden + " 个效果 ▾");
         Dom.text(Dom.query(g, ".n"), Integer.toString(effects.size()));
         g.toggleClass("empty", effects.isEmpty());

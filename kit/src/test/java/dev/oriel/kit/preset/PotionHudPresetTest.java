@@ -11,6 +11,7 @@ import java.util.List;
 import static dev.oriel.kit.preset.KitHost.click;
 import static dev.oriel.kit.preset.KitHost.frame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The potion HUD preset: countdowns, expiry, arrivals, and folding groups. */
@@ -73,11 +74,16 @@ class PotionHudPresetTest {
     }
 
     @Test
-    void theInventoryCarriesTheFullPanelFolded() {
-        Document doc = host.open(OrielKit.INVENTORY, new InventoryPreset());
+    void theInventoryCarriesTheFullPanelInItsOwnTab() {
+        Document doc = host.open(OrielKit.INVENTORY, new InventoryPreset(), 640, 360);
         var groups = doc.querySelectorAll("#effects .group");
         assertEquals(3, groups.size());
-        assertTrue(groups.getFirst().hasClass("folded"));
-        assertEquals(7, groups.getFirst().querySelector(".strip").childCount());
+        assertFalse(groups.getFirst().hasClass("folded"), "the tab has the room for every row");
+        assertTrue(doc.getElementById("effects").hasClass("off"));
+        double[] clock = {0};
+        KitHost.click(doc, "#info-tabs [data-pane=effects]", 0, dev.oriel.engine.event.Modifiers.NONE, clock);
+        assertFalse(doc.getElementById("effects").hasClass("off"));
+        assertTrue(doc.getElementById("details").hasClass("off"));
+        assertTrue(doc.getElementById("effects").getBoundingClientRect()[3] > 200, "the panel takes the column's height");
     }
 }

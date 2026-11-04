@@ -45,6 +45,13 @@ public void attach(Document doc) {
 
 工具：`Dom`（查找、建元素、事件）、`Dom.Style`（行内样式）、`Flip`（重排动画）、`Slider`、`Particles`、`Shell`。
 
+不用写代码的部分（`Shell.setup` 已接好）：
+
+- 页签 `.ore-tabs`、分段 `.o-seg`、开关 `.ore-toggle`、可点芯片 `.o-chip.hot`、滑块 `.ore-slider`、下拉框 `.ore-select`（`.value` + `.menu > .option`）写在 HTML 里就能点。要自己接的控件给它一个 `id`，默认行为就不会碰它。
+- 标题栏 `.o-apptabs` 里写 `data-go` 的项是页签式切页，带方向动画；每个标题栏都会自动加"窗口化 / 最大化"按钮。
+
+要列出游戏里的物品（选择器、搜索）：用 `GameRegistry.entries()`。游戏里它是完整的物品注册表，包括所有模组的物品，名字跟随游戏当前语言；预览器里是一份小的内置清单。`GameRegistry.name(id)` 返回显示名。
+
 ## 4. 验证（每次改完都跑）
 
 ```bash
