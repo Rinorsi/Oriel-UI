@@ -266,6 +266,6 @@ public final class Widgets {
 
     private static boolean claimed(Element e) {
         return e.hasAttribute("data-go") || e.hasAttribute("data-action") || e.hasAttribute("data-style-pick")
-                || e.hasAttribute("data-theme-pick");
+                || e.hasAttribute("data-theme-pick") || e.hasAttribute("data-icons-pick");
     }
 }

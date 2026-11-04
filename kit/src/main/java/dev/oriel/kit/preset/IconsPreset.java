@@ -100,6 +100,11 @@ public final class IconsPreset implements PageControllers.Controller {
         Element row = Dom.el(doc, "div", "cat" + (id.equals(category) ? " on" : ""), null);
         row.setAttribute("tabindex", "0");
         row.setAttribute("data-cat", id);
+        // The category's first icon stands for it.
+        String face = id.equals("all") ? "star" : icons.stream().filter(i -> i.cat().equals(id)).map(Icon::id).findFirst().orElse("grid");
+        Element img = Dom.el(doc, "img", "o-ico inherit", null);
+        img.setAttribute("src", "../textures/icons/" + face + ".png");
+        row.appendChild(img);
         row.appendChild(Dom.el(doc, "span", null, name));
         row.appendChild(Dom.el(doc, "span", "n", Integer.toString(n)));
         Shell.activate(row, () -> {

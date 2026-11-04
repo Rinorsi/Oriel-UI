@@ -62,7 +62,7 @@ html { color: var(--ore-text); }
 
 .ore-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: var(--ore-space-2);
-    min-height: 20px; padding: 0 var(--ore-space-4);
+    min-height: 22px; padding: 0 var(--ore-space-4);
     border: solid transparent; border-width: 2px 2px 4px 2px;
     border-image: url(../textures/ore/button_neutral.png) 2 2 4 2 fill;
     color: var(--ore-text); cursor: pointer; white-space: nowrap;
@@ -89,7 +89,7 @@ html { color: var(--ore-text); }
     border-image: url(../textures/ore/button_disabled.png) 2 2 4 2 fill;
     color: var(--ore-text-faint); cursor: default;
 }
-.ore-btn.icon { min-width: 20px; padding: 0; }
+.ore-btn.icon { min-width: 24px; padding: 0; }
 .ore-btn.big { min-height: 26px; padding: 0 var(--ore-space-5); font-size: 16px; }
 
 /* Keyboard focus: a white ring a pixel outside, as Ore UI draws it. */
@@ -665,7 +665,7 @@ canvas.fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; poin
 /* Segmented control. */
 .o-seg { display: flex; background: var(--o-well); border: 1px solid var(--o-line-strong); padding: 1px; gap: 1px; }
 .o-seg > * {
-    display: flex; align-items: center; gap: 3px; height: 14px; padding: 0 6px; cursor: pointer; color: var(--o-text-faint);
+    display: flex; align-items: center; gap: 3px; height: 18px; padding: 0 7px; cursor: pointer; color: var(--o-text-faint);
     -mc-tint: var(--o-text-faint); transition: background-color 120ms, color 120ms;
 }
 .o-seg > *:hover { color: var(--o-text); -mc-tint: var(--o-text); }

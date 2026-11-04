@@ -29,7 +29,7 @@ import java.util.List;
  * Controllers call {@link #setup} first and keep the returned particles for bursts.
  */
 public final class Shell {
-    private static volatile String theme = "dark", style = "ore", window = "max";
+    private static volatile String theme = "dark", style = "ore", window = "max", icons = "bold";
     /** The entrance for the next page's content, and the app tab it was opened from (-1: none). */
     private static volatile String enter;
     private static volatile int fromTab = -1;
@@ -72,6 +72,48 @@ public final class Shell {
         for (Element e : doc.querySelectorAll("[data-action=theme]")) e.toggleClass("on", theme.equals("light"));
     }
 
+    /** The icon weight, {@code bold} or {@code thin}. */
+    public static String icons() {
+        return icons;
+    }
+
+    /**
+     * Sets the icon weight for this page and the pages opened after it: every {@code textures/icons/} image (and those
+     * added later) uses {@code icons/} or {@code icons/thin/}. {@code data-icons} on {@code <html>} says which.
+     */
+    public static void icons(Document doc, String weight) {
+        icons = weight.equals("thin") ? "thin" : "bold";
+        Element root = doc.documentElement();
+        if (root != null) root.setAttribute("data-icons", icons);
+        for (Element e : doc.querySelectorAll("[data-icons-pick]")) e.toggleClass("on", e.getAttribute("data-icons-pick").equals(icons));
+        swapIcons(doc);
+    }
+
+    private static void swapIcons(Document doc) {
+        for (Element img : doc.querySelectorAll("img")) {
+            String src = img.getAttribute("src");
+            if (src == null || !src.contains("textures/icons/")) continue;
+            String bold = src.replace("textures/icons/thin/", "textures/icons/");
+            String want = icons.equals("thin") ? bold.replace("textures/icons/", "textures/icons/thin/") : bold;
+            if (!want.equals(src)) img.setAttribute("src", want);
+        }
+    }
+
+    /** Keeps images added after the page opened at the chosen weight (checked when the DOM has changed). */
+    private static void followIcons(Document doc) {
+        int[] seen = {doc.domVersion()};
+        doc.scheduler().requestAnimationFrame(new java.util.function.DoubleConsumer() {
+            @Override
+            public void accept(double t) {
+                if (doc.domVersion() != seen[0]) {
+                    if (icons.equals("thin")) swapIcons(doc);
+                    seen[0] = doc.domVersion();
+                }
+                doc.scheduler().requestAnimationFrame(this);
+            }
+        });
+    }
+
     /** The window mode, {@code max} or {@code mini}. */
     public static String window() {
         return window;
@@ -111,6 +153,9 @@ public final class Shell {
         theme(doc, theme);
         style(doc, style);
         window(doc, window);
+        icons(doc, icons);
+        followIcons(doc);
+        for (Element e : doc.querySelectorAll("[data-icons-pick]")) activate(e, () -> icons(doc, e.getAttribute("data-icons-pick")));
         windowSwitch(doc);
         enter(doc);
         appTabs(doc);

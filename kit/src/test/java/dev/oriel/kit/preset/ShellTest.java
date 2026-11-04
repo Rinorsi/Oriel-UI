@@ -116,4 +116,20 @@ class ShellTest {
         }
         assertTrue(last.hasClass("o-loaded"), "and loads once scrolled to");
     }
+
+    @Test
+    void theIconWeightSwitchesEveryIconIncludingLaterOnes() {
+        Document home = host.open(OrielKit.GALLERY, new GalleryPreset(), 640, 360);
+        click(home, "[data-icons-pick=thin]", 0, Modifiers.NONE, clock);
+        assertEquals("thin", home.documentElement().getAttribute("data-icons"));
+        assertTrue(home.querySelector("#close img").getAttribute("src").contains("icons/thin/close.png"));
+        var added = home.createElement("img");
+        added.setAttribute("src", "../textures/icons/star.png");
+        home.querySelector(".o-body").appendChild(added);
+        frame(home, clock, 16);
+        frame(home, clock, 16);
+        assertTrue(added.getAttribute("src").contains("icons/thin/"), "images added later follow");
+        Shell.icons(home, "bold");
+        assertTrue(home.querySelector("#close img").getAttribute("src").endsWith("icons/close.png"));
+    }
 }

@@ -9,12 +9,12 @@
    resizes, everything snaps to 4px), the properties and layers panels on the right, and a status bar.
    EditorPreset holds the document model, the selection and the history. */
 .o-titlebar .o-crumb { display: none; }
-.o-titlebar .ore-btn.primary { min-height: 18px; }
+.o-titlebar .ore-btn.primary { min-height: 22px; }
 
 /* Options bar: the toggles and the arrange actions. */
-.optbar { flex: none; display: flex; align-items: center; gap: 2px; height: 22px; min-width: 0; overflow: visible; padding: 0 4px;
+.optbar { flex: none; display: flex; align-items: center; gap: 2px; height: 26px; min-width: 0; overflow: visible; padding: 0 4px;
     border-bottom: 1px solid var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); background: var(--o-well); }
-.optbar .tool { flex: none; white-space: nowrap; display: flex; align-items: center; gap: 3px; height: 16px; padding: 0 4px; color: var(--o-text-dim); cursor: pointer;
+.optbar .tool { flex: none; white-space: nowrap; display: flex; align-items: center; gap: 3px; height: 20px; padding: 0 5px; color: var(--o-text-dim); cursor: pointer;
     -mc-tint: var(--o-text-dim); border: 1px solid transparent; }
 .optbar .tool:hover { color: var(--o-text); -mc-tint: var(--o-text); background: var(--o-line); }
 .optbar .tool.on, .optbar .tool.toggle { color: var(--o-text); -mc-tint: var(--o-accent-strong); border-color: var(--o-line-strong); background: var(--o-tile); }
@@ -25,10 +25,10 @@
 .optbar .o-menubar { margin-left: 0; height: 22px; }
 
 /* Tool strip: the components, one icon each; drag onto the artboard or click to add in the middle. */
-.tools { flex: none; width: 28px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; background: var(--o-well);
+.tools { flex: none; width: 30px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
 .palette { display: flex; flex-direction: column; gap: 2px; }
-.palette .part { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: grab; -mc-tint: var(--o-text-dim);
+.palette .part { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: grab; -mc-tint: var(--o-text-dim);
     border: 1px solid transparent; }
 .palette .part:hover { -mc-tint: var(--o-accent-strong); background: var(--o-line); border-color: var(--o-line-strong); }
 .palette .part span { display: none; }
