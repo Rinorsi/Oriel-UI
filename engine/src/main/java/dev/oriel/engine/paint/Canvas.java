@@ -154,6 +154,12 @@ public interface Canvas {
     default void endGroup(float opacity, List<Filter> filters, BlendMode blend) {}
 
     /**
+     * What this canvas's groups leave out of {@code filters} and {@code blend}, said in a sentence, or null when they
+     * draw it all. The painter reports it; the group is drawn without what is left out.
+     */
+    default String groupLimits(List<Filter> filters, BlendMode blend) { return null; }
+
+    /**
      * Starts a backdrop ({@code backdrop-filter}): what is drawn until {@link #endBackdrop} is a shape mask. False
      * when the backend cannot read back what it has drawn.
      */

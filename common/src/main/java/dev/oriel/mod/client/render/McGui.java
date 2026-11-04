@@ -135,6 +135,7 @@ public final class McGui {
     /** Resources reloaded: if the shape shader failed to compile, {@link #shapesAvailable} tries it again. */
     public static void reloadShapes() {
         SdfRenderState.reload();
+        Layers.reload();
     }
 
     /**
@@ -169,6 +170,11 @@ public final class McGui {
      * A 3D scene in a screen box, a block {@code scale} GUI px, multiplied by {@code color}: a picture, blitted with the
      * colour premultiplied as the picture is, so fading scales every channel.
      */
+    /** One of McCanvas's groups, drawn by {@link LayerRenderer}. */
+    void layer(LayerRenderState layer) {
+        g.guiRenderState.addPicturesInPictureState(layer);
+    }
+
     void scene(Scene scene, int color, int x0, int y0, int x1, int y1, float scale, @Nullable ScreenRectangle scissor) {
         g.guiRenderState.addPicturesInPictureState(new GuiSceneRenderState(scene, premultiplied(color), x0, y0, x1, y1, scale, scissor));
     }

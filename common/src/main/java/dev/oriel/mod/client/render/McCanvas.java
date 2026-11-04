@@ -6,6 +6,9 @@ import dev.oriel.engine.paint.Canvas;
 import dev.oriel.engine.paint.ScissorStack;
 import dev.oriel.engine.paint.Shapes;
 import dev.oriel.engine.paint.SmoothShape;
+import dev.oriel.engine.style.BlendMode;
+import dev.oriel.engine.style.Filter;
+import dev.oriel.engine.style.MaskComposite;
 import dev.oriel.engine.style.Shadow;
 import dev.oriel.mod.OrielConfig;
 import net.minecraft.client.Minecraft;
@@ -16,7 +19,11 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix3x2f;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.List;
 
 /**
  * The engine's {@link Canvas} over Minecraft's GUI drawing. Create one per frame, paint, then {@link #finish()}
@@ -52,7 +59,8 @@ public final class McCanvas implements Canvas {
     }
 
     private final Minecraft mc;
-    private final McGui gui;
+    /** Where primitives go: the frame's GUI, or the layer of the innermost open group. */
+    private McGui gui;
     private final float mouseX, mouseY;
     private final float guiScale;
     private final @Nullable SlotSink slots;
@@ -75,6 +83,14 @@ public final class McCanvas implements Canvas {
     private int[] savedClips = new int[16];
     private int depth;
 
+    /**
+     * An open group: the GUI it draws onto when it ends, its content and mask layers with their operators, and the
+     * opacity it is drawn with (the canvas's when it began; inside, primitives are drawn at full opacity).
+     */
+    private record Group(McGui under, Layers.Layer content, List<Layers.Layer> masks, List<MaskComposite> ops, float alpha) {}
+
+    private final Deque<Group> groups = new ArrayDeque<>();
+
     /** The screen-space bounding box of the last {@link #boundsOf} call. */
     private float bx0, by0, bx1, by1;
 
@@ -89,6 +105,7 @@ public final class McCanvas implements Canvas {
      */
     public McCanvas(GuiGraphicsExtractor g, float mouseX, float mouseY, @Nullable SlotSink slots) {
         this.mc = Minecraft.getInstance();
+        Layers.beginFrame();
         this.gui = new McGui(g);
         this.mouseX = mouseX;
         this.mouseY = mouseY;
@@ -102,8 +119,65 @@ public final class McCanvas implements Canvas {
 
     /** Pops the scissors clipped outside any save and restores the pose. */
     public void finish() {
+        while (!groups.isEmpty()) endGroup(1, List.of(), BlendMode.NORMAL);
         popClips(0);
         gui.end();
+    }
+
+    // ---- Groups ----
+
+    /** Groups are drawn by {@link LayerRenderer} once the layer pipelines have compiled. */
+    @Override
+    public boolean beginGroup() {
+        if (!Layers.available()) return false;
+        Group group = new Group(gui, Layers.layer(), new ArrayList<>(), new ArrayList<>(), alpha);
+        groups.push(group);
+        enter(group.content());
+        alpha = 1;
+        return true;
+    }
+
+    @Override
+    public void beginMask(MaskComposite composite) {
+        Group group = groups.peek();
+        if (group == null) return;
+        gui.end();
+        Layers.Layer mask = Layers.layer();
+        group.masks().add(mask);
+        group.ops().add(composite);
+        enter(mask);
+    }
+
+    /** Filters are not drawn yet; groups blend normally, or multiply, screen or add (plus-lighter). */
+    @Override
+    public @Nullable String groupLimits(List<Filter> filters, BlendMode blend) {
+        if (!filters.isEmpty()) return "filter is not drawn in game yet";
+        if (Layers.blend(blend) == null) return "mix-blend-mode " + blend.name().toLowerCase(java.util.Locale.ROOT).replace('_', '-')
+                + " is drawn as normal in game";
+        return null;
+    }
+
+    @Override
+    public void endGroup(float opacity, List<Filter> filters, BlendMode blend) {
+        Group group = groups.poll();
+        if (group == null) return;
+        gui.end();
+        gui = group.under();
+        alpha = group.alpha();
+        if (clippedAway()) return;
+        // The layer covers the clip: nothing outside it can show.
+        int x0 = clips.left(), y0 = clips.top(), x1 = clips.right(), y1 = clips.bottom();
+        if (x1 <= x0 || y1 <= y0) return;
+        gui.layer(new LayerRenderState(group.content(), List.copyOf(group.masks()), List.copyOf(group.ops()),
+                opacity * alpha, blend, x0, y0, x1, y1, gui.scissor(),
+                net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState.getBounds(x0, y0, x1, y1, gui.scissor())));
+    }
+
+    /** Draws into {@code layer} from now on, inside the clip there is now. */
+    private void enter(Layers.Layer layer) {
+        gui = new McGui(new GuiGraphicsExtractor(mc, layer.state, Math.round(mouseX), Math.round(mouseY)));
+        gui.begin();
+        if (!clippedAway()) gui.pushScissor(clips.left(), clips.top(), clips.right(), clips.bottom());
     }
 
     // ---- State ----

@@ -95,7 +95,9 @@ final class BoxPainter implements StackingOrder.Visitor {
         if (!style.backdropFilter.isEmpty()) backdrop(box, style, bx, by);
         boolean effects = style.hasGroupEffects();
         boolean group = effects && canvas.beginGroup();
-        if (effects && !group) unsupported("this canvas has no offscreen layers");
+        if (effects && !group) unsupported("filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: this canvas has no offscreen layers");
+        String limits = group ? canvas.groupLimits(style.filter, style.mixBlendMode) : null;
+        if (limits != null) unsupported(limits);
         groups[depth++] = group ? new Group(box, style, bx, by) : null;
         if (!group && opacity < 1) canvas.multiplyAlpha(opacity);
         return true;
@@ -117,7 +119,7 @@ final class BoxPainter implements StackingOrder.Visitor {
     /** {@code backdrop-filter}: what is under the border box, through the filters, inside its rounded shape. */
     private void backdrop(Box box, ComputedStyle s, float x, float y) {
         if (!canvas.beginBackdrop()) {
-            unsupported("this canvas cannot read back what it has drawn, so backdrop-filter is not drawn");
+            unsupported("backdrop-filter is not drawn: this canvas cannot read back what it has drawn");
             return;
         }
         Geometry g = geometry.box(box, s, x, y, dp);
@@ -146,10 +148,10 @@ final class BoxPainter implements StackingOrder.Visitor {
         }
     }
 
-    /** Reports, once per page and reason, that group effects are drawn without them. */
+    /** Reports, once per page and message, an effect that is drawn without some of it. */
     private void unsupported(String why) {
         painter.document().diagnostics().report(new Diagnostic(Diagnostic.Severity.WARNING, "effects-unsupported",
-                painter.document().url(), 0, "filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: " + why, ""));
+                painter.document().url(), 0, why, ""));
     }
 
     /** Per open clip: whether it is a group cut to rounded corners when it pops. */
@@ -243,7 +245,7 @@ final class BoxPainter implements StackingOrder.Visitor {
      */
     private void textBackground(Geometry g, ComputedStyle s, java.util.function.Consumer<StackingOrder.RunSink> runs) {
         if (!canvas.beginGroup()) {
-            unsupported("this canvas has no layers; background-clip: text is left out");
+            unsupported("background-clip: text is left out: this canvas has no offscreen layers");
             return;
         }
         backgrounds.paint(canvas, batch, g, s, dp, true);

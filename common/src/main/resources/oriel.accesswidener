@@ -25,6 +25,18 @@ accessible field net/minecraft/client/gui/render/pip/PictureInPictureRenderer te
 #accessible method net/minecraft/client/KeyboardHandler charTyped (JLnet/minecraft/client/input/CharacterEvent;)V
 #?}
 
+# Layers draws McCanvas's groups with vanilla's GUI renderer, which draws into the main render target only: it swaps
+# the target for an offscreen one while it does (26.1 keeps the target in Minecraft, later versions in GameRenderer).
+#? if >=26.2 {
+accessible field net/minecraft/client/renderer/GameRenderer mainRenderTarget Lcom/mojang/blaze3d/pipeline/RenderTarget;
+mutable field net/minecraft/client/renderer/GameRenderer mainRenderTarget Lcom/mojang/blaze3d/pipeline/RenderTarget;
+#?} else {
+#accessible field net/minecraft/client/Minecraft mainRenderTarget Lcom/mojang/blaze3d/pipeline/RenderTarget;
+#mutable field net/minecraft/client/Minecraft mainRenderTarget Lcom/mojang/blaze3d/pipeline/RenderTarget;
+## 26.1's GUI renderer is handed the fog buffer to draw with.
+#accessible field net/minecraft/client/renderer/GameRenderer fogRenderer Lnet/minecraft/client/renderer/fog/FogRenderer;
+#?}
+
 # OrielContainerScreen's GUI area is the page's content, which JEI and REI read to lay out beside it.
 mutable field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageWidth I
 mutable field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageHeight I

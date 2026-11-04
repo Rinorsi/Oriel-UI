@@ -28,6 +28,12 @@ import net.neoforged.neoforge.common.NeoForge;
 //? if >=26 {
 import dev.oriel.mod.client.render.GuiSceneRenderState;
 import dev.oriel.mod.client.render.GuiSceneRenderer;
+import dev.oriel.mod.client.render.LayerRenderState;
+import dev.oriel.mod.client.render.LayerRenderer;
+import dev.oriel.mod.client.render.Layers;
+import net.minecraft.client.gui.render.GuiRenderer;
+import net.neoforged.neoforge.client.gui.PictureInPictureRendererRegistration;
+import java.util.List;
 import dev.oriel.mod.net.OrielNetwork;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -58,7 +64,24 @@ public final class OrielNeoForgeClient {
                 stack, x, y, stack.get(DataComponents.TOOLTIP_STYLE)));
         *///?}
         modBus.addListener(OrielNeoForgeClient::registerPayloadHandlers);
-        modBus.addListener((RegisterPictureInPictureRenderersEvent e) -> e.register(GuiSceneRenderState.class, GuiSceneRenderer::new));
+        modBus.addListener((RegisterPictureInPictureRenderersEvent e) -> {
+            e.register(GuiSceneRenderState.class, GuiSceneRenderer::new);
+            e.register(LayerRenderState.class, LayerRenderer::new);
+        });
+        // The GUI renderers of McCanvas's layers draw scenes and layers inside layers.
+        //? if >=26.2 {
+        Layers.renderers(state -> new GuiRenderer(state, Minecraft.getInstance().gameRenderer.featureRenderDispatcher(), List.of(
+                new PictureInPictureRendererRegistration<>(GuiSceneRenderState.class, GuiSceneRenderer::new),
+                new PictureInPictureRendererRegistration<>(LayerRenderState.class, LayerRenderer::new))));
+        //?} else {
+        /*Layers.renderers(state -> {
+            var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+            var features = Minecraft.getInstance().gameRenderer.getFeatureRenderDispatcher();
+            return new GuiRenderer(state, buffers, features.getSubmitNodeStorage(), features, List.of(
+                    new PictureInPictureRendererRegistration<>(GuiSceneRenderState.class, GuiSceneRenderer::new),
+                    new PictureInPictureRendererRegistration<>(LayerRenderState.class, LayerRenderer::new)));
+        });
+        *///?}
         modBus.addListener((AddClientReloadListenersEvent e) ->
                 e.addListener(Constants.id("documents"), (ResourceManagerReloadListener) resources -> OrielClient.onResourceReload()));
         //?} else {

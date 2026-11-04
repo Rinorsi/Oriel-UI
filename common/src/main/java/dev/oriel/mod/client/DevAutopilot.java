@@ -221,6 +221,10 @@ public final class DevAutopilot {
             text(mc);
             return;
         }
+        if (ONLY.equals("effects")) {
+            effects(mc);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -1033,6 +1037,17 @@ public final class DevAutopilot {
         pause(50); // past the resource reload's fading overlay
         grab(mc, "reload_done", 5);
         onPage("the result", p -> Constants.LOG.info("Oriel autopilot: reload bar says {}", p.text("#o-devbar .t").orElse("(gone)")));
+    }
+
+    /**
+     * {@code -Pautopilot=effects}: the effects page (filters, clip-path, masks, blend modes, rounded overflow clips,
+     * background-clip: text), which McCanvas draws through offscreen layers, at GUI scale 2 and 3.
+     */
+    private static void effects(Minecraft mc) {
+        shoot(mc, "effects", () -> OrielScreens.open(devUrl("effects")));
+        guiScale(mc, 3);
+        shoot(mc, "effects_gui3", () -> OrielScreens.open(devUrl("effects")));
+        guiScale(mc, 2);
     }
 
     /**
