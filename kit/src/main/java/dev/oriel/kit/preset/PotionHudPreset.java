@@ -161,7 +161,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
             for (Effect e : INITIAL) add(e, false);
             queue.addAll(ARRIVALS);
         }
-        refreshBar();
+        // Every group's counts and empty state, also those nothing has been added to yet.
+        for (Kind k : Kind.values()) refresh(k);
         doc.scheduler().requestAnimationFrame(t -> frame(t, t));
     }
 

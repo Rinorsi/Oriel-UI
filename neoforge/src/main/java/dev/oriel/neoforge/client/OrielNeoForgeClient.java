@@ -8,6 +8,7 @@ import dev.oriel.mod.client.McClient;
 import dev.oriel.mod.client.TourCursor;
 import dev.oriel.mod.client.OrielClient;
 import dev.oriel.mod.client.OrielClientCommands;
+import dev.oriel.mod.client.InventoryEffects;
 import dev.oriel.mod.client.OrielHud;
 import dev.oriel.mod.client.OrielScreens;
 import dev.oriel.mod.client.replaced.ItemTooltips;
@@ -85,6 +86,11 @@ public final class OrielNeoForgeClient {
             for (OrielScreens.ContainerBinding<?> b : OrielScreens.takeContainers()) registerMenuScreen(e, b);
         });
         NeoForge.EVENT_BUS.addListener((RegisterClientCommandsEvent e) -> e.getDispatcher().register(OrielClientCommands.create()));
+        // The effects panel beside vanilla's inventories, in place of vanilla's list.
+        NeoForge.EVENT_BUS.addListener((ScreenEvent.Render.Pre e) -> InventoryEffects.prepare(e.getScreen()));
+        NeoForge.EVENT_BUS.addListener((ScreenEvent.RenderInventoryMobEffects e) -> {
+            if (InventoryEffects.hideVanilla(e.getScreen())) e.setCanceled(true);
+        });
         // Interactive HUD overlays: drawn above the screen (not its background layers) and given its pointer input first.
         NeoForge.EVENT_BUS.addListener((ScreenEvent.Render.Post e) -> {
             if (e.getScreen() == McClient.screen()) OrielHud.extractAboveScreen(e.getGuiGraphics(), e.getPartialTick());

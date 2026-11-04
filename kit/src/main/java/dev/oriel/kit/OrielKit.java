@@ -8,6 +8,7 @@ import dev.oriel.kit.preset.GalleryPreset;
 import dev.oriel.kit.preset.InventoryPreset;
 import dev.oriel.kit.preset.ItemEditorPreset;
 import dev.oriel.kit.preset.MusicPreset;
+import dev.oriel.kit.preset.InventoryEffectsPreset;
 import dev.oriel.kit.preset.PotionHudPreset;
 import dev.oriel.kit.preset.SettingsPreset;
 import dev.oriel.engine.host.PageControllers;
@@ -26,6 +27,8 @@ public final class OrielKit {
     public static final String MUSIC = page("music");
     public static final String SETTINGS = page("settings");
     public static final String POTIONS = page("potions");
+    /** The player's effects beside vanilla's inventories (the mod shows it as an overlay there). */
+    public static final String INVENTORY_EFFECTS = page("inventory_effects");
     public static final String EDITOR = page("editor");
     public static final String CATALOG = page("catalog");
     public static final String ICONS = page("icons");
@@ -54,6 +57,7 @@ public final class OrielKit {
         PageControllers.register(MUSIC, MusicPreset::new);
         PageControllers.register(SETTINGS, SettingsPreset::new);
         PageControllers.register(POTIONS, PotionHudPreset::new);
+        PageControllers.register(INVENTORY_EFFECTS, InventoryEffectsPreset::new);
         PageControllers.register(EDITOR, EditorPreset::new);
         PageControllers.register(CATALOG, CatalogPreset::new);
         PageControllers.register(ICONS, IconsPreset::new);

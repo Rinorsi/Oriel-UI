@@ -73,6 +73,7 @@ public final class OrielClient {
         });
         // The potion HUD shows the player's own effects.
         PlayerEffects.init();
+        InventoryEffects.init();
         OrielHud.register(POTION_HUD, OrielKit.POTIONS, OrielHud.Input.WHEN_CHAT_OPEN);
         // The gallery's HUD card: show the potion HUD over the game, closing the gallery so it can be seen.
         OrielScreens.onPageLoad(OrielKit.GALLERY, driver -> driver.onMessage(OrielKit.CHANNEL, value -> {
@@ -124,5 +125,6 @@ public final class OrielClient {
         ServerPages.tick();
         Mobdex.tick();
         PlayerEffects.tick();
+        InventoryEffects.tick();
     }
 }

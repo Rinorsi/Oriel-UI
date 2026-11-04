@@ -1077,6 +1077,19 @@ public final class DevAutopilot {
         steps.add(() -> command(mc, "effect clear @s minecraft:poison"));
         pause(20);
         grab(mc, "potions_cleared_one", 5);
+        // The effects panel beside vanilla's inventories, in place of vanilla's list.
+        steps.add(() -> command(mc, "gamemode survival"));
+        pause(5);
+        steps.add(() -> McClient.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
+        pause(20);
+        grab(mc, "potions_inventory", 5);
+        steps.add(() -> McClient.setScreen(null));
+        steps.add(() -> command(mc, "gamemode creative"));
+        pause(5);
+        steps.add(() -> McClient.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
+        pause(20);
+        grab(mc, "potions_creative", 5);
+        steps.add(() -> McClient.setScreen(null));
         steps.add(() -> command(mc, "effect clear @s"));
         pause(5);
     }
@@ -1087,6 +1100,7 @@ public final class DevAutopilot {
      */
     private static void effects(Minecraft mc) {
         shoot(mc, "effects", () -> OrielScreens.open(devUrl("effects")));
+        steps.add(() -> Constants.LOG.info("Oriel autopilot: effects layers {}", dev.oriel.mod.client.render.Layers.describe()));
         guiScale(mc, 3);
         shoot(mc, "effects_gui3", () -> OrielScreens.open(devUrl("effects")));
         guiScale(mc, 2);
