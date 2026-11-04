@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.platform.cursor.CursorType;
@@ -31,8 +30,7 @@ import java.util.List;
 
 /**
  * Minecraft's GUI drawing, the part of it that differs between Minecraft versions; this is the one for 26.x, where
- * a {@link GuiGraphicsExtractor} records render states that the GUI renderer draws at the end of the frame. 1.21.1
- * has its own McGui with the same methods ({@code common/versions/1.21.1/src}).
+ * a {@link GuiGraphicsExtractor} records render states that the GUI renderer draws at the end of the frame.
  *
  * <p>An instance is {@link McCanvas}'s backend for one frame: McCanvas keeps the transform, opacity and clip stacks and
  * computes bounds, and hands each primitive here already transformed and clipped. The static methods draw the few
@@ -272,4 +270,3 @@ public final class McGui {
         };
     }
 }
-//?}

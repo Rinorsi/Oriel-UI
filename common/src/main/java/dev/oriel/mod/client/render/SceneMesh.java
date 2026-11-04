@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -301,4 +300,3 @@ public final class SceneMesh {
         }
     }
 }
-//?}

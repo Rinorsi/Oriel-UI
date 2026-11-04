@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -20,7 +19,6 @@ import org.lwjgl.sdl.SDLEvents;
 
 /**
  * The client state and input that Oriel reaches differently on each Minecraft version; this is the one for 26.x.
- * 1.21.1 has its own McClient with the same methods ({@code common/versions/1.21.1/src}).
  */
 public final class McClient {
     private McClient() {}
@@ -167,4 +165,3 @@ public final class McClient {
         return Minecraft.getInstance().getWindow().handle();
     }
 }
-//?}

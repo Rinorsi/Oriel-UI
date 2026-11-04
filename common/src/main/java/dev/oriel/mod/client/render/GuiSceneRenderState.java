@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import net.minecraft.client.gui.navigation.ScreenRectangle;
@@ -17,4 +16,3 @@ public record GuiSceneRenderState(Scene scene, int color, int x0, int y0, int x1
         this(scene, color, x0, y0, x1, y1, scale, scissorArea, PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea));
     }
 }
-//?}

@@ -31,22 +31,11 @@ Each Minecraft version has its own artifacts, all at the same Oriel version:
 |---|---|---|---|
 | 26.3 | `dev.oriel:oriel-common-26.3` | `dev.oriel:oriel-neoforge-26.3` | `dev.oriel:oriel-fabric-26.3` |
 | 26.2 | `dev.oriel:oriel-common-26.2` | `dev.oriel:oriel-neoforge-26.2` | `dev.oriel:oriel-fabric-26.2` |
-| 1.21.1 | `dev.oriel:oriel-common-1.21.1` | `dev.oriel:oriel-neoforge-1.21.1` | `dev.oriel:oriel-fabric-1.21.1` |
+| 26.1.2 | `dev.oriel:oriel-common-26.1.2` | `dev.oriel:oriel-neoforge-26.1.2` | `dev.oriel:oriel-fabric-26.1.2` |
 
-On 1.21.1 the Fabric jar is remapped to intermediary names like any Fabric mod for an obfuscated version: depend on it
-with `modImplementation`, and compile against Mojang's mappings, as `oriel-common-1.21.1` is. The API is the same on
-every version, except:
+所有目标均使用 Java 25 和未混淆的 Minecraft API。Fabric 使用 `implementation`，无需旧版 remapping Loom。
 
-- `OrielEntities.registerPortraitState` is 26.3 only (1.21.1 has no entity render states; see
-  [Entity render states](elements.md#entity-render-states)).
-- `DocumentDriver.onKey` handlers get Oriel's `dev.oriel.mod.client.input.KeyEvent` on 1.21.1, a record with
-  the shape of 26.3's `net.minecraft.client.input.KeyEvent` (`key()`, `modifiers()`, `isEscape()`,
-  `hasShiftDown()`...) whose `key()` is a GLFW key code and whose `scancode()` replaces `keycode()`.
-- On 26.2 the input events are Minecraft's own, as on 26.3, but 26.2 uses GLFW: `KeyEvent.key()` is a GLFW key code and
-  `scancode()` replaces 26.3's `keycode()`; its render API is in `com.mojang.blaze3d.*` where 26.3's is in
-  `com.mojang.renderpearl.api.*`.
-- `OrielScreen` and `OrielContainerScreen` override 1.21.1's screen methods (`render`, `mouseClicked(double, double,
-  int)`...), so subclasses override those there.
+26.1/26.2 使用 GLFW 输入事件；26.3 使用 SDL。渲染包迁移等差异见 [版本说明](../versions.md)。
 
 The recommended setup is a required dependency: `[[dependencies.<modid>]] modId="oriel" type="required"` in
 `neoforge.mods.toml`, `"depends": {"oriel": ">=0.9.0"}` in `fabric.mod.json`, and a required dependency on your
@@ -58,7 +47,7 @@ You can also bundle Oriel in your jar, so players install one file:
 ```groovy
 // NeoForge (ModDevGradle)
 dependencies { jarJar(implementation("dev.oriel:oriel-neoforge-26.3:0.9.0")) }
-// Fabric (Loom); on 1.21.1, modImplementation instead of implementation
+// Fabric (Loom)
 dependencies { include(implementation("dev.oriel:oriel-fabric-26.3:0.9.0")) }
 ```
 

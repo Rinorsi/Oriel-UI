@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * A document's diagnostics: each distinct one is kept (up to {@link #MAX}) and handed to the host once, so a rule
@@ -19,6 +20,7 @@ public final class Diagnostics {
     private final Host host;
     private final List<Diagnostic> all = new ArrayList<>();
     private final Set<Diagnostic> seen = new HashSet<>();
+    private final Set<String> reportedKeys = new HashSet<>();
     private int dropped;
 
     public Diagnostics(Host host) {
@@ -33,6 +35,11 @@ public final class Diagnostics {
         }
         all.add(d);
         if (host != null) host.diagnostic(d);
+    }
+
+    /** Avoids reconstructing repeated resource or element diagnostics on frame-driven paths. */
+    public void reportOnce(String key, Supplier<Diagnostic> diagnostic) {
+        if (reportedKeys.add(key)) report(diagnostic.get());
     }
 
     public List<Diagnostic> all() {

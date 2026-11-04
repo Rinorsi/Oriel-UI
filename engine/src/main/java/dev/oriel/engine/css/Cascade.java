@@ -2,6 +2,8 @@ package dev.oriel.engine.css;
 
 import dev.oriel.engine.css.Decl.Keyword;
 import dev.oriel.engine.css.RuleIndex.Entry;
+import dev.oriel.engine.diag.Diagnostic;
+import java.util.function.Consumer;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.PseudoElement;
 import dev.oriel.engine.host.Host;
@@ -45,6 +47,16 @@ final class Cascade {
      */
     private final Map<VarKey, Object> varValues = new HashMap<>();
     private final Map<VarText, Object> varTexts = new HashMap<>();
+    private final Consumer<Diagnostic> diagnostics;
+    private static final Object INVALID = new Object();
+
+    Cascade() {
+        this(d -> {});
+    }
+
+    Cascade(Consumer<Diagnostic> diagnostics) {
+        this.diagnostics = diagnostics;
+    }
 
     /** A declaration under one set of custom properties, both by identity (the maps are immutable). */
     private record VarKey(Decl decl, Map<String, String> vars) {
@@ -224,31 +236,57 @@ final class Cascade {
     private Object substituted(Longhand l, Decl d, ComputedStyle s, ComputedStyle parent) {
         VarKey key = new VarKey(d, s.customProperties);
         Object cached = varValues.get(key);
-        if (cached != null) return cached;
+        if (cached != null) return cached == INVALID ? keyword(l, Keyword.UNSET, s, parent) : cached;
         String text = Vars.substitute(d.value, s.customProperties::get);
-        if (text == null) return keyword(l, Keyword.UNSET, s, parent);
         VarText byText = new VarText(d, text);
         cached = varTexts.get(byText);
         if (cached != null) {
             varValues.put(key, cached);
-            return cached;
+            return cached == INVALID ? keyword(l, Keyword.UNSET, s, parent) : cached;
+        }
+        if (text == null) {
+            invalidVar(d, null, key, byText, true);
+            return keyword(l, Keyword.UNSET, s, parent);
         }
         List<ComponentValue> values = CssParser.parseComponentValues(text);
         if (d.pending != null) {
             Map<Longhand, List<ComponentValue>> parts = d.pending.expand(values);
             values = parts == null ? null : parts.get(l);
         }
-        Keyword keyword = values == null ? Keyword.UNSET : Decl.keyword(values);
+        if (values == null) {
+            invalidVar(d, text, key, byText, true);
+            return keyword(l, Keyword.UNSET, s, parent);
+        }
+        Keyword keyword = Decl.keyword(values);
         if (keyword != null) return keyword(l, keyword, s, parent);
         ctx.baseUrl(d.baseUrl);
         ctx.dependent = false;
         Object v = Decl.parse(l, values, ctx);
-        if (v == null) return keyword(l, Keyword.UNSET, s, parent);
+        if (v == null) {
+            invalidVar(d, text, key, byText, !ctx.dependent);
+            return keyword(l, Keyword.UNSET, s, parent);
+        }
         if (!ctx.dependent) {
             varValues.put(key, v);
             varTexts.put(byText, v);
         }
         return v;
+    }
+
+    private void invalidVar(Decl d, String text, VarKey key, VarText byText, boolean cacheable) {
+        // Cache the failure, never its computed unset value: inheritance depends on the element's parent.
+        if (cacheable) {
+            varValues.put(key, INVALID);
+            varTexts.put(byText, INVALID);
+        }
+        String property = d.pending == null ? d.property.name : d.pending.name();
+        String original = ComponentValue.text(d.value);
+        diagnostics.accept(new Diagnostic(Diagnostic.Severity.WARNING,
+                text == null ? "undefined-var" : "invalid-after-var", d.baseUrl, 0,
+                text == null ? "Cannot resolve variable in '" + property + ": " + original + "'"
+                        : "Invalid declaration after var(): '" + property + ": " + original + "' becomes '" + text + "'",
+                text == null ? "define the referenced custom property or provide a fallback, e.g. var(--name, initial)"
+                        : "check that the value after var() substitution is valid for '" + property + "'"));
     }
 
     /** The element's custom properties: inherited ones plus its declarations, with var() resolved. */

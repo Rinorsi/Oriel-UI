@@ -8,7 +8,6 @@ import dev.oriel.mod.Constants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
-//? if >=26
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -78,10 +77,7 @@ final class McText {
         if (style.isUnderlined() || style.isStrikethrough()) {
             css.append("text-decoration:").append(style.isUnderlined() ? "underline " : "").append(style.isStrikethrough() ? "line-through" : "").append(';');
         }
-        //? if >=26 {
         if (style.getFont() instanceof FontDescription.Resource font && !font.equals(FontDescription.DEFAULT)) css.append("font-family:").append(font.id()).append(';');
-        //?} else
-        //if (!style.getFont().equals(Style.DEFAULT_FONT)) css.append("font-family:").append(style.getFont()).append(';');
         return css.toString();
     }
 }

@@ -13,6 +13,8 @@ public sealed interface Image {
      * texture, its URL resolved with {@code resolve} (against the stylesheet or document).
      */
     static Image ofUrl(String url, UnaryOperator<String> resolve) {
+        // Keep unsupported data URLs intact so diagnostics can identify them without host path parsing.
+        if (url.regionMatches(true, 0, "data:", 0, 5)) return new Url(url);
         if (url.startsWith(SPRITE_SCHEME)) return new Sprite(url.substring(SPRITE_SCHEME.length()));
         if (url.startsWith(CANVAS_SCHEME)) return new Canvas(url.substring(CANVAS_SCHEME.length()));
         return new Url(resolve.apply(url));

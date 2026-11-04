@@ -49,6 +49,9 @@ public interface Host {
      */
     default float[] imageSize(String url) { return null; }
 
+    /** True after image loading has failed, distinct from a size that is merely unknown or still loading. */
+    default boolean imageFailed(String url) { return false; }
+
     /** The natural size {width, height} in px of a GUI sprite, or null when unknown. As {@link #imageSize}. */
     default float[] spriteSize(String id) { return null; }
 

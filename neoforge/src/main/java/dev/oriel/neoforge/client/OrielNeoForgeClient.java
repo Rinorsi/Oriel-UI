@@ -25,7 +25,6 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
-//? if >=26 {
 import dev.oriel.mod.client.render.GuiSceneRenderState;
 import dev.oriel.mod.client.render.GuiSceneRenderer;
 import dev.oriel.mod.net.OrielNetwork;
@@ -36,18 +35,11 @@ import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
-//?} else {
-/*import net.minecraft.client.input.MouseButtonEvent;
-import dev.oriel.neoforge.OrielNeoForge;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-*///?}
 
 /** Client-only entry point: FML constructs this class on the physical client only. */
 @Mod(value = Constants.MOD_ID, dist = Dist.CLIENT)
 public final class OrielNeoForgeClient {
     public OrielNeoForgeClient(IEventBus modBus, ModContainer container) {
-        //? if >=26 {
         OrielClient.init(payload -> ClientPacketDistributor.sendToServer(payload));
         // <item tooltip>: pass the stack on to NeoForge's tooltip events, as vanilla's item tooltips do.
         //? if >=26.3 {
@@ -61,14 +53,6 @@ public final class OrielNeoForgeClient {
         modBus.addListener((RegisterPictureInPictureRenderersEvent e) -> e.register(GuiSceneRenderState.class, GuiSceneRenderer::new));
         modBus.addListener((AddClientReloadListenersEvent e) ->
                 e.addListener(Constants.id("documents"), (ResourceManagerReloadListener) resources -> OrielClient.onResourceReload()));
-        //?} else {
-        /*OrielClient.init(payload -> PacketDistributor.sendToServer(payload));
-        // <item tooltip>: pass the stack on to NeoForge's tooltip events, as vanilla's item tooltips do.
-        ItemTooltips.install((g, font, lines, stack, x, y) -> g.renderTooltip(font, lines, stack.getTooltipImage(), stack, x, y));
-        OrielNeoForge.clientHandler = OrielClient::handle; // on the client main thread (the registrar's default)
-        modBus.addListener((RegisterClientReloadListenersEvent e) ->
-                e.registerReloadListener((ResourceManagerReloadListener) resources -> OrielClient.onResourceReload()));
-        *///?}
         modBus.addListener((RegisterGuiLayersEvent e) -> e.registerAbove(VanillaGuiLayers.TITLE, Constants.id("hud"), OrielHud::extract));
         modBus.addListener((RegisterMenuScreensEvent e) -> {
             for (OrielScreens.ContainerBinding<?> b : OrielScreens.takeContainers()) registerMenuScreen(e, b);
@@ -78,7 +62,6 @@ public final class OrielNeoForgeClient {
         NeoForge.EVENT_BUS.addListener((ScreenEvent.Render.Post e) -> {
             if (e.getScreen() == McClient.screen()) OrielHud.extractAboveScreen(e.getGuiGraphics(), e.getPartialTick());
         });
-        //? if >=26 {
         NeoForge.EVENT_BUS.addListener((ScreenEvent.MouseButtonPressed.Pre e) -> {
             if (OrielHud.mouseClicked(e.getMouseButtonEvent())) e.setCanceled(true);
         });
@@ -88,17 +71,6 @@ public final class OrielNeoForgeClient {
         NeoForge.EVENT_BUS.addListener((ScreenEvent.MouseDragged.Pre e) -> {
             if (OrielHud.mouseDragged(e.getMouseButtonEvent())) e.setCanceled(true);
         });
-        //?} else {
-        /*NeoForge.EVENT_BUS.addListener((ScreenEvent.MouseButtonPressed.Pre e) -> {
-            if (OrielHud.mouseClicked(MouseButtonEvent.now(e.getMouseX(), e.getMouseY(), e.getButton()))) e.setCanceled(true);
-        });
-        NeoForge.EVENT_BUS.addListener((ScreenEvent.MouseButtonReleased.Pre e) -> {
-            if (OrielHud.mouseReleased(MouseButtonEvent.now(e.getMouseX(), e.getMouseY(), e.getButton()))) e.setCanceled(true);
-        });
-        NeoForge.EVENT_BUS.addListener((ScreenEvent.MouseDragged.Pre e) -> {
-            if (OrielHud.mouseDragged(MouseButtonEvent.now(e.getMouseX(), e.getMouseY(), e.getMouseButton()))) e.setCanceled(true);
-        });
-        *///?}
         NeoForge.EVENT_BUS.addListener((ScreenEvent.MouseScrolled.Pre e) -> {
             if (OrielHud.mouseScrolled(e.getMouseX(), e.getMouseY(), e.getScrollDeltaX(), e.getScrollDeltaY())) e.setCanceled(true);
         });
@@ -108,7 +80,6 @@ public final class OrielNeoForgeClient {
             NeoForge.EVENT_BUS.addListener((ScreenEvent.Init.Pre e) -> DevPointer.beforeScreenChange());
             NeoForge.EVENT_BUS.addListener((ScreenEvent.Closing e) -> DevPointer.beforeScreenChange());
         }
-        //? if >=26 {
         // The dev tour's cursor, over everything: after the screen's tooltips and the overlays above it, else last in the HUD.
         if (DevFlags.TOUR) {
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, (ScreenEvent.Render.Post e) -> {
@@ -116,10 +87,8 @@ public final class OrielNeoForgeClient {
             });
             modBus.addListener((RegisterGuiLayersEvent e) -> e.registerAboveAll(Constants.id("tour_cursor"), TourCursor::extractHud));
         }
-        //?}
     }
 
-    //? if >=26 {
     private static void registerPayloadHandlers(RegisterClientPayloadHandlersEvent event) {
         // Runs on the client main thread (HandlerThread.MAIN is the default for this overload).
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) register(event, c);
@@ -128,7 +97,6 @@ public final class OrielNeoForgeClient {
     private static <T extends CustomPacketPayload> void register(RegisterClientPayloadHandlersEvent event, OrielNetwork.Clientbound<T> c) {
         event.register(c.type(), (payload, context) -> OrielClient.handle(payload));
     }
-    //?}
 
     private static <M extends AbstractContainerMenu> void registerMenuScreen(RegisterMenuScreensEvent event, OrielScreens.ContainerBinding<M> b) {
         event.register(b.type().get(), b::create);

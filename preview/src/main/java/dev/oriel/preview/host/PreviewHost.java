@@ -145,6 +145,11 @@ public final class PreviewHost implements Host {
         return missing;
     }
 
+    @Override
+    public boolean imageFailed(String url) {
+        return missing.contains(url);
+    }
+
     /** Every diagnostic so far, formatted ({@code --check}). */
     public List<String> diagnosticLines() {
         return diagnosticLines;

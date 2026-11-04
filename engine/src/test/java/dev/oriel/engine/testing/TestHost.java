@@ -113,6 +113,9 @@ public class TestHost implements Host {
     @Override
     public float[] imageSize(String url) { return imageSizes.get(url); }
 
+    @Override
+    public boolean imageFailed(String url) { return !imageSizes.containsKey(url); }
+
     /** Canvas pixels in memory, drawn as the texture {@code surface:WxH}. */
     @Override
     public PixelSurface createSurface(int width, int height) {

@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.replaced;
 
 import dev.oriel.engine.style.ComputedStyle;
@@ -201,4 +200,3 @@ public final class EntityPortrait {
         return state == null ? null : state.create(entity, partialTick);
     }
 }
-//?}

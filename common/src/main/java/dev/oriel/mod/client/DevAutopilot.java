@@ -23,7 +23,6 @@ import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.MouseButtonInfo;
-//? if >=26
 import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.Rotations;
@@ -54,7 +53,7 @@ import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 
 /**
- * Dev-only visual check ({@code ./gradlew :neoforge:26.3:runClient -Pautopilot}, or {@code :fabric:26.3}, {@code :neoforge:1.21.1}, {@code :fabric:1.21.1},
+ * Dev-only visual check ({@code ./gradlew :neoforge:26.3:runClient -Pautopilot}, or {@code :fabric:26.3}, {@code :neoforge:26.1}, {@code :fabric:26.1},
  * i.e. {@code -Doriel.autopilot=true}): creates a superflat creative world, opens the canvas test, every showcase
  * page and demo, screenshots each to {@code runs/client/screenshots/oriel_<name>.png} at GUI scale 2 (the canvas
  * test, the shapes page and the 3D pages also at 3), logs the frame rate of each (and of benchmark pages of 3D content), and quits.
@@ -103,6 +102,7 @@ public final class DevAutopilot {
     private static int standStates;
     /** The checks made so far ({@link #check}), how many of them failed, and the checks left out ({@link #skip}). */
     private static int checks, failures, skipped;
+    private static int smokePageErrors;
 
     private DevAutopilot() {}
 
@@ -125,7 +125,6 @@ public final class DevAutopilot {
                 mc.options.framerateLimit().set(Options.UNLIMITED_FRAMERATE_CUTOFF);
             }
             String id = PLAY ? "oriel-play" : "oriel-autopilot";
-            //? if >=26 {
             LevelSettings settings = new LevelSettings(id, GameType.CREATIVE,
                     new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
             mc.createWorldOpenFlows().createFreshLevel(id, settings, new WorldOptions(0, false, false),
@@ -133,13 +132,6 @@ public final class DevAutopilot {
                     WorldPresets::createTestWorldDimensions, McClient.screen());
                     //?} else
                     //WorldPresets::createFlatWorldDimensions, McClient.screen());
-            //?} else {
-            /*LevelSettings settings = new LevelSettings(id, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
-                    new net.minecraft.world.level.GameRules(), WorldDataConfiguration.DEFAULT);
-            mc.createWorldOpenFlows().createFreshLevel(id, settings, new WorldOptions(0, false, false),
-                    registries -> registries.registryOrThrow(net.minecraft.core.registries.Registries.WORLD_PRESET)
-                            .getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions(), McClient.screen());
-            *///?}
             return;
         }
         if (!PLAY) DevPointer.hold(); // after screens the server opened
@@ -176,8 +168,34 @@ public final class DevAutopilot {
         if (!PLAY) DevPointer.hold(); // after screens the step opened, before their first frame
     }
 
+    /** Small cross-version acceptance run: the home page and component catalog, then normal client shutdown. */
+    private static void smoke(Minecraft mc) {
+        Constants.LOG.info("Oriel smoke started");
+        for (String page : List.of("gallery", "catalog")) {
+            shoot(mc, "smoke_" + page, () -> OrielClientCommands.preset(page));
+            Path screenshot = mc.gameDirectory.toPath().resolve("screenshots/oriel_smoke_" + page + ".png");
+            until("smoke " + page + " screenshot saved", ticks -> Files.isRegularFile(screenshot));
+            steps.add(() -> {
+                Screen screen = McClient.screen();
+                DocumentDriver driver = screen == null ? null : DocumentDriver.of(screen);
+                Document doc = driver == null ? null : driver.document();
+                int errors = driver == null ? 1 : driver.pageErrorCount();
+                int warnings = doc == null ? 0 : doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.WARNING)
+                        - doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.ERROR);
+                smokePageErrors += errors;
+                Constants.LOG.info("Oriel smoke page {}: {} errors, {} warnings, screenshot {}",
+                        page, errors, warnings, screenshot.toAbsolutePath());
+                check(doc != null && doc.url().endsWith("/" + page + ".html"),
+                        "smoke {} opened", "smoke {} did not open its document", page);
+                check(errors == 0, "smoke {} has no page errors", "smoke {} has page errors", page);
+                check(Files.isRegularFile(screenshot), "smoke {} screenshot saved",
+                        "smoke {} screenshot is missing", page);
+            });
+        }
+        steps.add(() -> Constants.LOG.info("Oriel smoke finished: {} page errors", smokePageErrors));
+    }
+
     private static void plan(Minecraft mc) {
-        //? if >=26 {
         OrielEntities.registerPortraitState(EntityTypes.ARMOR_STAND, (stand, partialTick) -> {
             if (!(mc.getEntityRenderDispatcher().getRenderer(stand).createRenderState(stand, partialTick)
                     instanceof ArmorStandRenderState state)) return null;
@@ -187,7 +205,6 @@ public final class DevAutopilot {
             state.rightArmPose = new Rotations(-150, 0, 15);
             return state;
         });
-        //?}
         command(mc, "gamerule send_command_feedback false");
         command(mc, "time set 6000");
         awardKills(mc);
@@ -197,6 +214,10 @@ public final class DevAutopilot {
             return;
         }
         guiScale(mc, 2);
+        if (ONLY.equals("smoke")) {
+            smoke(mc);
+            return;
+        }
         if (ONLY.equals("scene")) {
             scene(mc);
             return;
@@ -315,13 +336,10 @@ public final class DevAutopilot {
         String url = OrielClientCommands.showcaseUrl("scene");
         leave();
         shoot(mc, "showcase_scene", () -> OrielScreens.open(url, JsonParser.parseString("{\"start\": {\"step\": \"done\"}}")));
-        //? if >=26 {
         steps.add(() -> {
             int quads = sceneQuads();
             check(quads > 300, "the scene drew {} block quads", "the scene drew only {} block quads", quads);
         });
-        //?} else
-        //steps.add(() -> skip("the scene's blocks", "scenes draw no blocks on 1.21.1"));
         hover("scene");
         steps.add(() -> {
             String hovered = OrielAutomation.screen().flatMap(p -> p.eval("window.lastHover || ''"))
@@ -329,9 +347,7 @@ public final class DevAutopilot {
             check(!hovered.isEmpty(), "hovering the scene fired blockhover for {}", "hovering the scene fired no blockhover",
                     hovered);
         });
-        //? if >=26 {
         steps.add(() -> check(shownNow(), "the hovered block's name shows", "no tooltip over the scene's block"));
-        //?}
         grab(mc, "showcase_scene_hover", 0);
         leave();
         shoot(mc, "showcase_scene_step", () -> OrielScreens.open(url, JsonParser.parseString("{\"start\": {\"step\": 4}}")));
@@ -390,7 +406,6 @@ public final class DevAutopilot {
         return Optional.ofNullable(driver == null ? null : driver.inspector()).map(i -> i.inspection);
     }
 
-    //? if >=26 {
     /** How many block quads the open page's scene drew in its last frame. */
     private static int sceneQuads() {
         Screen screen = McClient.screen();
@@ -399,7 +414,6 @@ public final class DevAutopilot {
         Element scene = doc == null ? null : doc.querySelector("scene");
         return scene != null && scene.replaced instanceof SceneContent content ? content.drawnQuads() : 0;
     }
-    //?}
 
     /**
      * The autopilot's portraits page, the conversation card, and the Turntable's portraits watching the pointer over
@@ -420,11 +434,8 @@ public final class DevAutopilot {
             grab(mc, "showcase_models_portraits" + suffix, 5);
         }
         guiScale(mc, 2);
-        //? if >=26 {
         steps.add(() -> check(standStates > 0, "armour stands drawn from the registered render state",
                 "the registered armour stand render state was never used"));
-        //?} else
-        //steps.add(() -> skip("armour stands drawn from a registered render state", "entity render states are 26.x only"));
     }
 
     /**
@@ -1204,16 +1215,11 @@ public final class DevAutopilot {
         steps.add(() -> {
             McClient.chat().clearMessages(false);
             Constants.LOG.info("Oriel autopilot: {} at {} fps", name, mc.getFps());
-            //? if >=26 {
             //? if >=26.2 {
             Screenshot.grab(mc.gameDirectory, "oriel_" + name + ".png", mc.gameRenderer.mainRenderTarget(), 1,
             //?} else
             //Screenshot.grab(mc.gameDirectory, "oriel_" + name + ".png", mc.getMainRenderTarget(), 1,
                     msg -> Constants.LOG.info("Oriel autopilot: {}", msg.getString()));
-            //?} else {
-            /*Screenshot.grab(mc.gameDirectory, "oriel_" + name + ".png", mc.getMainRenderTarget(),
-                    msg -> Constants.LOG.info("Oriel autopilot: {}", msg.getString()));
-            *///?}
             wait = ticks;
         });
     }
@@ -1221,10 +1227,7 @@ public final class DevAutopilot {
     private static void guiScale(Minecraft mc, int scale) {
         steps.add(() -> {
             mc.options.guiScale().set(scale);
-            //? if >=26 {
             mc.resizeGui();
-            //?} else
-            //mc.resizeDisplay();
             wait = 5;
         });
     }
@@ -1439,10 +1442,7 @@ public final class DevAutopilot {
 
     /** An empty chat screen, as T opens it. */
     private static ChatScreen chatScreen() {
-        //? if >=26 {
         return new ChatScreen("", false);
-        //?} else
-        //return new ChatScreen("");
     }
 
     private static void command(Minecraft mc, String cmd) {

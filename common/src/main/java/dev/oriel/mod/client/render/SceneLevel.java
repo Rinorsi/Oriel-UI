@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import net.minecraft.client.Minecraft;
@@ -97,4 +96,3 @@ final class SceneLevel implements BlockAndTintGetter {
         return minY;
     }
 }
-//?}

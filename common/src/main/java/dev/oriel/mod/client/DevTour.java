@@ -542,7 +542,7 @@ import net.minecraft.client.Minecraft;
 
 import java.util.Deque;
 
-/^* The scripted showcase tour for demo videos ({@code -Ptour}) is recorded on 26.3 only; on 26.2 and 1.21.1 it is off. ^/
+/^* The scripted showcase tour for demo videos ({@code -Ptour}) is recorded on 26.3 only; on 26.1/26.2 it is off. ^/
 final class DevTour {
     static final boolean ENABLED = false;
 

@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.replaced;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -132,4 +131,3 @@ record EntityReach(float radius, float bottom, float top) {
         }
     }
 }
-//?}

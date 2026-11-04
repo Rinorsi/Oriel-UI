@@ -33,10 +33,7 @@ public final class FolderTextures {
         if (bytes == null) return false;
         try {
             NativeImage image = NativeImage.read(new ByteArrayInputStream(bytes));
-            //? if >=26 {
             DynamicTexture texture = new DynamicTexture(() -> "Oriel " + id, image);
-            //?} else
-            //DynamicTexture texture = new DynamicTexture(image);
             Minecraft.getInstance().getTextureManager().register(id, texture);
             return true;
         } catch (IOException e) {

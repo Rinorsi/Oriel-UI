@@ -54,7 +54,7 @@ public final class StyleEngine {
 
     private final Document document;
     private final Host host;
-    private final Cascade cascade = new Cascade();
+    private final Cascade cascade;
     private final List<Entry> matched = new ArrayList<>();
     /** Scratch for {@link #computeUsed}, which runs while a restyle's {@link #matched} is still in use. */
     private final List<Entry> usedMatches = new ArrayList<>();
@@ -79,6 +79,7 @@ public final class StyleEngine {
     public StyleEngine(Document document) {
         this.document = document;
         this.host = document.host();
+        this.cascade = new Cascade(document.diagnostics()::report);
     }
 
     /**

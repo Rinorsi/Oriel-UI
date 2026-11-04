@@ -55,10 +55,7 @@ final class ItemStacks {
     /** {@code text} parsed as an SNBT compound, or null (logged) when it is not one. {@code what} names it in the log. */
     static @Nullable CompoundTag snbt(String text, String what) {
         try {
-            //? if >=26 {
             return TagParser.parseCompoundFully(text);
-            //?} else
-            //return TagParser.parseTag(text);
         } catch (CommandSyntaxException e) {
             Constants.LOG.warn("Oriel: {} is not SNBT: {}", what, e.getMessage());
             return null;
@@ -67,10 +64,7 @@ final class ItemStacks {
 
     /** The block state {@code text} names in {@code /setblock} syntax ({@code minecraft:oak_stairs[facing=east]}). */
     static BlockState blockState(String text) throws CommandSyntaxException {
-        //? if >=26 {
         return BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, text, false).blockState();
-        //?} else
-        //return BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK.asLookup(), text, false).blockState();
     }
 
     /** {@code tag} decoded with the world's registries, as much of it as decodes (errors are logged); empty without a world. */

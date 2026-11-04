@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -34,4 +33,3 @@ record RectRenderState(RenderPipeline pipeline, TextureSetup textureSetup, Matri
         vertex.setColor(color);
     }
 }
-//?}

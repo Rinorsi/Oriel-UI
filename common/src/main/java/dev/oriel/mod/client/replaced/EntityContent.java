@@ -12,12 +12,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
-//? if >=26 {
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.nbt.StringTag;
-//?} else
-//import net.minecraft.world.item.DyeColor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -89,7 +86,6 @@ final class EntityContent extends TurnableContent {
         EntityPortrait.draw(canvas, entity, pose, element.computedStyle(), tint, x, y, width, height);
     }
 
-    //? if >=26 {
     /**
      * Its render state in a {@code <scene>}: facing its {@code -mc-yaw} as Minecraft yaws go (0 south), limbs swinging
      * with {@code walk}. Null when there is no entity to show.
@@ -98,7 +94,6 @@ final class EntityContent extends TurnableContent {
         Entity entity = entity();
         return entity == null ? null : EntityPortrait.sceneState(entity, element.computedStyle().modelYaw, walk);
     }
-    //?}
 
     private void load() {
         player = element.hasAttribute("player");
@@ -137,13 +132,9 @@ final class EntityContent extends TurnableContent {
     }
 
     /**
-     * Sets the entity components from {@code components}, {@code variant} and {@code color}. Entities have data
-     * components from Minecraft 1.21.5 on: on 1.21.1, {@code variant} and {@code color} go into the entity's NBT under
-     * the names it saves them by ({@code variant}: cats, frogs, wolves, paintings; {@code Type}: foxes, mooshrooms;
-     * {@code Color}: sheep, shulkers; {@code CollarColor}: wolves, cats), and {@code components} is ignored.
+     * Sets the entity data components from {@code components}, {@code variant} and {@code color}.
      */
     private void applyComponents(Entity entity) {
-        //? if >=26 {
         String snbt = element.getAttribute("components");
         CompoundTag parsed = snbt == null ? null : ItemStacks.snbt(snbt, "<entity components>");
         CompoundTag components = parsed != null ? parsed : new CompoundTag();
@@ -154,27 +145,9 @@ final class EntityContent extends TurnableContent {
         }
         if (components.isEmpty()) return;
         ItemStacks.decode(DataComponentMap.CODEC, components, "<entity components>").ifPresent(map -> map.forEach(c -> set(entity, c)));
-        //?} else {
-        /*String variant = element.getAttribute("variant"), color = element.getAttribute("color");
-        if (variant == null && color == null) return;
-        CompoundTag tag = entity.saveWithoutId(new CompoundTag());
-        if (variant != null) {
-            Identifier id = Identifier.tryParse(variant.strip());
-            tag.putString("variant", variant.strip());
-            tag.putString("Type", id == null ? variant.strip() : id.getPath());
-        }
-        DyeColor dye = color == null ? null : DyeColor.byName(color.strip(), null);
-        if (dye != null) {
-            tag.putByte("Color", (byte) dye.getId());
-            tag.putByte("CollarColor", (byte) dye.getId());
-        }
-        entity.load(tag);
-        *///?}
     }
 
-    //? if >=26 {
     private static <T> void set(Entity entity, TypedDataComponent<T> component) {
         entity.setComponent(component.type(), component.value());
     }
-    //?}
 }

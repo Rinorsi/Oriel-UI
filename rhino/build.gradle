@@ -137,7 +137,7 @@ sourceSets {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    // Rhino ships with the engine, which also runs on Java 21 (Minecraft 1.21.1).
+    // Rhino shares the engine's bytecode baseline.
     options.release = engine_java_release as int
     options.compilerArgs += ['-nowarn', '-Xlint:none']
     // Line numbers for stack traces, no local variable tables.

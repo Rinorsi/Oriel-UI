@@ -4,7 +4,6 @@ import dev.oriel.mod.client.OrielPages;
 import dev.oriel.mod.client.OrielResources;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-//? if >=26
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
@@ -82,10 +81,7 @@ public final class McImages {
     private static float[] readSpriteSize(String spriteId) {
         Identifier id = id(spriteId);
         if (id == null) return UNKNOWN;
-        //? if >=26 {
         TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.GUI).getSprite(id);
-        //?} else
-        //TextureAtlasSprite sprite = Minecraft.getInstance().getGuiSprites().getSprite(id);
         // A missing sprite comes back as the atlas's missing sprite.
         return sprite.contents().name().equals(id) ? new float[] {sprite.contents().width(), sprite.contents().height()} : UNKNOWN;
     }

@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.platform.Lighting;
@@ -154,4 +153,3 @@ public final class Scene {
         return key == null ? System.identityHashCode(this) : System.identityHashCode(owner) * 31 + key.hashCode();
     }
 }
-//?}

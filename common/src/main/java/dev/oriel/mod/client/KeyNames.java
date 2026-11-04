@@ -14,7 +14,7 @@ import org.lwjgl.glfw.GLFW;
 
 /**
  * Minecraft's input to DOM names. {@code code} is the physical key ({@code KeyA}, {@code Digit1}, {@code ArrowLeft}),
- * from the key number: an SDL scancode on 26.3, a GLFW key code (a key's place on a US keyboard) on 26.2 and 1.21.1.
+ * from the key number: an SDL scancode on 26.3, a GLFW key code (a key's place on a US keyboard) on 26.1/26.2.
  * {@code key} is what the key means on the current layout ({@code a}, {@code A} with shift, {@code Enter},
  * {@code Escape}): the SDL keycode on 26.3, what GLFW says the key types before.
  */
@@ -200,10 +200,7 @@ final class KeyNames {
     }
 
     private static boolean isDown(int left, int right) {
-        //? if >=26 {
         var window = Minecraft.getInstance().getWindow();
-        //?} else
-        //long window = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(window, left) || InputConstants.isKeyDown(window, right);
     }
 

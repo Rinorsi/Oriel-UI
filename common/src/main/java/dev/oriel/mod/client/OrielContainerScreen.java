@@ -107,7 +107,6 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
         imageHeight = height;
     }
 
-    //? if >=26 {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
         for (Slot slot : menu.slots) hide(slot); // painting puts back the slots it draws
@@ -121,26 +120,6 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
         super.extractTooltip(g, mouseX, mouseY);
         if (hoveredSlot == null || !hoveredSlot.hasItem()) driver.extractTooltip(g, mouseX, mouseY);
     }
-    //?} else {
-    /*@Override
-    public void render(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
-        super.render(g, mouseX, mouseY, a); // the background with the page (renderBg), then slots and the carried stack
-        renderTooltip(g, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderBg(GuiGraphicsExtractor g, float a, int mouseX, int mouseY) {
-        for (Slot slot : menu.slots) hide(slot); // painting puts back the slots it draws
-        driver.extractPage(g, mouseX, mouseY); // the page first, so vanilla's slots land on top of it
-    }
-
-    // A hovered slot's item tooltip first; the page's tooltip (an <item tooltip>'s or a title) where there is none.
-    @Override
-    protected void renderTooltip(GuiGraphicsExtractor g, int mouseX, int mouseY) {
-        super.renderTooltip(g, mouseX, mouseY);
-        if (hoveredSlot == null || !hoveredSlot.hasItem()) driver.extractTooltip(g, mouseX, mouseY);
-    }
-    *///?}
 
     @Override
     public McCanvas.SlotSink slots() {
@@ -223,17 +202,10 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
         return PageNarrator.collect(this::updateNarrationState);
     }
 
-    //? if >=26 {
     @Override
     protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         // The page draws its own titles.
     }
-    //?} else {
-    /*@Override
-    protected void renderLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
-        // The page draws its own titles.
-    }
-    *///?}
 
     @Override
     public void removed() {
@@ -281,7 +253,6 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
      * Presses on slots go to vanilla, and so do presses on the page's background while a stack is carried: vanilla drops
      * it ({@link #hasClickedOutside}), as outside a vanilla container.
      */
-    //? if >=26 {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         boolean vanilla = slotAt(event.x(), event.y()) != null
@@ -298,30 +269,12 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
         }
         return super.mouseReleased(event);
     }
-    //?} else {
-    /*@Override
-    public boolean mouseClicked(double x, double y, int button) {
-        boolean vanilla = slotAt(x, y) != null || !menu.getCarried().isEmpty() && driver.contentAt(x, y) == null;
-        pagePress = !vanilla && driver.mouseClicked(MouseButtonEvent.now(x, y, button));
-        return pagePress || super.mouseClicked(x, y, button);
-    }
-
-    @Override
-    public boolean mouseReleased(double x, double y, int button) {
-        if (pagePress) {
-            pagePress = false;
-            return driver.mouseReleased(MouseButtonEvent.now(x, y, button));
-        }
-        return super.mouseReleased(x, y, button);
-    }
-    *///?}
 
     @Override
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         return (slotAt(x, y) == null && driver.mouseScrolled(x, y, scrollX, scrollY)) || super.mouseScrolled(x, y, scrollX, scrollY);
     }
 
-    //? if >=26 {
     @Override
     public boolean keyPressed(KeyEvent event) {
         return driver.keyPressed(event) || super.keyPressed(event);
@@ -336,20 +289,4 @@ public class OrielContainerScreen<M extends AbstractContainerMenu> extends Abstr
     public boolean charTyped(CharacterEvent event) {
         return driver.charTyped(event);
     }
-    //?} else {
-    /*@Override
-    public boolean keyPressed(int key, int scancode, int modifiers) {
-        return driver.keyPressed(new KeyEvent(key, scancode, modifiers)) || super.keyPressed(key, scancode, modifiers);
-    }
-
-    @Override
-    public boolean keyReleased(int key, int scancode, int modifiers) {
-        return driver.keyReleased(new KeyEvent(key, scancode, modifiers)) || super.keyReleased(key, scancode, modifiers);
-    }
-
-    @Override
-    public boolean charTyped(char c, int modifiers) {
-        return driver.charTyped(new CharacterEvent(c));
-    }
-    *///?}
 }
