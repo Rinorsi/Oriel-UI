@@ -116,6 +116,8 @@ public final class DocumentDriver {
     /** {@code oriel.data} as last pushed, merged and patched, for the next load. */
     private final PageData data = new PageData();
     private @Nullable Document document;
+    private String language;
+    private net.minecraft.locale.Language translationSource;
     private @Nullable ErrorPanel error;
     private int width, height;
     /** The inspected page's width: the screen's, less the inspector's panel while it is open. */
@@ -256,6 +258,8 @@ public final class DocumentDriver {
     }
 
     private void load() {
+        language = host.language();
+        translationSource = net.minecraft.locale.Language.getInstance();
         // A reload of the same page keeps its controller's state (hot reload in dev keeps what you were doing).
         Object state = null;
         String previousUrl = document == null ? null : document.url();
@@ -319,6 +323,12 @@ public final class DocumentDriver {
 
     /** {@link #extract} without the title tooltip, for owners that draw over the page and show it later. */
     void extractPage(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        if (document != null && (!host.language().equals(language)
+                || translationSource != net.minecraft.locale.Language.getInstance())) {
+            dev.oriel.kit.GameRegistry.refresh();
+            dev.oriel.kit.GameRegistry.refreshEntities();
+            reload();
+        }
         runDeferred();
         // (-1, -1) is no pointer; other negative positions are off the window's top or left (OrielAutomation.leave).
         if (mouseX != -1 || mouseY != -1) followPointer(mouseX, mouseY);

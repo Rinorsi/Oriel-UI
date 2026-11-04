@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.kit.Dom;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
@@ -44,54 +46,57 @@ public final class SettingsPreset implements PageControllers.Controller {
         }
     }
 
-    static final Map<String, List<Setting>> TABS = new LinkedHashMap<>();
+    static final Map<String, List<Setting>> TAB_DEFINITIONS = new LinkedHashMap<>();
 
     static {
-        TABS.put("视频", List.of(
-                Setting.slider("render", "渲染距离", 12, 2, 32, 1, " 区块", "画面"),
-                Setting.slider("fps", "最大帧率", 120, 30, 260, 10, " FPS", "画面"),
-                Setting.select("graphics", "图像品质", "高品质", List.of("流畅", "高品质", "极佳"), "画面"),
-                Setting.toggle("vsync", "垂直同步", true, "画面"),
-                Setting.toggle("fullscreen", "全屏", false, "窗口"),
-                Setting.select("scale", "界面尺寸", "自动", List.of("自动", "1", "2", "3", "4"), "窗口"),
-                Setting.slider("gamma", "亮度", 50, 0, 100, 5, "%", "窗口")));
-        TABS.put("声音", List.of(
-                Setting.slider("master", "主音量", 100, 0, 100, 5, "%", "音量"),
-                Setting.slider("music", "音乐", 60, 0, 100, 5, "%", "音量"),
-                Setting.slider("blocks", "方块", 80, 0, 100, 5, "%", "音量"),
-                Setting.slider("ambient", "环境", 70, 0, 100, 5, "%", "音量"),
-                Setting.toggle("subtitles", "显示字幕", false, "其他"),
-                Setting.select("device", "输出设备", "系统默认", List.of("系统默认", "扬声器", "耳机"), "其他")));
-        TABS.put("控制", List.of(
-                Setting.slider("sensitivity", "鼠标灵敏度", 100, 1, 200, 1, "%", "鼠标"),
-                Setting.toggle("invert", "反转鼠标", false, "鼠标"),
-                Setting.toggle("autojump", "自动跳跃", false, "移动"),
-                Setting.toggle("sneak", "潜行切换", true, "移动"),
-                Setting.text("name", "玩家名称", "Steve", "身份"),
-                Setting.text("prefix", "聊天前缀", "[优易]", "身份")));
-        TABS.put("辅助功能", List.of(
-                Setting.select("narrator", "旁白", "关闭", List.of("关闭", "全部", "仅聊天", "仅系统"), "朗读"),
-                Setting.toggle("contrast", "高对比度", false, "显示"),
-                Setting.slider("textbg", "文本背景不透明度", 50, 0, 100, 10, "%", "显示"),
-                Setting.toggle("motion", "减少动效", false, "显示"),
-                Setting.slider("tooltip", "提示延迟", 500, 0, 2000, 100, " ms", "显示")));
-        TABS.put("外观", List.of(
-                Setting.select("theme", "界面主题", "暗色", List.of("暗色", "亮色"), "主题"),
-                Setting.select("style", "界面风格", "像素", List.of("像素", "平滑"), "主题"),
-                Setting.select("icons", "图标粗细", "正常", List.of("线框", "正常", "加粗"), "主题"),
-                Setting.toggle("particles", "粒子与光效", true, "效果")));
+        TAB_DEFINITIONS.put("oriel.ui.settings.video_2", List.of(
+                Setting.slider("render", "oriel.ui.settings.render_distance", 12, 2, 32, 1, "oriel.ui.settings.chunks", "oriel.ui.settings.graphics"),
+                Setting.slider("fps", "oriel.ui.settings.max_frame_rate", 120, 30, 260, 10, " FPS", "oriel.ui.settings.graphics"),
+                Setting.select("graphics", "oriel.ui.settings.graphics_quality", "oriel.ui.settings.high_quality", List.of("oriel.ui.settings.smooth", "oriel.ui.settings.high_quality", "oriel.ui.settings.excellent"), "oriel.ui.settings.graphics"),
+                Setting.toggle("vsync", "oriel.ui.settings.vertical_sync", true, "oriel.ui.settings.graphics"),
+                Setting.toggle("fullscreen", "oriel.ui.settings.fullscreen", false, "oriel.ui.settings.window_settings"),
+                Setting.select("scale", "oriel.ui.settings.interface_scale", "oriel.ui.settings.auto", List.of("oriel.ui.settings.auto", "1", "2", "3", "4"), "oriel.ui.settings.window_settings"),
+                Setting.slider("gamma", "oriel.ui.settings.brightness", 50, 0, 100, 5, "%", "oriel.ui.settings.window_settings")));
+        TAB_DEFINITIONS.put("oriel.ui.settings.audio", List.of(
+                Setting.slider("master", "oriel.ui.settings.master_volume", 100, 0, 100, 5, "%", "oriel.ui.settings.volume"),
+                Setting.slider("music", "oriel.ui.settings.music", 60, 0, 100, 5, "%", "oriel.ui.settings.volume"),
+                Setting.slider("blocks", "oriel.ui.settings.block", 80, 0, 100, 5, "%", "oriel.ui.settings.volume"),
+                Setting.slider("ambient", "oriel.ui.settings.ambient", 70, 0, 100, 5, "%", "oriel.ui.settings.volume"),
+                Setting.toggle("subtitles", "oriel.ui.settings.show_subtitles", false, "oriel.ui.settings.other"),
+                Setting.select("device", "oriel.ui.settings.output_device", "oriel.ui.settings.system_default", List.of("oriel.ui.settings.system_default", "oriel.ui.settings.speakers", "oriel.ui.settings.headphones"), "oriel.ui.settings.other")));
+        TAB_DEFINITIONS.put("oriel.ui.settings.controls", List.of(
+                Setting.slider("sensitivity", "oriel.ui.settings.mouse_sensitivity", 100, 1, 200, 1, "%", "oriel.ui.settings.mouse"),
+                Setting.toggle("invert", "oriel.ui.settings.invert_mouse", false, "oriel.ui.settings.mouse"),
+                Setting.toggle("autojump", "oriel.ui.settings.auto_jump", false, "oriel.ui.settings.movement"),
+                Setting.toggle("sneak", "oriel.ui.settings.toggle_sneak", true, "oriel.ui.settings.movement"),
+                Setting.text("name", "oriel.ui.settings.player_name", "Steve", "oriel.ui.settings.identity"),
+                Setting.text("prefix", "oriel.ui.settings.chat_prefix", "oriel.ui.settings.yooee", "oriel.ui.settings.identity")));
+        TAB_DEFINITIONS.put("oriel.ui.settings.accessibility", List.of(
+                Setting.select("narrator", "oriel.ui.settings.narration", "oriel.ui.settings.close", List.of("oriel.ui.settings.close", "oriel.ui.settings.all", "oriel.ui.settings.chat_only", "oriel.ui.settings.system_only"), "oriel.ui.settings.read_aloud"),
+                Setting.toggle("contrast", "oriel.ui.settings.high_contrast", false, "oriel.ui.settings.display"),
+                Setting.slider("textbg", "oriel.ui.settings.text_background_opacity", 50, 0, 100, 10, "%", "oriel.ui.settings.display"),
+                Setting.toggle("motion", "oriel.ui.settings.reduce_motion", false, "oriel.ui.settings.display"),
+                Setting.slider("tooltip", "oriel.ui.settings.tooltip_delay", 500, 0, 2000, 100, " ms", "oriel.ui.settings.display")));
+        TAB_DEFINITIONS.put("oriel.ui.settings.appearance", List.of(
+                Setting.select("theme", "oriel.ui.settings.interface_theme", "oriel.ui.settings.dark", List.of("oriel.ui.settings.dark", "oriel.ui.settings.light"), "oriel.ui.settings.theme"),
+                Setting.select("style", "oriel.ui.settings.interface_style", "oriel.ui.settings.pixel", List.of("oriel.ui.settings.pixel", "oriel.ui.settings.smooth_2"), "oriel.ui.settings.theme"),
+                Setting.select("icons", "oriel.ui.settings.icon_weight", "oriel.ui.settings.regular", List.of("oriel.ui.settings.outline", "oriel.ui.settings.regular", "oriel.ui.settings.bold"), "oriel.ui.settings.theme"),
+                Setting.toggle("particles", "oriel.ui.settings.particles_lighting_effects", true, "oriel.ui.settings.effects")));
     }
 
-    static final Map<String, String> ICONS = Map.of("视频", "monitor", "声音", "volume", "控制", "mouse", "辅助功能",
-            "accessibility", "外观", "palette");
-    static final Map<String, String> HELP = Map.ofEntries(Map.entry("render", "能看见多远的区块"),
-            Map.entry("fps", "越高越流畅"), Map.entry("graphics", "影响树叶与云"), Map.entry("gamma", "暗处的可见度"),
-            Map.entry("master", "所有声音"), Map.entry("sensitivity", "视角转动速度"), Map.entry("name", "最多 24 个字"),
-            Map.entry("narrator", "朗读界面文字"), Map.entry("theme", "立即生效"), Map.entry("style", "像素斜角或圆角阴影"), Map.entry("icons", "线框、正常或加粗"), Map.entry("particles", "本页的粒子"),
-            Map.entry("textbg", "聊天与字幕背后"));
+    static final Map<String, String> ICON_DEFINITIONS = Map.of("oriel.ui.settings.video_2", "monitor", "oriel.ui.settings.audio", "volume", "oriel.ui.settings.controls", "mouse", "oriel.ui.settings.accessibility",
+            "accessibility", "oriel.ui.settings.appearance", "palette");
+    static final Map<String, String> HELP_DEFINITIONS = Map.ofEntries(Map.entry("render", "oriel.ui.settings.chunk_render_distance"),
+            Map.entry("fps", "oriel.ui.settings.higher_is_smoother"), Map.entry("graphics", "oriel.ui.settings.affects_leaves_and_clouds"), Map.entry("gamma", "oriel.ui.settings.visibility_in_dark_areas"),
+            Map.entry("master", "oriel.ui.settings.all_sounds"), Map.entry("sensitivity", "oriel.ui.settings.look_sensitivity"), Map.entry("name", "oriel.ui.settings.up_to_24_characters"),
+            Map.entry("narrator", "oriel.ui.settings.read_interface_text_aloud"), Map.entry("theme", "oriel.ui.settings.takes_effect_immediately"), Map.entry("style", "oriel.ui.settings.pixel_bevels_or_rounded_corner_shadows"), Map.entry("icons", "oriel.ui.settings.wireframe_normal_or_bold"), Map.entry("particles", "oriel.ui.settings.particles_on_this_page"),
+            Map.entry("textbg", "oriel.ui.settings.behind_chat_and_subtitles"));
+
+    private final Map<String, List<Setting>> TABS = new LinkedHashMap<>();
+    private final Map<String, String> ICONS = new LinkedHashMap<>(), HELP = new LinkedHashMap<>();
 
     final Map<String, Object> values = new LinkedHashMap<>();
-    String tab = "视频";
+    String tab;
     private Document doc;
     private Element tabs, rows, status, crumb, chunks, dark, changesBox;
     private final List<Element> chunkCells = new ArrayList<>();
@@ -101,11 +106,18 @@ public final class SettingsPreset implements PageControllers.Controller {
     @Override
     public void attach(Document document) {
         doc = document;
+        tab = Lang.t(doc, "oriel.ui.settings.video_2");
+        TAB_DEFINITIONS.forEach((name, settings) -> TABS.put(Lang.value(doc, name), settings.stream().map(s ->
+                new Setting(s.key(), Lang.value(doc, s.label()), s.kind(), s.initial() instanceof String text ? Lang.value(doc, text) : s.initial(),
+                        s.min(), s.max(), s.step(), Lang.value(doc, s.unit()), s.options().stream().map(v -> Lang.value(doc, v)).toList(),
+                        Lang.value(doc, s.section()))).toList()));
+        ICON_DEFINITIONS.forEach((name, icon) -> ICONS.put(Lang.value(doc, name), icon));
+        HELP_DEFINITIONS.forEach((name, help) -> HELP.put(name, Lang.value(doc, help)));
         Shell.setup(doc);
         for (List<Setting> list : TABS.values()) for (Setting s : list) values.put(s.key(), s.initial());
-        values.put("theme", Shell.theme().equals("light") ? "亮色" : "暗色");
-        values.put("style", Shell.style().equals("smooth") ? "平滑" : "像素");
-        values.put("icons", Shell.icons().equals("thin") ? "线框" : Shell.icons().equals("bold") ? "加粗" : "正常");
+        values.put("theme", Shell.theme().equals("light") ? Lang.t(doc, "oriel.ui.settings.light") : Lang.t(doc, "oriel.ui.settings.dark"));
+        values.put("style", Shell.style().equals("smooth") ? Lang.t(doc, "oriel.ui.settings.smooth_2") : Lang.t(doc, "oriel.ui.settings.pixel"));
+        values.put("icons", Shell.icons().equals("thin") ? Lang.t(doc, "oriel.ui.settings.outline") : Shell.icons().equals("bold") ? Lang.t(doc, "oriel.ui.settings.bold") : Lang.t(doc, "oriel.ui.settings.regular"));
         crumb = Dom.byId(doc, "crumb");
         chunks = Dom.byId(doc, "chunks");
         dark = Dom.byId(doc, "dark");
@@ -149,14 +161,38 @@ public final class SettingsPreset implements PageControllers.Controller {
 
     @Override
     public Object saveState() {
-        return new State(new LinkedHashMap<>(values), tab);
+        Map<String, Setting> definitions = new LinkedHashMap<>();
+        TAB_DEFINITIONS.values().forEach(list -> list.forEach(s -> definitions.put(s.key(), s)));
+        Map<String, Object> changed = new LinkedHashMap<>();
+        for (List<Setting> list : TABS.values()) {
+            for (Setting setting : list) {
+                Object value = values.get(setting.key());
+                if (java.util.Objects.equals(value, setting.initial())) continue;
+                if (setting.kind() == Kind.SELECT) {
+                    int index = setting.options().indexOf(value);
+                    if (index >= 0) value = definitions.get(setting.key()).options().get(index);
+                }
+                changed.put(setting.key(), value);
+            }
+        }
+        int index = new ArrayList<>(TABS.keySet()).indexOf(tab);
+        String key = new ArrayList<>(TAB_DEFINITIONS.keySet()).get(Math.max(0, index));
+        return new State(changed, key);
     }
 
     @Override
     public void restoreState(Object state) {
         if (!(state instanceof State s)) return;
         values.putAll(s.values());
-        show(TABS.containsKey(s.tab()) ? s.tab() : tab, false);
+        for (List<Setting> list : TAB_DEFINITIONS.values()) {
+            for (Setting setting : list) {
+                if (setting.kind() == Kind.SELECT && s.values().get(setting.key()) instanceof String value) {
+                    values.put(setting.key(), Lang.value(doc, value));
+                }
+            }
+        }
+        String name = Lang.value(doc, s.tab());
+        show(TABS.containsKey(name) ? name : tab, false);
     }
 
     private static void activate(KeyboardEvent e, Runnable action) {
@@ -224,12 +260,12 @@ public final class SettingsPreset implements PageControllers.Controller {
         Element t = Dom.el(doc, "div", "ore-toggle", null);
         t.setAttribute("tabindex", "0");
         t.toggleClass("on", (Boolean) values.get(s.key()));
-        Element state = Dom.el(doc, "span", "help", (Boolean) values.get(s.key()) ? "开" : "关");
+        Element state = Dom.el(doc, "span", "help", (Boolean) values.get(s.key()) ? Lang.t(doc, "oriel.ui.settings.on") : Lang.t(doc, "oriel.ui.settings.off"));
         Runnable flip = () -> {
             boolean on = !(Boolean) values.get(s.key());
             set(s, on);
             t.toggleClass("on", on);
-            Dom.text(state, on ? "开" : "关");
+            Dom.text(state, on ? Lang.t(doc, "oriel.ui.settings.on") : Lang.t(doc, "oriel.ui.settings.off"));
         };
         Dom.onClick(t, e -> flip.run());
         Dom.onKey(t, e -> activate(e, flip));
@@ -346,9 +382,9 @@ public final class SettingsPreset implements PageControllers.Controller {
 
     void set(Setting s, Object value) {
         values.put(s.key(), value);
-        if (s.key().equals("theme")) Shell.theme(doc, value.equals("亮色") ? "light" : "dark");
-        if (s.key().equals("style")) Shell.style(doc, value.equals("平滑") ? "smooth" : "ore");
-        if (s.key().equals("icons")) Shell.icons(doc, value.equals("线框") ? "thin" : value.equals("加粗") ? "bold" : "regular");
+        if (s.key().equals("theme")) Shell.theme(doc, value.equals(Lang.t(doc, "oriel.ui.settings.light")) ? "light" : "dark");
+        if (s.key().equals("style")) Shell.style(doc, value.equals(Lang.t(doc, "oriel.ui.settings.smooth_2")) ? "smooth" : "ore");
+        if (s.key().equals("icons")) Shell.icons(doc, value.equals(Lang.t(doc, "oriel.ui.settings.outline")) ? "thin" : value.equals(Lang.t(doc, "oriel.ui.settings.bold")) ? "bold" : "regular");
         if (s.key().equals("particles")) {
             for (Element c : doc.querySelectorAll("canvas.fx")) c.toggleClass("off", !(Boolean) value);
         }
@@ -366,7 +402,7 @@ public final class SettingsPreset implements PageControllers.Controller {
 
     private void updateStatus() {
         int n = changes();
-        Dom.text(status, n == 0 ? "没有修改" : "已修改 " + n + " 项");
+        Dom.text(status, n == 0 ? Lang.t(doc, "oriel.ui.settings.no_changes") : Lang.t(doc, "oriel.ui.settings.modified") + n + Lang.t(doc, "oriel.ui.settings.items"));
         List<String> names = new ArrayList<>(TABS.keySet());
         for (int i = 0; i < tabElements.size(); i++) {
             int dirty = 0;
@@ -403,11 +439,11 @@ public final class SettingsPreset implements PageControllers.Controller {
                 changesBox.appendChild(c);
             }
         }
-        if (shown == 0) changesBox.appendChild(Dom.el(doc, "div", "c", "还没有修改"));
+        if (shown == 0) changesBox.appendChild(Dom.el(doc, "div", "c", Lang.t(doc, "oriel.ui.settings.no_changes_made")));
     }
 
-    private static String show(Object v) {
-        if (v instanceof Boolean b) return b ? "开" : "关";
+    private String show(Object v) {
+        if (v instanceof Boolean b) return b ? Lang.t(doc, "oriel.ui.settings.on") : Lang.t(doc, "oriel.ui.settings.off");
         if (v instanceof Float f) return format(f);
         return String.valueOf(v);
     }

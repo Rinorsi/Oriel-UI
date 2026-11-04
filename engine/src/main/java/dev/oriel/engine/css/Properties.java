@@ -559,6 +559,23 @@ final class Properties {
             else if (v instanceof Token t && (t.isIdent("no-open-quote") || t.isIdent("no-close-quote"))) continue;
             else if (v instanceof Func f && f.name().equals("attr") && f.args().size() == 1
                     && f.args().get(0) instanceof Token a && a.is(Type.IDENT)) sb.append(ctx.attr(a.lower));
+            else if (v instanceof Func f && f.name().equals("i18n")) {
+                List<List<ComponentValue>> parts = ValueReader.splitCommas(f.args());
+                List<ComponentValue> first = CssParser.trim(parts.getFirst());
+                if (first.size() != 1 || !(first.getFirst() instanceof Token key) || !key.is(Type.STRING)) return null;
+                Object[] args = new Object[parts.size() - 1];
+                for (int i = 1; i < parts.size(); i++) {
+                    List<ComponentValue> part = CssParser.trim(parts.get(i));
+                    if (part.size() != 1) return null;
+                    ComponentValue arg = part.getFirst();
+                    if (arg instanceof Token t && t.is(Type.STRING)) args[i - 1] = t.value;
+                    else if (arg instanceof Token t && t.is(Type.NUMBER)) args[i - 1] = ComponentValue.text(part);
+                    else if (arg instanceof Func attr && attr.name().equals("attr") && attr.args().size() == 1
+                            && attr.args().getFirst() instanceof Token name && name.is(Type.IDENT)) args[i - 1] = ctx.attr(name.lower);
+                    else return null;
+                }
+                sb.append(ctx.message(key.value, args));
+            }
             else if (!(v instanceof Func f && (f.name().equals("counter") || f.name().equals("counters")))) return null;
         }
         return sb.toString();

@@ -54,6 +54,7 @@ public final class OrielKit {
     public static synchronized void register() {
         if (registered) return;
         registered = true;
+        Lang.register();
         PageControllers.register(GALLERY, GalleryPreset::new);
         PageControllers.register(INVENTORY, InventoryPreset::new);
         PageControllers.register(FORGE, ForgePreset::new);

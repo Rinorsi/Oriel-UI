@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 组件与动效</title>
+<title data-i18n-text-0="oriel.ui.catalog.oriel_ui_components_motion">oriel.ui.catalog.oriel_ui_components_motion</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The catalog: every component in every state, every effect and motion, live, with the markup to copy. A list on
@@ -89,19 +89,19 @@
 <div class="o-app" id="app">
   <div class="o-window">
     <div class="o-titlebar">
-      <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
-      <span class="o-crumb" id="crumb">/ 按钮</span>
+      <div class="o-brand"><img src="../textures/ui/emblem.png"><b data-i18n-text-0="oriel.ui.catalog.oriel_ui">oriel.ui.catalog.oriel_ui</b><span data-i18n-text-0="oriel.ui.catalog.oriel_ui_2">oriel.ui.catalog.oriel_ui_2</span></div>
+      <span class="o-crumb" id="crumb" data-i18n-text-0="oriel.ui.catalog.buttons">oriel.ui.catalog.buttons</span>
       <div class="o-grow"></div>
-      <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
+      <div class="ore-btn icon" data-action="theme" tabindex="0" title="oriel.ui.catalog.toggle_light_dark" data-i18n-title="oriel.ui.catalog.toggle_light_dark"><img class="o-ico" src="../textures/icons/sun.png"></div>
       <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-tabbar">
       <div class="o-apptabs">
-        <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
-        <div class="on" data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
-        <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em>图标</em></div>
-        <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em>风格示例</em></div>
-        <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
+        <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em data-i18n-text-0="oriel.ui.catalog.home">oriel.ui.catalog.home</em></div>
+        <div class="on" data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em data-i18n-text-0="oriel.ui.catalog.components_motion">oriel.ui.catalog.components_motion</em></div>
+        <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em data-i18n-text-0="oriel.ui.catalog.icon">oriel.ui.catalog.icon</em></div>
+        <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em data-i18n-text-0="oriel.ui.catalog.style_examples">oriel.ui.catalog.style_examples</em></div>
+        <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em data-i18n-text-0="oriel.ui.catalog.editor">oriel.ui.catalog.editor</em></div>
         <i class="m-indicator"></i>
       </div>
     </div>
@@ -109,279 +109,270 @@
       <div class="list" id="list"></div>
       <div class="pane" id="pane">
 
-        <section class="sec" data-sec="buttons" data-title="按钮" data-icon="mouse">
-          <div class="sec-head"><span class="o-h1">按钮</span><span class="o-faint">Ore 斜角纹理，按下下沉 2px；加 m-ripple 有像素涟漪</span></div>
-          <div class="row"><span class="cap">变体</span>
-            <div class="ore-btn hero m-ripple" tabindex="0">主操作</div><div class="ore-btn primary m-ripple" tabindex="0">确认</div>
-            <div class="ore-btn secondary m-ripple" tabindex="0">次要</div><div class="ore-btn destructive m-ripple" tabindex="0">删除</div>
-            <div class="ore-btn m-ripple" tabindex="0">普通</div><div class="ore-btn disabled">禁用</div></div>
-          <div class="row"><span class="cap">带图标</span>
-            <div class="ore-btn hero m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/play.png">开始</div>
-            <div class="ore-btn m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/save.png">保存</div>
+        <section class="sec" data-sec="buttons" data-title="oriel.ui.catalog.button" data-icon="mouse" data-i18n-data-title="oriel.ui.catalog.button">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.button">oriel.ui.catalog.button</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.ore_bevel_texture_sinks_2px_when_pressed">oriel.ui.catalog.ore_bevel_texture_sinks_2px_when_pressed</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.variant">oriel.ui.catalog.variant</span>
+            <div class="ore-btn hero m-ripple" tabindex="0" data-i18n-text-0="oriel.ui.catalog.primary_action">oriel.ui.catalog.primary_action</div><div class="ore-btn primary m-ripple" tabindex="0" data-i18n-text-0="oriel.ui.catalog.confirm">oriel.ui.catalog.confirm</div>
+            <div class="ore-btn secondary m-ripple" tabindex="0" data-i18n-text-0="oriel.ui.catalog.secondary">oriel.ui.catalog.secondary</div><div class="ore-btn destructive m-ripple" tabindex="0" data-i18n-text-0="oriel.ui.catalog.delete">oriel.ui.catalog.delete</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-i18n-text-0="oriel.ui.catalog.common">oriel.ui.catalog.common</div><div class="ore-btn disabled" data-i18n-text-0="oriel.ui.catalog.disabled">oriel.ui.catalog.disabled</div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.with_icon">oriel.ui.catalog.with_icon</span>
+            <div class="ore-btn hero m-ripple" tabindex="0" data-i18n-text-1="oriel.ui.catalog.start"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.catalog.start</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-i18n-text-1="oriel.ui.catalog.save"><img class="o-ico" src="../textures/icons/save.png">oriel.ui.catalog.save</div>
             <div class="ore-btn icon m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/gear.png"></div>
             <div class="ore-btn icon m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/trash.png"></div></div>
-          <div class="row"><span class="cap">大号</span><div class="ore-btn hero big m-ripple" tabindex="0">进入世界</div></div>
-<pre class="code">&lt;div class="ore-btn hero m-ripple" tabindex="0"&gt;
-  &lt;img class="o-ico" src="../textures/icons/play.png"&gt;开始&lt;/div&gt;
-<span class="c">变体：hero primary secondary destructive (无) disabled · 尺寸：icon big</span></pre>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.large">oriel.ui.catalog.large</span><div class="ore-btn hero big m-ripple" tabindex="0" data-i18n-text-0="oriel.ui.catalog.enter_world">oriel.ui.catalog.enter_world</div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.start_2">oriel.ui.catalog.start_2
+<span class="c" data-i18n-text-0="oriel.ui.catalog.variants_hero_primary_secondary_destructive_none_dis">oriel.ui.catalog.variants_hero_primary_secondary_destructive_none_dis</span></pre>
         </section>
 
-        <section class="sec" data-sec="inputs" data-title="输入" data-icon="keyboard">
-          <div class="sec-head"><span class="o-h1">输入</span><span class="o-faint">支持中文输入法：预编辑内联显示，候选窗跟随光标</span></div>
-          <div class="row"><span class="cap">文本框</span><input class="ore-field" placeholder="输入名字…" style="width: 140px"><input class="ore-field" value="史蒂夫" style="width: 100px"></div>
-          <div class="row"><span class="cap">下拉框</span><div class="ore-select" style="width: 120px"><div class="value">高品质</div><div class="menu"><div class="option chosen">高品质</div><div class="option">均衡</div><div class="option">流畅</div></div></div></div>
-          <div class="row top"><span class="cap">格式文本</span>
-            <div class="o-mcfield" data-json-out="#mc-json" style="flex: 1; max-width: 300px"><input class="ore-field" value="§6§l传说之剑 §r§7· §b锋利 V §8| §d§k??§r §a限定"></div>
-            <div class="mc-out"><span class="o-caps">聊天组件 JSON</span><pre class="code" id="mc-json"></pre></div></div>
-<pre class="code">&lt;input class="ore-field" placeholder="输入名字…"&gt;
-&lt;div class="ore-select"&gt;&lt;div class="value"&gt;高品质&lt;/div&gt;&lt;div class="menu"&gt;…&lt;/div&gt;&lt;/div&gt;
-&lt;div class="o-mcfield"&gt;&lt;input class="ore-field" value="§6金色§l粗体"&gt;&lt;/div&gt;   <span class="c">选中文字再点颜色或样式；data-json 是聊天组件</span></pre>
+        <section class="sec" data-sec="inputs" data-title="oriel.ui.catalog.input" data-icon="keyboard" data-i18n-data-title="oriel.ui.catalog.input">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.input">oriel.ui.catalog.input</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.supports_chinese_ime_inline_pre_edit_text">oriel.ui.catalog.supports_chinese_ime_inline_pre_edit_text</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.text_field">oriel.ui.catalog.text_field</span><input class="ore-field" placeholder="oriel.ui.catalog.enter_name" style="width: 140px" data-i18n-placeholder="oriel.ui.catalog.enter_name"><input class="ore-field" value="oriel.ui.catalog.steve" style="width: 100px" data-i18n-value="oriel.ui.catalog.steve"></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.dropdown">oriel.ui.catalog.dropdown</span><div class="ore-select" style="width: 120px"><div class="value" data-i18n-text-0="oriel.ui.catalog.high_quality">oriel.ui.catalog.high_quality</div><div class="menu"><div class="option chosen" data-i18n-text-0="oriel.ui.catalog.high_quality">oriel.ui.catalog.high_quality</div><div class="option" data-i18n-text-0="oriel.ui.catalog.balanced">oriel.ui.catalog.balanced</div><div class="option" data-i18n-text-0="oriel.ui.catalog.smooth_2">oriel.ui.catalog.smooth_2</div></div></div></div>
+          <div class="row top"><span class="cap" data-i18n-text-0="oriel.ui.catalog.rich_text">oriel.ui.catalog.rich_text</span>
+            <div class="o-mcfield" data-json-out="#mc-json" style="flex: 1; max-width: 300px"><input class="ore-field" value="oriel.ui.catalog.legendary_sword_sharpness_v_limited" data-i18n-value="oriel.ui.catalog.legendary_sword_sharpness_v_limited"></div>
+            <div class="mc-out"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.chat_component_json">oriel.ui.catalog.chat_component_json</span><pre class="code" id="mc-json"></pre></div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.high_quality_2">oriel.ui.catalog.high_quality_2   <span class="c" data-i18n-text-0="oriel.ui.catalog.select_text_then_click_a_color_or">oriel.ui.catalog.select_text_then_click_a_color_or</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="toggles" data-title="开关与进度" data-icon="sliders">
-          <div class="sec-head"><span class="o-h1">开关与进度</span></div>
-          <div class="row"><span class="cap">开关</span><span class="ore-toggle"></span><span class="ore-toggle on"></span></div>
-          <div class="row"><span class="cap">滑块</span><div class="ore-slider" style="max-width: 180px"><div class="track"></div><div class="fill" style="width: 60%"></div><div class="thumb" style="left: 60%"></div></div></div>
-          <div class="row"><span class="cap">进度槽</span>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="toggles" data-title="oriel.ui.catalog.toggle_progress" data-icon="sliders" data-i18n-data-title="oriel.ui.catalog.toggle_progress">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.toggle_progress">oriel.ui.catalog.toggle_progress</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.toggle_2">oriel.ui.catalog.toggle_2</span><span class="ore-toggle"></span><span class="ore-toggle on"></span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.slider">oriel.ui.catalog.slider</span><div class="ore-slider" style="max-width: 180px"><div class="track"></div><div class="fill" style="width: 60%"></div><div class="thumb" style="left: 60%"></div></div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.progress_track">oriel.ui.catalog.progress_track</span>
             <div class="ore-progress" style="width: 90px"><div class="fill" style="width: 70%"></div></div>
             <div class="ore-progress gold" style="width: 90px"><div class="fill" style="width: 45%"></div></div>
             <div class="ore-progress red" style="width: 90px"><div class="fill" style="width: 20%"></div></div></div>
-          <div class="row"><span class="cap">分段条</span><div class="o-meter" style="--value: 0.64; width: 180px"><i></i></div></div>
-<pre class="code">&lt;span class="ore-toggle on"&gt;&lt;/span&gt;
-&lt;div class="o-meter" style="--value: 0.64"&gt;&lt;i&gt;&lt;/i&gt;&lt;/div&gt;   <span class="c">控制器里改 --value 会平滑过渡</span></pre>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.segment_bar">oriel.ui.catalog.segment_bar</span><div class="o-meter" style="--value: 0.64; width: 180px"><i></i></div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example">oriel.ui.catalog.example   <span class="c" data-i18n-text-0="oriel.ui.catalog.changing_value_in_the_controller_transitions_smoothl">oriel.ui.catalog.changing_value_in_the_controller_transitions_smoothl</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="tabs" data-title="页签与分段" data-icon="list">
-          <div class="sec-head"><span class="o-h1">页签与分段</span><span class="o-faint">指示条用 m-indicator，Motion.indicator 让它滑动</span></div>
-          <div class="row"><div class="ore-tabs"><div class="ore-tab selected">视频</div><div class="ore-tab">声音</div><div class="ore-tab">控制</div></div></div>
-          <div class="row"><div class="o-seg" id="seg-demo"><span class="on"><img class="o-ico" src="../textures/icons/grid.png">全部</span><span><img class="o-ico" src="../textures/icons/sword.png">武器</span><span><img class="o-ico" src="../textures/icons/heart.png">食物</span></div></div>
-<pre class="code">&lt;div class="o-seg"&gt;&lt;span class="on"&gt;…&lt;/span&gt;&lt;span&gt;…&lt;/span&gt;&lt;/div&gt;</pre>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="tabs" data-title="oriel.ui.catalog.tabs_segments" data-icon="list" data-i18n-data-title="oriel.ui.catalog.tabs_segments">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.tabs_segments">oriel.ui.catalog.tabs_segments</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.use_m_indicator_for_the_indicator_bar">oriel.ui.catalog.use_m_indicator_for_the_indicator_bar</span></div>
+          <div class="row"><div class="ore-tabs"><div class="ore-tab selected" data-i18n-text-0="oriel.ui.catalog.video">oriel.ui.catalog.video</div><div class="ore-tab" data-i18n-text-0="oriel.ui.catalog.audio">oriel.ui.catalog.audio</div><div class="ore-tab" data-i18n-text-0="oriel.ui.catalog.controls">oriel.ui.catalog.controls</div></div></div>
+          <div class="row"><div class="o-seg" id="seg-demo"><span class="on" data-i18n-text-1="oriel.ui.catalog.all"><img class="o-ico" src="../textures/icons/grid.png">oriel.ui.catalog.all</span><span data-i18n-text-1="oriel.ui.catalog.weapon"><img class="o-ico" src="../textures/icons/sword.png">oriel.ui.catalog.weapon</span><span data-i18n-text-1="oriel.ui.catalog.food"><img class="o-ico" src="../textures/icons/heart.png">oriel.ui.catalog.food</span></div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_2">oriel.ui.catalog.example_2</pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="drawers" data-title="抽屉与浮层" data-icon="move">
-          <div class="sec-head"><span class="o-h1">抽屉与浮层</span><span class="o-faint">点把手收起或拉开；浮层点别处或 Esc 关闭</span></div>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="drawers" data-title="oriel.ui.catalog.drawers_popovers" data-icon="move" data-i18n-data-title="oriel.ui.catalog.drawers_popovers">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.drawers_popovers">oriel.ui.catalog.drawers_popovers</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.click_the_handle_to_collapse_or_expand">oriel.ui.catalog.click_the_handle_to_collapse_or_expand</span></div>
           <div class="o-cols">
             <div class="demo o-stack" style="--gap: 4px">
-              <span class="o-caps">挤压式抽屉 o-drawer · 收起后方块重新排列</span>
+              <span class="o-caps" data-i18n-text-0="oriel.ui.catalog.push_drawer_o_drawer_blocks_rearrange_when">oriel.ui.catalog.push_drawer_o_drawer_blocks_rearrange_when</span>
               <div class="drawer-demo o-well">
                 <div class="o-auto tiles-demo" style="--min: 20px; --gap: 3px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 <div class="o-drawer dd-side">
-                  <div class="o-drawer-handle" title="收起 / 展开"><img class="o-ico" src="../textures/icons/forward.png"></div>
-                  <div class="o-caps">统计</div>
-                  <div class="o-spread"><span>史诗</span><span>3</span></div>
-                  <div class="o-spread"><span>稀有</span><span>5</span></div>
+                  <div class="o-drawer-handle" title="oriel.ui.catalog.collapse_expand" data-i18n-title="oriel.ui.catalog.collapse_expand"><img class="o-ico" src="../textures/icons/forward.png"></div>
+                  <div class="o-caps" data-i18n-text-0="oriel.ui.catalog.stats">oriel.ui.catalog.stats</div>
+                  <div class="o-spread"><span data-i18n-text-0="oriel.ui.catalog.epic">oriel.ui.catalog.epic</span><span>3</span></div>
+                  <div class="o-spread"><span data-i18n-text-0="oriel.ui.catalog.rare">oriel.ui.catalog.rare</span><span>5</span></div>
                 </div>
               </div>
             </div>
             <div class="demo o-stack" style="--gap: 4px">
-              <span class="o-caps">浮动式抽屉 o-sheet · 盖在方块上面</span>
+              <span class="o-caps" data-i18n-text-0="oriel.ui.catalog.floating_sheet_o_sheet_overlays_the_blocks">oriel.ui.catalog.floating_sheet_o_sheet_overlays_the_blocks</span>
               <div class="drawer-demo o-well sheet-demo">
                 <div class="o-auto tiles-demo" style="--min: 20px; --gap: 3px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                 <div class="o-sheet shut" style="width: 96px">
-                  <div class="o-drawer-handle" title="收起 / 展开"><img class="o-ico" src="../textures/icons/forward.png"></div>
-                  <div class="o-caps">筛选</div>
-                  <div class="o-spread"><span>附魔</span><span class="ore-toggle on"></span></div>
+                  <div class="o-drawer-handle" title="oriel.ui.catalog.collapse_expand" data-i18n-title="oriel.ui.catalog.collapse_expand"><img class="o-ico" src="../textures/icons/forward.png"></div>
+                  <div class="o-caps" data-i18n-text-0="oriel.ui.catalog.filter">oriel.ui.catalog.filter</div>
+                  <div class="o-spread"><span data-i18n-text-0="oriel.ui.catalog.enchantment">oriel.ui.catalog.enchantment</span><span class="ore-toggle on"></span></div>
                 </div>
               </div>
             </div>
             <div class="demo o-stack" style="--gap: 4px; position: relative">
-              <span class="o-caps">浮层 o-pop</span>
+              <span class="o-caps" data-i18n-text-0="oriel.ui.catalog.popover_o_pop">oriel.ui.catalog.popover_o_pop</span>
               <div class="o-spread" style="justify-content: flex-start">
-                <div class="ore-btn m-ripple" data-pop="pop-demo" tabindex="0"><img class="o-ico" src="../textures/icons/filter.png">筛选</div>
-                <span class="o-faint">点按钮弹出，位置自动避开边缘</span>
+                <div class="ore-btn m-ripple" data-pop="pop-demo" tabindex="0" data-i18n-text-1="oriel.ui.catalog.filter"><img class="o-ico" src="../textures/icons/filter.png">oriel.ui.catalog.filter</div>
+                <span class="o-faint" data-i18n-text-0="oriel.ui.catalog.click_the_button_to_open_it_its">oriel.ui.catalog.click_the_button_to_open_it_its</span>
               </div>
               <div class="o-pop" id="pop-demo">
-                <span class="o-caps">显示</span>
-                <div class="o-spread"><span>只看附魔</span><span class="ore-toggle on"></span></div>
-                <div class="o-spread"><span>隐藏空格</span><span class="ore-toggle"></span></div>
-                <div class="o-seg"><span class="on">全部</span><span>武器</span><span>方块</span></div>
+                <span class="o-caps" data-i18n-text-0="oriel.ui.catalog.display">oriel.ui.catalog.display</span>
+                <div class="o-spread"><span data-i18n-text-0="oriel.ui.catalog.show_enchanted_only">oriel.ui.catalog.show_enchanted_only</span><span class="ore-toggle on"></span></div>
+                <div class="o-spread"><span data-i18n-text-0="oriel.ui.catalog.hide_empty_slots">oriel.ui.catalog.hide_empty_slots</span><span class="ore-toggle"></span></div>
+                <div class="o-seg"><span class="on" data-i18n-text-0="oriel.ui.catalog.all">oriel.ui.catalog.all</span><span data-i18n-text-0="oriel.ui.catalog.weapon">oriel.ui.catalog.weapon</span><span data-i18n-text-0="oriel.ui.catalog.block">oriel.ui.catalog.block</span></div>
               </div>
             </div>
             <div class="demo o-stack" style="--gap: 4px">
-              <span class="o-caps">右键菜单 o-context</span>
-              <div class="ctx-demo o-well o-center" data-context="ctx-demo"><span class="o-dim">在这里点右键</span></div>
+              <span class="o-caps" data-i18n-text-0="oriel.ui.catalog.context_menu_o_context">oriel.ui.catalog.context_menu_o_context</span>
+              <div class="ctx-demo o-well o-center" data-context="ctx-demo"><span class="o-dim" data-i18n-text-0="oriel.ui.catalog.right_click_here">oriel.ui.catalog.right_click_here</span></div>
             </div>
           </div>
-<pre class="code">&lt;div class="o-drawer" style="width: 150px"&gt;&lt;div class="o-drawer-handle"&gt;…&lt;/div&gt;…&lt;/div&gt;   <span class="c">挤压：周围重新排</span>
-&lt;div class="o-sheet shut" style="width: 150px"&gt;&lt;div class="o-drawer-handle"&gt;…&lt;/div&gt;…&lt;/div&gt;   <span class="c">浮动：盖在上面</span>
-&lt;div class="ore-btn" data-pop="filters"&gt;筛选&lt;/div&gt; &lt;div class="o-pop" id="filters"&gt;…&lt;/div&gt;
-&lt;div data-context="menu"&gt;…&lt;/div&gt; &lt;div class="o-context" id="menu"&gt;&lt;div class="item"&gt;复制&lt;/div&gt;…&lt;/div&gt;</pre>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_3" data-i18n-text-2="oriel.ui.catalog.example_4" data-i18n-text-4="oriel.ui.catalog.filters_copy">oriel.ui.catalog.example_3   <span class="c" data-i18n-text-0="oriel.ui.catalog.flow_rearranges_the_surrounding_elements">oriel.ui.catalog.flow_rearranges_the_surrounding_elements</span>
+oriel.ui.catalog.example_4   <span class="c" data-i18n-text-0="oriel.ui.catalog.floating_overlays_the_content">oriel.ui.catalog.floating_overlays_the_content</span>
+oriel.ui.catalog.filters_copy</pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="layouts" data-title="布局" data-icon="grid">
-          <div class="sec-head"><span class="o-h1">布局</span><span class="o-faint">写一个类名就是一种排法，间距自带</span></div>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="layouts" data-title="oriel.ui.catalog.layout" data-icon="grid" data-i18n-data-title="oriel.ui.catalog.layout">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.layout">oriel.ui.catalog.layout</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.each_class_name_defines_a_layout_with">oriel.ui.catalog.each_class_name_defines_a_layout_with</span></div>
           <div class="o-cols three layouts">
-            <div class="o-stack" style="--gap: 3px"><span class="o-caps">双栏 o-cols</span><div class="o-cols lay" style="--gap: 3px"><i></i><i></i></div></div>
-            <div class="o-stack" style="--gap: 3px"><span class="o-caps">三栏 o-cols three</span><div class="o-cols three lay" style="--gap: 3px"><i></i><i></i><i></i></div></div>
-            <div class="o-stack" style="--gap: 3px"><span class="o-caps">侧栏 o-split</span><div class="o-split lay" style="--side: 24px; --gap: 3px"><i></i><i></i></div></div>
-            <div class="o-stack" style="--gap: 3px"><span class="o-caps">居中 o-center</span><div class="o-center lay well"><b></b></div></div>
-            <div class="o-stack" style="--gap: 3px"><span class="o-caps">自动换列 o-auto</span><div class="o-auto lay small" style="--min: 12px; --gap: 2px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-            <div class="o-stack" style="--gap: 3px"><span class="o-caps">两端 o-spread</span><div class="o-spread lay well" style="padding: 0 4px"><b></b><b></b></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.two_columns_o_cols">oriel.ui.catalog.two_columns_o_cols</span><div class="o-cols lay" style="--gap: 3px"><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.three_columns_o_cols_three">oriel.ui.catalog.three_columns_o_cols_three</span><div class="o-cols three lay" style="--gap: 3px"><i></i><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.sidebar_o_split">oriel.ui.catalog.sidebar_o_split</span><div class="o-split lay" style="--side: 24px; --gap: 3px"><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.center_o_center">oriel.ui.catalog.center_o_center</span><div class="o-center lay well"><b></b></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.auto_wrap_o_auto">oriel.ui.catalog.auto_wrap_o_auto</span><div class="o-auto lay small" style="--min: 12px; --gap: 2px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps" data-i18n-text-0="oriel.ui.catalog.spread_o_spread">oriel.ui.catalog.spread_o_spread</span><div class="o-spread lay well" style="padding: 0 4px"><b></b><b></b></div></div>
           </div>
-<pre class="code">&lt;div class="o-cols"&gt;…&lt;/div&gt;  &lt;div class="o-split" style="--side: 150px"&gt;…&lt;/div&gt;  &lt;div class="o-auto" style="--min: 64px"&gt;…&lt;/div&gt;
-&lt;div class="o-center"&gt;…&lt;/div&gt;  &lt;div class="o-stack"&gt;…&lt;/div&gt;  &lt;div class="o-spread"&gt;…&lt;/div&gt;  &lt;div class="o-ratio" style="--ratio: 2 / 1"&gt;</pre>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_5">oriel.ui.catalog.example_5</pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="slots" data-title="物品格" data-icon="gem">
-          <div class="sec-head"><span class="o-h1">物品格</span><span class="o-faint">稀有度光圈、附魔光泽、拖放目标</span></div>
-          <div class="row"><span class="cap">状态</span>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="slots" data-title="oriel.ui.catalog.item_slot" data-icon="gem" data-i18n-data-title="oriel.ui.catalog.item_slot">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.item_slot">oriel.ui.catalog.item_slot</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.rarity_glow_enchantment_glint_drag_and_drop">oriel.ui.catalog.rarity_glow_enchantment_glint_drag_and_drop</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.status">oriel.ui.catalog.status</span>
             <div class="ore-slot"></div>
             <div class="ore-slot"><item id="minecraft:diamond" style="position: absolute; left: 0; top: 0; width: 16px; height: 16px"></item></div>
             <div class="ore-slot target"><item id="minecraft:emerald" style="position: absolute; left: 0; top: 0; width: 16px; height: 16px"></item></div>
             <div class="ore-slot fx-glint"><item id="minecraft:enchanted_book" style="position: absolute; left: 0; top: 0; width: 16px; height: 16px"></item></div></div>
-          <div class="row"><span class="cap">提示框</span><div class="tip-demo">钻石<br><span style="color: #c4c5c8">稀有矿物</span></div><div class="tip-demo rare"><span style="color: #c9a6ff">锋利 V 钻石剑</span></div></div>
-<pre class="code">&lt;div class="ore-slot fx-glint"&gt;&lt;item id="minecraft:enchanted_book"&gt;&lt;/item&gt;&lt;/div&gt;</pre>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.tooltip_2">oriel.ui.catalog.tooltip_2</span><div class="tip-demo" data-i18n-text-0="oriel.ui.catalog.diamond">oriel.ui.catalog.diamond<br><span style="color: #c4c5c8" data-i18n-text-0="oriel.ui.catalog.rare_mineral">oriel.ui.catalog.rare_mineral</span></div><div class="tip-demo rare"><span style="color: #c9a6ff" data-i18n-text-0="oriel.ui.catalog.sharpness_v_diamond_sword">oriel.ui.catalog.sharpness_v_diamond_sword</span></div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_6">oriel.ui.catalog.example_6</pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="chips" data-title="芯片与徽章" data-icon="star">
-          <div class="sec-head"><span class="o-h1">芯片与徽章</span></div>
-          <div class="row"><span class="cap">芯片</span><span class="o-chip"><img class="o-ico" src="../textures/icons/sparkle.png">粒子</span><span class="o-chip hot">可点</span><span class="o-chip on">选中</span></div>
-          <div class="row"><span class="cap">徽章</span><span class="o-badge">3</span><span class="o-badge red">9</span></div>
-          <div class="row"><span class="cap">按键</span><div class="o-hints"><span><span class="o-kbd">Tab</span>切换</span><span><span class="o-kbd">Ctrl</span><span class="o-kbd">Z</span>撤销</span></div></div>
-<pre class="code">&lt;span class="o-chip on"&gt;选中&lt;/span&gt; &lt;span class="o-badge red"&gt;9&lt;/span&gt; &lt;span class="o-kbd"&gt;Tab&lt;/span&gt;</pre>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="chips" data-title="oriel.ui.catalog.chips_badges" data-icon="star" data-i18n-data-title="oriel.ui.catalog.chips_badges">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.chips_badges">oriel.ui.catalog.chips_badges</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.chip">oriel.ui.catalog.chip</span><span class="o-chip" data-i18n-text-1="oriel.ui.catalog.particles"><img class="o-ico" src="../textures/icons/sparkle.png">oriel.ui.catalog.particles</span><span class="o-chip hot" data-i18n-text-0="oriel.ui.catalog.clickable">oriel.ui.catalog.clickable</span><span class="o-chip on" data-i18n-text-0="oriel.ui.catalog.selected">oriel.ui.catalog.selected</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.badge">oriel.ui.catalog.badge</span><span class="o-badge">3</span><span class="o-badge red">9</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.key">oriel.ui.catalog.key</span><div class="o-hints"><span data-i18n-text-1="oriel.ui.catalog.toggle"><span class="o-kbd" data-i18n-text-0="oriel.ui.catalog.tab">oriel.ui.catalog.tab</span>oriel.ui.catalog.toggle</span><span data-i18n-text-2="oriel.ui.catalog.undo"><span class="o-kbd" data-i18n-text-0="oriel.ui.catalog.ctrl">oriel.ui.catalog.ctrl</span><span class="o-kbd" data-i18n-text-0="oriel.ui.catalog.z">oriel.ui.catalog.z</span>oriel.ui.catalog.undo</span></div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.selected_9_tab">oriel.ui.catalog.selected_9_tab</pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 200px" data-sec="type" data-title="文字与字体" data-icon="book_open">
-          <div class="sec-head"><span class="o-h1">文字与字体</span><span class="o-faint">点一款字体，所有页面都换；单个元素用 f-* 类</span></div>
+        <section class="sec o-lazy" style="--lazy-h: 200px" data-sec="type" data-title="oriel.ui.catalog.text_fonts" data-icon="book_open" data-i18n-data-title="oriel.ui.catalog.text_fonts">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.text_fonts">oriel.ui.catalog.text_fonts</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.click_a_font_to_change_it_across">oriel.ui.catalog.click_a_font_to_change_it_across</span></div>
           <div class="font-grid o-auto" style="--min: 112px; --gap: 4px">
-            <div class="font-card o-tile hot" data-font-pick="mc" tabindex="0"><span class="kind">像素</span>
-              <span class="sample " style="">优易库 Oriel 123</span><span class="fname">原版</span><span class="credit">Minecraft 默认字体</span></div>
-            <div class="font-card o-tile hot" data-font-pick="unifont" tabindex="0"><span class="kind">像素</span>
-              <span class="sample f-unifont" style="">优易库 Oriel 123</span><span class="fname">Unifont</span><span class="credit">GNU Unifont · 游戏自带</span></div>
-            <div class="font-card o-tile hot" data-font-pick="pixel" tabindex="0"><span class="kind">像素</span>
-              <span class="sample f-pixel" style="">优易库 Oriel 123</span><span class="fname">缝合像素 8</span><span class="credit">Fusion Pixel 8px · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="pixel_12" tabindex="0"><span class="kind">像素</span>
-              <span class="sample f-pixel-12" style="font-size: 12px; ">优易库 Oriel</span><span class="fname">缝合像素 12</span><span class="credit">Fusion Pixel 12px · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="cubic" tabindex="0"><span class="kind">像素</span>
-              <span class="sample f-cubic" style="font-size: 12px; ">优易库 Oriel</span><span class="fname">俐方体 11</span><span class="credit">Cubic 11 · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="sans" tabindex="0"><span class="kind">平滑</span>
-              <span class="sample f-sans" style="">优易库 Oriel 123</span><span class="fname">黑体</span><span class="credit">Noto Sans SC · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="kai" tabindex="0"><span class="kind">平滑</span>
-              <span class="sample f-kai" style="">优易库 Oriel 123</span><span class="fname">文楷</span><span class="credit">基于霞鹜文楷 · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="smiley" tabindex="0"><span class="kind">平滑</span>
-              <span class="sample f-smiley" style="">优易库 Oriel 123</span><span class="fname">得意黑</span><span class="credit">Smiley Sans · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="kuaile" tabindex="0"><span class="kind">趣味</span>
-              <span class="sample f-kuaile" style="">优易库 Oriel 123</span><span class="fname">快乐体</span><span class="credit">站酷快乐体 · OFL</span></div>
-            <div class="font-card o-tile hot" data-font-pick="brush" tabindex="0"><span class="kind">书法</span>
-              <span class="sample f-brush" style="font-size: 10px; ">优易库 仙途</span><span class="fname">毛笔楷</span><span class="credit">马善政楷书 · OFL</span></div>
+            <div class="font-card o-tile hot" data-font-pick="mc" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.pixel">oriel.ui.catalog.pixel</span>
+              <span class="sample " style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.vanilla">oriel.ui.catalog.vanilla</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.minecraft_default_font">oriel.ui.catalog.minecraft_default_font</span></div>
+            <div class="font-card o-tile hot" data-font-pick="unifont" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.pixel">oriel.ui.catalog.pixel</span>
+              <span class="sample f-unifont" style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.unifont">oriel.ui.catalog.unifont</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.gnu_unifont_included_with_the_game">oriel.ui.catalog.gnu_unifont_included_with_the_game</span></div>
+            <div class="font-card o-tile hot" data-font-pick="pixel" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.pixel">oriel.ui.catalog.pixel</span>
+              <span class="sample f-pixel" style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.fusion_pixel_8">oriel.ui.catalog.fusion_pixel_8</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.fusion_pixel_8px_ofl">oriel.ui.catalog.fusion_pixel_8px_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="pixel_12" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.pixel">oriel.ui.catalog.pixel</span>
+              <span class="sample f-pixel-12" style="font-size: 12px; " data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel">oriel.ui.catalog.oriel_uiku_oriel</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.fusion_pixel_12">oriel.ui.catalog.fusion_pixel_12</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.fusion_pixel_12px_ofl">oriel.ui.catalog.fusion_pixel_12px_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="cubic" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.pixel">oriel.ui.catalog.pixel</span>
+              <span class="sample f-cubic" style="font-size: 12px; " data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel">oriel.ui.catalog.oriel_uiku_oriel</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.cubic_11">oriel.ui.catalog.cubic_11</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.cubic_11_ofl">oriel.ui.catalog.cubic_11_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="sans" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.smooth">oriel.ui.catalog.smooth</span>
+              <span class="sample f-sans" style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.noto_sans_sc">oriel.ui.catalog.noto_sans_sc</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.noto_sans_sc_ofl">oriel.ui.catalog.noto_sans_sc_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="kai" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.smooth">oriel.ui.catalog.smooth</span>
+              <span class="sample f-kai" style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.lxgw_wenkai">oriel.ui.catalog.lxgw_wenkai</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.based_on_lxgw_wenkai_ofl">oriel.ui.catalog.based_on_lxgw_wenkai_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="smiley" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.smooth">oriel.ui.catalog.smooth</span>
+              <span class="sample f-smiley" style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.smiley_sans">oriel.ui.catalog.smiley_sans</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.smiley_sans_ofl">oriel.ui.catalog.smiley_sans_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="kuaile" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.playful">oriel.ui.catalog.playful</span>
+              <span class="sample f-kuaile" style="" data-i18n-text-0="oriel.ui.catalog.oriel_uiku_oriel_123">oriel.ui.catalog.oriel_uiku_oriel_123</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.zcool_kuaile">oriel.ui.catalog.zcool_kuaile</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.zcool_kuaile_ofl">oriel.ui.catalog.zcool_kuaile_ofl</span></div>
+            <div class="font-card o-tile hot" data-font-pick="brush" tabindex="0"><span class="kind" data-i18n-text-0="oriel.ui.catalog.calligraphy">oriel.ui.catalog.calligraphy</span>
+              <span class="sample f-brush" style="font-size: 10px; " data-i18n-text-0="oriel.ui.catalog.oriel_uiku_xiantu">oriel.ui.catalog.oriel_uiku_xiantu</span><span class="fname" data-i18n-text-0="oriel.ui.catalog.ma_shan_zheng">oriel.ui.catalog.ma_shan_zheng</span><span class="credit" data-i18n-text-0="oriel.ui.catalog.ma_shan_zheng_ofl">oriel.ui.catalog.ma_shan_zheng_ofl</span></div>
           </div>
-          <div class="row"><span class="cap">层级</span><span class="o-h1">标题 16px</span><span>正文 8px</span><span class="o-dim">次要</span><span class="o-faint">更弱</span><span class="o-accent">强调</span><span class="o-caps" style="flex: 1">小标题</span></div>
-          <div class="row"><span class="cap">MC 颜色</span><div class="o-mctext mc-palette"><span class="mc-0">§0</span><span class="mc-1">§1</span><span class="mc-2">§2</span><span class="mc-3">§3</span><span class="mc-4">§4</span><span class="mc-5">§5</span><span class="mc-6">§6</span><span class="mc-7">§7</span><span class="mc-8">§8</span><span class="mc-9">§9</span><span class="mc-a">§a</span><span class="mc-b">§b</span><span class="mc-c">§c</span><span class="mc-d">§d</span><span class="mc-e">§e</span><span class="mc-f">§f</span></div></div>
-          <div class="row"><span class="cap">MC 样式</span><div class="o-mctext"><span class="mc-l">§l 粗体</span>&nbsp;<span class="mc-o">§o 斜体</span>&nbsp;<span class="mc-n">§n 下划线</span>&nbsp;<span class="mc-m">§m 删除线</span>&nbsp;<span class="mc-k">§k乱码</span><span>§k</span>&nbsp;<span class="mc-6 mc-l mc-n">组合</span></div></div>
-          <div class="row"><span class="cap">自定义色</span><span style="color: #7fd4ff">任意颜色 color: #7fd4ff</span><span style="color: #ffb3d9">粉</span><span style="color: #b8f28a">青柠</span><span class="o-faint">文字颜色就是 CSS color</span></div>
-<pre class="code">&lt;html data-font="kai"&gt;  <span class="c">或 Shell.font(doc, "kai")：所有页面换字体</span>
-&lt;span class="f-pixel-12"&gt;  <span class="c">单个元素；资源包字体写 font-family: 命名空间:字体名</span>
-&lt;span class="mc-6 mc-l"&gt;金色粗体&lt;/span&gt;   <span class="c">§ 代码对应 mc-0…mc-f、mc-k/l/m/n/o；McFormat.render 直接解析 § 文本</span></pre>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.hierarchy">oriel.ui.catalog.hierarchy</span><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.heading_16px">oriel.ui.catalog.heading_16px</span><span data-i18n-text-0="oriel.ui.catalog.body_8px">oriel.ui.catalog.body_8px</span><span class="o-dim" data-i18n-text-0="oriel.ui.catalog.secondary">oriel.ui.catalog.secondary</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.subdued">oriel.ui.catalog.subdued</span><span class="o-accent" data-i18n-text-0="oriel.ui.catalog.emphasis">oriel.ui.catalog.emphasis</span><span class="o-caps" style="flex: 1" data-i18n-text-0="oriel.ui.catalog.subheading">oriel.ui.catalog.subheading</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.mc_colors">oriel.ui.catalog.mc_colors</span><div class="o-mctext mc-palette"><span class="mc-0">§0</span><span class="mc-1">§1</span><span class="mc-2">§2</span><span class="mc-3">§3</span><span class="mc-4">§4</span><span class="mc-5">§5</span><span class="mc-6">§6</span><span class="mc-7">§7</span><span class="mc-8">§8</span><span class="mc-9">§9</span><span class="mc-a" data-i18n-text-0="oriel.ui.catalog.a">oriel.ui.catalog.a</span><span class="mc-b" data-i18n-text-0="oriel.ui.catalog.b">oriel.ui.catalog.b</span><span class="mc-c" data-i18n-text-0="oriel.ui.catalog.c">oriel.ui.catalog.c</span><span class="mc-d" data-i18n-text-0="oriel.ui.catalog.d">oriel.ui.catalog.d</span><span class="mc-e" data-i18n-text-0="oriel.ui.catalog.e">oriel.ui.catalog.e</span><span class="mc-f" data-i18n-text-0="oriel.ui.catalog.f">oriel.ui.catalog.f</span></div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.mc_style">oriel.ui.catalog.mc_style</span><div class="o-mctext"><span class="mc-l" data-i18n-text-0="oriel.ui.catalog.bold">oriel.ui.catalog.bold</span>&nbsp;<span class="mc-o" data-i18n-text-0="oriel.ui.catalog.italic">oriel.ui.catalog.italic</span>&nbsp;<span class="mc-n" data-i18n-text-0="oriel.ui.catalog.underline">oriel.ui.catalog.underline</span>&nbsp;<span class="mc-m" data-i18n-text-0="oriel.ui.catalog.strikethrough">oriel.ui.catalog.strikethrough</span>&nbsp;<span class="mc-k" data-i18n-text-0="oriel.ui.catalog.obfuscated">oriel.ui.catalog.obfuscated</span><span data-i18n-text-0="oriel.ui.catalog.k">oriel.ui.catalog.k</span>&nbsp;<span class="mc-6 mc-l mc-n" data-i18n-text-0="oriel.ui.catalog.combination">oriel.ui.catalog.combination</span></div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.custom_color">oriel.ui.catalog.custom_color</span><span style="color: #7fd4ff" data-i18n-text-0="oriel.ui.catalog.any_color_color_7fd4ff">oriel.ui.catalog.any_color_color_7fd4ff</span><span style="color: #ffb3d9" data-i18n-text-0="oriel.ui.catalog.pink">oriel.ui.catalog.pink</span><span style="color: #b8f28a" data-i18n-text-0="oriel.ui.catalog.lime">oriel.ui.catalog.lime</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.text_color_is_css_color">oriel.ui.catalog.text_color_is_css_color</span></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_7" data-i18n-text-2="oriel.ui.catalog.example_8" data-i18n-text-4="oriel.ui.catalog.bold_gold">oriel.ui.catalog.example_7  <span class="c" data-i18n-text-0="oriel.ui.catalog.or_shell_font_doc_kai_change_the">oriel.ui.catalog.or_shell_font_doc_kai_change_the</span>
+oriel.ui.catalog.example_8  <span class="c" data-i18n-text-0="oriel.ui.catalog.individual_elements_for_resource_pack_fonts_write">oriel.ui.catalog.individual_elements_for_resource_pack_fonts_write</span>
+oriel.ui.catalog.bold_gold   <span class="c" data-i18n-text-0="oriel.ui.catalog.corresponds_in_code_to_mc_0_mc">oriel.ui.catalog.corresponds_in_code_to_mc_0_mc</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 120px" data-sec="notices" data-title="通知与提示" data-icon="bell">
-          <div class="sec-head"><span class="o-h1">通知与提示</span><span class="o-faint">底部提示条一次一条；吐司在角落叠放，自己消失</span></div>
-          <div class="row"><span class="cap">底部提示</span>
-            <div class="ore-btn m-ripple" tabindex="0" data-notice="已连接到服务器 · 延迟 32ms">信息</div>
-            <div class="ore-btn m-ripple" tabindex="0" data-kind="success" data-notice="设置已保存，下次进入游戏时生效" data-notice-action="撤销">成功</div>
-            <div class="ore-btn m-ripple" tabindex="0" data-kind="warn" data-notice="改动需要重新加载资源才会生效" data-notice-action="重新加载">提醒</div>
-            <div class="ore-btn m-ripple" tabindex="0" data-kind="error" data-notice="保存失败：磁盘已满" data-notice-action="重试">错误</div></div>
-          <div class="row"><span class="cap">吐司</span>
-            <div class="ore-btn m-ripple" tabindex="0" data-toast="获得成就|钻石！">信息</div>
-            <div class="ore-btn m-ripple" tabindex="0" data-kind="success" data-toast="已导出|ui/my_page.html">成功</div>
-            <div class="ore-btn m-ripple" tabindex="0" data-kind="warn" data-toast="背包快满了|还剩 2 格">提醒</div>
-            <div class="ore-btn m-ripple" tabindex="0" data-kind="error" data-toast="无法连接|请检查网络">错误</div></div>
-          <div class="row"><span class="cap">行内</span>
-            <div class="o-notice inline" style="flex: 1"><img class="o-ico" src="../textures/icons/info.png"><span class="t">这一条在页面里，不浮动</span></div>
-            <div class="o-notice inline warn" style="flex: 1"><img class="o-ico" src="../textures/icons/warning.png"><span class="t">存档较旧，建议备份</span><div class="ore-btn" tabindex="0">备份</div></div></div>
-          <div class="row"><span class="cap">悬停提示</span>
-            <div class="ore-btn" tabindex="0" title="普通提示：写 title 就有">悬停我</div>
-            <div class="ore-btn" tabindex="0" title-json='{"text":"","extra":[{"text":"钻石剑","color":"aqua","bold":true},{"text":"\n锋利 V","color":"gray"}]}'>物品式提示</div></div>
-<pre class="code">&lt;div class="ore-btn" data-kind="success" data-notice="已保存" data-notice-action="撤销"&gt;
-&lt;div class="ore-btn" data-toast="获得成就|钻石！"&gt;   <span class="c">代码里：Notice.bar(doc, "warn", 文字, 按钮, 回调) · Notice.toast(doc, "success", 标题, 副标题, 毫秒)</span>
-&lt;div title="提示"&gt; · title-json="聊天组件"   <span class="c">悬停提示</span></pre>
+        <section class="sec o-lazy" style="--lazy-h: 120px" data-sec="notices" data-title="oriel.ui.catalog.notifications_prompts" data-icon="bell" data-i18n-data-title="oriel.ui.catalog.notifications_prompts">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.notifications_prompts">oriel.ui.catalog.notifications_prompts</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.bottom_prompt_bars_show_one_at_a">oriel.ui.catalog.bottom_prompt_bars_show_one_at_a</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.bottom_prompt">oriel.ui.catalog.bottom_prompt</span>
+            <div class="ore-btn m-ripple" tabindex="0" data-notice="oriel.ui.catalog.connected_to_server_ping_32ms" data-i18n-data-notice="oriel.ui.catalog.connected_to_server_ping_32ms" data-i18n-text-0="oriel.ui.catalog.information">oriel.ui.catalog.information</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="success" data-notice="oriel.ui.catalog.settings_saved_and_will_take_effect_the" data-notice-action="oriel.ui.catalog.undo" data-i18n-data-notice="oriel.ui.catalog.settings_saved_and_will_take_effect_the" data-i18n-data-notice-action="oriel.ui.catalog.undo" data-i18n-text-0="oriel.ui.catalog.success">oriel.ui.catalog.success</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="warn" data-notice="oriel.ui.catalog.changes_require_reloading_resources_to_take_effect" data-notice-action="oriel.ui.catalog.reload" data-i18n-data-notice="oriel.ui.catalog.changes_require_reloading_resources_to_take_effect" data-i18n-data-notice-action="oriel.ui.catalog.reload" data-i18n-text-0="oriel.ui.catalog.reminder">oriel.ui.catalog.reminder</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="error" data-notice="oriel.ui.catalog.save_failed_disk_is_full" data-notice-action="oriel.ui.catalog.retry" data-i18n-data-notice="oriel.ui.catalog.save_failed_disk_is_full" data-i18n-data-notice-action="oriel.ui.catalog.retry" data-i18n-text-0="oriel.ui.catalog.error">oriel.ui.catalog.error</div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.toast">oriel.ui.catalog.toast</span>
+            <div class="ore-btn m-ripple" tabindex="0" data-toast="oriel.ui.catalog.achievement_unlocked_diamond" data-i18n-data-toast="oriel.ui.catalog.achievement_unlocked_diamond" data-i18n-text-0="oriel.ui.catalog.information">oriel.ui.catalog.information</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="success" data-toast="oriel.ui.catalog.exported_ui_my_page_html" data-i18n-data-toast="oriel.ui.catalog.exported_ui_my_page_html" data-i18n-text-0="oriel.ui.catalog.success">oriel.ui.catalog.success</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="warn" data-toast="oriel.ui.catalog.inventory_almost_full_2_slots_remaining" data-i18n-data-toast="oriel.ui.catalog.inventory_almost_full_2_slots_remaining" data-i18n-text-0="oriel.ui.catalog.reminder">oriel.ui.catalog.reminder</div>
+            <div class="ore-btn m-ripple" tabindex="0" data-kind="error" data-toast="oriel.ui.catalog.unable_to_connect_please_check_your_network" data-i18n-data-toast="oriel.ui.catalog.unable_to_connect_please_check_your_network" data-i18n-text-0="oriel.ui.catalog.error">oriel.ui.catalog.error</div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.inline">oriel.ui.catalog.inline</span>
+            <div class="o-notice inline" style="flex: 1"><img class="o-ico" src="../textures/icons/info.png"><span class="t" data-i18n-text-0="oriel.ui.catalog.this_one_is_on_the_page_not">oriel.ui.catalog.this_one_is_on_the_page_not</span></div>
+            <div class="o-notice inline warn" style="flex: 1"><img class="o-ico" src="../textures/icons/warning.png"><span class="t" data-i18n-text-0="oriel.ui.catalog.save_is_outdated_backup_recommended">oriel.ui.catalog.save_is_outdated_backup_recommended</span><div class="ore-btn" tabindex="0" data-i18n-text-0="oriel.ui.catalog.backup">oriel.ui.catalog.backup</div></div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.hover_tooltip">oriel.ui.catalog.hover_tooltip</span>
+            <div class="ore-btn" tabindex="0" title="oriel.ui.catalog.standard_tooltip_just_add_a_title" data-i18n-title="oriel.ui.catalog.standard_tooltip_just_add_a_title" data-i18n-text-0="oriel.ui.catalog.hover_over_me">oriel.ui.catalog.hover_over_me</div>
+            <div class="ore-btn" tabindex="0" title-json='{"text":"","extra":[{"text":"钻石剑","color":"aqua","bold":true},{"text":"\n锋利 V","color":"gray"}]}' data-i18n-text-0="oriel.ui.catalog.item_style_tooltip">oriel.ui.catalog.item_style_tooltip</div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.label" data-i18n-text-2="oriel.ui.catalog.title_json_chat_component">oriel.ui.catalog.label   <span class="c" data-i18n-text-0="oriel.ui.catalog.in_code_notice_bar_doc_warn_text">oriel.ui.catalog.in_code_notice_bar_doc_warn_text</span>
+oriel.ui.catalog.title_json_chat_component   <span class="c" data-i18n-text-0="oriel.ui.catalog.hover_tooltip">oriel.ui.catalog.hover_tooltip</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="rarity" data-title="稀有度与光效" data-icon="sparkle">
-          <div class="sec-head"><span class="o-h1">稀有度与光效</span><span class="o-faint">普通无光，史诗呼吸，传说渐变框 + 扫光</span></div>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="rarity" data-title="oriel.ui.catalog.rarity_and_glow_effects" data-icon="sparkle" data-i18n-data-title="oriel.ui.catalog.rarity_and_glow_effects">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.rarity_and_glow_effects">oriel.ui.catalog.rarity_and_glow_effects</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.common_has_no_glow_epic_pulses_legendary">oriel.ui.catalog.common_has_no_glow_epic_pulses_legendary</span></div>
           <div class="row">
-            <div class="swatch o-tile r-common"><span class="o-tier">普通</span></div>
-            <div class="swatch o-tile r-uncommon"><span class="o-tier">优秀</span></div>
-            <div class="swatch o-tile r-rare fx-glow"><span class="o-tier">稀有</span></div>
-            <div class="swatch o-tile r-epic fx-breathe"><span class="o-tier">史诗</span></div>
-            <div class="swatch o-tile o-frame r-legendary fx-sweep"><span class="o-tier">传说</span></div>
-            <div class="swatch o-tile r-epic fx-glint"><span class="o-tier">附魔</span></div></div>
-<pre class="code">&lt;div class="o-tile r-epic fx-breathe"&gt;   <span class="c">史诗：呼吸</span>
-&lt;div class="o-tile o-frame r-legendary fx-sweep"&gt;   <span class="c">传说：渐变框 + 扫光</span>
-<span class="c">还有 fx-glint 附魔光泽 · fx-pool 光晕底 · fx-float 漂浮 · fx-pulse 闪烁</span></pre>
+            <div class="swatch o-tile r-common"><span class="o-tier" data-i18n-text-0="oriel.ui.catalog.common">oriel.ui.catalog.common</span></div>
+            <div class="swatch o-tile r-uncommon"><span class="o-tier" data-i18n-text-0="oriel.ui.catalog.uncommon">oriel.ui.catalog.uncommon</span></div>
+            <div class="swatch o-tile r-rare fx-glow"><span class="o-tier" data-i18n-text-0="oriel.ui.catalog.rare">oriel.ui.catalog.rare</span></div>
+            <div class="swatch o-tile r-epic fx-breathe"><span class="o-tier" data-i18n-text-0="oriel.ui.catalog.epic">oriel.ui.catalog.epic</span></div>
+            <div class="swatch o-tile o-frame r-legendary fx-sweep"><span class="o-tier" data-i18n-text-0="oriel.ui.catalog.legendary">oriel.ui.catalog.legendary</span></div>
+            <div class="swatch o-tile r-epic fx-glint"><span class="o-tier" data-i18n-text-0="oriel.ui.catalog.enchantment">oriel.ui.catalog.enchantment</span></div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_9" data-i18n-text-2="oriel.ui.catalog.example_10">oriel.ui.catalog.example_9   <span class="c" data-i18n-text-0="oriel.ui.catalog.epic_breathing">oriel.ui.catalog.epic_breathing</span>
+oriel.ui.catalog.example_10   <span class="c" data-i18n-text-0="oriel.ui.catalog.legendary_gradient_frame_sweep">oriel.ui.catalog.legendary_gradient_frame_sweep</span>
+<span class="c" data-i18n-text-0="oriel.ui.catalog.also_fx_glint_enchantment_glint_fx_pool">oriel.ui.catalog.also_fx_glint_enchantment_glint_fx_pool</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="particles" data-title="粒子" data-icon="flame">
-          <div class="sec-head"><span class="o-h1">粒子</span><span class="o-faint">真像素、可复现；每屏 2–3 个常驻</span></div>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="particles" data-title="oriel.ui.catalog.particles" data-icon="flame" data-i18n-data-title="oriel.ui.catalog.particles">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.particles">oriel.ui.catalog.particles</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.true_pixels_reproducible_2_3_persistent_per">oriel.ui.catalog.true_pixels_reproducible_2_3_persistent_per</span></div>
           <div class="grid4">
-            <div class="fxbox"><canvas class="fx" data-fx="embers" data-rate="14"></canvas>embers</div>
-            <div class="fxbox" id="sparks-box"><canvas class="fx" id="sparks-demo"></canvas>sparks（点我）</div>
-            <div class="fxbox"><canvas class="fx" data-fx="glint" data-rate="8"></canvas>glint</div>
-            <div class="fxbox"><canvas class="fx" data-fx="stars" data-rate="6"></canvas>stars</div>
-            <div class="fxbox"><canvas class="fx" data-fx="notes" data-rate="3"></canvas>notes</div>
-            <div class="fxbox"><canvas class="fx" data-fx="bubbles" data-rate="6"></canvas>bubbles</div>
-            <div class="fxbox"><canvas class="fx" data-fx="dust" data-rate="8"></canvas>dust</div>
-            <div class="fxbox" id="hearts-box"><canvas class="fx" id="hearts-demo"></canvas>hearts（点我）</div></div>
-<pre class="code">&lt;canvas class="fx" data-fx="embers" data-rate="14" data-area="bottom"&gt;&lt;/canvas&gt;
-<span class="c">爆发：Shell.setup(doc).emitter("id").burst("sparks", x, y, 20)</span></pre>
+            <div class="fxbox" data-i18n-text-1="oriel.ui.catalog.embers"><canvas class="fx" data-fx="embers" data-rate="14"></canvas>oriel.ui.catalog.embers</div>
+            <div class="fxbox" id="sparks-box" data-i18n-text-1="oriel.ui.catalog.sparks_click_me"><canvas class="fx" id="sparks-demo"></canvas>oriel.ui.catalog.sparks_click_me</div>
+            <div class="fxbox" data-i18n-text-1="oriel.ui.catalog.glint"><canvas class="fx" data-fx="glint" data-rate="8"></canvas>oriel.ui.catalog.glint</div>
+            <div class="fxbox" data-i18n-text-1="oriel.ui.catalog.stars"><canvas class="fx" data-fx="stars" data-rate="6"></canvas>oriel.ui.catalog.stars</div>
+            <div class="fxbox" data-i18n-text-1="oriel.ui.catalog.notes"><canvas class="fx" data-fx="notes" data-rate="3"></canvas>oriel.ui.catalog.notes</div>
+            <div class="fxbox" data-i18n-text-1="oriel.ui.catalog.bubbles"><canvas class="fx" data-fx="bubbles" data-rate="6"></canvas>oriel.ui.catalog.bubbles</div>
+            <div class="fxbox" data-i18n-text-1="oriel.ui.catalog.dust"><canvas class="fx" data-fx="dust" data-rate="8"></canvas>oriel.ui.catalog.dust</div>
+            <div class="fxbox" id="hearts-box" data-i18n-text-1="oriel.ui.catalog.hearts_click_me"><canvas class="fx" id="hearts-demo"></canvas>oriel.ui.catalog.hearts_click_me</div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_11">oriel.ui.catalog.example_11
+<span class="c" data-i18n-text-0="oriel.ui.catalog.burst_shell_setup_doc_emitter_id_burst">oriel.ui.catalog.burst_shell_setup_doc_emitter_id_burst</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="motion" data-title="动效" data-icon="bolt">
-          <div class="sec-head"><span class="o-h1">动效</span><span class="o-faint">点按钮看效果；时长与曲线统一在 --m-* 里</span></div>
-          <div class="row"><span class="cap">反馈</span>
-            <div class="ore-btn m-ripple" data-demo="pop" tabindex="0">弹出</div><div class="ore-btn m-ripple" data-demo="error" tabindex="0">失败抖动</div>
-            <div class="ore-btn m-ripple" data-demo="success" tabindex="0">成功</div><div class="ore-btn m-ripple" data-demo="attention" tabindex="0">提醒</div>
-            <div class="demo-target o-tile" id="demo-target">目标</div></div>
-          <div class="row"><span class="cap">进场</span><div class="ore-btn m-ripple" data-demo="stagger" tabindex="0">依次进场</div>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="motion" data-title="oriel.ui.catalog.animation" data-icon="bolt" data-i18n-data-title="oriel.ui.catalog.animation">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.animation">oriel.ui.catalog.animation</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.click_the_button_to_see_the_effect">oriel.ui.catalog.click_the_button_to_see_the_effect</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.feedback">oriel.ui.catalog.feedback</span>
+            <div class="ore-btn m-ripple" data-demo="pop" tabindex="0" data-i18n-text-0="oriel.ui.catalog.pop_up">oriel.ui.catalog.pop_up</div><div class="ore-btn m-ripple" data-demo="error" tabindex="0" data-i18n-text-0="oriel.ui.catalog.failure_shake">oriel.ui.catalog.failure_shake</div>
+            <div class="ore-btn m-ripple" data-demo="success" tabindex="0" data-i18n-text-0="oriel.ui.catalog.success">oriel.ui.catalog.success</div><div class="ore-btn m-ripple" data-demo="attention" tabindex="0" data-i18n-text-0="oriel.ui.catalog.reminder">oriel.ui.catalog.reminder</div>
+            <div class="demo-target o-tile" id="demo-target" data-i18n-text-0="oriel.ui.catalog.target">oriel.ui.catalog.target</div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.enter">oriel.ui.catalog.enter</span><div class="ore-btn m-ripple" data-demo="stagger" tabindex="0" data-i18n-text-0="oriel.ui.catalog.enter_sequentially">oriel.ui.catalog.enter_sequentially</div>
             <div class="stagger-box m-stagger" id="stagger"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-          <div class="row"><span class="cap">数字</span><div class="ore-btn m-ripple" data-demo="count" tabindex="0">计数</div><span class="o-h1" id="count-demo">0</span></div>
-          <div class="row"><span class="cap">展开</span>
-            <div class="acc o-well" style="width: 220px" id="acc"><div class="acc-head" id="acc-head"><img class="o-ico m-caret" src="../textures/icons/down.png">点击展开</div>
-              <div class="acc-body" id="acc-body"><div>高度从 0 平滑过渡到内容高度，箭头同时旋转；收起时反过来。</div></div></div></div>
-          <div class="row"><span class="cap">加载</span><div class="skel"><div class="m-skeleton"></div><div class="m-skeleton" style="width: 70%"></div><div class="m-skeleton" style="width: 85%"></div></div>
-            <div class="ore-btn m-ripple" data-demo="lazy" tabindex="0">逐条加载</div><div class="ore-btn m-ripple" data-demo="preload" tabindex="0">加载页</div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.number">oriel.ui.catalog.number</span><div class="ore-btn m-ripple" data-demo="count" tabindex="0" data-i18n-text-0="oriel.ui.catalog.count">oriel.ui.catalog.count</div><span class="o-h1" id="count-demo">0</span></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.expand">oriel.ui.catalog.expand</span>
+            <div class="acc o-well" style="width: 220px" id="acc"><div class="acc-head" id="acc-head" data-i18n-text-1="oriel.ui.catalog.click_to_expand"><img class="o-ico m-caret" src="../textures/icons/down.png">oriel.ui.catalog.click_to_expand</div>
+              <div class="acc-body" id="acc-body"><div data-i18n-text-0="oriel.ui.catalog.height_smoothly_transitions_from_0_to_the">oriel.ui.catalog.height_smoothly_transitions_from_0_to_the</div></div></div></div>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.load">oriel.ui.catalog.load</span><div class="skel"><div class="m-skeleton"></div><div class="m-skeleton" style="width: 70%"></div><div class="m-skeleton" style="width: 85%"></div></div>
+            <div class="ore-btn m-ripple" data-demo="lazy" tabindex="0" data-i18n-text-0="oriel.ui.catalog.load_one_by_one">oriel.ui.catalog.load_one_by_one</div><div class="ore-btn m-ripple" data-demo="preload" tabindex="0" data-i18n-text-0="oriel.ui.catalog.loading_page">oriel.ui.catalog.loading_page</div></div>
           <div class="lazy-demo o-stack" id="lazy-demo" style="--gap: 3px">
-            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:diamond_sword"></item><span>锋利 V 钻石剑</span><span class="o-faint">稀有</span></div>
-            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:elytra"></item><span>鞘翅</span><span class="o-faint">史诗</span></div>
-            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:golden_apple"></item><span>金苹果</span><span class="o-faint">稀有</span></div>
-            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:netherite_ingot"></item><span>下界合金锭</span><span class="o-faint">史诗</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:diamond_sword"></item><span data-i18n-text-0="oriel.ui.catalog.sharpness_v_diamond_sword">oriel.ui.catalog.sharpness_v_diamond_sword</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.rare">oriel.ui.catalog.rare</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:elytra"></item><span data-i18n-text-0="oriel.ui.catalog.elytra">oriel.ui.catalog.elytra</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.epic">oriel.ui.catalog.epic</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:golden_apple"></item><span data-i18n-text-0="oriel.ui.catalog.golden_apple">oriel.ui.catalog.golden_apple</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.rare">oriel.ui.catalog.rare</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:netherite_ingot"></item><span data-i18n-text-0="oriel.ui.catalog.netherite_ingot">oriel.ui.catalog.netherite_ingot</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.epic">oriel.ui.catalog.epic</span></div>
           </div>
-          <div class="row"><span class="cap">弹层</span><div class="ore-btn m-ripple" data-demo="modal" tabindex="0">模态框</div><div class="ore-btn m-ripple" data-demo="toast" tabindex="0">提示</div></div>
-<pre class="code">Motion.play(el, "m-success", 520)   Motion.toggle(body, open)   Motion.count(el, 0, 2235, 1200, "")
-Motion.zoomInto(card, () -&gt; doc.navigate(...))   <span class="c">或在链接上写 data-go="forge" data-zoom</span></pre>
+          <div class="row"><span class="cap" data-i18n-text-0="oriel.ui.catalog.popup">oriel.ui.catalog.popup</span><div class="ore-btn m-ripple" data-demo="modal" tabindex="0" data-i18n-text-0="oriel.ui.catalog.modal">oriel.ui.catalog.modal</div><div class="ore-btn m-ripple" data-demo="toast" tabindex="0" data-i18n-text-0="oriel.ui.catalog.tooltip">oriel.ui.catalog.tooltip</div></div>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.motion_play_el_m_success_520_motion_toggle_body_open">oriel.ui.catalog.motion_play_el_m_success_520_motion_toggle_body_open   <span class="c" data-i18n-text-0="oriel.ui.catalog.or_write_data_go_forge_data_zoom">oriel.ui.catalog.or_write_data_go_forge_data_zoom</span></pre>
         </section>
 
-        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="models" data-title="3D 模型" data-icon="cube">
-          <div class="sec-head"><span class="o-h1">3D 模型</span><span class="o-faint">方块、物品、实体、玩家；用 CSS 转动</span></div>
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="models" data-title="oriel.ui.catalog.3d_model" data-icon="cube" data-i18n-data-title="oriel.ui.catalog.3d_model">
+          <div class="sec-head"><span class="o-h1" data-i18n-text-0="oriel.ui.catalog.3d_model">oriel.ui.catalog.3d_model</span><span class="o-faint" data-i18n-text-0="oriel.ui.catalog.blocks_items_entities_players_rotate_with_css">oriel.ui.catalog.blocks_items_entities_players_rotate_with_css</span></div>
           <div class="row">
             <model class="model3d spin" block="minecraft:grass_block"></model>
             <model class="model3d spin" block="minecraft:enchanting_table"></model>
             <model class="model3d spin" item="minecraft:diamond_sword"></model>
             <entity class="model3d" type="minecraft:fox" rotatable></entity>
             <entity class="model3d" player follow-mouse></entity></div>
-<pre class="code">&lt;model block="minecraft:grass_block"&gt;&lt;/model&gt;   <span class="c">-mc-yaw / -mc-pitch / -mc-model-scale，可写进 @keyframes</span>
-&lt;entity type="minecraft:fox" rotatable&gt;&lt;/entity&gt;   &lt;entity player follow-mouse&gt;&lt;/entity&gt;
-&lt;scene structure="oriel:structures/cottage.nbt"&gt;&lt;block-group x="2..8" y="1" z="2..8"&gt;…</pre>
+<pre class="code" data-i18n-text-0="oriel.ui.catalog.example_12" data-i18n-text-2="oriel.ui.catalog.example_13">oriel.ui.catalog.example_12   <span class="c" data-i18n-text-0="oriel.ui.catalog.mc_yaw_mc_pitch_mc_model_scale">oriel.ui.catalog.mc_yaw_mc_pitch_mc_model_scale</span>
+oriel.ui.catalog.example_13</pre>
         </section>
       </div>
     </div>
     <div class="o-preload" id="preload" data-min="700">
     <div class="o-loader"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><img src="../textures/ui/emblem.png"></div>
-    <span class="o-preload-what">正在准备组件…</span>
+    <span class="o-preload-what" data-i18n-text-0="oriel.ui.catalog.preparing_components">oriel.ui.catalog.preparing_components</span>
     <div class="o-preload-bar indeterminate"><i></i></div>
     </div>
-    <div class="foot"><span id="count">11 节</span>
-      <div class="globals" title="对所有组件和页面生效，换页后保持">
-        <span>边角</span><div class="o-seg"><span data-style-pick="ore">方角</span><span data-style-pick="smooth">圆角</span></div>
-        <span>字体</span><div class="ore-select up" data-font-select><div class="value">原版</div><div class="menu"><div class="option chosen" data-font-pick="mc">原版</div><div class="option" data-font-pick="unifont">Unifont</div><div class="option" data-font-pick="pixel">缝合像素 8</div><div class="option" data-font-pick="pixel_12">缝合像素 12</div><div class="option" data-font-pick="cubic">俐方体 11</div><div class="option" data-font-pick="sans">黑体</div><div class="option" data-font-pick="kai">文楷</div><div class="option" data-font-pick="smiley">得意黑</div><div class="option" data-font-pick="kuaile">快乐体</div><div class="option" data-font-pick="brush">毛笔楷</div></div></div>
+    <div class="foot"><span id="count" data-i18n-text-0="oriel.ui.catalog.11_sections">oriel.ui.catalog.11_sections</span>
+      <div class="globals" title="oriel.ui.catalog.applies_to_all_components_and_pages_persists" data-i18n-title="oriel.ui.catalog.applies_to_all_components_and_pages_persists">
+        <span data-i18n-text-0="oriel.ui.catalog.angled_corners">oriel.ui.catalog.angled_corners</span><div class="o-seg"><span data-style-pick="ore" data-i18n-text-0="oriel.ui.catalog.square_corners">oriel.ui.catalog.square_corners</span><span data-style-pick="smooth" data-i18n-text-0="oriel.ui.catalog.rounded_corners">oriel.ui.catalog.rounded_corners</span></div>
+        <span data-i18n-text-0="oriel.ui.catalog.font">oriel.ui.catalog.font</span><div class="ore-select up" data-font-select><div class="value" data-i18n-text-0="oriel.ui.catalog.vanilla">oriel.ui.catalog.vanilla</div><div class="menu"><div class="option chosen" data-font-pick="mc" data-i18n-text-0="oriel.ui.catalog.vanilla">oriel.ui.catalog.vanilla</div><div class="option" data-font-pick="unifont" data-i18n-text-0="oriel.ui.catalog.unifont">oriel.ui.catalog.unifont</div><div class="option" data-font-pick="pixel" data-i18n-text-0="oriel.ui.catalog.fusion_pixel_8">oriel.ui.catalog.fusion_pixel_8</div><div class="option" data-font-pick="pixel_12" data-i18n-text-0="oriel.ui.catalog.fusion_pixel_12">oriel.ui.catalog.fusion_pixel_12</div><div class="option" data-font-pick="cubic" data-i18n-text-0="oriel.ui.catalog.cubic_11">oriel.ui.catalog.cubic_11</div><div class="option" data-font-pick="sans" data-i18n-text-0="oriel.ui.catalog.noto_sans_sc">oriel.ui.catalog.noto_sans_sc</div><div class="option" data-font-pick="kai" data-i18n-text-0="oriel.ui.catalog.lxgw_wenkai">oriel.ui.catalog.lxgw_wenkai</div><div class="option" data-font-pick="smiley" data-i18n-text-0="oriel.ui.catalog.smiley_sans">oriel.ui.catalog.smiley_sans</div><div class="option" data-font-pick="kuaile" data-i18n-text-0="oriel.ui.catalog.zcool_kuaile">oriel.ui.catalog.zcool_kuaile</div><div class="option" data-font-pick="brush" data-i18n-text-0="oriel.ui.catalog.ma_shan_zheng">oriel.ui.catalog.ma_shan_zheng</div></div></div>
       </div>
-      <div class="o-grow"></div><div class="o-hints"><span><span class="o-kbd">↑</span><span class="o-kbd">↓</span>切换</span></div></div>
+      <div class="o-grow"></div><div class="o-hints"><span data-i18n-text-2="oriel.ui.catalog.toggle"><span class="o-kbd">↑</span><span class="o-kbd">↓</span>oriel.ui.catalog.toggle</span></div></div>
   </div>
-  <div class="o-context" id="ctx-demo"><div class="item" tabindex="0"><span>复制</span><span class="k">Ctrl+C</span></div><div class="item" tabindex="0"><span>粘贴</span><span class="k">Ctrl+V</span></div><i class="sep"></i><div class="item" tabindex="0"><span>删除</span><span class="k">Delete</span></div></div>
+  <div class="o-context" id="ctx-demo"><div class="item" tabindex="0"><span data-i18n-text-0="oriel.ui.catalog.copy">oriel.ui.catalog.copy</span><span class="k" data-i18n-text-0="oriel.ui.catalog.ctrl_c">oriel.ui.catalog.ctrl_c</span></div><div class="item" tabindex="0"><span data-i18n-text-0="oriel.ui.catalog.paste">oriel.ui.catalog.paste</span><span class="k" data-i18n-text-0="oriel.ui.catalog.ctrl_v">oriel.ui.catalog.ctrl_v</span></div><i class="sep"></i><div class="item" tabindex="0"><span data-i18n-text-0="oriel.ui.catalog.delete">oriel.ui.catalog.delete</span><span class="k" data-i18n-text-0="oriel.ui.catalog.delete_2">oriel.ui.catalog.delete_2</span></div></div>
   <div class="m-modal" id="modal">
     <div class="ore-panel" style="width: 200px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start">
-      <span class="o-h1">模态框</span><span class="o-dim">背景淡入，面板弹起。</span>
-      <div class="ore-btn primary m-ripple" id="modal-close" tabindex="0">知道了</div>
+      <span class="o-h1" data-i18n-text-0="oriel.ui.catalog.modal">oriel.ui.catalog.modal</span><span class="o-dim" data-i18n-text-0="oriel.ui.catalog.background_fades_in_panel_pops_up">oriel.ui.catalog.background_fades_in_panel_pops_up</span>
+      <div class="ore-btn primary m-ripple" id="modal-close" tabindex="0" data-i18n-text-0="oriel.ui.catalog.got_it">oriel.ui.catalog.got_it</div>
     </div>
   </div>
 </div>

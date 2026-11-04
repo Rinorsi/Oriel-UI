@@ -60,6 +60,7 @@ public final class Document extends Node {
     private final Scheduler scheduler = new Scheduler(this);
     private final Scrolling scrolling = new Scrolling();
     private final Diagnostics diagnostics;
+    private final dev.oriel.engine.i18n.Messages messages = new dev.oriel.engine.i18n.Messages(this);
     private final StyleEngine styleEngine;
     private final LayoutEngine layoutEngine;
     private final AnimationEngine animationEngine;
@@ -152,6 +153,8 @@ public final class Document extends Node {
     public Host host() { return host; }
     /** What this page's markup and styles did not get as written. */
     public Diagnostics diagnostics() { return diagnostics; }
+
+    public dev.oriel.engine.i18n.Messages messages() { return messages; }
     /** The caps on this page, from {@link Host#limits()} when it was created. */
     public Limits limits() { return limits; }
     public String url() { return url; }
@@ -265,6 +268,8 @@ public final class Document extends Node {
      */
     private void load() {
         readyState = "interactive";
+        messages.bind(this);
+        messages.refresh();
         for (Element e : getElementsByTagName(MinecraftText.TAG)) MinecraftText.expand(this, e);
         scripts = host.createScriptRuntime(this);
         if (scripts != null && initialData != null) scripts.receive("data", initialData);
@@ -328,6 +333,9 @@ public final class Document extends Node {
         checkSlowFrames();
         long start = clock.getAsLong();
         run(() -> {
+            boolean languageChanged = messages.languageChanged();
+            messages.refresh();
+            if (languageChanged) for (Element e : getElementsByTagName(MinecraftText.TAG)) MinecraftText.expand(this, e);
             scheduler.run(nowMs);
             input.tick(nowMs);
             if (scripts != null) scripts.beforeRestyle();
@@ -415,7 +423,7 @@ public final class Document extends Node {
      */
     public boolean needsFrame(double nowMs) {
         if (error != null || closed) return false;
-        return dirty() || scheduler.hasWork(nowMs) || animationEngine.isAnimating() || input.isActive()
+        return messages.languageChanged() || dirty() || scheduler.hasWork(nowMs) || animationEngine.isAnimating() || input.isActive()
                 || input.tooltipDue(nowMs);
     }
 
@@ -613,6 +621,7 @@ public final class Document extends Node {
         if (!arrived || child.isInert()) return;
         boolean loaded = !readyState.equals("loading");
         connect(child, loaded);
+        if (loaded) messages.bind(child);
         if (!loaded || scripts == null) return;
         if (child instanceof Element e) runScript(e);
         for (Element script : child.getElementsByTagName("script")) runScript(script);

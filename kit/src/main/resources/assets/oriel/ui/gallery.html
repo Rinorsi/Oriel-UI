@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · Oriel UI</title>
+<title data-i18n-text-0="oriel.ui.gallery.oriel_uiku_oriel_ui">oriel.ui.gallery.oriel_uiku_oriel_ui</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The launcher, in the same window as every other page (moving between pages changes only the content): a bento
@@ -172,19 +172,19 @@
 <div class="o-app">
 <div class="o-window" id="home">
   <div class="o-titlebar">
-    <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
+    <div class="o-brand"><img src="../textures/ui/emblem.png"><b data-i18n-text-0="oriel.ui.gallery.oriel_ui">oriel.ui.gallery.oriel_ui</b><span data-i18n-text-0="oriel.ui.gallery.oriel_ui_2">oriel.ui.gallery.oriel_ui_2</span></div>
     <div class="o-grow"></div>
-    <div class="o-hints"><span><span class="o-kbd">T</span>主题</span><span><span class="o-kbd">Esc</span>关闭</span></div>
-    <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
+    <div class="o-hints"><span data-i18n-text-1="oriel.ui.gallery.theme"><span class="o-kbd" data-i18n-text-0="oriel.ui.gallery.t">oriel.ui.gallery.t</span>oriel.ui.gallery.theme</span><span data-i18n-text-1="oriel.ui.gallery.close"><span class="o-kbd" data-i18n-text-0="oriel.ui.gallery.esc">oriel.ui.gallery.esc</span>oriel.ui.gallery.close</span></div>
+    <div class="ore-btn icon" data-action="theme" tabindex="0" title="oriel.ui.gallery.toggle_light_dark" data-i18n-title="oriel.ui.gallery.toggle_light_dark"><img class="o-ico" src="../textures/icons/sun.png"></div>
     <div class="ore-btn icon" id="close" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
   </div>
   <div class="o-tabbar">
     <div class="o-apptabs" id="nav">
-      <div class="on" data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
-      <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
-      <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em>图标</em></div>
-      <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em>风格示例</em></div>
-      <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
+      <div class="on" data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em data-i18n-text-0="oriel.ui.gallery.home">oriel.ui.gallery.home</em></div>
+      <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em data-i18n-text-0="oriel.ui.gallery.components_motion">oriel.ui.gallery.components_motion</em></div>
+      <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em data-i18n-text-0="oriel.ui.gallery.icon">oriel.ui.gallery.icon</em></div>
+      <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em data-i18n-text-0="oriel.ui.gallery.style_examples">oriel.ui.gallery.style_examples</em></div>
+      <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em data-i18n-text-0="oriel.ui.gallery.editor">oriel.ui.gallery.editor</em></div>
       <i class="m-indicator" id="indicator"></i>
     </div>
   </div>
@@ -197,77 +197,77 @@
       <div class="sheen"></div>
       <canvas class="fx" data-fx="stars" data-rate="2" data-seed="11"></canvas>
       <div class="stats">
-        <div class="s"><span class="v" data-count="200">0</span><span class="k">像素图标</span></div>
-        <div class="s"><span class="v" data-count="13">0</span><span class="k">组件分类</span></div>
-        <div class="s"><span class="v" data-count="8">0</span><span class="k">粒子预设</span></div>
-        <div class="s"><span class="v" data-count="6">0</span><span class="k">构建目标</span></div>
+        <div class="s"><span class="v" data-count="200">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.pixel_icons">oriel.ui.gallery.pixel_icons</span></div>
+        <div class="s"><span class="v" data-count="13">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.component_categories">oriel.ui.gallery.component_categories</span></div>
+        <div class="s"><span class="v" data-count="8">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.particle_presets">oriel.ui.gallery.particle_presets</span></div>
+        <div class="s"><span class="v" data-count="6">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.build_target">oriel.ui.gallery.build_target</span></div>
       </div>
       <div class="pitch">
-        <div class="tag">ORIEL UI · 0.2</div>
-        <div class="o-h1">新一代<br><em>Minecraft 界面框架</em></div>
+        <div class="tag" data-i18n-text-0="oriel.ui.gallery.oriel_ui_0_2">oriel.ui.gallery.oriel_ui_0_2</div>
+        <div class="o-h1" data-i18n-text-0="oriel.ui.gallery.next_generation">oriel.ui.gallery.next_generation<br><em data-i18n-text-0="oriel.ui.gallery.minecraft_ui_framework">oriel.ui.gallery.minecraft_ui_framework</em></div>
         <div class="actions">
-          <div class="ore-btn hero m-ripple" data-go="inventory" data-zoom tabindex="0"><img class="o-ico" src="../textures/icons/play.png">开始体验</div>
-          <div class="ore-btn secondary m-ripple" data-go="catalog" tabindex="0"><img class="o-ico" src="../textures/icons/grid.png">组件目录</div>
+          <div class="ore-btn hero m-ripple" data-go="inventory" data-zoom tabindex="0" data-i18n-text-1="oriel.ui.gallery.start_exploring"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.gallery.start_exploring</div>
+          <div class="ore-btn secondary m-ripple" data-go="catalog" tabindex="0" data-i18n-text-1="oriel.ui.gallery.component_catalog"><img class="o-ico" src="../textures/icons/grid.png">oriel.ui.gallery.component_catalog</div>
         </div>
       </div>
     </div>
 
     <div class="card inv o-tile hot m-spot" tabindex="0" data-go="inventory" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/bag.png"><span class="label">背包</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/bag.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.inventory">oriel.ui.gallery.inventory</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb"><div class="floor"></div><entity player follow-mouse></entity></div>
     </div>
 
     <div class="side">
     <div class="card forge o-tile hot m-spot" tabindex="0" data-go="forge" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/hammer.png"><span class="label">锻造台</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/hammer.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.forge">oriel.ui.gallery.forge</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb"><canvas class="fx" data-fx="embers" data-rate="7" data-seed="2"></canvas><model block="minecraft:anvil"></model></div>
     </div>
 
     <div class="card music o-tile hot m-spot" tabindex="0" data-go="music" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/music.png"><span class="label">音乐播放器</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/music.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.music_player">oriel.ui.gallery.music_player</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb">
         <div class="spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="track"><b>Sweden</b><span>C418</span></div>
+        <div class="track"><b data-i18n-text-0="oriel.ui.gallery.sweden">oriel.ui.gallery.sweden</b><span data-i18n-text-0="oriel.ui.gallery.c418">oriel.ui.gallery.c418</span></div>
         <div class="progress"><i></i></div>
       </div>
     </div>
     </div>
 
     <div class="card hud o-tile hot m-spot" tabindex="0" data-page="potions">
-      <div class="head"><img class="o-ico" src="../textures/icons/flask.png"><span class="label">药水 HUD</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/flask.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.potion_hud">oriel.ui.gallery.potion_hud</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb"><div class="effs">
-        <div class="e" style="--t: 70%"><i class="left"></i><img src="minecraft:textures/mob_effect/speed.png"><b>迅捷 II</b><span>1:30</span></div>
-        <div class="e" style="--t: 90%"><i class="left"></i><img src="minecraft:textures/mob_effect/strength.png"><b>力量</b><span>3:00</span></div>
-        <div class="e bad" style="--t: 20%"><i class="left"></i><img src="minecraft:textures/mob_effect/poison.png"><b>中毒</b><span>0:12</span></div>
-        <div class="e" style="--t: 100%"><i class="left"></i><img src="minecraft:textures/mob_effect/night_vision.png"><b>夜视</b><span>8:00</span></div>
-        <div class="e" style="--t: 45%"><i class="left"></i><img src="minecraft:textures/mob_effect/regeneration.png"><b>生命恢复</b><span>0:45</span></div>
-        <div class="e" style="--t: 60%"><i class="left"></i><img src="minecraft:textures/mob_effect/haste.png"><b>急迫 II</b><span>2:10</span></div>
+        <div class="e" style="--t: 70%"><i class="left"></i><img src="minecraft:textures/mob_effect/speed.png"><b data-i18n-text-0="oriel.ui.gallery.speed_ii">oriel.ui.gallery.speed_ii</b><span>1:30</span></div>
+        <div class="e" style="--t: 90%"><i class="left"></i><img src="minecraft:textures/mob_effect/strength.png"><b data-i18n-text-0="oriel.ui.gallery.strength">oriel.ui.gallery.strength</b><span>3:00</span></div>
+        <div class="e bad" style="--t: 20%"><i class="left"></i><img src="minecraft:textures/mob_effect/poison.png"><b data-i18n-text-0="oriel.ui.gallery.poison">oriel.ui.gallery.poison</b><span>0:12</span></div>
+        <div class="e" style="--t: 100%"><i class="left"></i><img src="minecraft:textures/mob_effect/night_vision.png"><b data-i18n-text-0="oriel.ui.gallery.night_vision">oriel.ui.gallery.night_vision</b><span>8:00</span></div>
+        <div class="e" style="--t: 45%"><i class="left"></i><img src="minecraft:textures/mob_effect/regeneration.png"><b data-i18n-text-0="oriel.ui.gallery.regeneration">oriel.ui.gallery.regeneration</b><span>0:45</span></div>
+        <div class="e" style="--t: 60%"><i class="left"></i><img src="minecraft:textures/mob_effect/haste.png"><b data-i18n-text-0="oriel.ui.gallery.haste_ii">oriel.ui.gallery.haste_ii</b><span>2:10</span></div>
       </div></div>
     </div>
 
     <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/layers.png"><span class="label">组件编辑器</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/layers.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.component_editor">oriel.ui.gallery.component_editor</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb"><div class="ed-tools"><i></i><i></i><i></i><i></i></div><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="ed-props"><i></i><i></i><i></i><i></i><i></i><b></b></div></div>
     </div>
 
     <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/gear.png"><span class="label">设置</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/gear.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.settings">oriel.ui.gallery.settings</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb">
-        <div>垂直同步<span class="ore-toggle on"></span></div>
-        <div>粒子效果<span class="ore-toggle on"></span></div>
-        <div class="more">界面缩放<span class="mini-slider"><i></i></span></div>
-        <div class="more large">鼠标灵敏度<span class="mini-slider"><i style="width: 45%"></i></span></div>
+        <div data-i18n-text-0="oriel.ui.gallery.vertical_sync">oriel.ui.gallery.vertical_sync<span class="ore-toggle on"></span></div>
+        <div data-i18n-text-0="oriel.ui.gallery.particle_effects">oriel.ui.gallery.particle_effects<span class="ore-toggle on"></span></div>
+        <div class="more" data-i18n-text-0="oriel.ui.gallery.ui_scale">oriel.ui.gallery.ui_scale<span class="mini-slider"><i></i></span></div>
+        <div class="more large" data-i18n-text-0="oriel.ui.gallery.mouse_sensitivity">oriel.ui.gallery.mouse_sensitivity<span class="mini-slider"><i style="width: 45%"></i></span></div>
       </div>
     </div>
 
     <div class="card kit o-tile hot m-spot" tabindex="0" data-go="catalog">
-      <div class="head"><img class="o-ico" src="../textures/icons/grid.png"><span class="label">组件目录</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/grid.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.component_catalog">oriel.ui.gallery.component_catalog</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb o-fit">
-        <span class="ore-btn hero">确认</span><span class="ore-btn secondary">取消</span><span class="ore-btn destructive">删除</span>
-        <span class="o-chip on">选中</span><span class="ore-toggle on"></span><span class="ore-toggle"></span>
-        <div class="mini-meter"><i></i></div><span class="o-badge red">9</span><span class="o-chip">芯片</span>
-        <span class="o-kbd">Ctrl</span><span class="o-badge">3</span><div class="mini-meter"><i style="width: 30%"></i></div>
-        <span class="ore-btn">普通</span><span class="o-chip on">稀有</span><span class="o-kbd">Esc</span>
+        <span class="ore-btn hero" data-i18n-text-0="oriel.ui.gallery.confirm">oriel.ui.gallery.confirm</span><span class="ore-btn secondary" data-i18n-text-0="oriel.ui.gallery.cancel">oriel.ui.gallery.cancel</span><span class="ore-btn destructive" data-i18n-text-0="oriel.ui.gallery.delete">oriel.ui.gallery.delete</span>
+        <span class="o-chip on" data-i18n-text-0="oriel.ui.gallery.selected">oriel.ui.gallery.selected</span><span class="ore-toggle on"></span><span class="ore-toggle"></span>
+        <div class="mini-meter"><i></i></div><span class="o-badge red">9</span><span class="o-chip" data-i18n-text-0="oriel.ui.gallery.chip">oriel.ui.gallery.chip</span>
+        <span class="o-kbd" data-i18n-text-0="oriel.ui.gallery.ctrl">oriel.ui.gallery.ctrl</span><span class="o-badge">3</span><div class="mini-meter"><i style="width: 30%"></i></div>
+        <span class="ore-btn" data-i18n-text-0="oriel.ui.gallery.common">oriel.ui.gallery.common</span><span class="o-chip on" data-i18n-text-0="oriel.ui.gallery.rare">oriel.ui.gallery.rare</span><span class="o-kbd" data-i18n-text-0="oriel.ui.gallery.esc">oriel.ui.gallery.esc</span>
       </div>
     </div>
   </div>

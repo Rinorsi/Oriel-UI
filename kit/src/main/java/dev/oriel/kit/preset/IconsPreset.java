@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.oriel.engine.dom.Document;
@@ -62,37 +64,37 @@ public final class IconsPreset implements PageControllers.Controller {
     static final String VANILLA = "vanilla", ITEMS = "items";
     /** A selection of vanilla's GUI sprites: id (under textures/gui/sprites), name, tags. */
     static final String[][] SPRITES = {
-            {"minecraft:hud/heart/full", "生命", "heart health hp 心"}, {"minecraft:hud/heart/half", "半颗心", "heart half"},
-            {"minecraft:hud/heart/container", "心槽", "heart empty"}, {"minecraft:hud/heart/poisoned_full", "中毒的心", "heart poison"},
-            {"minecraft:hud/heart/withered_full", "凋零的心", "heart wither"}, {"minecraft:hud/heart/frozen_full", "冰冻的心", "heart frozen"},
-            {"minecraft:hud/heart/absorbing_full", "伤害吸收", "heart absorption gold"},
-            {"minecraft:hud/food_full", "饱食度", "food hunger 鸡腿"}, {"minecraft:hud/food_half", "半格饱食度", "food half"},
-            {"minecraft:hud/food_empty", "饱食度槽", "food empty"}, {"minecraft:hud/food_full_hunger", "饥饿", "food hunger effect"},
-            {"minecraft:hud/armor_full", "护甲", "armor armour"}, {"minecraft:hud/armor_half", "半格护甲", "armor half"},
-            {"minecraft:hud/armor_empty", "护甲槽", "armor empty"}, {"minecraft:hud/air", "氧气", "air bubble oxygen"},
-            {"minecraft:hud/air_bursting", "氧气破裂", "air bubble"}, {"minecraft:hud/crosshair", "准星", "crosshair aim"},
-            {"minecraft:statistics/block_mined", "挖掘", "stat mined"}, {"minecraft:statistics/item_crafted", "合成", "stat crafted"},
-            {"minecraft:statistics/item_used", "使用", "stat used"}, {"minecraft:statistics/item_broken", "损坏", "stat broken"},
-            {"minecraft:statistics/item_picked_up", "拾取", "stat picked"}, {"minecraft:statistics/item_dropped", "丢弃", "stat dropped"},
-            {"minecraft:icon/checkmark", "对勾", "check ok"}, {"minecraft:icon/info", "信息", "info"},
-            {"minecraft:icon/language", "语言", "language"}, {"minecraft:icon/accessibility", "无障碍", "accessibility"},
-            {"minecraft:icon/search", "搜索", "search"}, {"minecraft:icon/link", "链接", "link"},
-            {"minecraft:icon/music_notes", "音乐", "music"}, {"minecraft:icon/news", "新闻", "news"},
-            {"minecraft:icon/ping_5", "信号满格", "ping signal"}, {"minecraft:icon/ping_2", "信号弱", "ping signal"},
+            {"minecraft:hud/heart/full", "oriel.ui.icons.health", "oriel.ui.icons.heart_health_hp_heart"}, {"minecraft:hud/heart/half", "oriel.ui.icons.half_heart", "heart half"},
+            {"minecraft:hud/heart/container", "oriel.ui.icons.heart_container", "heart empty"}, {"minecraft:hud/heart/poisoned_full", "oriel.ui.icons.poisoned_heart", "heart poison"},
+            {"minecraft:hud/heart/withered_full", "oriel.ui.icons.withered_heart", "heart wither"}, {"minecraft:hud/heart/frozen_full", "oriel.ui.icons.frozen_heart", "heart frozen"},
+            {"minecraft:hud/heart/absorbing_full", "oriel.ui.icons.absorption", "heart absorption gold"},
+            {"minecraft:hud/food_full", "oriel.ui.icons.hunger", "oriel.ui.icons.food_hunger_chicken_leg"}, {"minecraft:hud/food_half", "oriel.ui.icons.half_a_hunger_bar", "food half"},
+            {"minecraft:hud/food_empty", "oriel.ui.icons.hunger_bar", "food empty"}, {"minecraft:hud/food_full_hunger", "oriel.ui.icons.hunger_2", "food hunger effect"},
+            {"minecraft:hud/armor_full", "oriel.ui.icons.armor", "armor armour"}, {"minecraft:hud/armor_half", "oriel.ui.icons.half_an_armor_bar", "armor half"},
+            {"minecraft:hud/armor_empty", "oriel.ui.icons.armor_bar", "armor empty"}, {"minecraft:hud/air", "oriel.ui.icons.oxygen", "air bubble oxygen"},
+            {"minecraft:hud/air_bursting", "oriel.ui.icons.oxygen_depleted", "air bubble"}, {"minecraft:hud/crosshair", "oriel.ui.icons.crosshair", "crosshair aim"},
+            {"minecraft:statistics/block_mined", "oriel.ui.icons.mine", "stat mined"}, {"minecraft:statistics/item_crafted", "oriel.ui.icons.craft", "stat crafted"},
+            {"minecraft:statistics/item_used", "oriel.ui.icons.use", "stat used"}, {"minecraft:statistics/item_broken", "oriel.ui.icons.damage", "stat broken"},
+            {"minecraft:statistics/item_picked_up", "oriel.ui.icons.pick_up", "stat picked"}, {"minecraft:statistics/item_dropped", "oriel.ui.icons.drop", "stat dropped"},
+            {"minecraft:icon/checkmark", "oriel.ui.icons.check_mark", "check ok"}, {"minecraft:icon/info", "oriel.ui.icons.information", "info"},
+            {"minecraft:icon/language", "oriel.ui.icons.language", "language"}, {"minecraft:icon/accessibility", "oriel.ui.icons.accessibility", "accessibility"},
+            {"minecraft:icon/search", "oriel.ui.icons.search", "search"}, {"minecraft:icon/link", "oriel.ui.icons.link", "link"},
+            {"minecraft:icon/music_notes", "oriel.ui.icons.music", "music"}, {"minecraft:icon/news", "oriel.ui.icons.news", "news"},
+            {"minecraft:icon/ping_5", "oriel.ui.icons.full_signal", "ping signal"}, {"minecraft:icon/ping_2", "oriel.ui.icons.weak_signal", "ping signal"},
     };
     /** A selection of items; any other item id typed in the search shows too. */
     static final String[][] ITEM_ICONS = {
-            {"minecraft:diamond_sword", "钻石剑"}, {"minecraft:iron_pickaxe", "铁镐"}, {"minecraft:bow", "弓"},
-            {"minecraft:shield", "盾牌"}, {"minecraft:trident", "三叉戟"}, {"minecraft:diamond", "钻石"},
-            {"minecraft:emerald", "绿宝石"}, {"minecraft:gold_ingot", "金锭"}, {"minecraft:redstone", "红石"},
-            {"minecraft:lapis_lazuli", "青金石"}, {"minecraft:nether_star", "下界之星"}, {"minecraft:heart_of_the_sea", "海洋之心"},
-            {"minecraft:apple", "苹果"}, {"minecraft:golden_apple", "金苹果"}, {"minecraft:bread", "面包"},
-            {"minecraft:cooked_beef", "牛排"}, {"minecraft:cake", "蛋糕"}, {"minecraft:totem_of_undying", "不死图腾"},
-            {"minecraft:ender_pearl", "末影珍珠"}, {"minecraft:experience_bottle", "附魔之瓶"}, {"minecraft:blaze_rod", "烈焰棒"},
-            {"minecraft:book", "书"}, {"minecraft:enchanted_book", "附魔书"}, {"minecraft:compass", "指南针"},
-            {"minecraft:clock", "时钟"}, {"minecraft:map", "地图"}, {"minecraft:elytra", "鞘翅"},
-            {"minecraft:grass_block", "草方块"}, {"minecraft:oak_log", "橡木原木"}, {"minecraft:chest", "箱子"},
-            {"minecraft:crafting_table", "工作台"}, {"minecraft:tnt", "TNT"},
+            {"minecraft:diamond_sword", "oriel.ui.icons.diamond_sword"}, {"minecraft:iron_pickaxe", "oriel.ui.icons.iron_pickaxe"}, {"minecraft:bow", "oriel.ui.icons.bow"},
+            {"minecraft:shield", "oriel.ui.icons.shield"}, {"minecraft:trident", "oriel.ui.icons.trident"}, {"minecraft:diamond", "oriel.ui.icons.diamond"},
+            {"minecraft:emerald", "oriel.ui.icons.emerald"}, {"minecraft:gold_ingot", "oriel.ui.icons.gold_ingot"}, {"minecraft:redstone", "oriel.ui.icons.redstone"},
+            {"minecraft:lapis_lazuli", "oriel.ui.icons.lapis_lazuli"}, {"minecraft:nether_star", "oriel.ui.icons.nether_star"}, {"minecraft:heart_of_the_sea", "oriel.ui.icons.heart_of_the_sea"},
+            {"minecraft:apple", "oriel.ui.icons.apple"}, {"minecraft:golden_apple", "oriel.ui.icons.golden_apple"}, {"minecraft:bread", "oriel.ui.icons.bread"},
+            {"minecraft:cooked_beef", "oriel.ui.icons.steak"}, {"minecraft:cake", "oriel.ui.icons.cake"}, {"minecraft:totem_of_undying", "oriel.ui.icons.totem_of_undying"},
+            {"minecraft:ender_pearl", "oriel.ui.icons.ender_pearl"}, {"minecraft:experience_bottle", "oriel.ui.icons.bottle_o_enchanting"}, {"minecraft:blaze_rod", "oriel.ui.icons.blaze_rod"},
+            {"minecraft:book", "oriel.ui.icons.book"}, {"minecraft:enchanted_book", "oriel.ui.icons.enchanted_book"}, {"minecraft:compass", "oriel.ui.icons.compass"},
+            {"minecraft:clock", "oriel.ui.icons.clock"}, {"minecraft:map", "oriel.ui.icons.map"}, {"minecraft:elytra", "oriel.ui.icons.elytra"},
+            {"minecraft:grass_block", "oriel.ui.icons.grass_block"}, {"minecraft:oak_log", "oriel.ui.icons.oak_log"}, {"minecraft:chest", "oriel.ui.icons.chest"},
+            {"minecraft:crafting_table", "oriel.ui.icons.crafting_table"}, {"minecraft:tnt", "oriel.ui.common.tnt"},
     };
     private static final java.util.regex.Pattern ITEM_ID = java.util.regex.Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
     static final Map<String, String> TINTS = Map.of("text", "var(--o-text)", "green", "#86d562", "blue", "#55c8ff", "purple", "#c46aff",
@@ -113,12 +115,12 @@ public final class IconsPreset implements PageControllers.Controller {
         Shell.setup(doc);
         load(doc.host().loadText(doc.resolveUrl("icons.json")));
         int library = icons.size();
-        categories.add(new String[] {VANILLA, "原版图标"});
-        for (String[] s : SPRITES) icons.add(new Icon(s[0], s[1], VANILLA, List.of(s[2].split(" ")), Kind.SPRITE));
-        categories.add(new String[] {ITEMS, "任意物品"});
-        for (String[] s : ITEM_ICONS) icons.add(new Icon(s[0], s[1], ITEMS, List.of(s[0].substring(s[0].indexOf(':') + 1)), Kind.ITEM));
+        categories.add(new String[] {VANILLA, Lang.t(doc, "oriel.ui.icons.vanilla_icons")});
+        for (String[] s : SPRITES) icons.add(new Icon(s[0], Lang.value(doc, s[1]), VANILLA, List.of(Lang.value(doc, s[2]).split(" ")), Kind.SPRITE));
+        categories.add(new String[] {ITEMS, Lang.t(doc, "oriel.ui.icons.any_item")});
+        for (String[] s : ITEM_ICONS) icons.add(new Icon(s[0], Lang.value(doc, s[1]), ITEMS, List.of(s[0].substring(s[0].indexOf(':') + 1)), Kind.ITEM));
         Element cats = Dom.byId(doc, "cats");
-        cats.appendChild(category("all", "全部图标", icons.size()));
+        cats.appendChild(category("all", Lang.t(doc, "oriel.ui.icons.all_icons_2"), icons.size()));
         for (String[] c : categories) {
             long n = icons.stream().filter(i -> i.cat().equals(c[0])).count();
             cats.appendChild(category(c[0], c[1], (int) n));
@@ -140,7 +142,7 @@ public final class IconsPreset implements PageControllers.Controller {
             tints.appendChild(sw);
         }
         Dom.onKey(doc, this::key);
-        Dom.text(Dom.byId(doc, "total"), library + " 个图标 · 16×16 像素 · 用 -mc-tint 着色 · 也可以用原版图标和任意物品");
+        Dom.text(Dom.byId(doc, "total"), library + Lang.t(doc, "oriel.ui.icons.icons_16_16_pixels_tinted_with_mc"));
         render();
         if (!icons.isEmpty()) choose(icons.getFirst());
     }
@@ -150,13 +152,13 @@ public final class IconsPreset implements PageControllers.Controller {
         JsonObject root = JsonParser.parseString(json).getAsJsonObject();
         for (var c : root.getAsJsonArray("categories")) {
             JsonObject o = c.getAsJsonObject();
-            categories.add(new String[] {o.get("id").getAsString(), o.get("zh").getAsString()});
+            categories.add(new String[] {o.get("id").getAsString(), Lang.t(doc, "oriel.ui.icon_category." + o.get("id").getAsString())});
         }
         for (var e : root.getAsJsonObject("icons").entrySet()) {
             JsonObject o = e.getValue().getAsJsonObject();
             List<String> tags = new ArrayList<>();
-            for (var t : o.getAsJsonArray("tags")) tags.add(t.getAsString());
-            icons.add(new Icon(e.getKey(), o.get("zh").getAsString(), o.get("cat").getAsString(), tags));
+            for (int i = 0; i < o.getAsJsonArray("tags").size(); i++) tags.add(Lang.t(doc, "oriel.ui.icon." + e.getKey() + ".tag." + i));
+            icons.add(new Icon(e.getKey(), Lang.t(doc, "oriel.ui.icon." + e.getKey() + ".name"), o.get("cat").getAsString(), tags));
         }
     }
 
@@ -176,8 +178,8 @@ public final class IconsPreset implements PageControllers.Controller {
             category = id;
             for (Element c : Dom.byId(doc, "cats").children()) c.toggleClass("on", c == row);
             Dom.text(Dom.byId(doc, "crumb"), "/ " + name);
-            Dom.byId(doc, "q").setAttribute("placeholder", id.equals(ITEMS) ? "物品名称或 id，如 minecraft:totem_of_undying"
-                    : "搜索名称、拼写或标签");
+            Dom.byId(doc, "q").setAttribute("placeholder", id.equals(ITEMS) ? Lang.t(doc, "oriel.ui.icons.item_name_or_id_such_as_minecraft")
+                    : Lang.t(doc, "oriel.ui.icons.search_names_spellings_or_tags"));
             render();
         });
         return row;
@@ -194,9 +196,9 @@ public final class IconsPreset implements PageControllers.Controller {
                 && shown.stream().noneMatch(i -> i.kind() == Kind.ITEM && i.id().equals(query))) {
             shown.addFirst(new Icon(query, query.substring(query.indexOf(':') + 1), ITEMS, List.of(), Kind.ITEM));
         }
-        Dom.text(Dom.byId(doc, "count"), shown.size() + " 个");
+        Dom.text(Dom.byId(doc, "count"), shown.size() + Lang.t(doc, "oriel.ui.icons.items"));
         if (shown.isEmpty()) {
-            grid.appendChild(Dom.el(doc, "div", "empty", "没有找到「" + query + "」"));
+            grid.appendChild(Dom.el(doc, "div", "empty", Lang.t(doc, "oriel.ui.icons.no_results_found_for") + query + "」"));
             return;
         }
         int gen = ++generation;

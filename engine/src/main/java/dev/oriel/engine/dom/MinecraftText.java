@@ -52,7 +52,7 @@ final class MinecraftText {
             String args = element.getAttribute("args");
             String[] values = args == null || args.isBlank() ? new String[0]
                     : Arrays.stream(args.split(",")).map(String::strip).toArray(String[]::new);
-            return List.of(new Host.TextRun(host.translate(key.strip(), values), ""));
+            return List.of(new Host.TextRun(element.ownerDocument().messages().translate(key.strip(), values), ""));
         }
         String json = element.getAttribute("json");
         return json == null ? null : host.formatText(json);

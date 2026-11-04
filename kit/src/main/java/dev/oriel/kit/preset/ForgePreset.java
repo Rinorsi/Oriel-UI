@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.kit.Dom;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
@@ -83,11 +85,11 @@ public final class ForgePreset implements PageControllers.Controller {
         }
 
         String grade() {
-            if (quality >= 90) return "传说";
-            if (quality >= 70) return "史诗";
-            if (quality >= 50) return "精良";
-            if (quality >= 25) return "普通";
-            return "粗糙";
+            if (quality >= 90) return "oriel.ui.forge.legendary";
+            if (quality >= 70) return "oriel.ui.forge.epic";
+            if (quality >= 50) return "oriel.ui.forge.rare";
+            if (quality >= 25) return "oriel.ui.forge.common";
+            return "oriel.ui.forge.rough";
         }
     }
 
@@ -214,9 +216,9 @@ public final class ForgePreset implements PageControllers.Controller {
         marker.set("left", pct(model.marker())).apply();
         Dom.text(quality, Math.round(model.quality) + "%");
         qualityBar.set("--value", Float.toString(round(model.quality / 100))).apply();
-        Dom.text(grade, model.grade());
+        Dom.text(grade, Lang.value(doc, model.grade()));
         grade.setAttribute("class", "o-chip grade " + tier(model.grade()));
-        Dom.text(strikesLeft, "剩 " + (STRIKES - model.strikes));
+        Dom.text(strikesLeft, Lang.t(doc, "oriel.ui.forge.remaining") + (STRIKES - model.strikes));
     }
 
     void strike() {
@@ -231,12 +233,13 @@ public final class ForgePreset implements PageControllers.Controller {
         if (!v.equals("miss") && !v.equals("cold")) restart(stage, "shake" + a, "shake" + b);
         if (v.equals("perfect") || v.equals("hit")) restart(flash, "on" + a, "on" + b);
         String[] text = switch (v) {
-            case "perfect" -> new String[] {"完美!", "#f8af2b"};
-            case "hit" -> new String[] {"命中", "#6cc349"};
-            case "cold" -> new String[] {"太冷了", "#6ad9f5"};
-            case "hot" -> new String[] {"过热!", "#e25a5a"};
-            default -> new String[] {"偏了", "#e25a5a"};
+            case "perfect" -> new String[] {"oriel.ui.forge.perfect", "#f8af2b"};
+            case "hit" -> new String[] {"oriel.ui.forge.hit", "#6cc349"};
+            case "cold" -> new String[] {"oriel.ui.forge.too_cold", "#6ad9f5"};
+            case "hot" -> new String[] {"oriel.ui.forge.overheated", "#e25a5a"};
+            default -> new String[] {Lang.t(doc, "oriel.ui.forge.missed"), "#e25a5a"};
         };
+        text[0] = Lang.value(doc, text[0]);
         Dom.text(verdict, text[0]);
         verdict.setAttribute("style", "color: " + text[1]);
         restart(verdict, "pop" + a, "pop" + b);
@@ -277,10 +280,10 @@ public final class ForgePreset implements PageControllers.Controller {
     /** The rarity class of a grade. */
     static String tier(String grade) {
         return switch (grade) {
-            case "传说" -> "r-legendary";
-            case "史诗" -> "r-epic";
-            case "精良" -> "r-rare";
-            case "普通" -> "r-uncommon";
+            case "oriel.ui.forge.legendary" -> "r-legendary";
+            case "oriel.ui.forge.epic" -> "r-epic";
+            case "oriel.ui.forge.rare" -> "r-rare";
+            case "oriel.ui.forge.common" -> "r-uncommon";
             default -> "r-common";
         };
     }
@@ -290,9 +293,9 @@ public final class ForgePreset implements PageControllers.Controller {
     void quench() {
         if (model.done) return;
         model.done = true;
-        Dom.text(Dom.byId(doc, "result-title"), model.grade() + " 铁剑");
+        Dom.text(Dom.byId(doc, "result-title"), Lang.value(doc, model.grade()) + Lang.t(doc, "oriel.ui.forge.iron_sword_2"));
         int perfect = (int) model.verdicts.stream().filter("perfect"::equals).count();
-        Dom.text(Dom.byId(doc, "result-text"), "品质 " + Math.round(model.quality) + "% · 完美 " + perfect + " 次 · 击打 " + model.strikes + " 次");
+        Dom.text(Dom.byId(doc, "result-text"), Lang.t(doc, "oriel.ui.forge.quality_2") + Math.round(model.quality) + Lang.t(doc, "oriel.ui.forge.perfect_2") + perfect + Lang.t(doc, "oriel.ui.forge.times_hit") + model.strikes + Lang.t(doc, "oriel.ui.forge.times"));
         resultCard.setAttribute("class", "card o-tile o-frame fx-sweep " + tier(model.grade()));
         result.addClass("on");
         burst(26, true);

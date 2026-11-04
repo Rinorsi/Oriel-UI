@@ -25,15 +25,17 @@ public final class Preview {
                    preview --check <dir or page.html>   (every page at 640x360 and 427x240: errors, missing images, CSS)
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
+            --lang <language> selects a language such as zh_cn (default) or en_us; --check also accepts it.
             Diagnostics (CSS the engine did not take as written) go to stderr; with --strict a warning fails the run
             (exit code 3).""";
 
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
-                   Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background) {
+                   Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background, String language) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
             String boxes = null;
+            String language = "zh_cn";
             Integer background = null;
             boolean canvasTest = false, narrate = false, strict = false;
             int scale = 2, width = CanvasTest.WIDTH, height = CanvasTest.HEIGHT, frames = 1;
@@ -50,6 +52,7 @@ public final class Preview {
                     case "--narrate" -> narrate = true;
                     case "--strict" -> strict = true;
                     case "--boxes" -> boxes = value(args, ++i, arg);
+                    case "--lang" -> language = value(args, ++i, arg);
                     case "--background" -> {
                         String color = value(args, ++i, arg);
                         background = CssColors.parse(color, 0xFF000000);
@@ -73,7 +76,7 @@ public final class Preview {
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background);
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
@@ -109,9 +112,9 @@ public final class Preview {
     public static void main(String[] args) throws IOException {
         // The Ore presets' Java controllers attach to their pages as they load.
         OrielKit.register();
-        if (args.length == 2 && args[0].equals("--check")) {
+        if ((args.length == 2 || args.length == 4 && args[2].equals("--lang")) && args[0].equals("--check")) {
             System.setProperty("java.awt.headless", "true");
-            System.exit(Check.run(java.nio.file.Path.of(args[1])));
+            System.exit(Check.run(java.nio.file.Path.of(args[1]), args.length == 4 ? args[3] : "zh_cn"));
             return;
         }
         Options options;
@@ -131,6 +134,7 @@ public final class Preview {
         MinecraftAssets assets = MinecraftAssets.open(pack.stream().toList(), jar);
         MinecraftFont font = new MinecraftFont(assets);
         PreviewHost host = new PreviewHost(assets, font);
+        host.setLanguage(options.language());
         Scene scene = options.canvasTest() ? new CanvasTest(host) : new PageScene(host, PreviewHost.pageUrl(options.page()),
                 options.data() == null ? null : Files.readString(options.data()),
                 new Viewport(options.width(), options.height(), options.scale()));

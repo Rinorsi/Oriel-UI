@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.kit.Dom;
 import dev.oriel.kit.Flip;
 import dev.oriel.kit.OrielKit;
@@ -70,7 +72,7 @@ public final class InventoryPreset implements PageControllers.Controller {
     public void attach(Document document) {
         doc = document;
         particles = Shell.setup(doc);
-        fixture(slots);
+        fixture(doc, slots);
         Element main = Dom.byId(doc, "main"), hotbar = Dom.byId(doc, "hotbar"), equip = Dom.byId(doc, "equip");
         for (int i = 0; i < SLOTS; i++) {
             Element slot = Dom.el(doc, "div", "ore-slot", null);
@@ -143,7 +145,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         for (Element t : doc.querySelectorAll("[data-cat]")) t.toggleClass("on", t == tab);
         category = tab.getAttribute("data-cat");
         filter(query);
-        if (category.equals("all") && query.isEmpty()) status("显示全部物品");
+        if (category.equals("all") && query.isEmpty()) status(Lang.t(doc, "oriel.ui.inventory.show_all_items"));
     }
 
     /** The tab an item belongs to. */
@@ -214,7 +216,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         if (still && i == heldFrom) {
             // A click: keep carrying the stack until the next press.
             carrying = true;
-            status("拿起了 " + held.name() + " ×" + held.count() + "，点击格子放下");
+            status(Lang.t(doc, "oriel.ui.inventory.picked_up") + Lang.value(doc, held.name()) + " ×" + held.count() + Lang.t(doc, "oriel.ui.inventory.click_a_slot_to_place_it_down"));
             return;
         }
         if (i >= 0) drop(i);
@@ -305,7 +307,7 @@ public final class InventoryPreset implements PageControllers.Controller {
             render(target);
         }
         flip.play(0.22f);
-        status(s.name() + " 移到了" + (toMain ? "物品栏" : "快捷栏"));
+        status(Lang.value(doc, s.name()) + Lang.t(doc, "oriel.ui.inventory.moved_to") + (toMain ? Lang.t(doc, "oriel.ui.inventory.inventory") : Lang.t(doc, "oriel.ui.inventory.hotbar")));
     }
 
     /** Sorts the main grid: merges stacks of the same item, then orders by rarity and name, gliding items home. */
@@ -345,7 +347,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         }
         flip.play(0.3f);
         filter(query);
-        status("已整理：" + stacks.size() + " 组物品");
+        status(Lang.t(doc, "oriel.ui.inventory.sorted") + stacks.size() + Lang.t(doc, "oriel.ui.inventory.item_groups"));
     }
 
     private static int rank(String rarity) {
@@ -375,15 +377,15 @@ public final class InventoryPreset implements PageControllers.Controller {
         for (int i : rest) order(i, filtering() ? n++ : i, true);
         for (int i = FIRST_HOTBAR; i < SLOTS; i++) slotElements[i].toggleClass("dim", filtering() && !matches(slots[i]));
         flip.play(0.28f);
-        if (!query.isEmpty()) status("找到 " + matches.size() + " 组匹配「" + text.trim() + "」的物品");
-        else if (!category.equals("all")) status(matches.size() + " 组" + CATEGORY_NAMES.getOrDefault(category, "") + "物品");
+        if (!query.isEmpty()) status(Lang.t(doc, "oriel.ui.inventory.found") + matches.size() + Lang.t(doc, "oriel.ui.inventory.item_groups_matching") + text.trim() + Lang.t(doc, "oriel.ui.inventory.label"));
+        else if (!category.equals("all")) status(matches.size() + Lang.t(doc, "oriel.ui.inventory.groups") + Lang.value(doc, CATEGORY_NAMES.getOrDefault(category, "")) + Lang.t(doc, "oriel.ui.inventory.item"));
     }
 
     private boolean matches(Stack s) {
         if (query.isEmpty() && category.equals("all")) return true;
         if (s == null) return false;
         if (!category.equals("all") && !categoryOf(s.id()).equals(category)) return false;
-        return query.isEmpty() || s.name().toLowerCase(Locale.ROOT).contains(query) || s.id().contains(query);
+        return query.isEmpty() || Lang.value(doc, s.name()).toLowerCase(Locale.ROOT).contains(query) || s.id().contains(query);
     }
 
     private boolean filtering() {
@@ -424,12 +426,12 @@ public final class InventoryPreset implements PageControllers.Controller {
     }
 
     private static final String[] TIERS = {"common", "uncommon", "rare", "epic"};
-    private static final Map<String, String> TIER_NAMES = Map.of("common", "普通", "uncommon", "优秀", "rare", "稀有", "epic", "史诗");
-    private static final Map<String, String> CATEGORY_NAMES = Map.of("weapon", "武器", "tool", "工具", "food", "食物",
-            "block", "方块", "material", "材料");
+    private static final Map<String, String> TIER_NAMES = Map.of("common", "oriel.ui.inventory.common", "uncommon", "oriel.ui.inventory.uncommon", "rare", "oriel.ui.inventory.rare", "epic", "oriel.ui.inventory.epic");
+    private static final Map<String, String> CATEGORY_NAMES = Map.of("weapon", "oriel.ui.inventory.weapon", "tool", "oriel.ui.inventory.tools", "food", "oriel.ui.inventory.food",
+            "block", "oriel.ui.inventory.block", "material", "oriel.ui.inventory.materials");
 
-    private static boolean enchanted(Stack s) {
-        for (String line : s.lore()) if (line.startsWith("*")) return true;
+    private boolean enchanted(Stack s) {
+        for (String line : displayLore(s)) if (line.startsWith("*")) return true;
         return false;
     }
 
@@ -475,7 +477,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         Element slot = slotElements[i];
         slot.addClass("reject");
         doc.scheduler().setTimeout(() -> slot.removeClass("reject"), 260);
-        status("这里放不下 " + (held != null ? held.name() : slots[i].name()));
+        status(Lang.t(doc, "oriel.ui.inventory.there_is_no_room_here_for") + (held != null ? Lang.value(doc, held.name()) : Lang.value(doc, slots[i].name())));
     }
 
     private void endHold() {
@@ -512,9 +514,9 @@ public final class InventoryPreset implements PageControllers.Controller {
         tip.removeAllChildren();
         tip.toggleClass("rare", s.rarity().equals("epic"));
         for (String tier : TIERS) tip.toggleClass("r-" + tier, s.rarity().equals(tier));
-        tip.appendChild(Dom.el(doc, "div", "tip-name", s.name()));
-        for (String line : s.lore()) tip.appendChild(Dom.el(doc, "div", lineClass("tip-", line), strip(line)));
-        if (s.maxDurability() > 0) tip.appendChild(Dom.el(doc, "div", "tip-line", "耐久 " + s.durability() + " / " + s.maxDurability()));
+        tip.appendChild(Dom.el(doc, "div", "tip-name", Lang.value(doc, s.name())));
+        for (String line : displayLore(s)) tip.appendChild(Dom.el(doc, "div", lineClass("tip-", line), strip(line)));
+        if (s.maxDurability() > 0) tip.appendChild(Dom.el(doc, "div", "tip-line", Lang.t(doc, "oriel.ui.inventory.durability") + s.durability() + " / " + s.maxDurability()));
         float left = x + 10, top = y - 14;
         if (left + 140 > doc.viewportWidth()) left = x - 150;
         style(tip).set("display", "block").px("left", left).px("top", Math.max(2, top)).apply();
@@ -543,14 +545,14 @@ public final class InventoryPreset implements PageControllers.Controller {
             particles.emitter(sparkle);
         }
         details.appendChild(stage);
-        details.appendChild(Dom.el(doc, "div", "name", s.name()));
+        details.appendChild(Dom.el(doc, "div", "name", Lang.value(doc, s.name())));
         Element chips = Dom.el(doc, "div", "chips", null);
-        chips.appendChild(Dom.el(doc, "span", "o-chip tier", TIER_NAMES.getOrDefault(s.rarity(), "普通")));
-        chips.appendChild(Dom.el(doc, "span", "o-chip", CATEGORY_NAMES.getOrDefault(categoryOf(s.id()), "物品")));
+        chips.appendChild(Dom.el(doc, "span", "o-chip tier", Lang.value(doc, TIER_NAMES.getOrDefault(s.rarity(), Lang.t(doc, "oriel.ui.inventory.common")))));
+        chips.appendChild(Dom.el(doc, "span", "o-chip", Lang.value(doc, CATEGORY_NAMES.getOrDefault(categoryOf(s.id()), Lang.t(doc, "oriel.ui.inventory.item")))));
         if (s.count() > 1) chips.appendChild(Dom.el(doc, "span", "o-chip", "×" + s.count()));
         details.appendChild(chips);
         details.appendChild(Dom.el(doc, "div", "o-divider", null));
-        for (String line : s.lore()) {
+        for (String line : displayLore(s)) {
             String kind = lineClass("", line);
             Element row = Dom.el(doc, "div", "line " + kind, null);
             String icon = kind.equals("enchant") ? "sparkle" : kind.equals("attr") ? "plus" : null;
@@ -558,12 +560,12 @@ public final class InventoryPreset implements PageControllers.Controller {
             row.appendChild(doc.createTextNode(strip(line).replaceFirst("^\\+", "")));
             details.appendChild(row);
         }
-        if (s.lore().isEmpty()) details.appendChild(Dom.el(doc, "div", "line lore", "普通的物品"));
+        if (displayLore(s).isEmpty()) details.appendChild(Dom.el(doc, "div", "line lore", Lang.t(doc, "oriel.ui.inventory.common_items")));
         if (s.maxDurability() > 0) {
             float left = s.durability() / (float) s.maxDurability();
             Element dura = Dom.el(doc, "div", "dura", null);
             Element row = Dom.el(doc, "div", "row", null);
-            row.appendChild(Dom.el(doc, "span", null, "耐久"));
+            row.appendChild(Dom.el(doc, "span", null, Lang.t(doc, "oriel.ui.inventory.durability_2")));
             row.appendChild(Dom.el(doc, "span", null, s.durability() + " / " + s.maxDurability()));
             dura.appendChild(row);
             Element bar = Dom.el(doc, "div", "o-meter" + (left < 0.25f ? " low" : left < 0.6f ? " mid" : ""), null);
@@ -582,7 +584,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         details.removeAllChildren();
         tier("common");
         Element box = Dom.el(doc, "div", "overview", null);
-        box.appendChild(Dom.el(doc, "div", "o-caps", "总览"));
+        box.appendChild(Dom.el(doc, "div", "o-caps", Lang.t(doc, "oriel.ui.inventory.overview")));
         Map<String, Integer> counts = new HashMap<>();
         int enchantedCount = 0;
         for (int i = 0; i < SLOTS; i++) {
@@ -593,15 +595,15 @@ public final class InventoryPreset implements PageControllers.Controller {
         for (String tier : new String[] {"epic", "rare", "uncommon", "common"}) {
             Element row = Dom.el(doc, "div", "o-row r-" + tier, null);
             row.appendChild(Dom.el(doc, "i", null, null));
-            row.appendChild(Dom.el(doc, "span", "o-tier", TIER_NAMES.get(tier)));
+            row.appendChild(Dom.el(doc, "span", "o-tier", Lang.value(doc, TIER_NAMES.get(tier))));
             row.appendChild(Dom.el(doc, "span", "n", String.valueOf(counts.getOrDefault(tier, 0))));
             box.appendChild(row);
         }
         Element ench = Dom.el(doc, "div", "line enchant", null);
         ench.appendChild(icon("sparkle"));
-        ench.appendChild(doc.createTextNode(enchantedCount + " 件附魔物品"));
+        ench.appendChild(doc.createTextNode(enchantedCount + Lang.t(doc, "oriel.ui.inventory.enchanted_items")));
         box.appendChild(ench);
-        box.appendChild(Dom.el(doc, "div", "o-caps", "珍贵物品"));
+        box.appendChild(Dom.el(doc, "div", "o-caps", Lang.t(doc, "oriel.ui.inventory.valuable_items")));
         List<Stack> best = new ArrayList<>();
         for (Stack st : slots) if (st != null && !st.rarity().equals("common")) best.add(st);
         best.sort(Comparator.comparingInt((Stack st) -> rank(st.rarity())));
@@ -610,11 +612,11 @@ public final class InventoryPreset implements PageControllers.Controller {
             Element it = Dom.el(doc, "item", null, null);
             it.setAttribute("id", st.id());
             row.appendChild(it);
-            row.appendChild(doc.createTextNode(st.name()));
+            row.appendChild(doc.createTextNode(Lang.value(doc, st.name())));
             box.appendChild(row);
         }
         box.appendChild(Dom.el(doc, "div", "o-divider", null));
-        box.appendChild(Dom.el(doc, "div", "line lore", "把鼠标移到物品上，在这里转动查看。"));
+        box.appendChild(Dom.el(doc, "div", "line lore", Lang.t(doc, "oriel.ui.inventory.hover_over_an_item_and_rotate_it")));
         details.appendChild(box);
     }
 
@@ -645,37 +647,41 @@ public final class InventoryPreset implements PageControllers.Controller {
 
     // ---- Fixture ----
 
-    static void fixture(Stack[] slots) {
-        slots[0] = tool("minecraft:diamond_sword", "锋利 V 钻石剑", "epic", 1450, 1561, List.of("*锋利 V", "*抢夺 III", "+8 攻击伤害", "+1.6 攻击速度"));
-        slots[1] = tool("minecraft:bow", "力量 IV 弓", "rare", 300, 384, List.of("*力量 IV", "*无限"));
-        slots[2] = item("minecraft:golden_apple", "金苹果", 3, 64, "rare", List.of("吃下后获得吸收与生命恢复"));
-        slots[3] = item("minecraft:oak_log", "橡木原木", 64, 64, "common", List.of());
-        slots[4] = item("minecraft:torch", "火把", 32, 64, "common", List.of());
-        slots[5] = item("minecraft:ender_pearl", "末影珍珠", 16, 16, "common", List.of("投掷后传送到落点"));
-        slots[7] = item("minecraft:cooked_beef", "牛排", 24, 64, "common", List.of("恢复 8 点饥饿值"));
-        slots[9] = tool("minecraft:iron_pickaxe", "效率 III 铁镐", "uncommon", 120, 250, List.of("*效率 III", "+4 攻击伤害"));
-        slots[10] = item("minecraft:bread", "面包", 12, 64, "common", List.of());
-        slots[11] = item("minecraft:arrow", "箭", 48, 64, "common", List.of());
-        slots[12] = item("minecraft:cobblestone", "圆石", 64, 64, "common", List.of());
-        slots[13] = item("minecraft:cobblestone", "圆石", 23, 64, "common", List.of());
-        slots[15] = item("minecraft:redstone", "红石粉", 30, 64, "common", List.of());
-        slots[16] = item("minecraft:emerald", "绿宝石", 7, 64, "uncommon", List.of("村民最爱的货币"));
-        slots[18] = item("minecraft:book", "书", 5, 64, "common", List.of());
-        slots[19] = item("minecraft:apple", "苹果", 8, 64, "common", List.of());
-        slots[20] = item("minecraft:compass", "指南针", 1, 1, "common", List.of("总是指向世界出生点"));
-        slots[22] = item("minecraft:diamond", "钻石", 9, 64, "rare", List.of());
-        slots[24] = item("minecraft:bread", "面包", 7, 64, "common", List.of());
-        slots[25] = item("minecraft:elytra", "鞘翅", 1, 1, "epic", List.of("+滑翔"));
-        slots[26] = item("minecraft:experience_bottle", "附魔之瓶", 16, 64, "uncommon", List.of());
-        slots[FIRST_HOTBAR] = tool("minecraft:netherite_sword", "下界合金剑", "epic", 2031, 2031, List.of("*锋利 III", "+8 攻击伤害"));
-        slots[FIRST_HOTBAR + 1] = tool("minecraft:diamond_pickaxe", "时运 III 钻石镐", "rare", 1200, 1561, List.of("*时运 III", "*耐久 III"));
-        slots[FIRST_HOTBAR + 2] = item("minecraft:water_bucket", "水桶", 1, 1, "common", List.of());
-        slots[FIRST_HOTBAR + 3] = item("minecraft:cooked_porkchop", "熟猪排", 40, 64, "common", List.of());
-        slots[FIRST_HOTBAR + 4] = item("minecraft:shield", "盾牌", 1, 1, "common", List.of("+格挡"));
-        slots[FIRST_HOTBAR + 8] = item("minecraft:torch", "火把", 40, 64, "common", List.of());
-        slots[FIRST_EQUIP] = armor("minecraft:diamond_helmet", "钻石头盔", 0, 300, 363);
-        slots[FIRST_EQUIP + 1] = armor("minecraft:diamond_chestplate", "保护 IV 钻石胸甲", 1, 480, 528);
-        slots[FIRST_EQUIP + 3] = armor("minecraft:iron_boots", "摔落保护 IV 铁靴", 3, 50, 195);
+    private List<String> displayLore(Stack stack) {
+        return stack.lore().stream().map(line -> Lang.value(doc, line)).toList();
+    }
+
+    static void fixture(Document doc, Stack[] slots) {
+        slots[0] = tool("minecraft:diamond_sword", "oriel.ui.inventory.sharpness_v_diamond_sword", "epic", 1450, 1561, List.of("oriel.ui.inventory.sharpness_v", "oriel.ui.inventory.looting_iii", "oriel.ui.inventory.8_attack_damage", "oriel.ui.inventory.1_6_attack_speed"));
+        slots[1] = tool("minecraft:bow", "oriel.ui.inventory.power_iv_bow", "rare", 300, 384, List.of("oriel.ui.inventory.power_iv", "oriel.ui.inventory.infinity"));
+        slots[2] = item("minecraft:golden_apple", "oriel.ui.inventory.golden_apple", 3, 64, "rare", List.of("oriel.ui.inventory.grants_absorption_and_regeneration_when_consumed"));
+        slots[3] = item("minecraft:oak_log", "oriel.ui.inventory.oak_log", 64, 64, "common", List.of());
+        slots[4] = item("minecraft:torch", "oriel.ui.inventory.torch", 32, 64, "common", List.of());
+        slots[5] = item("minecraft:ender_pearl", "oriel.ui.inventory.ender_pearl", 16, 16, "common", List.of("oriel.ui.inventory.teleports_you_to_the_landing_point_when"));
+        slots[7] = item("minecraft:cooked_beef", "oriel.ui.inventory.steak", 24, 64, "common", List.of("oriel.ui.inventory.restores_8_hunger_points"));
+        slots[9] = tool("minecraft:iron_pickaxe", "oriel.ui.inventory.efficiency_iii_iron_pickaxe", "uncommon", 120, 250, List.of("oriel.ui.inventory.efficiency_iii", "oriel.ui.inventory.4_attack_damage"));
+        slots[10] = item("minecraft:bread", "oriel.ui.inventory.bread", 12, 64, "common", List.of());
+        slots[11] = item("minecraft:arrow", "oriel.ui.inventory.arrow", 48, 64, "common", List.of());
+        slots[12] = item("minecraft:cobblestone", "oriel.ui.inventory.cobblestone", 64, 64, "common", List.of());
+        slots[13] = item("minecraft:cobblestone", "oriel.ui.inventory.cobblestone", 23, 64, "common", List.of());
+        slots[15] = item("minecraft:redstone", "oriel.ui.inventory.redstone_dust", 30, 64, "common", List.of());
+        slots[16] = item("minecraft:emerald", "oriel.ui.inventory.emerald", 7, 64, "uncommon", List.of("oriel.ui.inventory.the_villager_s_favorite_currency"));
+        slots[18] = item("minecraft:book", "oriel.ui.inventory.book", 5, 64, "common", List.of());
+        slots[19] = item("minecraft:apple", "oriel.ui.inventory.apple", 8, 64, "common", List.of());
+        slots[20] = item("minecraft:compass", "oriel.ui.inventory.compass", 1, 1, "common", List.of("oriel.ui.inventory.always_points_to_the_world_spawn"));
+        slots[22] = item("minecraft:diamond", "oriel.ui.inventory.diamond", 9, 64, "rare", List.of());
+        slots[24] = item("minecraft:bread", "oriel.ui.inventory.bread", 7, 64, "common", List.of());
+        slots[25] = item("minecraft:elytra", "oriel.ui.inventory.elytra", 1, 1, "epic", List.of("oriel.ui.inventory.gliding"));
+        slots[26] = item("minecraft:experience_bottle", "oriel.ui.inventory.bottle_o_enchanting", 16, 64, "uncommon", List.of());
+        slots[FIRST_HOTBAR] = tool("minecraft:netherite_sword", "oriel.ui.inventory.netherite_sword", "epic", 2031, 2031, List.of("oriel.ui.inventory.sharpness_iii", "oriel.ui.inventory.8_attack_damage"));
+        slots[FIRST_HOTBAR + 1] = tool("minecraft:diamond_pickaxe", "oriel.ui.inventory.fortune_iii_diamond_pickaxe", "rare", 1200, 1561, List.of("oriel.ui.inventory.fortune_iii", "oriel.ui.inventory.unbreaking_iii"));
+        slots[FIRST_HOTBAR + 2] = item("minecraft:water_bucket", "oriel.ui.inventory.water_bucket", 1, 1, "common", List.of());
+        slots[FIRST_HOTBAR + 3] = item("minecraft:cooked_porkchop", "oriel.ui.inventory.cooked_porkchop", 40, 64, "common", List.of());
+        slots[FIRST_HOTBAR + 4] = item("minecraft:shield", "oriel.ui.inventory.shield", 1, 1, "common", List.of("oriel.ui.inventory.blocking"));
+        slots[FIRST_HOTBAR + 8] = item("minecraft:torch", "oriel.ui.inventory.torch", 40, 64, "common", List.of());
+        slots[FIRST_EQUIP] = armor(doc, "minecraft:diamond_helmet", "oriel.ui.inventory.diamond_helmet", 0, 300, 363);
+        slots[FIRST_EQUIP + 1] = armor(doc, "minecraft:diamond_chestplate", "oriel.ui.inventory.protection_iv_diamond_chestplate", 1, 480, 528);
+        slots[FIRST_EQUIP + 3] = armor(doc, "minecraft:iron_boots", "oriel.ui.inventory.feather_falling_iv_iron_boots", 3, 50, 195);
         for (int i = FIRST_HOTBAR; i < SLOTS; i++) {
             if (slots[i] != null && slots[i].id().equals("minecraft:shield") && i != SLOTS - 1) {
                 Stack s = slots[i];
@@ -692,7 +698,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         return new Stack(id, name, 1, 1, rarity, lore, durability, max, -1);
     }
 
-    private static Stack armor(String id, String name, int slot, int durability, int max) {
-        return new Stack(id, name, 1, 1, slot == 1 ? "rare" : "uncommon", List.of("+护甲"), durability, max, slot);
+    private static Stack armor(Document doc, String id, String name, int slot, int durability, int max) {
+        return new Stack(id, name, 1, 1, slot == 1 ? "rare" : "uncommon", List.of("oriel.ui.inventory.armor_2"), durability, max, slot);
     }
 }

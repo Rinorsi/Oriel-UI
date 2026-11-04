@@ -1,5 +1,7 @@
 package dev.oriel.kit;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.input.TextSelection;
@@ -32,7 +34,7 @@ public final class McField {
         Element hex = box.querySelector(".o-mchex");
         if (hex == null) {
             hex = Dom.html(doc, "<div class=\"o-mchex o-hidden\"><span class=\"o-faint\">#</span><input class=\"ore-field\" maxlength=\"6\" "
-                    + "placeholder=\"55ffaa\"><i class=\"sw\"></i><div class=\"ore-btn\" tabindex=\"0\">应用</div></div>");
+                    + ("placeholder=\"55ffaa\"><i class=\"sw\"></i><div class=\"ore-btn\" tabindex=\"0\">" + Lang.html(doc, "oriel.ui.mcfield.apply") + "</div></div>"));
             box.insertBefore(hex, field);
         }
         Element p = box.querySelector(".o-mcpreview");
@@ -117,21 +119,21 @@ public final class McField {
         if (target != null) Dom.text(target, json);
     }
 
-    private static String barMarkup() {
+    private String barMarkup() {
         StringBuilder s = new StringBuilder("<div class=\"o-mcbar\"><div class=\"o-mcswatches\">");
         for (int i = 0; i < 16; i++) {
             char code = "0123456789abcdef".charAt(i);
-            s.append("<i class=\"sw\" data-mc=\"").append(code).append("\" title=\"").append(McFormat.COLOR_LABELS[i]).append(" §").append(code)
+            s.append("<i class=\"sw\" data-mc=\"").append(code).append("\" title=\"").append(Lang.html(doc, McFormat.COLOR_LABELS[i])).append(" §").append(code)
                     .append("\" style=\"background-color: ").append(McFormat.hex(McFormat.COLORS[i])).append("\"></i>");
         }
-        s.append("<i class=\"sw custom\" title=\"自定义颜色 §#rrggbb\"><img class=\"o-ico\" src=\"oriel:textures/icons/palette.png\"></i></div>");
+        s.append(("<i class=\"sw custom\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.custom_color_rrggbb") + "\"><img class=\"o-ico\" src=\"oriel:textures/icons/palette.png\"></i></div>"));
         s.append("<div class=\"o-mcfmts\">")
-                .append("<span data-mc=\"l\" title=\"粗体 §l\" style=\"font-weight: bold\">B</span>")
-                .append("<span data-mc=\"o\" title=\"斜体 §o\" style=\"font-style: italic\">I</span>")
-                .append("<span data-mc=\"n\" title=\"下划线 §n\" style=\"text-decoration: underline\">U</span>")
-                .append("<span data-mc=\"m\" title=\"删除线 §m\" style=\"text-decoration: line-through\">S</span>")
-                .append("<span data-mc=\"k\" title=\"乱码 §k\" style=\"-mc-obfuscated: on\">K</span>")
-                .append("<span class=\"reset\" data-mc=\"r\" title=\"清除格式 §r\">清除</span></div></div>");
+                .append(("<span data-mc=\"l\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.bold") + "\" style=\"font-weight: bold\">B</span>"))
+                .append(("<span data-mc=\"o\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.italic") + "\" style=\"font-style: italic\">I</span>"))
+                .append(("<span data-mc=\"n\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.underline") + "\" style=\"text-decoration: underline\">U</span>"))
+                .append(("<span data-mc=\"m\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.strikethrough") + "\" style=\"text-decoration: line-through\">S</span>"))
+                .append(("<span data-mc=\"k\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.obfuscated") + "\" style=\"-mc-obfuscated: on\">K</span>"))
+                .append(("<span class=\"reset\" data-mc=\"r\" title=\"" + Lang.html(doc, "oriel.ui.mcfield.reset_formatting") + "\">" + Lang.html(doc, "oriel.ui.mcfield.clear") + "</span></div></div>"));
         return s.toString();
     }
 }

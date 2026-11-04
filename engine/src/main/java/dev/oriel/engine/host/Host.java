@@ -111,7 +111,22 @@ public interface Host {
     default boolean send(String channel, String json) { return true; }
 
     /** Translates a key (Minecraft language files in game); returns the key itself when unknown. */
-    default String translate(String key, String... args) { return key; }
+    default String translate(String key, String... args) {
+        String pattern = translation(key);
+        return pattern == null ? key : args.length == 0 ? pattern
+                : String.format(java.util.Locale.ROOT, pattern, (Object[]) args);
+    }
+
+    /** The current language identifier, independent of any game or window toolkit. */
+    default String language() { return "zh_cn"; }
+
+    /** A message pattern in the current language, before formatting, or null when the key is absent. */
+    default String translation(String key) { return null; }
+
+    /** An exact locale lookup, without a host-side language fallback. */
+    default String translation(String locale, String key) {
+        return locale.equalsIgnoreCase(language().replace('-', '_')) ? translation(key) : null;
+    }
 
     /** Whether the user asked for reduced motion ({@code prefers-reduced-motion: reduce}). */
     default boolean prefersReducedMotion() { return false; }

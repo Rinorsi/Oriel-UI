@@ -42,7 +42,7 @@ final class OrielApi {
                 .action("off", (v, a) -> v.off(a.str(0), a.get(1)))
                 .action("close", (v, a) -> host.close())
                 .action("playSound", (v, a) -> host.playSound(a.str(0), (float) a.num(1, 1), (float) a.num(2, 1)))
-                .method("t", (v, a) -> host.translate(a.str(0), Arrays.stream(a.from(1)).map(Js::str).toArray(String[]::new)))
+                .method("t", (v, a) -> rt.document.messages().translate(a.str(0), Arrays.stream(a.from(1)).map(Js::str).toArray(String[]::new)))
                 .action("open", (v, a) -> rt.document.navigate(a.str(0)))
                 .method("state", (v, a) -> rt.templates.state(a.has(0) ? a.get(0) : rt.js.newObject()))
                 .action("nextTick", (v, a) -> rt.templates.nextTick(a.fn(0)));

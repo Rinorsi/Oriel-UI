@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
@@ -45,7 +47,7 @@ public final class CatalogPreset implements PageControllers.Controller {
             items.add(item);
             Shell.activate(item, () -> show(index));
         }
-        Dom.text(Dom.byId(doc, "count"), sections.size() + " 节");
+        Dom.text(Dom.byId(doc, "count"), sections.size() + Lang.t(doc, "oriel.ui.catalog.section"));
         Dom.onKey(doc, e -> {
             if (!e.defaultPrevented() && (e.key.equals("ArrowDown") || e.key.equals("ArrowUp"))) {
                 e.preventDefault();
@@ -133,7 +135,7 @@ public final class CatalogPreset implements PageControllers.Controller {
                 doc.scheduler().setTimeout(() -> Lazy.ready(doc), 1600);
             }
             case "toast" -> {
-                Notice.toast(doc, "success", "已保存", "3 项修改", 2700);
+                Notice.toast(doc, "success", Lang.t(doc, "oriel.ui.catalog.saved"), Lang.t(doc, "oriel.ui.catalog.3_changes"), 2700);
             }
             default -> { }
         }

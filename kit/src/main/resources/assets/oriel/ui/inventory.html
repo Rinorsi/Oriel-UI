@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 背包</title>
+<title data-i18n-text-0="oriel.ui.inventory.easy_library_inventory">oriel.ui.inventory.easy_library_inventory</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* Three columns on one window: the paper doll (3D player in its armour), the grid with category tabs, and a details
@@ -157,43 +157,43 @@
     <div class="o-titlebar">
       <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
       <img class="o-mark" src="../textures/icons/bag.png">
-      <h1>背包</h1><span class="o-crumb">/ 史蒂夫 · 生存模式</span>
+      <h1 data-i18n-text-0="oriel.ui.inventory.inventory_2">oriel.ui.inventory.inventory_2</h1><span class="o-crumb" data-i18n-text-0="oriel.ui.inventory.steve_survival_mode">oriel.ui.inventory.steve_survival_mode</span>
       <div class="o-grow"></div>
-      <div class="search"><input class="ore-field" id="search" placeholder="搜索物品…"><img class="o-ico" src="../textures/icons/search.png"></div>
+      <div class="search"><input class="ore-field" id="search" placeholder="oriel.ui.inventory.search_items" data-i18n-placeholder="oriel.ui.inventory.search_items"><img class="o-ico" src="../textures/icons/search.png"></div>
       <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-body">
       <div class="col doll">
-        <div class="o-caps">角色</div>
+        <div class="o-caps" data-i18n-text-0="oriel.ui.inventory.character">oriel.ui.inventory.character</div>
         <div class="paper o-well deco-host">
           <i class="deco grid"></i><i class="deco floor" style="--deco-c: #6cc349"></i><i class="deco corners"></i><i class="deco shine"></i>
           <div class="equip" id="equip"><entity player follow-mouse rotatable></entity></div>
           <div class="floor"></div>
         </div>
         <div class="stats">
-          <div class="stat o-tile" style="--c: #ff5a6a"><img class="o-ico" src="../textures/icons/heart.png"><span class="v">20</span><span class="k">生命</span></div>
-          <div class="stat o-tile" style="--c: #55c8ff"><img class="o-ico" src="../textures/icons/shield.png"><span class="v" id="armor">14</span><span class="k">护甲</span></div>
-          <div class="stat o-tile" style="--c: #ffb52b"><img class="o-ico" src="../textures/icons/sword.png"><span class="v">9</span><span class="k">攻击</span></div>
+          <div class="stat o-tile" style="--c: #ff5a6a"><img class="o-ico" src="../textures/icons/heart.png"><span class="v">20</span><span class="k" data-i18n-text-0="oriel.ui.inventory.health">oriel.ui.inventory.health</span></div>
+          <div class="stat o-tile" style="--c: #55c8ff"><img class="o-ico" src="../textures/icons/shield.png"><span class="v" id="armor">14</span><span class="k" data-i18n-text-0="oriel.ui.inventory.armor">oriel.ui.inventory.armor</span></div>
+          <div class="stat o-tile" style="--c: #ffb52b"><img class="o-ico" src="../textures/icons/sword.png"><span class="v">9</span><span class="k" data-i18n-text-0="oriel.ui.inventory.attack">oriel.ui.inventory.attack</span></div>
         </div>
         <div class="level o-tile">
-          <div class="row"><span class="o-dim">经验等级</span><span class="lv">32</span></div>
+          <div class="row"><span class="o-dim" data-i18n-text-0="oriel.ui.inventory.experience_level">oriel.ui.inventory.experience_level</span><span class="lv">32</span></div>
           <div class="o-meter xp" style="--value: 0.64"><i></i></div>
         </div>
       </div>
       <div class="col bag">
         <div class="bar">
           <div class="o-seg cats" id="cats">
-            <span class="on" data-cat="all" title="全部"><img class="o-ico" src="../textures/icons/grid.png">全部</span>
-            <span data-cat="weapon" title="武器"><img class="o-ico" src="../textures/icons/sword.png"></span>
-            <span data-cat="tool" title="工具"><img class="o-ico" src="../textures/icons/pickaxe.png"></span>
-            <span data-cat="food" title="食物"><img class="o-ico" src="../textures/icons/heart.png"></span>
-            <span data-cat="block" title="方块"><img class="o-ico" src="../textures/icons/cube.png"></span>
-            <span data-cat="material" title="材料"><img class="o-ico" src="../textures/icons/gem.png"></span>
+            <span class="on" data-cat="all" title="oriel.ui.inventory.all" data-i18n-title="oriel.ui.inventory.all" data-i18n-text-1="oriel.ui.inventory.all"><img class="o-ico" src="../textures/icons/grid.png">oriel.ui.inventory.all</span>
+            <span data-cat="weapon" title="oriel.ui.inventory.weapon" data-i18n-title="oriel.ui.inventory.weapon"><img class="o-ico" src="../textures/icons/sword.png"></span>
+            <span data-cat="tool" title="oriel.ui.inventory.tools" data-i18n-title="oriel.ui.inventory.tools"><img class="o-ico" src="../textures/icons/pickaxe.png"></span>
+            <span data-cat="food" title="oriel.ui.inventory.food" data-i18n-title="oriel.ui.inventory.food"><img class="o-ico" src="../textures/icons/heart.png"></span>
+            <span data-cat="block" title="oriel.ui.inventory.block" data-i18n-title="oriel.ui.inventory.block"><img class="o-ico" src="../textures/icons/cube.png"></span>
+            <span data-cat="material" title="oriel.ui.inventory.materials" data-i18n-title="oriel.ui.inventory.materials"><img class="o-ico" src="../textures/icons/gem.png"></span>
           </div>
         </div>
-        <div class="o-caps">物品栏</div>
+        <div class="o-caps" data-i18n-text-0="oriel.ui.inventory.inventory">oriel.ui.inventory.inventory</div>
         <div class="grid" id="main"></div>
-        <div class="o-caps">快捷栏</div>
+        <div class="o-caps" data-i18n-text-0="oriel.ui.inventory.hotbar">oriel.ui.inventory.hotbar</div>
         <div class="hotbar" id="hotbar"></div>
         <div class="keys"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
         <div class="capacity o-tile">
@@ -203,16 +203,16 @@
         </div>
       </div>
       <div class="col info o-drawer" id="info">
-        <div class="o-drawer-handle" title="收起 / 展开"><img class="o-ico" src="../textures/icons/forward.png"></div>
-        <div class="o-seg info-tabs" id="info-tabs"><span class="on" data-pane="details"><img class="o-ico" src="../textures/icons/gem.png">物品</span><span data-pane="effects"><img class="o-ico" src="../textures/icons/flask.png">效果</span></div>
+        <div class="o-drawer-handle" title="oriel.ui.inventory.collapse_expand" data-i18n-title="oriel.ui.inventory.collapse_expand"><img class="o-ico" src="../textures/icons/forward.png"></div>
+        <div class="o-seg info-tabs" id="info-tabs"><span class="on" data-pane="details" data-i18n-text-1="oriel.ui.inventory.item"><img class="o-ico" src="../textures/icons/gem.png">oriel.ui.inventory.item</span><span data-pane="effects" data-i18n-text-1="oriel.ui.inventory.effects"><img class="o-ico" src="../textures/icons/flask.png">oriel.ui.inventory.effects</span></div>
         <div class="details r-common pane" id="details"></div>
         <div class="o-effects o-scroll effects pane off" id="effects"></div>
       </div>
     </div>
     <div class="foot">
-      <div class="ore-btn primary" id="sort" tabindex="0"><img class="o-ico" src="../textures/icons/sort.png">整理</div>
-      <span id="status">左键拖动换位 · 右键拿起一半 · Shift+点击快速移动</span>
-      <div class="o-hints"><span><span class="o-kbd">Esc</span>关闭</span></div>
+      <div class="ore-btn primary" id="sort" tabindex="0" data-i18n-text-1="oriel.ui.inventory.sort"><img class="o-ico" src="../textures/icons/sort.png">oriel.ui.inventory.sort</div>
+      <span id="status" data-i18n-text-0="oriel.ui.inventory.left_drag_to_swap_right_click_to">oriel.ui.inventory.left_drag_to_swap_right_click_to</span>
+      <div class="o-hints"><span data-i18n-text-1="oriel.ui.inventory.close"><span class="o-kbd" data-i18n-text-0="oriel.ui.inventory.esc">oriel.ui.inventory.esc</span>oriel.ui.inventory.close</span></div>
     </div>
   </div>
   <div class="ghost" id="ghost"></div>

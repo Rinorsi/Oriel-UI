@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 音乐播放器</title>
+<title data-i18n-text-0="oriel.ui.music.easy_library_music_player">oriel.ui.music.easy_library_music_player</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* One colour, two halves, one dock (the way a good desktop player is laid out): the room takes the colour of the
@@ -151,9 +151,9 @@
     <div class="o-titlebar">
       <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
       <img class="o-mark" src="../textures/icons/music.png">
-      <h1>音乐播放器</h1><span class="o-crumb">/ 唱片机</span>
+      <h1 data-i18n-text-0="oriel.ui.music.music_player">oriel.ui.music.music_player</h1><span class="o-crumb" data-i18n-text-0="oriel.ui.music.jukebox_2">oriel.ui.music.jukebox_2</span>
       <div class="o-grow"></div>
-      <div class="ore-btn" id="mini" tabindex="0"><img class="o-ico" src="../textures/icons/down.png">迷你</div>
+      <div class="ore-btn" id="mini" tabindex="0" data-i18n-text-1="oriel.ui.music.mini"><img class="o-ico" src="../textures/icons/down.png">oriel.ui.music.mini</div>
       <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-body">
@@ -166,14 +166,14 @@
             <div class="vinyl" id="vinyl"><div class="label"><item class="disc" id="minecraft:music_disc_cat"></item></div></div>
             <div class="arm"><i></i></div>
           </div>
-          <div class="state" id="state"><i></i><span id="state-text">已暂停</span></div>
+          <div class="state" id="state"><i></i><span id="state-text" data-i18n-text-0="oriel.ui.music.paused">oriel.ui.music.paused</span></div>
         </div>
         <div class="now">
           <div class="track">
             <div class="o-h1" id="title">-</div>
-            <div class="who"><img class="o-ico" src="../textures/icons/user.png"><span id="meta">-</span><span class="o-faint">· 唱片机</span></div>
+            <div class="who"><img class="o-ico" src="../textures/icons/user.png"><span id="meta">-</span><span class="o-faint" data-i18n-text-0="oriel.ui.music.jukebox">oriel.ui.music.jukebox</span></div>
           </div>
-          <div class="o-seg pane-tabs"><span class="on" data-show="#lyrics">歌词</span><span data-show="#queue">播放队列<b id="count"></b></span></div>
+          <div class="o-seg pane-tabs"><span class="on" data-show="#lyrics" data-i18n-text-0="oriel.ui.music.lyrics">oriel.ui.music.lyrics</span><span data-show="#queue" data-i18n-text-0="oriel.ui.music.playback_queue">oriel.ui.music.playback_queue<b id="count"></b></span></div>
           <div class="lyrics" id="lyrics"></div>
           <div class="queue" id="queue"><div class="rows" id="rows"></div></div>
         </div>
@@ -191,18 +191,18 @@
         <div class="time right" id="length">0:00</div>
       </div>
       <div class="controls">
-        <div class="side"><span class="mode-label" id="mode-label">列表循环</span><div class="o-hints"><span><span class="o-kbd">空格</span>播放</span></div></div>
-        <div class="ore-btn icon mode" id="mode" tabindex="0" title="列表循环"><img class="o-ico" id="mode-icon" src="../textures/icons/repeat.png"><b>1</b></div>
-        <div class="ore-btn icon" id="prev" tabindex="0" title="上一首"><img class="o-ico" src="../textures/icons/prev.png"></div>
-        <div class="ore-btn hero big" id="play" tabindex="0" title="播放 (空格)"><img class="o-ico" id="play-icon" src="../textures/icons/play.png"></div>
-        <div class="ore-btn icon" id="next" tabindex="0" title="下一首"><img class="o-ico" src="../textures/icons/next.png"></div>
-        <div class="ore-btn icon" id="queue-btn" tabindex="0" title="播放队列"><img class="o-ico" src="../textures/icons/list.png"></div>
+        <div class="side"><span class="mode-label" id="mode-label" data-i18n-text-0="oriel.ui.music.loop_playlist">oriel.ui.music.loop_playlist</span><div class="o-hints"><span data-i18n-text-1="oriel.ui.music.play"><span class="o-kbd" data-i18n-text-0="oriel.ui.music.space">oriel.ui.music.space</span>oriel.ui.music.play</span></div></div>
+        <div class="ore-btn icon mode" id="mode" tabindex="0" title="oriel.ui.music.loop_playlist" data-i18n-title="oriel.ui.music.loop_playlist"><img class="o-ico" id="mode-icon" src="../textures/icons/repeat.png"><b>1</b></div>
+        <div class="ore-btn icon" id="prev" tabindex="0" title="oriel.ui.music.previous_track" data-i18n-title="oriel.ui.music.previous_track"><img class="o-ico" src="../textures/icons/prev.png"></div>
+        <div class="ore-btn hero big" id="play" tabindex="0" title="oriel.ui.music.play_space" data-i18n-title="oriel.ui.music.play_space"><img class="o-ico" id="play-icon" src="../textures/icons/play.png"></div>
+        <div class="ore-btn icon" id="next" tabindex="0" title="oriel.ui.music.next_track" data-i18n-title="oriel.ui.music.next_track"><img class="o-ico" src="../textures/icons/next.png"></div>
+        <div class="ore-btn icon" id="queue-btn" tabindex="0" title="oriel.ui.music.playback_queue" data-i18n-title="oriel.ui.music.playback_queue"><img class="o-ico" src="../textures/icons/list.png"></div>
         <div class="side right">
           <div class="volume">
             <img class="o-ico" id="vol-icon" src="../textures/icons/volume.png">
             <div class="ore-slider" id="volume" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
           </div>
-          <span class="vol" id="vol-label">音量 70%</span>
+          <span class="vol" id="vol-label" data-i18n-text-0="oriel.ui.music.volume_70">oriel.ui.music.volume_70</span>
         </div>
       </div>
     </div>

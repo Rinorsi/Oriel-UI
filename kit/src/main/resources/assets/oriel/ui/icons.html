@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 图标</title>
+<title data-i18n-text-0="oriel.ui.icons.oriel_uiku_icons">oriel.ui.icons.oriel_uiku_icons</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The icon library: 200 pixel icons (16×16 white glyphs with a baked shadow, tinted in CSS with -mc-tint). Categories
@@ -68,19 +68,19 @@
 <div class="o-app" id="app">
   <div class="o-window">
     <div class="o-titlebar">
-      <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
-      <span class="o-crumb" id="crumb">/ 全部图标</span>
+      <div class="o-brand"><img src="../textures/ui/emblem.png"><b data-i18n-text-0="oriel.ui.icons.oriel_ui">oriel.ui.icons.oriel_ui</b><span data-i18n-text-0="oriel.ui.icons.oriel_ui_2">oriel.ui.icons.oriel_ui_2</span></div>
+      <span class="o-crumb" id="crumb" data-i18n-text-0="oriel.ui.icons.all_icons">oriel.ui.icons.all_icons</span>
       <div class="o-grow"></div>
-      <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
+      <div class="ore-btn icon" data-action="theme" tabindex="0" title="oriel.ui.icons.toggle_light_dark" data-i18n-title="oriel.ui.icons.toggle_light_dark"><img class="o-ico" src="../textures/icons/sun.png"></div>
       <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-tabbar">
       <div class="o-apptabs">
-        <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
-        <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
-        <div class="on" data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em>图标</em></div>
-        <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em>风格示例</em></div>
-        <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
+        <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em data-i18n-text-0="oriel.ui.icons.home">oriel.ui.icons.home</em></div>
+        <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em data-i18n-text-0="oriel.ui.icons.components_motion">oriel.ui.icons.components_motion</em></div>
+        <div class="on" data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em data-i18n-text-0="oriel.ui.icons.icon">oriel.ui.icons.icon</em></div>
+        <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em data-i18n-text-0="oriel.ui.icons.style_examples">oriel.ui.icons.style_examples</em></div>
+        <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em data-i18n-text-0="oriel.ui.icons.editor">oriel.ui.icons.editor</em></div>
         <i class="m-indicator"></i>
       </div>
     </div>
@@ -88,10 +88,10 @@
       <div class="cats" id="cats"></div>
       <div class="main">
         <div class="bar">
-          <div class="search"><input class="ore-field" id="q" placeholder="搜索名称、拼写或标签"><img class="o-ico" src="../textures/icons/search.png"></div>
+          <div class="search"><input class="ore-field" id="q" placeholder="oriel.ui.icons.search_names_spellings_or_tags" data-i18n-placeholder="oriel.ui.icons.search_names_spellings_or_tags"><img class="o-ico" src="../textures/icons/search.png"></div>
           <span class="count" id="count"></span>
-          <span class="o-caps">粗细</span>
-          <div class="o-seg" title="全部图标的粗细，换页后保持"><span data-icons-pick="thin">线框</span><span data-icons-pick="regular">正常</span><span data-icons-pick="bold">加粗</span></div>
+          <span class="o-caps" data-i18n-text-0="oriel.ui.icons.weight">oriel.ui.icons.weight</span>
+          <div class="o-seg" title="oriel.ui.icons.stroke_weight_for_all_icons_preserved_when" data-i18n-title="oriel.ui.icons.stroke_weight_for_all_icons_preserved_when"><span data-icons-pick="thin" data-i18n-text-0="oriel.ui.icons.outline">oriel.ui.icons.outline</span><span data-icons-pick="regular" data-i18n-text-0="oriel.ui.icons.regular">oriel.ui.icons.regular</span><span data-icons-pick="bold" data-i18n-text-0="oriel.ui.icons.bold">oriel.ui.icons.bold</span></div>
         </div>
         <div class="grid o-auto" id="grid" style="--min: 52px; --gap: 3px"></div>
       </div>
@@ -101,13 +101,13 @@
         <span class="d-name" id="d-name"></span>
         <span class="d-id" id="d-id"></span>
         <div class="d-tags" id="d-tags"></div>
-        <span class="o-caps tint-row">着色</span>
+        <span class="o-caps tint-row" data-i18n-text-0="oriel.ui.icons.coloring">oriel.ui.icons.coloring</span>
         <div class="tints tint-row" id="tints"></div>
-        <span class="o-caps">写法</span>
+        <span class="o-caps" data-i18n-text-0="oriel.ui.icons.style">oriel.ui.icons.style</span>
         <pre class="code" id="d-code"></pre>
       </div>
     </div>
-    <div class="foot"><span id="total"></span><div class="o-grow"></div><div class="o-hints"><span><span class="o-kbd">←</span><span class="o-kbd">→</span>选择</span></div></div>
+    <div class="foot"><span id="total"></span><div class="o-grow"></div><div class="o-hints"><span data-i18n-text-2="oriel.ui.icons.select"><span class="o-kbd">←</span><span class="o-kbd">→</span>oriel.ui.icons.select</span></div></div>
   </div>
 </div>
 </body>

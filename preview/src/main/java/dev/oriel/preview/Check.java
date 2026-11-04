@@ -27,6 +27,10 @@ final class Check {
     private Check() {}
 
     static int run(Path target) throws IOException {
+        return run(target, "zh_cn");
+    }
+
+    static int run(Path target, String language) throws IOException {
         List<Path> pages = new ArrayList<>();
         if (Files.isDirectory(target)) {
             try (Stream<Path> walk = Files.walk(target)) {
@@ -48,6 +52,7 @@ final class Check {
                 MinecraftAssets assets = MinecraftAssets.open(PreviewHost.packRoot(page).stream().toList(), jar);
                 MinecraftFont font = new MinecraftFont(assets);
                 PreviewHost host = new PreviewHost(assets, font);
+                host.setLanguage(language);
                 host.quiet(true);
                 PageScene scene = new PageScene(host, PreviewHost.pageUrl(page), null, new Viewport(size[0], size[1], 2));
                 FrameRenderer frames = new FrameRenderer(assets, font);
