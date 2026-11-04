@@ -3,6 +3,7 @@ package dev.oriel.kit;
 import dev.oriel.kit.preset.CatalogPreset;
 import dev.oriel.kit.preset.EditorPreset;
 import dev.oriel.kit.preset.ForgePreset;
+import dev.oriel.kit.preset.ForgeStationPreset;
 import dev.oriel.kit.preset.IconsPreset;
 import dev.oriel.kit.preset.GalleryPreset;
 import dev.oriel.kit.preset.InventoryPreset;
@@ -35,6 +36,8 @@ public final class OrielKit {
     public static final String ICONS = page("icons");
     /** The style showcase's index; its looks are {@code styles/<name>} ({@link StylesPreset#PAGES}). */
     public static final String STYLES = page("styles");
+    /** The repair forge's container page: the server's forge menu ({@code oriel:forge}) shows it. */
+    public static final String FORGE_STATION = page("forge_station");
     /** The item data editor, opened by the server ({@code /oriel edit}). */
     public static final String ITEM_EDITOR = page("item_editor");
     /** The presets, in gallery order. */
@@ -65,6 +68,7 @@ public final class OrielKit {
         PageControllers.register(CATALOG, CatalogPreset::new);
         PageControllers.register(ICONS, IconsPreset::new);
         PageControllers.register(STYLES, () -> new StylesPreset(true));
+        PageControllers.register(FORGE_STATION, ForgeStationPreset::new);
         for (String look : StylesPreset.PAGES) PageControllers.register(page("styles/" + look), () -> new StylesPreset(false));
         PageControllers.register(ITEM_EDITOR, ItemEditorPreset::new);
     }

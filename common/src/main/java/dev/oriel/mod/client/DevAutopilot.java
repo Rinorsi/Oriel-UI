@@ -258,6 +258,10 @@ public final class DevAutopilot {
             everyEffect(mc);
             return;
         }
+        if (ONLY.equals("forge")) {
+            forgeStation(mc);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -1150,6 +1154,40 @@ public final class DevAutopilot {
         steps.add(() -> OrielHud.show(OrielClient.POTION_HUD));
         pause(40);
         grab(mc, "allfx_hud", 5);
+    }
+
+    /**
+     * The repair forge as a real container ({@code -Pautopilot=forge}): /oriel-forge opens the server's menu on the kit's
+     * forge station page; a damaged sword and its ingot go in by clicking the page's slots (vanilla moves the items),
+     * the forge works, and the repaired sword waits in the output.
+     */
+    private static void forgeStation(Minecraft mc) {
+        steps.add(() -> {
+            command(mc, "clear @s");
+            command(mc, "gamemode survival");
+            command(mc, "give @s minecraft:iron_sword[damage=200]");
+            command(mc, "give @s minecraft:iron_ingot 3");
+        });
+        pause(10);
+        steps.add(() -> command(mc, "oriel-forge"));
+        settle("the forge station", 20);
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists("#work")).orElse(false),
+                "/oriel-forge opened the forge station", "/oriel-forge opened no forge station"));
+        grab(mc, "forge_open", 5);
+        // The hotbar is menu slots 30-38: the sword went to the first, the ingots to the second.
+        for (String[] move : new String[][] {{"30", "0"}, {"31", "1"}}) {
+            steps.add(() -> OrielAutomation.screen().ifPresent(p -> p.click("slot[index='" + move[0] + "']")));
+            pause(3);
+            steps.add(() -> OrielAutomation.screen().ifPresent(p -> p.click("slot[index='" + move[1] + "']")));
+            pause(3);
+        }
+        pause(10);
+        grab(mc, "forge_working", 3);
+        pause(60);
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists("#work.done")).orElse(false),
+                "the forge repaired the sword", "the forge has no repaired sword to take"));
+        grab(mc, "forge_done", 5);
+        steps.add(() -> McClient.setScreen(null));
     }
 
     private static void potions(Minecraft mc) {

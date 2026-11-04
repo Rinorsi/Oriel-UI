@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+<title>锻造台</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+/* The repair forge as a real container (the server's ForgeMenu, oriel:forge): the item and its material go in, the
+   forge works them for a moment, and the repaired item comes out; below, the player's inventory. Every <slot> is the
+   menu's own slot, moved to where the page draws it, so vanilla handles clicks, dragging, shift-click and tooltips.
+   ForgeStationPreset shows the menu's progress, state and recipe. */
+.backdrop { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(255, 140, 40, 0.10), rgba(0, 0, 0, 0.45) 70%); }
+.station { position: absolute; left: 50%; top: 50%; width: 218px; margin: -104px 0 0 -109px; display: flex; flex-direction: column;
+    border: 2px solid transparent; border-image: url(../textures/ore/panel.png) 2 fill;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 0, 0, 0.5); animation: m-pop var(--m-slow) var(--m-spring) both; }
+.head { display: flex; align-items: center; gap: 4px; height: 18px; padding: 0 3px 0 5px; border-bottom: 1px solid var(--o-line-strong);
+    box-shadow: 0 1px 0 var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); }
+.head .o-grow { flex: 1; }
+.head .ore-btn.icon { min-height: 14px; height: 14px; padding: 0 2px; }
+.body { display: flex; flex-direction: column; gap: 4px; padding: 5px 6px 6px; }
+/* The work strip. */
+.work { position: relative; height: 54px; display: flex; align-items: center; justify-content: center; gap: 6px; overflow: hidden;
+    background: var(--o-well); border: 1px solid var(--o-line-strong); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45); }
+.work .glow { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 400ms;
+    background: radial-gradient(ellipse at 62% 60%, rgba(255, 150, 40, 0.35), transparent 60%); }
+.work.working .glow { opacity: 1; animation: heat 1.2s ease-in-out infinite alternate; }
+@keyframes heat { to { filter: brightness(1.3); } }
+.work canvas.fx { position: absolute; left: 96px; top: 6px; width: 50px; height: 40px; pointer-events: none; }
+.cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cell .o-caps { color: var(--o-text-faint); }
+.plus { color: var(--o-text-faint); margin-top: 10px; }
+.arrow { position: relative; width: 38px; height: 8px; margin-top: 10px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); }
+.arrow::after { content: ""; position: absolute; right: -6px; top: -3px; border: 6px solid transparent; border-left: 6px solid var(--o-line-strong);
+    border-right: none; }
+.arrow i { display: block; height: 6px; width: 0; background: linear-gradient(90deg, #ffb347, #ff6a1a); box-shadow: 0 0 6px rgba(255, 120, 30, 0.8);
+    transition: width 200ms linear; }
+.cell.out slot { transition: box-shadow 300ms; }
+.work.done .cell.out slot { box-shadow: 0 0 8px rgba(255, 200, 80, 0.8); animation: ready 1s ease-in-out infinite alternate; }
+@keyframes ready { to { box-shadow: 0 0 2px rgba(255, 200, 80, 0.4); } }
+/* Status: a dot for the state, what it means, and the recipe on the right. */
+.status { display: flex; align-items: center; gap: 4px; height: 12px; color: var(--o-text-dim); }
+.status .dot { width: 5px; height: 5px; flex: none; background: var(--o-text-faint); }
+.status.working .dot { background: #ffb347; box-shadow: 0 0 4px #ff8a2a; animation: blink 0.8s steps(2) infinite; }
+.status.blocked .dot { background: #e25a5a; box-shadow: 0 0 4px #e25a5a; }
+.status.ready .dot { background: #6cc349; box-shadow: 0 0 4px #6cc349; }
+@keyframes blink { 50% { opacity: 0.4; } }
+.status .recipe { margin-left: auto; color: var(--o-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.label { margin-top: 1px; color: var(--o-text-faint); }
+.grid { display: grid; grid-template-columns: repeat(9, 22px); }
+.grid.hotbar { margin-top: 3px; }
+slot.ore-slot { width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+<div class="station" data-oriel-bounds>
+  <div class="head"><img class="o-ico" src="../textures/icons/anvil.png"><span id="title">锻造台</span><div class="o-grow"></div>
+    <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
+  <div class="body">
+    <div class="work" id="work">
+      <i class="glow"></i>
+      <div class="cell"><span class="o-caps">物品</span><slot class="ore-slot" index="0"></slot></div>
+      <span class="plus">+</span>
+      <div class="cell"><span class="o-caps">材料</span><slot class="ore-slot" index="1"></slot></div>
+      <div class="arrow"><i id="fill"></i></div>
+      <canvas class="fx off" id="embers" data-fx="embers" data-rate="9" data-seed="4"></canvas>
+      <div class="cell out"><span class="o-caps">成品</span><slot class="ore-slot" index="2"></slot></div>
+    </div>
+    <div class="status" id="status"><i class="dot"></i><span id="state">放入一把受损的铁剑或钻石剑</span><span class="recipe" id="recipe"></span></div>
+    <div class="label" id="inv-label">物品栏</div>
+    <div class="grid"><slot class="ore-slot" index="3"></slot><slot class="ore-slot" index="4"></slot><slot class="ore-slot" index="5"></slot><slot class="ore-slot" index="6"></slot><slot class="ore-slot" index="7"></slot><slot class="ore-slot" index="8"></slot><slot class="ore-slot" index="9"></slot><slot class="ore-slot" index="10"></slot><slot class="ore-slot" index="11"></slot><slot class="ore-slot" index="12"></slot><slot class="ore-slot" index="13"></slot><slot class="ore-slot" index="14"></slot><slot class="ore-slot" index="15"></slot><slot class="ore-slot" index="16"></slot><slot class="ore-slot" index="17"></slot><slot class="ore-slot" index="18"></slot><slot class="ore-slot" index="19"></slot><slot class="ore-slot" index="20"></slot><slot class="ore-slot" index="21"></slot><slot class="ore-slot" index="22"></slot><slot class="ore-slot" index="23"></slot><slot class="ore-slot" index="24"></slot><slot class="ore-slot" index="25"></slot><slot class="ore-slot" index="26"></slot><slot class="ore-slot" index="27"></slot><slot class="ore-slot" index="28"></slot><slot class="ore-slot" index="29"></slot></div>
+    <div class="grid hotbar"><slot class="ore-slot" index="30"></slot><slot class="ore-slot" index="31"></slot><slot class="ore-slot" index="32"></slot><slot class="ore-slot" index="33"></slot><slot class="ore-slot" index="34"></slot><slot class="ore-slot" index="35"></slot><slot class="ore-slot" index="36"></slot><slot class="ore-slot" index="37"></slot><slot class="ore-slot" index="38"></slot></div>
+  </div>
+</div>
+</body>
+</html>

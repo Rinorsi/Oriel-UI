@@ -46,6 +46,8 @@ public final class OrielClient {
         serverSender = sender;
         OrielResources.init();
         OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE);
+        // The server's repair forge (/oriel-forge): a real container on the kit's forge station page.
+        OrielScreens.registerContainer(dev.oriel.mod.server.ForgeMenu.TYPE, OrielKit.FORGE_STATION, dev.oriel.mod.server.ForgeMenu::pageData);
         OrielHud.register(DEMO_HUD, "oriel:oriel/demo/hud.html");
         OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
         OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
