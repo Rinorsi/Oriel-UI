@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>地下城风格</title>
+<link rel="stylesheet" href="showcase.css">
+<style>
+/*
+ * A turn in a torch-lit crypt, in the Darkest Dungeon line: gothic, sepia and blood, the party on the left facing
+ * the dead on the right, health and stress under every hero, a torch that gutters at the top, the active hero's
+ * skills below, a narrator who speaks in brush strokes, and an affliction that cracks a hero's resolve.
+ */
+:root { --bone: #d9c9a3; --bone-dim: rgba(217, 201, 163, 0.55); --blood: #a8231b; --stress: #e8e0ff; --gilt: #c8a050; --soot: #0d0907; }
+.crypt { position: absolute; inset: 0; overflow: hidden; color: var(--bone); font-family: oriel:kai; font-size: 9px;
+    background: linear-gradient(#17110d, #241912 55%, #120c09 56%, #1e1510);
+    text-shadow: 0 1px 1px #000; }
+/* Bricks on the back wall, the flagstones of the floor, the light of the torch, and the dark closing in. */
+.wall { position: absolute; left: 0; right: 0; top: 0; height: 56%;
+    background: repeating-linear-gradient(transparent 0 13px, rgba(0, 0, 0, 0.55) 13px 14px),
+        repeating-linear-gradient(90deg, transparent 0 27px, rgba(0, 0, 0, 0.5) 27px 28px);
+    -webkit-mask-image: linear-gradient(transparent, #000 30%); mask-image: linear-gradient(transparent, #000 30%); }
+.floor { position: absolute; left: -10%; right: -10%; top: 56%; bottom: 0;
+    background: repeating-conic-gradient(from 90deg at 50% -40%, transparent 0deg 7deg, rgba(0, 0, 0, 0.35) 7deg 7.4deg),
+        linear-gradient(rgba(0, 0, 0, 0.6) 1px, transparent 1px 28%, rgba(0, 0, 0, 0.5) 28% calc(28% + 1px), transparent 0); }
+.light { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 60% 70% at 50% 40%, rgba(255, 150, 60, 0.32), rgba(120, 50, 20, 0.08) 55%, transparent 70%);
+    animation: flicker 2.3s steps(1) infinite; }
+@keyframes flicker { 0%, 100% { opacity: 1; } 18% { opacity: 0.82; } 22% { opacity: 1; } 51% { opacity: 0.9; } 74% { opacity: 0.78; } 78% { opacity: 1; } }
+.dark { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 72% 85% at 50% 48%, transparent 45%, rgba(5, 3, 2, 0.92)); }
+
+/* ---- Torch ---- */
+.torch { position: absolute; left: 50%; top: 6px; width: 170px; margin-left: -85px; height: 10px; display: flex; align-items: center; }
+.torch .bar { flex: 1; height: 4px; background: rgba(0, 0, 0, 0.6); box-shadow: 0 0 0 1px rgba(200, 160, 80, 0.45); position: relative; }
+.torch .bar i { position: absolute; top: 0; bottom: 0; width: 36%; background: linear-gradient(90deg, rgba(255, 170, 60, 0.3), #ffb347);
+    box-shadow: 0 0 6px rgba(255, 150, 50, 0.8); }
+.torch .bar.l i { right: 0; } .torch .bar.r i { left: 0; background: linear-gradient(90deg, #ffb347, rgba(255, 170, 60, 0.3)); }
+.flame { width: 14px; height: 18px; margin: -4px 2px 0; border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    background: radial-gradient(ellipse at 50% 70%, #fff6c8, #ffb347 40%, #e2551c 70%, rgba(200, 40, 10, 0) 75%);
+    filter: drop-shadow(0 0 4px #ff8a2a); animation: burn 0.6s ease-in-out infinite alternate; transform-origin: bottom; }
+@keyframes burn { to { transform: scale(0.9, 1.08) rotate(-3deg); } }
+.torch .v { position: absolute; left: 0; right: 0; top: 11px; text-align: center; color: #ffcf7a; font-family: minecraft:default; font-size: 8px; }
+
+/* ---- Narrator ---- */
+.narrator { position: absolute; left: 50%; top: 30px; width: 260px; margin-left: -130px; text-align: center; font-family: oriel:brush;
+    font-size: 12px; color: #e9dcc0; letter-spacing: 1px; animation: speak 9s ease-in-out infinite; }
+@keyframes speak { 0% { opacity: 0; } 8%, 70% { opacity: 1; } 85%, 100% { opacity: 0; } }
+
+/* ---- The battle line ---- */
+.line { position: absolute; left: 0; right: 0; top: 50%; height: 96px; margin-top: -54px; display: flex; justify-content: space-between; padding: 0 10px; }
+.party, .foes { display: flex; align-items: flex-end; gap: 4px; }
+.party { flex-direction: row-reverse; }
+.unit { position: relative; width: 40px; display: flex; flex-direction: column; align-items: center; }
+.unit entity { width: 40px; height: 66px; }
+.party entity { -mc-yaw: -55deg; }
+.foes entity { -mc-yaw: 55deg; }
+.hp { width: 34px; height: 3px; margin-top: 2px; background: rgba(0, 0, 0, 0.7); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9); }
+.hp i { display: block; height: 3px; background: linear-gradient(#d23a2c, var(--blood)); }
+.stress { display: flex; gap: 1px; margin-top: 2px; }
+.stress b { width: 2px; height: 3px; background: rgba(232, 224, 255, 0.15); }
+.stress b.on { background: var(--stress); box-shadow: 0 0 2px rgba(200, 180, 255, 0.8); }
+.unit .name { margin-top: 1px; font-size: 8px; color: var(--bone-dim); white-space: nowrap; }
+/* The hero whose turn it is, and the foe in the sights. */
+.unit.active::after { content: ""; position: absolute; left: 50%; bottom: -10px; margin-left: -4px; border: 4px solid transparent;
+    border-bottom: 5px solid var(--gilt); animation: bob 1s ease-in-out infinite; }
+.unit.active .name { color: var(--gilt); }
+@keyframes bob { 50% { transform: translateY(-2px); } }
+.unit.target::before { content: ""; position: absolute; left: 2px; top: 16px; width: 36px; height: 36px; border-radius: 50%;
+    border: 1px dashed rgba(220, 50, 40, 0.8); animation: aim 4s linear infinite; }
+@keyframes aim { to { transform: rotate(360deg); } }
+.unit.target .name { color: #ff6a5a; }
+/* An affliction: the stress full, the hero breaks. */
+.unit.broken .stress b.on { background: #ff4a4a; box-shadow: 0 0 3px #ff2a2a; }
+.unit.broken { animation: shake 3s ease-in-out infinite; }
+@keyframes shake { 0%, 84%, 100% { transform: none; } 86% { transform: translateX(-2px); } 88% { transform: translateX(2px); } 90% { transform: translateX(-1px); } }
+.afflict { position: absolute; left: 50%; top: -6px; width: 72px; margin-left: -36px; padding: 1px 0; text-align: center; font-family: oriel:brush;
+    font-size: 10px; color: #ffd8d0; background: linear-gradient(90deg, transparent, rgba(140, 20, 14, 0.9) 20%, rgba(140, 20, 14, 0.9) 80%, transparent);
+    animation: afflict 3s ease-in-out infinite; }
+@keyframes afflict { 0%, 80% { opacity: 0; transform: scale(1.4); } 86% { opacity: 1; transform: scale(1); } 100% { opacity: 1; } }
+
+/* ---- Skills ---- */
+.bar-wrap { position: absolute; left: 50%; bottom: 8px; width: 300px; margin-left: -150px; display: flex; align-items: flex-end; gap: 8px; }
+.portrait { width: 34px; height: 40px; position: relative; flex: none; overflow: hidden;
+    background: linear-gradient(#2e2016, #140d09); box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--gilt), 0 0 0 3px #000; }
+.portrait entity { position: absolute; left: -10px; top: 0; width: 54px; height: 96px; }
+.who { display: flex; flex-direction: column; gap: 1px; width: 76px; flex: none; white-space: nowrap; }
+.who b { font-weight: normal; font-family: oriel:brush; font-size: 12px; color: var(--gilt); }
+.who span { color: var(--bone-dim); }
+.skills { display: flex; gap: 3px; }
+.skill { position: relative; width: 24px; height: 24px; padding: 3px; cursor: pointer;
+    background: radial-gradient(circle, #3a2a1c, #120b07); box-shadow: 0 0 0 1px #000, 0 0 0 2px #5a4428;
+    transition: transform 120ms, box-shadow 120ms; }
+.skill item { width: 18px; height: 18px; }
+.skill:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px #000, 0 0 0 2px #9a7a48; }
+.skill.sel { box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--gilt), 0 0 8px rgba(200, 160, 80, 0.7); }
+.skill.off { filter: grayscale(1) brightness(0.5); }
+/* Which ranks a skill reaches from, and which it strikes. */
+.skill .ranks { position: absolute; left: 1px; right: 1px; bottom: -5px; display: flex; gap: 1px; }
+.skill .ranks i { flex: 1; height: 2px; background: rgba(217, 201, 163, 0.2); }
+.skill .ranks i.on { background: #e9d38a; } .skill .ranks i.hit { background: #d8473a; }
+.tip { position: absolute; left: 116px; bottom: 38px; padding: 3px 6px; white-space: nowrap; background: rgba(13, 9, 7, 0.92);
+    box-shadow: 0 0 0 1px #5a4428; }
+.tip b { font-weight: normal; color: var(--gilt); }
+.tip span { color: var(--bone-dim); }
+
+@media (min-width: 560px) {
+    .unit { width: 52px; } .unit entity { width: 52px; height: 84px; }
+    .line { height: 120px; margin-top: -70px; padding: 0 40px; }
+    .hp { width: 44px; }
+    .bar-wrap { width: 340px; margin-left: -170px; bottom: 14px; }
+    .skill { width: 30px; height: 30px; padding: 5px; }
+    .portrait { width: 40px; height: 48px; }
+    .portrait entity { left: -12px; width: 64px; height: 114px; }
+    .tip { left: 128px; bottom: 46px; }
+}
+</style>
+</head>
+<body>
+<div class="crypt">
+  <i class="wall"></i><i class="floor"></i><i class="light"></i><i class="dark"></i>
+  <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
+
+  <div class="torch"><div class="bar l"><i></i></div><i class="flame"></i><div class="bar r"><i></i></div><span class="v">光照 72</span></div>
+  <div class="narrator">「希望……在这里是一种奢侈。」</div>
+
+  <div class="line">
+    <div class="party">
+      <div class="unit active"><entity type="minecraft:vindicator"></entity><div class="hp"><i style="width: 82%"></i></div>
+        <div class="stress"><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name">十字军</span></div>
+      <div class="unit"><entity type="minecraft:pillager"></entity><div class="hp"><i style="width: 64%"></i></div>
+        <div class="stress"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name">强盗</span></div>
+      <div class="unit broken"><span class="afflict">偏执</span><entity type="minecraft:witch"></entity><div class="hp"><i style="width: 40%"></i></div>
+        <div class="stress"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></div><span class="name">瘟疫医生</span></div>
+      <div class="unit"><entity type="minecraft:evoker"></entity><div class="hp"><i style="width: 91%"></i></div>
+        <div class="stress"><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name">秘术师</span></div>
+    </div>
+    <div class="foes">
+      <div class="unit target"><entity type="minecraft:skeleton"></entity><div class="hp"><i style="width: 55%"></i></div><span class="name">骸骨士兵</span></div>
+      <div class="unit"><entity type="minecraft:zombie"></entity><div class="hp"><i style="width: 100%"></i></div><span class="name">腐尸</span></div>
+      <div class="unit"><entity type="minecraft:wither_skeleton"></entity><div class="hp"><i style="width: 100%"></i></div><span class="name">骸骨队长</span></div>
+    </div>
+  </div>
+
+  <div class="bar-wrap">
+    <div class="portrait"><entity type="minecraft:vindicator"></entity></div>
+    <div class="who"><b>雷纳德</b><span>十字军 · 等级 3</span><span>生命 33 / 40</span></div>
+    <div class="skills">
+      <div class="skill sel"><item id="minecraft:iron_sword"></item><div class="ranks"><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+      <div class="skill"><item id="minecraft:mace"></item><div class="ranks"><i class="on"></i><i></i><i></i><i></i></div></div>
+      <div class="skill"><item id="minecraft:shield"></item><div class="ranks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+      <div class="skill off"><item id="minecraft:golden_apple"></item><div class="ranks"><i></i><i></i><i class="on"></i><i class="on"></i></div></div>
+    </div>
+    <div class="tip"><b>致命一击</b> <span>· 伤害 +15% · 暴击 +5% · 打击 1–2 列</span></div>
+  </div>
+</div>
+</body>
+</html>

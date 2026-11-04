@@ -250,6 +250,10 @@ public final class DevAutopilot {
             effects(mc);
             return;
         }
+        if (ONLY.equals("styles")) {
+            styles(mc);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -1058,6 +1062,33 @@ public final class DevAutopilot {
      * {@code -Pautopilot=potions}: the potion HUD over the player's own effects: none, then a few (one infinite, one of
      * a high level), the full panel, one taken away, and the inventory with its effects column.
      */
+    /**
+     * The style showcase ({@code -Pautopilot=styles}): its index and every look at GUI scale 2, two of them at 3,
+     * then Escape: from a look back to the index, from the index back to the gallery.
+     */
+    private static void styles(Minecraft mc) {
+        guiScale(mc, 2);
+        shoot(mc, "styles_index", () -> OrielScreens.open(dev.oriel.kit.OrielKit.STYLES));
+        for (String look : dev.oriel.kit.preset.StylesPreset.PAGES) {
+            shoot(mc, "styles_" + look, () -> OrielScreens.open(dev.oriel.kit.OrielKit.page("styles/" + look)));
+        }
+        guiScale(mc, 3);
+        shoot(mc, "styles_xianxia_gui3", () -> OrielScreens.open(dev.oriel.kit.OrielKit.page("styles/xianxia")));
+        shoot(mc, "styles_terraria_gui3", () -> OrielScreens.open(dev.oriel.kit.OrielKit.page("styles/terraria")));
+        guiScale(mc, 2);
+        open("a look", () -> OrielScreens.open(dev.oriel.kit.OrielKit.page("styles/dungeon")));
+        onPage("a look", page -> page.key("Escape"));
+        until("Escape went back to the style index", ticks -> OrielAutomation.screen().map(p -> p.exists(".styles")).orElse(false),
+                100, "Escape on a look did not open the style index", true);
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists(".styles")).orElse(false),
+                "Escape on a look went back to the style index", "Escape on a look did not open the style index"));
+        onPage("the style index", page -> page.key("Escape"));
+        until("Escape went back to the gallery", ticks -> OrielAutomation.screen().map(p -> p.exists("#cards")).orElse(false),
+                100, "Escape on the style index did not open the gallery", true);
+        steps.add(() -> check(OrielAutomation.screen().map(p -> p.exists("#cards")).orElse(false),
+                "Escape on the style index went back to the gallery", "Escape on the style index did not open the gallery"));
+    }
+
     private static void potions(Minecraft mc) {
         steps.add(() -> command(mc, "effect clear @s"));
         pause(5);

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>魔法附魔</title>
+<link rel="stylesheet" href="showcase.css">
+<style>
+/*
+ * An enchanting table grown into an arcane altar: a summoning circle whose rune rings turn against each other in
+ * the enchanting table's own Standard Galactic script, a book floating and turning over it, glyphs drifting in from
+ * the dark, and three offers that stay runes until the pointer reveals what they are.
+ */
+:root { --violet: #b48cff; --violet-lo: #3a1d6e; --ink: #0b0614; --glow: #e5d4ff; --lapis: #3f6fe0; --gold: #ffd77a; }
+.altar { position: absolute; inset: 0; color: var(--glow); font-size: 8px; overflow: hidden;
+    background: radial-gradient(ellipse 60% 75% at 50% 52%, rgba(90, 40, 170, 0.6), rgba(20, 8, 40, 0.95) 62%, rgba(6, 2, 12, 0.98)); }
+/* The circle and the table side by side, centred, at most this wide. */
+.stage { position: absolute; left: 50%; top: 0; bottom: 0; width: 420px; margin-left: -210px; }
+
+/* Glyphs drifting toward the book, as from the bookshelves around a table. */
+.drift { position: absolute; font-family: minecraft:alt; color: rgba(200, 170, 255, 0.0); text-shadow: 0 0 4px rgba(170, 120, 255, 0.9);
+    animation: drift 4.8s ease-in infinite; }
+@keyframes drift {
+    0% { opacity: 0; transform: translate(0, 0); }
+    15% { opacity: 1; color: rgba(220, 200, 255, 0.9); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)); color: rgba(220, 200, 255, 0.9); }
+}
+
+/* ---- The circle ---- */
+.circle { position: absolute; left: 88px; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; }
+.ring { position: absolute; border-radius: 50%; }
+.ring.outer { inset: 0; border: 1px solid rgba(190, 150, 255, 0.55);
+    box-shadow: 0 0 8px rgba(150, 90, 255, 0.5), inset 0 0 8px rgba(150, 90, 255, 0.35); animation: turn 40s linear infinite; }
+.ring.outer::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; border: 1px dashed rgba(190, 150, 255, 0.45); }
+.ring.inner { inset: 30px; border: 2px solid rgba(210, 180, 255, 0.7);
+    box-shadow: 0 0 10px rgba(160, 100, 255, 0.7), inset 0 0 12px rgba(160, 100, 255, 0.5); animation: turn 26s linear infinite reverse; }
+.ring.core { inset: 52px; background: radial-gradient(circle, rgba(255, 245, 255, 0.95), rgba(190, 140, 255, 0.55) 35%, rgba(90, 40, 200, 0) 72%);
+    animation: core 3.4s ease-in-out infinite; }
+@keyframes core { 50% { transform: scale(1.18); opacity: 0.8; } }
+@keyframes turn { to { transform: rotate(360deg); } }
+/* Runes stand on the rings: each one is turned out from the centre by its own angle. */
+.rune { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+    font-family: minecraft:alt; font-size: 16px; line-height: 16px; text-align: center; color: #efe4ff; text-shadow: 0 0 4px var(--violet);
+    transform: rotate(var(--a)) translateY(var(--r)); }
+.ring.outer .rune { --r: -70px; }
+.ring.inner .rune { --r: -42px; font-size: 8px; line-height: 16px; }
+/* A star drawn by clip-path in the middle ring. */
+.star { position: absolute; inset: 38px; background: linear-gradient(rgba(220, 190, 255, 0.5), rgba(140, 80, 255, 0.2));
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    animation: turn 60s linear infinite; }
+.book { position: absolute; left: 50%; top: 50%; width: 32px; height: 32px; margin: -16px 0 0 -16px;
+    -mc-model-scale: 1; animation: bob 3.4s ease-in-out infinite, spin 9s linear infinite; }
+@keyframes bob { 50% { margin-top: -21px; } }
+@keyframes spin { from { -mc-yaw: 0deg; } to { -mc-yaw: 360deg; } }
+
+/* ---- The table: item, lapis and the three offers ---- */
+.table { position: absolute; right: 12px; top: 50%; width: 176px; margin-top: -78px; display: flex; flex-direction: column; gap: 5px; }
+.table h2 { margin: 0 0 1px; display: flex; align-items: baseline; gap: 5px; font-family: oriel:kai; font-size: 14px; font-weight: normal; color: #fff;
+    text-shadow: 0 0 8px var(--violet), 1px 1px 0 #000; }
+.table h2 span { font-family: minecraft:alt; font-size: 8px; color: rgba(210, 190, 255, 0.6); text-shadow: none; }
+.inputs { display: flex; gap: 6px; align-items: center; }
+.well { width: 22px; height: 22px; padding: 2px; border-radius: 4px; background: rgba(8, 3, 18, 0.75);
+    border: 1px solid rgba(180, 140, 255, 0.45); box-shadow: inset 0 0 6px rgba(120, 60, 255, 0.5); }
+.well item { width: 18px; height: 18px; }
+.inputs .xp { margin-left: auto; color: #b7ff8a; text-shadow: 0 0 4px rgba(120, 255, 80, 0.6), 1px 1px 0 #000; }
+.offer { position: relative; height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 7px 0 5px; cursor: pointer;
+    border-radius: 5px; background: linear-gradient(90deg, rgba(70, 30, 140, 0.55), rgba(25, 10, 50, 0.7));
+    border: 1px solid rgba(180, 140, 255, 0.35); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: border-color 160ms, background-color 160ms, transform 160ms var(--o-ease-out, ease-out); overflow: hidden; }
+.offer:hover { border-color: rgba(230, 210, 255, 0.9); transform: translateX(-3px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 10px rgba(170, 110, 255, 0.6); }
+.offer::after { content: ""; position: absolute; top: 0; bottom: 0; left: -40px; width: 30px; transform: skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent); animation: sheen 3.6s ease-in-out infinite; }
+.offer:nth-child(4)::after { animation-delay: 0.6s; } .offer:nth-child(5)::after { animation-delay: 1.2s; }
+@keyframes sheen { 0%, 60% { left: -40px; } 100% { left: 200px; } }
+.offer .cost { width: 16px; height: 16px; flex: none; }
+.offer .text { flex: 1; min-width: 0; height: 18px; position: relative; }
+.offer .runes, .offer .name { position: absolute; left: 0; right: 0; top: 0; white-space: nowrap; overflow: hidden; transition: opacity 220ms, transform 220ms; }
+.offer .runes { font-family: minecraft:alt; color: rgba(205, 185, 255, 0.85); line-height: 9px; }
+.offer .name { opacity: 0; transform: translateY(4px); }
+.offer .name b { display: block; font-weight: normal; color: #fff; font-family: oriel:kai; font-size: 10px; line-height: 11px; }
+.offer .name span { color: rgba(220, 205, 255, 0.7); }
+.offer:hover .runes { opacity: 0; transform: translateY(-4px); }
+.offer:hover .name { opacity: 1; transform: translateY(0); }
+.offer .lv { color: #b7ff8a; text-shadow: 0 0 3px rgba(120, 255, 80, 0.6), 1px 1px 0 #000; }
+.offer.locked { filter: grayscale(0.85) brightness(0.7); cursor: default; }
+.offer.locked:hover { transform: none; box-shadow: none; border-color: rgba(180, 140, 255, 0.35); }
+.offer.locked:hover .runes { opacity: 1; transform: none; }
+.offer.locked:hover .name { opacity: 0; }
+.offer.locked .lv { color: #ff8a8a; }
+.hint { color: rgba(220, 205, 255, 0.55); }
+
+</style>
+</head>
+<body>
+<div class="altar">
+  <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
+
+  <span class="drift" style="left: 4%; top: 18%; --dx: 70px; --dy: 60px">g</span>
+  <span class="drift" style="left: 8%; top: 82%; --dx: 60px; --dy: -50px; animation-delay: 1.1s">q</span>
+  <span class="drift" style="left: 40%; top: 12%; --dx: -40px; --dy: 70px; animation-delay: 2.2s">w</span>
+  <span class="drift" style="left: 42%; top: 86%; --dx: -45px; --dy: -60px; animation-delay: 3.1s">f</span>
+  <span class="drift" style="left: 2%; top: 50%; --dx: 75px; --dy: 4px; animation-delay: 0.5s">y</span>
+  <span class="drift" style="left: 44%; top: 50%; --dx: -60px; --dy: -6px; animation-delay: 2.7s">z</span>
+
+  <div class="stage">
+  <div class="circle">
+    <div class="ring outer">
+      <span class="rune" style="--a: 0deg">a</span><span class="rune" style="--a: 45deg">e</span><span class="rune" style="--a: 90deg">l</span>
+      <span class="rune" style="--a: 135deg">t</span><span class="rune" style="--a: 180deg">r</span><span class="rune" style="--a: 225deg">s</span>
+      <span class="rune" style="--a: 270deg">k</span><span class="rune" style="--a: 315deg">m</span>
+    </div>
+    <div class="star"></div>
+    <div class="ring inner">
+      <span class="rune" style="--a: 30deg">o</span><span class="rune" style="--a: 150deg">v</span><span class="rune" style="--a: 270deg">x</span>
+    </div>
+    <div class="ring core"></div>
+    <model class="book" item="minecraft:enchanted_book"></model>
+  </div>
+
+  <div class="table">
+    <h2>附魔台<span>elder scroll</span></h2>
+    <div class="inputs">
+      <div class="well" title="要附魔的物品"><item id="minecraft:diamond_sword"></item></div>
+      <div class="well" title="青金石"><item id="minecraft:lapis_lazuli" count="9"></item></div>
+      <span class="xp">经验等级 31</span>
+    </div>
+    <div class="offer">
+      <img class="cost" src="sprite:minecraft:container/enchanting_table/level_1">
+      <div class="text"><div class="runes">elder klaatu berata</div><div class="name"><b>锋利 III</b><span>近战伤害 +2</span></div></div>
+      <span class="lv">8</span>
+    </div>
+    <div class="offer">
+      <img class="cost" src="sprite:minecraft:container/enchanting_table/level_2">
+      <div class="text"><div class="runes">nikto bless imbue</div><div class="name"><b>火焰附加 II</b><span>点燃目标 8 秒</span></div></div>
+      <span class="lv">19</span>
+    </div>
+    <div class="offer locked" title="需要 30 级">
+      <img class="cost" src="sprite:minecraft:container/enchanting_table/level_3_disabled">
+      <div class="text"><div class="runes">grow towards the void</div><div class="name"><b>？？？</b></div></div>
+      <span class="lv">30</span>
+    </div>
+    <span class="hint">把指针移到符文上，看清它是什么</span>
+  </div>
+  </div>
+</div>
+</body>
+</html>

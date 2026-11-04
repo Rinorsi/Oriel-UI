@@ -11,6 +11,7 @@ import dev.oriel.kit.preset.MusicPreset;
 import dev.oriel.kit.preset.InventoryEffectsPreset;
 import dev.oriel.kit.preset.PotionHudPreset;
 import dev.oriel.kit.preset.SettingsPreset;
+import dev.oriel.kit.preset.StylesPreset;
 import dev.oriel.engine.host.PageControllers;
 
 import java.util.List;
@@ -32,6 +33,8 @@ public final class OrielKit {
     public static final String EDITOR = page("editor");
     public static final String CATALOG = page("catalog");
     public static final String ICONS = page("icons");
+    /** The style showcase's index; its looks are {@code styles/<name>} ({@link StylesPreset#PAGES}). */
+    public static final String STYLES = page("styles");
     /** The item data editor, opened by the server ({@code /oriel edit}). */
     public static final String ITEM_EDITOR = page("item_editor");
     /** The presets, in gallery order. */
@@ -61,6 +64,8 @@ public final class OrielKit {
         PageControllers.register(EDITOR, EditorPreset::new);
         PageControllers.register(CATALOG, CatalogPreset::new);
         PageControllers.register(ICONS, IconsPreset::new);
+        PageControllers.register(STYLES, () -> new StylesPreset(true));
+        for (String look : StylesPreset.PAGES) PageControllers.register(page("styles/" + look), () -> new StylesPreset(false));
         PageControllers.register(ITEM_EDITOR, ItemEditorPreset::new);
     }
 }
