@@ -27,6 +27,8 @@ final class KitHost implements Host {
     final List<String> navigations = new ArrayList<>();
     final Map<String, float[]> imageSizes = new HashMap<>();
     boolean closed;
+    /** What {@link #send} answers: false is a page with no server (the previewer), true one that has one. */
+    boolean acceptSends;
 
     @Override
     public FontMetrics fonts() {
@@ -74,7 +76,7 @@ final class KitHost implements Host {
     @Override
     public boolean send(String channel, String json) {
         sent.add(channel + " " + json);
-        return false;
+        return acceptSends;
     }
 
     @Override

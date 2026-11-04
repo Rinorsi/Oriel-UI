@@ -49,6 +49,7 @@ public final class OrielClientCommands {
                                     String url = StringArgumentType.getString(c, "url");
                                     return later(() -> OrielScreens.open(url));
                                 })))
+                .then(LiteralArgumentBuilder.<S>literal("edit").executes(c -> askServer("oriel edit")))
                 .then(presets)
                 .then(demo)
                 .then(showcase)

@@ -803,6 +803,7 @@ public final class Document extends Node {
     public void receive(String channel, String json) {
         run(() -> {
             if (scripts != null) scripts.receive(channel, json);
+            if (channel.equals("data")) for (java.util.function.BiConsumer<String, String> l : List.copyOf(dataListeners)) l.accept(null, json);
             dispatchEvent(new CustomEvent("message", false, false, new String[] {channel, json}));
         });
     }
@@ -816,7 +817,23 @@ public final class Document extends Node {
     public void patch(String key, String json) {
         run(() -> {
             if (scripts != null) scripts.patch(key, json);
+            for (java.util.function.BiConsumer<String, String> l : List.copyOf(dataListeners)) l.accept(key, json);
         });
+    }
+
+    private final List<java.util.function.BiConsumer<String, String>> dataListeners = new ArrayList<>();
+
+    /**
+     * Java controllers' view of {@code oriel.data}: {@code listener} gets each {@link #patch} as (key, JSON value,
+     * null when removed), and each whole new data ({@link #receive} on channel {@code data}) as (null, JSON).
+     */
+    public void addDataListener(java.util.function.BiConsumer<String, String> listener) {
+        dataListeners.add(listener);
+    }
+
+    /** The data the page was opened with ({@code oriel.data} at load, as JSON), or null. */
+    public String initialData() {
+        return initialData;
     }
 
     // ---- Errors and lifecycle ----

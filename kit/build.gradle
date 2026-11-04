@@ -7,6 +7,9 @@ plugins {
 
 dependencies {
     implementation(project(':engine'))
+    // Page data is JSON; Minecraft provides Gson in game (as for the engine).
+    compileOnly("com.google.code.gson:gson:${gson_version}")
+    testImplementation("com.google.code.gson:gson:${gson_version}")
     testImplementation(project(path: ':rhino', configuration: 'relocated'))
 }
 

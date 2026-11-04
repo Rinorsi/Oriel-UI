@@ -843,6 +843,37 @@ public final class DevAutopilot {
         pause(6);
         grab(mc, "preset_editor_selected", 5);
 
+        // The item editor, end to end: the server opens it on a held sword, an edit is made and saved, and the synced
+        // item is checked.
+        steps.add(() -> {
+            McClient.setScreen(null);
+            command(mc, "item replace entity @s weapon.mainhand with minecraft:diamond_sword[minecraft:enchantments={\"minecraft:sharpness\":5},minecraft:custom_name=\"龙牙\"]");
+        });
+        pause(10);
+        steps.add(() -> mc.player.connection.send(new net.minecraft.network.protocol.game.ServerboundChatCommandPacket("oriel edit")));
+        settle("the item editor", SETTLE);
+        grab(mc, "preset_item_editor", 5);
+        onPage("make it epic", p -> p.click("#rarity [data-r=epic]"));
+        onPage("the enchantments tab", p -> p.click("#tabs [data-tab=ench]"));
+        onPage("search mending", p -> {
+            p.click("#ench-search");
+            p.type("mending");
+        });
+        pause(6);
+        onPage("add mending", p -> p.click("#ench-results .o-chip"));
+        pause(6);
+        grab(mc, "preset_item_editor_edited", 5);
+        onPage("save", p -> p.click("#save"));
+        pause(20);
+        grab(mc, "preset_item_editor_saved", 5);
+        steps.add(() -> {
+            var held = mc.player.getMainHandItem();
+            check(held.get(net.minecraft.core.component.DataComponents.RARITY) == net.minecraft.world.item.Rarity.EPIC,
+                    "the edited sword is epic", "the edited sword is {}", held.get(net.minecraft.core.component.DataComponents.RARITY));
+            check(held.getEnchantments().size() == 2, "the sword has two enchantments", "the sword has {} enchantments",
+                    held.getEnchantments().size());
+        });
+
         shoot(mc, "preset_gallery_light", () -> OrielClientCommands.preset("gallery"));
         onPage("the light theme", p -> p.click("[data-theme-pick=light]"));
         pause(10);
