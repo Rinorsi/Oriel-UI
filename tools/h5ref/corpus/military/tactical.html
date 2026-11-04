@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tactical HUD</title>
+<style>
+  :root { --hud: #b9ff66; --hud-dim: rgba(185, 255, 102, .35); --warn: #ffb020; --alert: #ff4040; }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100vh; overflow: hidden; font: 600 9px/1.2 "Consolas", "Courier New", monospace; color: var(--hud);
+    background: linear-gradient(#4b5a3a, #2a3322); text-shadow: 0 0 4px var(--hud-dim); }
+  .frame { position: fixed; inset: 8px; border: 1px solid var(--hud-dim);
+    clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px); }
+  .corner { position: absolute; width: 14px; height: 14px; border: 2px solid var(--hud); }
+  .corner.tl { left: 6px; top: 6px; border-right: 0; border-bottom: 0; }
+  .corner.tr { right: 6px; top: 6px; border-left: 0; border-bottom: 0; }
+  .corner.bl { left: 6px; bottom: 6px; border-right: 0; border-top: 0; }
+  .corner.br { right: 6px; bottom: 6px; border-left: 0; border-top: 0; }
+
+  /* Compass tape */
+  .compass { position: absolute; top: 12px; left: 50%; width: 200px; height: 18px; transform: translateX(-50%); overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); }
+  .tape { display: flex; gap: 0; width: max-content; transform: translateX(-37px); }
+  .tape span { width: 25px; text-align: center; border-left: 1px solid var(--hud-dim); padding-top: 9px; font-size: 8px; position: relative; }
+  .tape span.major::before { content: ""; position: absolute; left: -1px; top: 0; height: 7px; border-left: 1px solid var(--hud); }
+  .needle { position: absolute; top: 30px; left: 50%; width: 0; height: 0; margin-left: -4px; border: 4px solid transparent; border-top-color: var(--hud); }
+
+  /* Reticle (SVG) */
+  .reticle { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; transform: translate(-50%, -50%); }
+
+  /* Ammo / weapon */
+  .weapon { position: absolute; right: 18px; bottom: 18px; text-align: right; }
+  .weapon .ammo { font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+  .weapon .ammo small { font-size: 10px; opacity: .6; }
+  .weapon .name { opacity: .75; letter-spacing: 3px; }
+  .mags { display: flex; gap: 2px; justify-content: flex-end; margin-top: 3px; }
+  .mags i { width: 4px; height: 10px; background: var(--hud); }
+  .mags i.empty { background: transparent; outline: 1px solid var(--hud-dim); }
+
+  /* Health / armor */
+  .vitals { position: absolute; left: 18px; bottom: 18px; width: 130px; }
+  .row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .row b { width: 22px; }
+  .seg { flex: 1; height: 7px; background: repeating-linear-gradient(90deg, var(--hud) 0 8px, transparent 8px 10px);
+    -webkit-mask: linear-gradient(90deg, #000 var(--v), transparent var(--v)); mask: linear-gradient(90deg, #000 var(--v), transparent var(--v)); }
+  .row.armor .seg { background: repeating-linear-gradient(90deg, #66d9ff 0 8px, transparent 8px 10px); }
+
+  /* Minimap */
+  .map { position: absolute; left: 18px; top: 18px; width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--hud);
+    background: radial-gradient(circle, rgba(185,255,102,.08), rgba(0,0,0,.45)), repeating-radial-gradient(circle, transparent 0 9px, var(--hud-dim) 9px 10px); overflow: hidden; }
+  .map .sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(185, 255, 102, .45), transparent 25%); animation: radar 3s linear infinite; }
+  .map .me { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; background: #fff; border-radius: 50%; }
+  .map .enemy { position: absolute; width: 4px; height: 4px; background: var(--alert); border-radius: 50%; box-shadow: 0 0 4px var(--alert); }
+  @keyframes radar { to { transform: rotate(360deg); } }
+
+  .alert { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); padding: 2px 10px; color: #111; background: var(--warn);
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .scan { position: fixed; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+</style>
+</head>
+<body>
+<div class="frame"></div>
+<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+<div class="compass"><div class="tape">
+  <span class="major">N</span><span>15</span><span>30</span><span class="major">NE</span><span>60</span><span>75</span><span class="major">E</span><span>105</span><span>120</span><span class="major">SE</span>
+</div></div>
+<div class="needle"></div>
+<div class="alert">⚠ INCOMING</div>
+<div class="map"><div class="sweep"></div><div class="me"></div><div class="enemy" style="left: 18px; top: 14px"></div><div class="enemy" style="left: 44px; top: 40px"></div></div>
+<svg class="reticle" viewBox="0 0 48 48" fill="none" stroke="#b9ff66" stroke-width="1.5">
+  <circle cx="24" cy="24" r="14" stroke-dasharray="6 4"/>
+  <path d="M24 2v10M24 36v10M2 24h10M36 24h10"/>
+  <circle cx="24" cy="24" r="1.5" fill="#b9ff66"/>
+</svg>
+<div class="vitals">
+  <div class="row"><b>HP</b><div class="seg" style="--v: 78%"></div><span>78</span></div>
+  <div class="row armor"><b>AR</b><div class="seg" style="--v: 40%"></div><span>40</span></div>
+</div>
+<div class="weapon"><div class="ammo">24<small> / 120</small></div><div class="name">M4A1 · AUTO</div>
+  <div class="mags"><i></i><i></i><i></i><i class="empty"></i></div></div>
+<div class="scan"></div>
+</body>
+</html>

@@ -997,6 +997,7 @@ canvas.fx.off { display: none; }
 [data-font=kai] { font-family: oriel:kai; }
 [data-font=smiley] { font-family: oriel:smiley; }
 [data-font=kuaile] { font-family: oriel:kuaile; }
+[data-font=brush] { font-family: oriel:brush; }
 .f-mc { font-family: minecraft:default; }
 .f-unifont { font-family: minecraft:uniform; }
 .f-alt { font-family: minecraft:alt; }
@@ -1007,6 +1008,7 @@ canvas.fx.off { display: none; }
 .f-kai { font-family: oriel:kai; }
 .f-smiley { font-family: oriel:smiley; }
 .f-kuaile { font-family: oriel:kuaile; }
+.f-brush { font-family: oriel:brush; }
 
 /* ---- Minecraft's formatting codes as classes (McFormat writes the same as inline styles): §0–§f and §k §l §m §n §o.
    The colours are the game's; they are made for dark grounds, like chat. ---- */

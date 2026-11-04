@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Terraria-like HUD</title>
+<style>
+  :root { --panel: rgba(54, 70, 156, .78); --panel-edge: #1e2563; --slot: rgba(63, 82, 177, .85); --slot-sel: #f2d64b; --text: #fff; }
+  * { box-sizing: border-box; }
+  html { image-rendering: pixelated; }
+  body { margin: 0; height: 100vh; overflow: hidden; color: var(--text); font: bold 8px/1 "Andy", "Comic Sans MS", sans-serif;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    background: linear-gradient(#6aa7ff 0%, #a9d1ff 55%, #5d8f3a 55%, #4a7a2c 62%, #6b4a2b 62%); }
+  /* Hotbar */
+  .hotbar { position: absolute; left: 6px; top: 6px; display: flex; gap: 2px; }
+  .slot { position: relative; width: 22px; height: 22px; background: var(--slot); border: 2px solid var(--panel-edge); border-radius: 4px;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,.18); }
+  .slot.sel { border-color: var(--slot-sel); transform: scale(1.12); z-index: 1; box-shadow: 0 0 0 1px #000, inset 2px 2px 0 rgba(255,255,255,.3); }
+  .slot .n { position: absolute; left: 2px; top: 1px; font-size: 6px; }
+  .slot .c { position: absolute; right: 2px; bottom: 1px; font-size: 6px; }
+  .slot .item { position: absolute; inset: 4px; border-radius: 2px; }
+  .item.sword { background: linear-gradient(135deg, transparent 40%, #cfe6ff 40% 55%, transparent 55%), linear-gradient(45deg, #7a4a1d 0 25%, transparent 25%); }
+  .item.pick { background: radial-gradient(circle at 50% 20%, #f0c050 0 30%, transparent 32%), linear-gradient(90deg, transparent 45%, #8b5a2b 45% 55%, transparent 55%); }
+  .item.torch { background: radial-gradient(circle at 50% 25%, #ffe680 0 20%, #ff8c1a 21% 32%, transparent 34%), linear-gradient(90deg, transparent 42%, #8b5a2b 42% 58%, transparent 58%); }
+  .item.potion { background: radial-gradient(circle at 50% 62%, #ff3a5c 0 32%, transparent 34%), linear-gradient(90deg, transparent 40%, #d8e6ff 40% 60%, transparent 60%); }
+  .item.block { background: linear-gradient(#5d8f3a 0 30%, #7a5230 30%); }
+  /* Life and mana */
+  .life { position: absolute; right: 8px; top: 6px; text-align: right; }
+  .life .label { margin-bottom: 2px; }
+  .hearts { display: grid; grid-template-columns: repeat(10, 10px); gap: 1px; }
+  .heart { width: 10px; height: 9px; background: #e52b2b; clip-path: polygon(50% 100%, 0 40%, 0 15%, 20% 0, 50% 18%, 80% 0, 100% 15%, 100% 40%); }
+  .heart.half { background: linear-gradient(90deg, #e52b2b 50%, #3c1414 50%); }
+  .heart.empty { background: #3c1414; }
+  .heart.gold { background: #f2c02b; }
+  .mana { position: absolute; right: 6px; top: 34px; display: flex; flex-direction: column; gap: 1px; }
+  .star { width: 10px; height: 10px; background: #2b7be5; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .star.empty { background: #13284b; }
+  /* Buffs */
+  .buffs { position: absolute; left: 6px; top: 34px; display: flex; gap: 3px; }
+  .buff { width: 14px; height: 14px; border: 1px solid #000; background: linear-gradient(#ffd27a, #c97a1a); }
+  .buff + .buff { background: linear-gradient(#9fe8ff, #2a8fbf); }
+  .buffs .t { position: absolute; top: 16px; font-size: 6px; }
+  /* Inventory panel */
+  .inv { position: absolute; left: 6px; bottom: 6px; padding: 4px; display: grid; grid-template-columns: repeat(10, 18px); gap: 2px;
+    background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 6px; }
+  .inv .slot { width: 18px; height: 18px; }
+  /* Chat-style pickup text */
+  .pickup { position: absolute; left: 50%; top: 45%; transform: translateX(-50%); color: #ffe066; animation: rise 1.6s ease-out infinite; }
+  @keyframes rise { from { transform: translate(-50%, 0); opacity: 1; } to { transform: translate(-50%, -24px); opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="hotbar">
+  <div class="slot sel"><span class="n">1</span><div class="item sword"></div></div>
+  <div class="slot"><span class="n">2</span><div class="item pick"></div></div>
+  <div class="slot"><span class="n">3</span><div class="item torch"></div><span class="c">99</span></div>
+  <div class="slot"><span class="n">4</span><div class="item potion"></div><span class="c">5</span></div>
+  <div class="slot"><span class="n">5</span><div class="item block"></div><span class="c">250</span></div>
+  <div class="slot"><span class="n">6</span></div><div class="slot"><span class="n">7</span></div><div class="slot"><span class="n">8</span></div>
+</div>
+<div class="buffs"><div class="buff"></div><div class="buff"></div></div>
+<div class="life"><div class="label">Life: 340/400</div>
+  <div class="hearts">
+    <i class="heart gold"></i><i class="heart gold"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart half"></i><i class="heart empty"></i>
+    <i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart"></i><i class="heart empty"></i><i class="heart empty"></i>
+  </div></div>
+<div class="mana"><i class="star"></i><i class="star"></i><i class="star"></i><i class="star empty"></i><i class="star empty"></i></div>
+<div class="pickup">Gold Coin (12)</div>
+<div class="inv">
+  <div class="slot"></div><div class="slot"></div><div class="slot"><div class="item block"></div></div><div class="slot"></div><div class="slot"></div>
+  <div class="slot"></div><div class="slot"><div class="item potion"></div></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+  <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="item torch"></div></div>
+  <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+</div>
+</body>
+</html>

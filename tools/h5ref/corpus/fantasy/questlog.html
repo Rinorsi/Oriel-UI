@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fantasy quest log</title>
+<style>
+  :root { --parch: #f2e2b8; --parch-dark: #d9c08a; --ink: #3b2412; --gold: #d4a017; --gold-dark: #8a6508; --ruby: #9b1c31; }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100vh; display: grid; place-items: center; font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; color: var(--ink);
+    background: #1d140d url("dungeon-wall.jpg") center / cover; }
+  .book { display: flex; width: 400px; height: 220px; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .7)); }
+  .page { flex: 1; padding: 14px 16px; position: relative;
+    background: radial-gradient(ellipse at center, var(--parch) 60%, var(--parch-dark)); }
+  .page.left { border-radius: 8px 0 0 8px; box-shadow: inset -12px 0 18px -10px rgba(60, 30, 0, .55); }
+  .page.right { border-radius: 0 8px 8px 0; box-shadow: inset 12px 0 18px -10px rgba(60, 30, 0, .55); }
+  .frame { position: absolute; inset: 5px; border: 2px solid var(--gold-dark); border-image: linear-gradient(135deg, var(--gold), var(--gold-dark), var(--gold)) 1; pointer-events: none; }
+  h2 { margin: 0 0 6px; font-size: 14px; font-variant: small-caps; letter-spacing: 1px; text-align: center; color: var(--ruby);
+    border-bottom: 1px solid rgba(59, 36, 18, .3); padding-bottom: 4px; }
+  h2::before, h2::after { content: "❧"; margin: 0 6px; color: var(--gold-dark); }
+  .quest { display: flex; gap: 6px; padding: 5px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; }
+  .quest:hover { background: rgba(212, 160, 23, .18); }
+  .quest.active { background: linear-gradient(90deg, rgba(155, 28, 49, .15), transparent); border-left: 3px solid var(--ruby); }
+  .quest .icon { width: 18px; height: 18px; flex: none; border-radius: 50%; border: 1px solid var(--gold-dark);
+    background: radial-gradient(circle at 40% 35%, #fff4c2, var(--gold) 60%, var(--gold-dark)); }
+  .quest .t { font-size: 10px; font-weight: bold; }
+  .quest .d { font-size: 8px; font-style: italic; opacity: .8; }
+  p.lore { font-size: 9px; line-height: 1.45; text-align: justify; margin: 0 0 6px; }
+  p.lore::first-letter { float: left; font-size: 26px; line-height: 22px; padding-right: 3px; color: var(--ruby); font-weight: bold; }
+  .rewards { display: flex; gap: 6px; justify-content: center; margin-top: 6px; }
+  .reward { width: 28px; height: 28px; border: 2px solid var(--gold-dark); border-radius: 4px; background: rgba(59, 36, 18, .15);
+    box-shadow: inset 0 0 6px rgba(0,0,0,.35); position: relative; }
+  .reward span { position: absolute; right: 1px; bottom: 0; font-size: 7px; font-weight: bold; }
+  .wax { position: absolute; right: 12px; bottom: 10px; width: 26px; height: 26px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #d64560, var(--ruby) 60%, #5e0d1c); box-shadow: 0 2px 3px rgba(0,0,0,.4);
+    display: grid; place-items: center; color: #f9c9d2; font-size: 11px; }
+  .btn { display: block; margin: 8px auto 0; padding: 4px 14px; font: bold 9px inherit; letter-spacing: 1px; color: #fff3cf;
+    background: linear-gradient(#b3261e, #6d1012); border: 1px solid var(--gold); border-radius: 3px; text-shadow: 0 1px 0 #000; }
+</style>
+</head>
+<body>
+<div class="book">
+  <div class="page left"><div class="frame"></div>
+    <h2>Quests</h2>
+    <div class="quest active"><div class="icon"></div><div><div class="t">The Sunken Crown</div><div class="d">Retrieve it from the drowned keep</div></div></div>
+    <div class="quest"><div class="icon"></div><div><div class="t">Wolves of Ashvale</div><div class="d">Thin the pack before winter</div></div></div>
+    <div class="quest"><div class="icon"></div><div><div class="t">A Merchant's Debt</div><div class="d">Collect 40 gold from Orrin</div></div></div>
+  </div>
+  <div class="page right"><div class="frame"></div>
+    <h2>The Sunken Crown</h2>
+    <p class="lore">Long ago the kings of Valeheim wore a crown of sea-glass and silver. When the keep fell beneath the tide, the crown went with it — and with it, the oath that bound the coast.</p>
+    <div class="rewards"><div class="reward"><span>1</span></div><div class="reward"><span>250</span></div><div class="reward"><span>3</span></div></div>
+    <button class="btn">Track Quest</button>
+    <div class="wax">✦</div>
+  </div>
+</div>
+</body>
+</html>
