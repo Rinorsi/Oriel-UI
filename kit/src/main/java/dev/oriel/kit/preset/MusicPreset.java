@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.kit.Dom;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
@@ -27,12 +29,12 @@ public final class MusicPreset implements PageControllers.Controller {
     record Track(String title, String artist, String disc, int seconds, List<String> lyrics) {}
 
     final List<Track> playlist = new ArrayList<>(List.of(
-            new Track("晨光矿道", "Oriel 合奏团", "minecraft:music_disc_cat", 185, List.of("矿灯在岩壁上摇晃", "回声从深处一层层传上来", "我们把火把插在转角", "让下一个人不会迷路", "铁镐落下的节拍", "和滴水声慢慢对上", "晨光从洞口照进来", "像一张刚铺开的地图", "背包里装着今天的收获", "还有一块舍不得用的钻石", "回家的路有点远", "但每一步都亮着")),
-            new Track("深板岩回响", "地下乐队", "minecraft:music_disc_13", 214, List.of("往下，再往下一点", "石头的颜色越来越深", "远处传来低低的咕哝", "我们屏住呼吸", "灯光照不到的地方", "也有路")),
-            new Track("下界之风", "烈焰三重奏", "minecraft:music_disc_pigstep", 148, List.of("热风卷着灰烬", "红色的天没有星星", "桥搭在岩浆上面", "每一块都要放稳", "回头看传送门的紫光", "它一直在等我们")),
-            new Track("林间小憩", "苔藓与蕨", "minecraft:music_disc_chirp", 196, List.of("树荫下躺一会儿", "蜜蜂绕着花打转", "远处有狼在叫", "不急，太阳还没落", "把面包分一半", "给路过的猫")),
-            new Track("海底神殿", "潮涌", "minecraft:music_disc_mellohi", 233, List.of()),
-            new Track("末地星尘", "紫颂", "minecraft:music_disc_otherside", 171, List.of())));
+            new Track("oriel.ui.music.dawnlight_mine", "oriel.ui.music.oriel_ensemble", "minecraft:music_disc_cat", 185, List.of("oriel.ui.music.the_mine_lamps_sway_against_the_rock", "oriel.ui.music.echoes_rise_layer_by_layer_from_the", "oriel.ui.music.we_stick_torches_around_the_corners", "oriel.ui.music.so_the_next_person_won_t_get", "oriel.ui.music.the_rhythm_of_falling_pickaxes", "oriel.ui.music.slowly_falls_in_step_with_the_dripping", "oriel.ui.music.dawn_shines_in_through_the_cave_entrance", "oriel.ui.music.like_a_map_freshly_spread_open", "oriel.ui.music.our_packs_are_filled_with_today_s", "oriel.ui.music.and_one_diamond_we_can_t_bear", "oriel.ui.music.the_road_home_is_a_little_long", "oriel.ui.music.but_every_step_glows")),
+            new Track("oriel.ui.music.deepslate_echoes", "oriel.ui.music.underground_band", "minecraft:music_disc_13", 214, List.of("oriel.ui.music.down_just_a_little_farther_down", "oriel.ui.music.the_stone_grows_darker_and_darker", "oriel.ui.music.a_low_murmur_drifts_from_afar", "oriel.ui.music.we_hold_our_breath", "oriel.ui.music.where_the_light_can_t_reach", "oriel.ui.music.there_is_still_a_path")),
+            new Track("oriel.ui.music.nether_winds", "oriel.ui.music.blazing_trio", "minecraft:music_disc_pigstep", 148, List.of("oriel.ui.music.hot_wind_whips_up_the_ash", "oriel.ui.music.there_are_no_stars_in_the_red", "oriel.ui.music.a_bridge_stretches_over_the_lava", "oriel.ui.music.every_block_must_be_placed_securely", "oriel.ui.music.we_look_back_at_the_portal_s", "oriel.ui.music.it_is_always_waiting_for_us")),
+            new Track("oriel.ui.music.a_rest_among_the_trees", "oriel.ui.music.moss_and_ferns", "minecraft:music_disc_chirp", 196, List.of("oriel.ui.music.lie_down_beneath_the_shade_for_a", "oriel.ui.music.bees_circle_the_flowers", "oriel.ui.music.wolves_howl_in_the_distance", "oriel.ui.music.no_hurry_the_sun_hasn_t_set", "oriel.ui.music.break_the_bread_in_half", "oriel.ui.music.for_the_cat_passing_by")),
+            new Track("oriel.ui.music.ocean_monument", "oriel.ui.music.tidal_surge", "minecraft:music_disc_mellohi", 233, List.of()),
+            new Track("oriel.ui.music.end_stardust", "oriel.ui.music.chorus", "minecraft:music_disc_otherside", 171, List.of())));
     final List<Element> rows = new ArrayList<>();
     int current;
     double position;
@@ -53,7 +55,7 @@ public final class MusicPreset implements PageControllers.Controller {
     private Particles.Emitter notes;
     /** The play mode, one button cycling through them as desktop players do. */
     enum Mode {
-        ORDER("list", "顺序播放"), LOOP("repeat", "列表循环"), ONE("repeat", "单曲循环"), SHUFFLE("shuffle", "随机播放");
+        ORDER("list", "oriel.ui.music.play_in_order"), LOOP("repeat", "oriel.ui.music.loop_playlist"), ONE("repeat", "oriel.ui.music.repeat_one"), SHUFFLE("shuffle", "oriel.ui.music.shuffle");
 
         final String icon, label;
 
@@ -112,13 +114,13 @@ public final class MusicPreset implements PageControllers.Controller {
         });
         volumeSlider = new Slider(doc, Dom.byId(doc, "volume"), 20).onInput(v -> {
             volume = v;
-            Dom.text(Dom.byId(doc, "vol-label"), volume == 0 ? "静音" : "音量 " + Math.round(volume * 100) + "%");
+            Dom.text(Dom.byId(doc, "vol-label"), volume == 0 ? Lang.t(doc, "oriel.ui.music.mute") : Lang.t(doc, "oriel.ui.music.volume") + Math.round(volume * 100) + "%");
             Dom.attr(Dom.byId(doc, "vol-icon"), "src", "../textures/icons/" + (volume == 0 ? "mute" : "volume") + ".png");
         });
         volumeSlider.set(volume);
         for (int i = 0; i < playlist.size(); i++) rows.add(row(playlist.get(i)));
         layoutRows();
-        Dom.text(Dom.byId(doc, "count"), playlist.size() + " 首");
+        Dom.text(Dom.byId(doc, "count"), playlist.size() + Lang.t(doc, "oriel.ui.music.tracks"));
 
         Dom.onClick(play, e -> toggle());
         Dom.onClick(Dom.byId(doc, "prev"), e -> skip(-1));
@@ -178,7 +180,7 @@ public final class MusicPreset implements PageControllers.Controller {
         Dom.attr(miniPlayIcon, "src", icon);
         screen.toggleClass("playing", playing);
         notes.rate(playing ? 2.5f : 0);
-        Dom.text(Dom.byId(doc, "state-text"), playing ? "正在播放" : "已暂停");
+        Dom.text(Dom.byId(doc, "state-text"), playing ? Lang.t(doc, "oriel.ui.music.now_playing") : Lang.t(doc, "oriel.ui.music.paused"));
     }
 
     /** Marks the line for the current position and keeps it a third of the way down the lyrics. */
@@ -200,9 +202,9 @@ public final class MusicPreset implements PageControllers.Controller {
         mode = m;
         Element button = Dom.byId(doc, "mode");
         Dom.attr(Dom.byId(doc, "mode-icon"), "src", "../textures/icons/" + m.icon + ".png");
-        button.setAttribute("title", m.label);
+        button.setAttribute("title", Lang.value(doc, m.label));
         button.toggleClass("one", m == Mode.ONE);
-        Dom.text(Dom.byId(doc, "mode-label"), m.label);
+        Dom.text(Dom.byId(doc, "mode-label"), Lang.value(doc, m.label));
     }
 
     /** The previous or next track (by hand): random in shuffle, else round the list. */
@@ -232,10 +234,10 @@ public final class MusicPreset implements PageControllers.Controller {
         current = index;
         if (restart) position = 0;
         Track t = track();
-        Dom.text(title, t.title());
-        Dom.text(meta, t.artist());
+        Dom.text(title, Lang.value(doc, t.title()));
+        Dom.text(meta, Lang.value(doc, t.artist()));
         Dom.attr(disc, "id", t.disc());
-        Dom.text(miniTitle, t.title() + " · " + t.artist());
+        Dom.text(miniTitle, Lang.value(doc, t.title()) + " · " + Lang.value(doc, t.artist()));
         new Dom.Style(screen).set("--disc", discColour(t.disc())).apply();
         Dom.text(length, time(t.seconds()));
         for (int i = 0; i < rows.size(); i++) rows.get(i).toggleClass("current", i == current);
@@ -250,13 +252,13 @@ public final class MusicPreset implements PageControllers.Controller {
         lyric = -1;
         if (t.lyrics().isEmpty()) {
             lyricsBox.appendChild(Dom.html(doc, "<div class=\"pure-note\"><img class=\"o-ico x2\" src=\"../textures/icons/music.png\">"
-                    + "<span class=\"o-h1\">纯音乐</span><span class=\"o-dim\">没有歌词，请欣赏</span>"
+                    + ("<span class=\"o-h1\">" + Lang.html(doc, "oriel.ui.music.instrumental") + "</span><span class=\"o-dim\">" + Lang.html(doc, "oriel.ui.music.no_lyrics_just_enjoy") + "</span>")
                     + "<div class=\"pure-eq\"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>"));
             lyrics = List.of();
         } else {
             List<Element> lines = new ArrayList<>();
             for (String line : t.lyrics()) {
-                Element e = Dom.el(doc, "div", "ly", line);
+                Element e = Dom.el(doc, "div", "ly", Lang.value(doc, line));
                 lyricsBox.appendChild(e);
                 lines.add(e);
             }
@@ -340,7 +342,7 @@ public final class MusicPreset implements PageControllers.Controller {
         Element icon = Dom.el(doc, "item", null, null);
         icon.setAttribute("id", t.disc());
         row.appendChild(icon);
-        row.appendChild(Dom.el(doc, "span", "name", t.title()));
+        row.appendChild(Dom.el(doc, "span", "name", Lang.value(doc, t.title())));
         Element eq = Dom.el(doc, "span", "mini-eq", null);
         for (int i = 0; i < 3; i++) eq.appendChild(Dom.el(doc, "i", null, null));
         row.appendChild(eq);

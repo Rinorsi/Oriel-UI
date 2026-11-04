@@ -27,10 +27,10 @@ public final class McFormat {
     public static final String[] COLOR_NAMES = {
             "black", "dark_blue", "dark_green", "dark_aqua", "dark_red", "dark_purple", "gold", "gray",
             "dark_gray", "blue", "green", "aqua", "red", "light_purple", "yellow", "white"};
-    /** The colours' names as the Chinese game shows them. */
+    /** Message keys for the colours' display names; COLOR_NAMES remains the language-independent JSON protocol. */
     public static final String[] COLOR_LABELS = {
-            "黑色", "深蓝色", "深绿色", "湖蓝色", "深红色", "紫色", "金色", "灰色",
-            "深灰色", "蓝色", "绿色", "天蓝色", "红色", "粉红色", "黄色", "白色"};
+            "oriel.ui.mcformat.black", "oriel.ui.mcformat.dark_blue", "oriel.ui.mcformat.dark_green", "oriel.ui.mcformat.dark_aqua", "oriel.ui.mcformat.dark_red", "oriel.ui.mcformat.purple", "oriel.ui.mcformat.gold", "oriel.ui.mcformat.gray",
+            "oriel.ui.mcformat.dark_gray", "oriel.ui.mcformat.blue", "oriel.ui.mcformat.green", "oriel.ui.mcformat.aqua", "oriel.ui.mcformat.red", "oriel.ui.mcformat.light_purple", "oriel.ui.mcformat.yellow", "oriel.ui.mcformat.white"};
     public static final String CODES = "0123456789abcdefklmnor";
 
     private McFormat() {}

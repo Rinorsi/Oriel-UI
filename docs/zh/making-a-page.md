@@ -72,7 +72,7 @@ public void attach(Document doc) {
 - 装饰：盒子加 `deco-host`，里面放 `<i class="deco grid">`、`dots`、`stripes`、`scan`、`glow`、`vignette`、`frame`、`corners`、`shine`、`aurora`、`floor`，可以叠几层。页面有空处时先用它们填，而不是留一大片灰。
 - 加载：`o-lazy`（骨架占位，进入视野后逐个显示内容，重的模型和列表在此之前不渲染）；`o-preload`（加载页，`data-min` 毫秒后或 `Lazy.ready(doc)` 时揭开）。
 
-要列出游戏里的物品（选择器、搜索）：用 `GameRegistry.entries()`。游戏里它是完整的物品注册表，包括所有模组的物品，名字跟随游戏当前语言；预览器里是一份小的内置清单。`GameRegistry.name(id)` 返回显示名。
+要列出游戏里的物品（选择器、搜索）：用 `GameRegistry.entries(document)`。游戏里它是完整的物品注册表，包括所有模组的物品，名字跟随游戏当前语言；预览器里是一份小的内置清单。`GameRegistry.name(document, id)` 返回当前语言的显示名。页面文案与翻译属性见[多语言](i18n.md)。
 
 ## 4. 验证（每次改完都跑）
 

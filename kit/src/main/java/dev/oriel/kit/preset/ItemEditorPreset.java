@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -39,10 +41,10 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     static final Map<String, String> RARITY_COLOURS = Map.of("common", "#ffffff", "uncommon", "#ffff55", "rare", "#55ffff", "epic", "#ff55ff");
     static final Map<String, String> RARITY_TIERS = Map.of("common", "r-common", "uncommon", "r-uncommon", "rare", "r-rare", "epic", "r-epic");
     static final String[] OPERATIONS = {"add_value", "add_multiplied_base", "add_multiplied_total"};
-    static final String[] OPERATION_NAMES = {"+", "×基", "×总"};
+    static final String[] OPERATION_NAMES = {"+", "oriel.ui.item_editor.base_message", "oriel.ui.item_editor.total"};
     static final String[] SLOTS = {"any", "mainhand", "offhand", "hand", "feet", "legs", "chest", "head", "armor", "body"};
-    static final Map<String, String> SLOT_NAMES = Map.of("any", "任意", "mainhand", "主手", "offhand", "副手", "hand", "手持",
-            "feet", "脚", "legs", "腿", "chest", "胸", "head", "头", "armor", "盔甲", "body", "身体");
+    static final Map<String, String> SLOT_NAMES = Map.of("any", "oriel.ui.item_editor.any", "mainhand", "oriel.ui.item_editor.main_hand", "offhand", "oriel.ui.item_editor.off_hand", "hand", "oriel.ui.item_editor.held",
+            "feet", "oriel.ui.item_editor.feet", "legs", "oriel.ui.item_editor.legs", "chest", "oriel.ui.item_editor.chest", "head", "oriel.ui.item_editor.head", "armor", "oriel.ui.item_editor.armor", "body", "oriel.ui.item_editor.body");
 
     JsonObject baseline, work;
     final List<String> errors = new ArrayList<>();
@@ -54,6 +56,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     private final Map<String, String> enchantNames = new LinkedHashMap<>(), attributeNames = new LinkedHashMap<>();
     private final Map<String, Integer> enchantMax = new LinkedHashMap<>();
     private boolean waiting;
+    private boolean fixtureData;
 
     @Override
     public void attach(Document document) {
@@ -62,7 +65,8 @@ public final class ItemEditorPreset implements PageControllers.Controller {
         glintFx = fx.emitter("stage-fx");
         String data = doc.initialData();
         JsonElement parsed = data == null ? null : JsonParser.parseString(data);
-        baseline = parsed != null && parsed.isJsonObject() && parsed.getAsJsonObject().has("id") ? parsed.getAsJsonObject() : fixture();
+        fixtureData = parsed == null || !parsed.isJsonObject() || !parsed.getAsJsonObject().has("id");
+        baseline = fixtureData ? fixture(doc) : parsed.getAsJsonObject();
         for (JsonElement c : array(baseline, "enchantmentChoices")) {
             JsonObject o = c.getAsJsonObject();
             enchantNames.put(o.get("id").getAsString(), o.get("name").getAsString());
@@ -86,7 +90,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
         for (String c : COLOURS) {
             Element sw = Dom.el(doc, "span", c == null ? "none" : null, null);
             if (c != null) new Dom.Style(sw).set("--c", c).apply();
-            sw.setAttribute("title", c == null ? "跟随稀有度" : c);
+            sw.setAttribute("title", c == null ? Lang.t(doc, "oriel.ui.item_editor.follow_rarity") : c);
             sw.setAttribute("data-c", c == null ? "" : c);
             Shell.activate(sw, () -> edit("nameColor", c == null ? JsonNull.INSTANCE : new JsonPrimitive(c)));
             colours.appendChild(sw);
@@ -128,6 +132,32 @@ public final class ItemEditorPreset implements PageControllers.Controller {
         renderTree();
     }
 
+    private record State(JsonObject baseline, JsonObject work, List<String> changed, boolean fixture, String tab, boolean waiting) {}
+
+    @Override
+    public Object saveState() {
+        Element active = doc.querySelector("#tabs [data-tab].on");
+        return new State(baseline.deepCopy(), work.deepCopy(), changes(), fixtureData,
+                active == null ? null : active.getAttribute("data-tab"), waiting);
+    }
+
+    @Override
+    public void restoreState(Object state) {
+        if (!(state instanceof State s) || !baseline.get("id").equals(s.baseline().get("id"))) return;
+        if (fixtureData && s.fixture()) {
+            for (String field : s.changed()) work.add(field, s.work().get(field).deepCopy());
+        } else {
+            baseline = s.baseline().deepCopy();
+            work = s.work().deepCopy();
+        }
+        waiting = s.waiting();
+        renderAll(true);
+        renderEnchantPicker("");
+        renderAttributePicker("");
+        renderTree();
+        if (s.tab() != null) tab(s.tab());
+    }
+
     private void key(KeyboardEvent e) {
         if ((e.modifiers.ctrl() || e.modifiers.meta()) && e.key.equalsIgnoreCase("s")) {
             e.preventDefault();
@@ -151,7 +181,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     void revert() {
         work = baseline.deepCopy();
         renderAll(true);
-        status("已还原到打开时的样子", null);
+        status(Lang.t(doc, "oriel.ui.item_editor.restored_to_how_it_looked_when_opened"), null);
     }
 
     /** The fields that differ from the baseline. */
@@ -168,25 +198,25 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     void validate() {
         errors.clear();
         String name = string(work, "name");
-        if (name != null && name.length() > MAX_NAME) errors.add("名称最多 " + MAX_NAME + " 个字");
+        if (name != null && name.length() > MAX_NAME) errors.add(Lang.t(doc, "oriel.ui.item_editor.name_can_be_at_most") + MAX_NAME + Lang.t(doc, "oriel.ui.item_editor.characters"));
         JsonArray lore = work.getAsJsonArray("lore");
-        if (lore.size() > MAX_LORE_LINES) errors.add("说明最多 " + MAX_LORE_LINES + " 行");
-        for (JsonElement l : lore) if (l.getAsString().length() > MAX_LORE_LENGTH) errors.add("每行说明最多 " + MAX_LORE_LENGTH + " 个字");
+        if (lore.size() > MAX_LORE_LINES) errors.add(Lang.t(doc, "oriel.ui.item_editor.description_can_be_at_most") + MAX_LORE_LINES + Lang.t(doc, "oriel.ui.item_editor.lines"));
+        for (JsonElement l : lore) if (l.getAsString().length() > MAX_LORE_LENGTH) errors.add(Lang.t(doc, "oriel.ui.item_editor.description_can_be_at_most_2") + MAX_LORE_LENGTH + Lang.t(doc, "oriel.ui.item_editor.characters"));
         for (JsonElement e : work.getAsJsonArray("enchantments")) {
             int level = e.getAsJsonObject().get("level").getAsInt();
-            if (level < 1 || level > MAX_LEVEL) errors.add("附魔等级要在 1–" + MAX_LEVEL + " 之间");
+            if (level < 1 || level > MAX_LEVEL) errors.add(Lang.t(doc, "oriel.ui.item_editor.level_range", MAX_LEVEL));
         }
         for (JsonElement e : work.getAsJsonArray("attributes")) {
             JsonElement amount = e.getAsJsonObject().get("amount");
             if (amount == null || amount.isJsonNull() || !Double.isFinite(amount.getAsDouble()) || Math.abs(amount.getAsDouble()) > MAX_AMOUNT) {
-                errors.add("属性数值要在 ±" + (int) MAX_AMOUNT + " 之内");
+                errors.add(Lang.t(doc, "oriel.ui.item_editor.amount_range", (int) MAX_AMOUNT));
             }
         }
         JsonElement max = work.get("maxDamage");
-        if (max == null || max.isJsonNull()) errors.add("最大耐久要是数字");
+        if (max == null || max.isJsonNull()) errors.add(Lang.t(doc, "oriel.ui.item_editor.max_durability_must_be_a_number"));
         else if (baseline.get("maxDamage").getAsInt() > 0 && (max.getAsInt() < 1 || max.getAsInt() > MAX_DURABILITY)) {
-            errors.add("最大耐久要在 1–" + MAX_DURABILITY + " 之间");
-        } else if (max.getAsInt() > 0 && work.get("damage").getAsInt() >= max.getAsInt()) errors.add("损耗要小于最大耐久");
+            errors.add(Lang.t(doc, "oriel.ui.item_editor.durability_range", MAX_DURABILITY));
+        } else if (max.getAsInt() > 0 && work.get("damage").getAsInt() >= max.getAsInt()) errors.add(Lang.t(doc, "oriel.ui.item_editor.damage_must_be_less_than_max_durability"));
     }
 
     void save() {
@@ -197,16 +227,16 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             return;
         }
         if (changes().isEmpty()) {
-            status("没有修改", null);
+            status(Lang.t(doc, "oriel.ui.item_editor.no_changes"), null);
             return;
         }
         JsonObject edit = new JsonObject();
         for (String f : changes()) edit.add(f, work.get(f));
         if (doc.host().send("save", edit.toString())) {
             waiting = true;
-            status("正在保存…", null);
+            status(Lang.t(doc, "oriel.ui.item_editor.saving"), null);
         } else {
-            status("预览模式：没有连着服务器，修改不会写回物品", "bad");
+            status(Lang.t(doc, "oriel.ui.item_editor.preview_mode_not_connected_to_a_server"), "bad");
         }
     }
 
@@ -220,11 +250,11 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             renderAll(true);
             renderTree();
             Motion.play(saveButton, "m-success", 560);
-            status("已保存到手里的物品", "good");
-            toast("已保存");
+            status(Lang.t(doc, "oriel.ui.item_editor.saved_to_the_item_in_hand"), "good");
+            toast(Lang.t(doc, "oriel.ui.item_editor.saved"));
         } else {
             Motion.play(saveButton, "m-error", 300);
-            status("服务器拒绝了：" + string(r, "reason"), "bad");
+            status(Lang.t(doc, "oriel.ui.item_editor.server_rejected_it") + string(r, "reason"), "bad");
         }
     }
 
@@ -237,7 +267,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
         Dom.text(Dom.byId(doc, "dirty-n"), Integer.toString(changed.size()));
         saveButton.toggleClass("disabled", !errors.isEmpty() || waiting);
         if (!errors.isEmpty()) status(errors.getFirst(), "bad");
-        else if (lastStatus.startsWith("名称") || lastStatus.contains("之间") || lastStatus.contains("最多") || lastStatus.contains("要")) status("修改的是副本；保存前原物品不会变", null);
+        else if (lastStatus.startsWith(Lang.t(doc, "oriel.ui.item_editor.name")) || lastStatus.contains(Lang.t(doc, "oriel.ui.item_editor.between")) || lastStatus.contains(Lang.t(doc, "oriel.ui.item_editor.at_most")) || lastStatus.contains(Lang.t(doc, "oriel.ui.item_editor.must_be"))) status(Lang.t(doc, "oriel.ui.item_editor.edits_are_made_to_a_copy_the"), null);
         String rarity = string(work, "rarity");
         for (String t : RARITY_TIERS.values()) left.toggleClass(t, t.equals(RARITY_TIERS.get(rarity)));
         Dom.attr(model, "item", string(work, "id"));
@@ -287,12 +317,12 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             bySlot.computeIfAbsent(string(o, "slot"), k -> new ArrayList<>()).add(o);
         }
         bySlot.forEach((slot, list) -> {
-            tooltip.appendChild(Dom.el(doc, "div", "tg", "装备在" + SLOT_NAMES.getOrDefault(slot, slot) + "时："));
+            tooltip.appendChild(Dom.el(doc, "div", "tg", Lang.t(doc, "oriel.ui.item_editor.equipped_slot", Lang.value(doc, SLOT_NAMES.getOrDefault(slot, slot)))));
             for (JsonObject o : list) tooltip.appendChild(Dom.el(doc, "div", "ta", amountText(o) + " " + attributeName(string(o, "attribute"))));
         });
         int max = intOr(work.get("maxDamage"), 0), damage = intOr(work.get("damage"), 0);
-        if (work.get("unbreakable").getAsBoolean()) tooltip.appendChild(Dom.el(doc, "div", "ta", "无法破坏"));
-        else if (max > 0 && damage > 0) tooltip.appendChild(Dom.el(doc, "div", "td", "耐久度：" + (max - damage) + " / " + max));
+        if (work.get("unbreakable").getAsBoolean()) tooltip.appendChild(Dom.el(doc, "div", "ta", Lang.t(doc, "oriel.ui.item_editor.unbreakable")));
+        else if (max > 0 && damage > 0) tooltip.appendChild(Dom.el(doc, "div", "td", Lang.t(doc, "oriel.ui.item_editor.durability_message") + (max - damage) + " / " + max));
         tooltip.appendChild(Dom.el(doc, "div", "tid", string(work, "id")));
     }
 
@@ -313,7 +343,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
                 edit("lore", next);
                 input.toggleClass("bad", input.value().length() > MAX_LORE_LENGTH);
             });
-            Element remove = iconButton("trash", "删除这行");
+            Element remove = iconButton("trash", Lang.t(doc, "oriel.ui.item_editor.delete_this_line"));
             Shell.activate(remove, () -> {
                 JsonArray next = work.getAsJsonArray("lore").deepCopy();
                 next.remove(index);
@@ -325,7 +355,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             box.appendChild(row);
             last = input;
         }
-        if (lore.isEmpty()) box.appendChild(Dom.el(doc, "div", "empty", "没有说明。"));
+        if (lore.isEmpty()) box.appendChild(Dom.el(doc, "div", "empty", Lang.t(doc, "oriel.ui.item_editor.no_description")));
         if (focusLast && last != null) last.focus();
     }
 
@@ -342,7 +372,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             Shell.activate(chip, () -> addEnchant(id));
             results.appendChild(chip);
         }
-        if (shown == 0) results.appendChild(Dom.el(doc, "span", "o-faint", "没有匹配的附魔"));
+        if (shown == 0) results.appendChild(Dom.el(doc, "span", "o-faint", Lang.t(doc, "oriel.ui.item_editor.no_matching_enchantments")));
     }
 
     void addEnchant(String id) {
@@ -367,7 +397,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             Element row = Dom.el(doc, "div", "erow o-well", null);
             row.appendChild(Dom.el(doc, "span", "nm ench", enchantName(id)));
             Element stepper = Dom.el(doc, "div", "stepper", null);
-            Element minus = iconButton("minus", "降一级"), plus = iconButton("plus", "升一级");
+            Element minus = iconButton("minus", Lang.t(doc, "oriel.ui.item_editor.decrease_level")), plus = iconButton("plus", Lang.t(doc, "oriel.ui.item_editor.increase_level"));
             Element v = Dom.el(doc, "span", "v" + (level < 1 || level > MAX_LEVEL ? " bad" : ""), roman(level));
             Shell.activate(minus, () -> setEnchantLevel(index, level - 1));
             Shell.activate(plus, () -> setEnchantLevel(index, level + 1));
@@ -376,8 +406,8 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             stepper.appendChild(plus);
             row.appendChild(stepper);
             Integer max = enchantMax.get(id);
-            row.appendChild(Dom.el(doc, "span", "max", max == null ? "" : "原版最高 " + roman(max)));
-            Element remove = iconButton("trash", "去掉这个附魔");
+            row.appendChild(Dom.el(doc, "span", "max", max == null ? "" : Lang.t(doc, "oriel.ui.item_editor.vanilla_maximum") + roman(max)));
+            Element remove = iconButton("trash", Lang.t(doc, "oriel.ui.item_editor.remove_this_enchantment"));
             Shell.activate(remove, () -> {
                 JsonArray next = work.getAsJsonArray("enchantments").deepCopy();
                 next.remove(index);
@@ -386,7 +416,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             row.appendChild(remove);
             rows.appendChild(row);
         }
-        if (list.isEmpty()) rows.appendChild(Dom.el(doc, "div", "empty", "没有附魔。在上面搜索并点一下就能加上。"));
+        if (list.isEmpty()) rows.appendChild(Dom.el(doc, "div", "empty", Lang.t(doc, "oriel.ui.item_editor.no_enchantments_search_above_and_click_one")));
     }
 
     void setEnchantLevel(int index, int level) {
@@ -408,7 +438,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             Shell.activate(chip, () -> addAttribute(id));
             results.appendChild(chip);
         }
-        if (shown == 0) results.appendChild(Dom.el(doc, "span", "o-faint", "没有匹配的属性"));
+        if (shown == 0) results.appendChild(Dom.el(doc, "span", "o-faint", Lang.t(doc, "oriel.ui.item_editor.no_matching_attributes")));
     }
 
     void addAttribute(String id) {
@@ -448,19 +478,19 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             Element ops = Dom.el(doc, "div", "o-seg", null);
             for (int k = 0; k < OPERATIONS.length; k++) {
                 String op = OPERATIONS[k];
-                Element b = Dom.el(doc, "span", op.equals(string(o, "operation")) ? "on" : null, OPERATION_NAMES[k]);
+                Element b = Dom.el(doc, "span", op.equals(string(o, "operation")) ? "on" : null, Lang.value(doc, OPERATION_NAMES[k]));
                 Shell.activate(b, () -> setAttribute(index, "operation", op));
                 ops.appendChild(b);
             }
             row.appendChild(ops);
-            Element slot = Dom.el(doc, "div", "ore-btn small", SLOT_NAMES.getOrDefault(string(o, "slot"), string(o, "slot")));
-            slot.setAttribute("title", "点击切换装备部位");
+            Element slot = Dom.el(doc, "div", "ore-btn small", Lang.value(doc, SLOT_NAMES.getOrDefault(string(o, "slot"), string(o, "slot"))));
+            slot.setAttribute("title", Lang.t(doc, "oriel.ui.item_editor.click_to_toggle_equipment_slot"));
             Shell.activate(slot, () -> {
                 int at = List.of(SLOTS).indexOf(string(o, "slot"));
                 setAttribute(index, "slot", SLOTS[(at + 1) % SLOTS.length]);
             });
             row.appendChild(slot);
-            Element remove = iconButton("trash", "删除这条");
+            Element remove = iconButton("trash", Lang.t(doc, "oriel.ui.item_editor.delete_this"));
             Shell.activate(remove, () -> {
                 JsonArray next = work.getAsJsonArray("attributes").deepCopy();
                 next.remove(index);
@@ -469,7 +499,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
             row.appendChild(remove);
             rows.appendChild(row);
         }
-        if (list.isEmpty()) rows.appendChild(Dom.el(doc, "div", "empty", "没有属性修饰符（物品用原版默认值）。"));
+        if (list.isEmpty()) rows.appendChild(Dom.el(doc, "div", "empty", Lang.t(doc, "oriel.ui.item_editor.no_attribute_modifiers_the_item_uses_vanilla")));
     }
 
     void setAttribute(int index, String key, String value) {
@@ -481,14 +511,14 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     private void renderDurability() {
         int max = intOr(work.get("maxDamage"), 0), damage = intOr(work.get("damage"), 0);
         boolean damageable = baseline.get("maxDamage").getAsInt() > 0;
-        Dom.text(Dom.byId(doc, "dura-note"), damageable ? "" : "这个物品没有耐久");
+        Dom.text(Dom.byId(doc, "dura-note"), damageable ? "" : Lang.t(doc, "oriel.ui.item_editor.this_item_has_no_durability"));
         if (!damageSlider.dragging()) damageSlider.set(max > 1 ? damage / (float) (max - 1) : 0);
         Dom.text(Dom.byId(doc, "damage-v"), damage + " / " + max);
         Dom.byId(doc, "unbreakable").toggleClass("on", work.get("unbreakable").getAsBoolean());
         JsonElement g = work.get("glint");
         String gv = g == null || g.isJsonNull() ? "default" : g.getAsBoolean() ? "on" : "off";
         for (Element e : doc.querySelectorAll("#glint [data-g]")) e.toggleClass("on", e.getAttribute("data-g").equals(gv));
-        Dom.byId(doc, "max-damage").toggleClass("bad", errors.stream().anyMatch(x -> x.contains("耐久") || x.contains("损耗")));
+        Dom.byId(doc, "max-damage").toggleClass("bad", errors.stream().anyMatch(x -> x.contains(Lang.t(doc, "oriel.ui.item_editor.durability_2")) || x.contains(Lang.t(doc, "oriel.ui.item_editor.damage"))));
     }
 
     /** Every component as an expandable tree (read only). */
@@ -497,7 +527,7 @@ public final class ItemEditorPreset implements PageControllers.Controller {
         tree.removeAllChildren();
         JsonObject all = work.has("components") && work.get("components").isJsonObject() ? work.getAsJsonObject("components") : new JsonObject();
         for (Map.Entry<String, JsonElement> e : all.entrySet()) tree.appendChild(node(e.getKey(), e.getValue()));
-        if (all.isEmpty()) tree.appendChild(Dom.el(doc, "div", "empty", "（没有组件数据）"));
+        if (all.isEmpty()) tree.appendChild(Dom.el(doc, "div", "empty", Lang.t(doc, "oriel.ui.item_editor.no_component_data")));
     }
 
     private Element node(String key, JsonElement value) {
@@ -605,28 +635,28 @@ public final class ItemEditorPreset implements PageControllers.Controller {
     }
 
     /** The item shown when the page opens without a server (previewer, tests): an enchanted diamond sword. */
-    static JsonObject fixture() {
+    static JsonObject fixture(Document doc) {
         String json = """
-                {"id": "minecraft:diamond_sword", "count": 1, "defaultName": "钻石剑", "name": "龙牙", "nameColor": "#ffaa00",
-                 "rarity": "rare", "lore": ["传说它斩落过末影龙的一颗牙"],
+                {"id": "minecraft:diamond_sword", "count": 1, "defaultName": "oriel.ui.item_editor.diamond_sword", "name": "oriel.ui.item_editor.dragon_tooth", "nameColor": "#ffaa00",
+                 "rarity": "rare", "lore": ["oriel.ui.item_editor.legend_says_it_knocked_out_one_of"],
                  "enchantments": [{"id": "minecraft:sharpness", "level": 5}, {"id": "minecraft:looting", "level": 3}],
                  "damage": 120, "maxDamage": 1561, "unbreakable": false, "glint": null,
                  "attributes": [{"attribute": "minecraft:attack_damage", "modifier": "minecraft:base_attack_damage", "amount": 7,
                                  "operation": "add_value", "slot": "mainhand"},
                                 {"attribute": "minecraft:attack_speed", "modifier": "minecraft:base_attack_speed", "amount": -2.4,
                                  "operation": "add_value", "slot": "mainhand"}],
-                 "enchantmentChoices": [{"id": "minecraft:sharpness", "name": "锋利", "max": 5}, {"id": "minecraft:smite", "name": "亡灵杀手", "max": 5},
-                   {"id": "minecraft:looting", "name": "抢夺", "max": 3}, {"id": "minecraft:fire_aspect", "name": "火焰附加", "max": 2},
-                   {"id": "minecraft:knockback", "name": "击退", "max": 2}, {"id": "minecraft:sweeping_edge", "name": "横扫之刃", "max": 3},
-                   {"id": "minecraft:unbreaking", "name": "耐久", "max": 3}, {"id": "minecraft:mending", "name": "经验修补", "max": 1}],
-                 "attributeChoices": [{"id": "minecraft:attack_damage", "name": "攻击伤害"}, {"id": "minecraft:attack_speed", "name": "攻击速度"},
-                   {"id": "minecraft:movement_speed", "name": "速度"}, {"id": "minecraft:max_health", "name": "最大生命值"},
-                   {"id": "minecraft:armor", "name": "盔甲"}, {"id": "minecraft:luck", "name": "幸运"}],
-                 "components": {"minecraft:custom_name": {"text": "龙牙", "color": "gold", "italic": false}, "minecraft:rarity": "rare",
+                 "enchantmentChoices": [{"id": "minecraft:sharpness", "name": "oriel.ui.item_editor.sharpness", "max": 5}, {"id": "minecraft:smite", "name": "oriel.ui.item_editor.smite", "max": 5},
+                   {"id": "minecraft:looting", "name": "oriel.ui.item_editor.looting", "max": 3}, {"id": "minecraft:fire_aspect", "name": "oriel.ui.item_editor.fire_aspect", "max": 2},
+                   {"id": "minecraft:knockback", "name": "oriel.ui.item_editor.knockback", "max": 2}, {"id": "minecraft:sweeping_edge", "name": "oriel.ui.item_editor.sweeping_edge", "max": 3},
+                   {"id": "minecraft:unbreaking", "name": "oriel.ui.item_editor.durability_2", "max": 3}, {"id": "minecraft:mending", "name": "oriel.ui.item_editor.mending", "max": 1}],
+                 "attributeChoices": [{"id": "minecraft:attack_damage", "name": "oriel.ui.item_editor.attack_damage"}, {"id": "minecraft:attack_speed", "name": "oriel.ui.item_editor.attack_speed"},
+                   {"id": "minecraft:movement_speed", "name": "oriel.ui.item_editor.speed"}, {"id": "minecraft:max_health", "name": "oriel.ui.item_editor.max_health"},
+                   {"id": "minecraft:armor", "name": "oriel.ui.item_editor.armor"}, {"id": "minecraft:luck", "name": "oriel.ui.item_editor.luck"}],
+                 "components": {"minecraft:custom_name": {"text": "oriel.ui.item_editor.dragon_tooth", "color": "gold", "italic": false}, "minecraft:rarity": "rare",
                    "minecraft:enchantments": {"minecraft:sharpness": 5, "minecraft:looting": 3}, "minecraft:damage": 120,
-                   "minecraft:max_damage": 1561, "minecraft:lore": ["传说它斩落过末影龙的一颗牙"], "minecraft:repair_cost": 0,
+                   "minecraft:max_damage": 1561, "minecraft:lore": ["oriel.ui.item_editor.legend_says_it_knocked_out_one_of"], "minecraft:repair_cost": 0,
                    "minecraft:tool": {"rules": [{"blocks": "minecraft:cobweb", "speed": 15.0, "correct_for_drops": true}], "damage_per_block": 2}}}
                 """;
-        return JsonParser.parseString(json).getAsJsonObject();
+        return Lang.fixture(doc, JsonParser.parseString(json)).getAsJsonObject();
     }
 }

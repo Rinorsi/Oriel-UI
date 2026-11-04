@@ -1,5 +1,7 @@
 package dev.oriel.kit.preset;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.KeyboardEvent;
@@ -31,8 +33,8 @@ import java.util.Set;
 public final class EditorPreset implements PageControllers.Controller {
     static final int GRID = 4, SNAP_RANGE = 3;
     /** New canvas sizes: a name and width x height in GUI pixels. */
-    static final String[][] SIZES = {{"默认", "264", "172"}, {"箱子", "176", "166"}, {"宽屏", "320", "200"},
-            {"全屏 · 小", "427", "240"}, {"全屏 · 中", "640", "360"}, {"弹窗", "200", "120"}};
+    static final String[][] SIZES = {{"oriel.ui.editor.default", "264", "172"}, {"oriel.ui.editor.chest", "176", "166"}, {"oriel.ui.editor.widescreen", "320", "200"},
+            {"oriel.ui.editor.full_screen_small", "427", "240"}, {"oriel.ui.editor.full_screen_medium", "640", "360"}, {"oriel.ui.editor.pop_up", "200", "120"}};
 
     /** One part on the artboard. */
     static final class Part {
@@ -59,8 +61,8 @@ public final class EditorPreset implements PageControllers.Controller {
         }
     }
 
-    static final Map<String, String> KIND_NAMES = Map.of("button", "按钮", "panel", "面板", "title", "标题", "text", "文本",
-            "slot", "物品格", "toggle", "开关", "meter", "进度条", "block", "3D 方块", "entity", "3D 实体");
+    static final Map<String, String> KIND_NAMES = Map.of("button", "oriel.ui.editor.button", "panel", "oriel.ui.editor.panel", "title", "oriel.ui.editor.title", "text", "oriel.ui.editor.text",
+            "slot", "oriel.ui.editor.item_slot", "toggle", "oriel.ui.editor.toggle", "meter", "oriel.ui.editor.progress_bar", "block", "oriel.ui.editor.3d_cube", "entity", "oriel.ui.editor.3d_solid");
     static final Map<String, String> KIND_ICONS = Map.of("button", "mouse", "panel", "layers", "title", "file", "text", "list",
             "slot", "gem", "toggle", "sliders", "meter", "bolt", "block", "cube", "entity", "paw");
     static final List<String> VARIANTS = List.of("hero", "primary", "secondary", "destructive", "neutral");
@@ -72,7 +74,7 @@ public final class EditorPreset implements PageControllers.Controller {
     private int nextId = 1;
     /** The artboard's size and the document's name (a new canvas sets both). */
     int boardW = 264, boardH = 172;
-    String docName = "商店界面";
+    String docName;
     /** Ctrl+C / Ctrl+X copies, pasted by Ctrl+V (kept across documents, like a clipboard). */
     private static final List<Part> clipboard = new ArrayList<>();
     private int pastes;
@@ -96,6 +98,7 @@ public final class EditorPreset implements PageControllers.Controller {
     @Override
     public void attach(Document document) {
         doc = document;
+        docName = Lang.t(doc, "oriel.ui.editor.shop_interface");
         Shell.setup(doc);
         board = Dom.byId(doc, "board");
         tree = Dom.byId(doc, "tree");
@@ -161,7 +164,7 @@ public final class EditorPreset implements PageControllers.Controller {
             Element shape = Dom.el(doc, "i", "shape", null);
             new Dom.Style(shape).px("width", Integer.parseInt(size[1]) / 16f).px("height", Integer.parseInt(size[2]) / 16f).apply();
             tile.appendChild(shape);
-            tile.appendChild(Dom.el(doc, "b", null, size[0]));
+            tile.appendChild(Dom.el(doc, "b", null, Lang.value(doc, size[0])));
             tile.appendChild(Dom.el(doc, "span", null, size[1] + " × " + size[2]));
             Shell.activate(tile, () -> {
                 for (Element t : sizes.children()) t.toggleClass("sel", t == tile);
@@ -176,12 +179,12 @@ public final class EditorPreset implements PageControllers.Controller {
             String name = Dom.byId(doc, "new-name").value().trim();
             boolean withSample = Dom.byId(doc, "new-sample").hasClass("on");
             Dom.byId(doc, "new-box").removeClass("on");
-            newCanvas(name.isEmpty() ? "未命名界面" : name, clamp(w, 64, 640), clamp(h, 48, 360), withSample);
+            newCanvas(name.isEmpty() ? Lang.t(doc, "oriel.ui.editor.untitled_interface") : name, clamp(w, 64, 640), clamp(h, 48, 360), withSample);
         });
     }
 
     void openNew() {
-        Dom.byId(doc, "new-name").setValue("新界面");
+        Dom.byId(doc, "new-name").setValue(Lang.t(doc, "oriel.ui.editor.new_interface"));
         Dom.byId(doc, "new-w").setValue(Integer.toString(boardW));
         Dom.byId(doc, "new-h").setValue(Integer.toString(boardH));
         for (Element t : Dom.byId(doc, "new-sizes").children()) {
@@ -204,7 +207,7 @@ public final class EditorPreset implements PageControllers.Controller {
         docName = name;
         if (withSample) sample();
         render();
-        status("新建了「" + name + "」 · " + w + " × " + h);
+        status(Lang.t(doc, "oriel.ui.editor.created") + name + "」 · " + w + " × " + h);
     }
 
     private static int parse(String v, int fallback) {
@@ -228,7 +231,7 @@ public final class EditorPreset implements PageControllers.Controller {
             selection.clear();
             render();
         }
-        status((cut ? "剪切了 " : "复制了 ") + clipboard.size() + " 个组件");
+        status((cut ? Lang.t(doc, "oriel.ui.editor.cut_2") : Lang.t(doc, "oriel.ui.editor.copied")) + clipboard.size() + Lang.t(doc, "oriel.ui.editor.components"));
         for (Element t : doc.querySelectorAll("#ctx .clip")) t.toggleClass("disabled", false);
     }
 
@@ -248,7 +251,7 @@ public final class EditorPreset implements PageControllers.Controller {
             selection.add(p.id);
         }
         render();
-        status("粘贴了 " + clipboard.size() + " 个组件");
+        status(Lang.t(doc, "oriel.ui.editor.pasted") + clipboard.size() + Lang.t(doc, "oriel.ui.editor.components"));
     }
 
     // ---- Item picker ----
@@ -275,7 +278,7 @@ public final class EditorPreset implements PageControllers.Controller {
         pickKind = entity ? "entity" : p.kind.equals("block") ? "block" : "all";
         for (Element k : doc.querySelectorAll("#pick-kind [data-k]")) k.toggleClass("on", k.getAttribute("data-k").equals(pickKind));
         Dom.byId(doc, "pick-kind").toggleClass("o-hidden", entity);
-        Dom.text(Dom.byId(doc, "pick-title"), entity ? "选择实体" : p.kind.equals("block") ? "选择方块" : "选择物品");
+        Dom.text(Dom.byId(doc, "pick-title"), entity ? Lang.t(doc, "oriel.ui.editor.select_entity") : p.kind.equals("block") ? Lang.t(doc, "oriel.ui.editor.select_block") : Lang.t(doc, "oriel.ui.editor.select_item"));
         Dom.byId(doc, "pick-q").setValue("");
         Dom.text(Dom.byId(doc, "pick-hover"), "");
         Dom.byId(doc, "pick-box").addClass("on");
@@ -294,7 +297,7 @@ public final class EditorPreset implements PageControllers.Controller {
         String query = Dom.byId(doc, "pick-q").value().trim().toLowerCase(Locale.ROOT);
         int total = 0;
         boolean entity = pickKind.equals("entity");
-        for (GameRegistry.Entry e : entity ? GameRegistry.entities() : GameRegistry.entries()) {
+        for (GameRegistry.Entry e : entity ? GameRegistry.entities(doc) : GameRegistry.entries(doc)) {
             if (pickKind.equals("block") && !e.block() || pickKind.equals("item") && e.block()) continue;
             if (!e.matches(query)) continue;
             if (++total > PICK_LIMIT) continue;
@@ -307,8 +310,8 @@ public final class EditorPreset implements PageControllers.Controller {
             Shell.activate(cell, () -> choose(e));
             grid.appendChild(cell);
         }
-        Dom.text(Dom.byId(doc, "pick-count"), total == 0 ? "没有找到" : total > PICK_LIMIT
-                ? "共 " + total + " 个，显示前 " + PICK_LIMIT + " 个，继续输入可缩小范围" : "共 " + total + " 个");
+        Dom.text(Dom.byId(doc, "pick-count"), total == 0 ? Lang.t(doc, "oriel.ui.editor.not_found") : total > PICK_LIMIT
+                ? Lang.t(doc, "oriel.ui.editor.total") + total + Lang.t(doc, "oriel.ui.editor.items_showing_the_first") + PICK_LIMIT + Lang.t(doc, "oriel.ui.editor.items_keep_typing_to_narrow_the_search") : Lang.t(doc, "oriel.ui.editor.total") + total + Lang.t(doc, "oriel.ui.editor.items"));
     }
 
     private void choose(GameRegistry.Entry e) {
@@ -316,7 +319,7 @@ public final class EditorPreset implements PageControllers.Controller {
         closePicker();
         if (p == null) return;
         edit(() -> p.text = e.id());
-        status("换成了 " + e.name());
+        status(Lang.t(doc, "oriel.ui.editor.changed_to") + e.name());
     }
 
 
@@ -349,30 +352,30 @@ public final class EditorPreset implements PageControllers.Controller {
 
     /** A starting screen: a shop card, so there is something to edit. */
     private void sample() {
-        add("panel", 8, 8, 248, 156).name = "背景面板";
+        add("panel", 8, 8, 248, 156).name = Lang.t(doc, "oriel.ui.editor.background_panel");
         Part title = add("title", 18, 16, 140, 18);
-        title.text = "商人的货架";
-        title.name = "标题";
+        title.text = Lang.t(doc, "oriel.ui.editor.merchant_s_shelf");
+        title.name = Lang.t(doc, "oriel.ui.editor.title");
         Part sub = add("text", 18, 38, 160, 10);
-        sub.text = "今日特价：附魔钻石剑";
-        sub.name = "副标题";
+        sub.text = Lang.t(doc, "oriel.ui.editor.today_s_special_enchanted_diamond_sword");
+        sub.name = Lang.t(doc, "oriel.ui.editor.subtitle");
         Part block = add("block", 176, 14, 64, 64);
         block.text = "minecraft:enchanting_table";
-        block.name = "展示方块";
+        block.name = Lang.t(doc, "oriel.ui.editor.display_block");
         Part slot = add("slot", 18, 60, 24, 24);
         slot.text = "minecraft:diamond_sword";
         slot.tier = "epic";
-        slot.name = "商品格";
+        slot.name = Lang.t(doc, "oriel.ui.editor.product_slot");
         Part meter = add("meter", 50, 72, 110, 7);
-        meter.name = "库存";
+        meter.name = Lang.t(doc, "oriel.ui.editor.inventory");
         Part buy = add("button", 168, 132, 76, 22);
-        buy.text = "购买";
+        buy.text = Lang.t(doc, "oriel.ui.editor.purchase");
         buy.variant = "hero";
-        buy.name = "购买按钮";
+        buy.name = Lang.t(doc, "oriel.ui.editor.purchase_button");
         Part cancel = add("button", 98, 132, 64, 22);
-        cancel.text = "离开";
+        cancel.text = Lang.t(doc, "oriel.ui.editor.leave");
         cancel.variant = "secondary";
-        cancel.name = "离开按钮";
+        cancel.name = Lang.t(doc, "oriel.ui.editor.leave_button");
         undo.clear();
     }
 
@@ -380,15 +383,15 @@ public final class EditorPreset implements PageControllers.Controller {
         Part p = new Part();
         p.id = nextId++;
         p.kind = kind;
-        p.name = KIND_NAMES.getOrDefault(kind, kind) + " " + p.id;
+        p.name = Lang.value(doc, KIND_NAMES.getOrDefault(kind, kind)) + " " + p.id;
         p.x = x;
         p.y = y;
         p.w = w;
         p.h = h;
         p.text = switch (kind) {
-            case "button" -> "按钮";
-            case "title" -> "标题";
-            case "text" -> "一段文字";
+            case "button" -> Lang.t(doc, "oriel.ui.editor.button");
+            case "title" -> Lang.t(doc, "oriel.ui.editor.title");
+            case "text" -> Lang.t(doc, "oriel.ui.editor.some_text");
             case "slot" -> "minecraft:emerald";
             case "block" -> "minecraft:grass_block";
             case "entity" -> "minecraft:fox";
@@ -422,7 +425,7 @@ public final class EditorPreset implements PageControllers.Controller {
         selection.clear();
         selection.add(p.id);
         render();
-        status(KIND_NAMES.get(kind) + " 已添加");
+        status(Lang.value(doc, KIND_NAMES.get(kind)) + Lang.t(doc, "oriel.ui.editor.added"));
     }
 
     // ---- History ----
@@ -444,14 +447,14 @@ public final class EditorPreset implements PageControllers.Controller {
         if (undo.isEmpty()) return;
         redo.push(snapshot());
         restore(undo.pop());
-        status("已撤销");
+        status(Lang.t(doc, "oriel.ui.editor.undone"));
     }
 
     void redo() {
         if (redo.isEmpty()) return;
         undo.push(snapshot());
         restore(redo.pop());
-        status("已重做");
+        status(Lang.t(doc, "oriel.ui.editor.redone"));
     }
 
     private void restore(List<Part> state) {
@@ -470,7 +473,7 @@ public final class EditorPreset implements PageControllers.Controller {
         parts.removeIf(p -> selection.contains(p.id));
         selection.clear();
         render();
-        status("删除了 " + n + " 个组件");
+        status(Lang.t(doc, "oriel.ui.editor.deleted") + n + Lang.t(doc, "oriel.ui.editor.components"));
     }
 
     void duplicate() {
@@ -480,7 +483,7 @@ public final class EditorPreset implements PageControllers.Controller {
         for (Part p : selected()) {
             Part c = p.copy();
             c.id = nextId++;
-            c.name = p.name + " 副本";
+            c.name = p.name + Lang.t(doc, "oriel.ui.editor.copies");
             c.x = clamp(p.x + 8, 0, boardW - p.w);
             c.y = clamp(p.y + 8, 0, boardH - p.h);
             parts.add(c);
@@ -489,7 +492,7 @@ public final class EditorPreset implements PageControllers.Controller {
         selection.clear();
         selection.addAll(copies);
         render();
-        status("复制了 " + copies.size() + " 个组件");
+        status(Lang.t(doc, "oriel.ui.editor.copied") + copies.size() + Lang.t(doc, "oriel.ui.editor.components"));
     }
 
     void nudge(int dx, int dy) {
@@ -570,7 +573,7 @@ public final class EditorPreset implements PageControllers.Controller {
         snap = !snap;
         Dom.byId(doc, "snap").toggleClass("off", !snap);
         Dom.query(doc, "[data-cmd=snap]").toggleClass("on", snap);
-        status(snap ? "吸附网格：开" : "吸附网格：关");
+        status(snap ? Lang.t(doc, "oriel.ui.editor.snap_to_grid_on") : Lang.t(doc, "oriel.ui.editor.snap_to_grid_off"));
     }
 
     private void togglePreview() {
@@ -578,7 +581,7 @@ public final class EditorPreset implements PageControllers.Controller {
         Dom.byId(doc, "viewport").toggleClass("preview-mode", preview);
         Dom.byId(doc, "preview").toggleClass("on", preview);
         Dom.query(doc, "[data-cmd=preview]").toggleClass("on", preview);
-        status(preview ? "预览：选择框已隐藏" : "编辑");
+        status(preview ? Lang.t(doc, "oriel.ui.editor.preview_selection_box_hidden") : Lang.t(doc, "oriel.ui.editor.edit"));
     }
 
     // ---- Pointer ----
@@ -644,7 +647,7 @@ public final class EditorPreset implements PageControllers.Controller {
             case PLACE -> {
                 if (Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY) > 3) moved = true;
                 if (moved) {
-                    Dom.text(ghost, "+ " + KIND_NAMES.get(placing));
+                    Dom.text(ghost, "+ " + Lang.value(doc, KIND_NAMES.get(placing)));
                     new Dom.Style(ghost).px("left", e.clientX + 6).px("top", e.clientY + 6).apply();
                     ghost.addClass("on");
                 }
@@ -740,7 +743,7 @@ public final class EditorPreset implements PageControllers.Controller {
         } else if ((gesture == Gesture.MOVE || gesture == Gesture.RESIZE) && moved && changedSince(before)) {
             undo.push(before);
             redo.clear();
-            status(gesture == Gesture.MOVE ? "移动了 " + selection.size() + " 个组件" : "调整了大小");
+            status(gesture == Gesture.MOVE ? Lang.t(doc, "oriel.ui.editor.moved") + selection.size() + Lang.t(doc, "oriel.ui.editor.components") : Lang.t(doc, "oriel.ui.editor.resized_by"));
             render();
         }
         gesture = Gesture.NONE;
@@ -849,8 +852,8 @@ public final class EditorPreset implements PageControllers.Controller {
         renderBoard();
         renderTree();
         renderInspector();
-        Dom.text(Dom.byId(doc, "history"), undo.size() + " 步");
-        Dom.text(Dom.byId(doc, "sel-count"), selection.isEmpty() ? "未选择" : "已选 " + selection.size() + " 个");
+        Dom.text(Dom.byId(doc, "history"), undo.size() + Lang.t(doc, "oriel.ui.editor.steps"));
+        Dom.text(Dom.byId(doc, "sel-count"), selection.isEmpty() ? Lang.t(doc, "oriel.ui.editor.none_selected") : Lang.t(doc, "oriel.ui.editor.selected") + selection.size() + Lang.t(doc, "oriel.ui.editor.items"));
         Dom.byId(doc, "undo").toggleClass("disabled", undo.isEmpty());
         Dom.byId(doc, "redo").toggleClass("disabled", redo.isEmpty());
     }
@@ -903,8 +906,8 @@ public final class EditorPreset implements PageControllers.Controller {
             row.setAttribute("data-id", Integer.toString(p.id));
             row.appendChild(icon(KIND_ICONS.getOrDefault(p.kind, "layers"), "o-ico"));
             row.appendChild(Dom.el(doc, "span", "nm", p.name));
-            if (p.kind.equals("slot") || p.kind.equals("block")) row.setAttribute("title", GameRegistry.name(p.text) + " · " + p.text);
-            if (p.kind.equals("entity")) row.setAttribute("title", GameRegistry.entityName(p.text) + " · " + p.text);
+            if (p.kind.equals("slot") || p.kind.equals("block")) row.setAttribute("title", Lang.value(doc, GameRegistry.name(p.text)) + " · " + p.text);
+            if (p.kind.equals("entity")) row.setAttribute("title", Lang.value(doc, GameRegistry.entityName(p.text)) + " · " + p.text);
             Element eye = icon(p.visible ? "eye" : "minus", "o-ico tg" + (p.visible ? "" : " on"));
             Element lock = icon(p.locked ? "lock" : "unlock", "o-ico tg" + (p.locked ? " on" : ""));
             row.appendChild(eye);
@@ -933,34 +936,34 @@ public final class EditorPreset implements PageControllers.Controller {
             });
             tree.appendChild(row);
         }
-        if (lead == null && tree.childCount() == 0) tree.appendChild(Dom.el(doc, "div", "empty-sel", "没有匹配的图层"));
+        if (lead == null && tree.childCount() == 0) tree.appendChild(Dom.el(doc, "div", "empty-sel", Lang.t(doc, "oriel.ui.editor.no_matching_layers")));
     }
 
     private void renderInspector() {
         inspector.removeAllChildren();
         List<Part> sel = selected();
         if (sel.isEmpty()) {
-            inspector.appendChild(Dom.el(doc, "div", "empty-sel", "在画板上点选组件，或从左侧拖入新组件。"));
-            inspector.appendChild(Dom.el(doc, "div", "o-caps", "画板"));
-            inspector.appendChild(Dom.el(doc, "div", "empty-sel", boardW + " × " + boardH + " · " + parts.size() + " 个组件"));
+            inspector.appendChild(Dom.el(doc, "div", "empty-sel", Lang.t(doc, "oriel.ui.editor.click_a_component_on_the_canvas_or")));
+            inspector.appendChild(Dom.el(doc, "div", "o-caps", Lang.t(doc, "oriel.ui.editor.canvas")));
+            inspector.appendChild(Dom.el(doc, "div", "empty-sel", boardW + " × " + boardH + " · " + parts.size() + Lang.t(doc, "oriel.ui.editor.components")));
             return;
         }
         Part p = sel.getFirst();
         Element kind = Dom.el(doc, "div", "kind", null);
         kind.appendChild(icon(KIND_ICONS.getOrDefault(p.kind, "layers"), "o-ico"));
-        kind.appendChild(doc.createTextNode(KIND_NAMES.getOrDefault(p.kind, p.kind) + (sel.size() > 1 ? " 等 " + sel.size() + " 个" : "")));
+        kind.appendChild(doc.createTextNode(Lang.value(doc, KIND_NAMES.getOrDefault(p.kind, p.kind)) + (sel.size() > 1 ? Lang.t(doc, "oriel.ui.editor.etc") + sel.size() + Lang.t(doc, "oriel.ui.editor.items") : "")));
         inspector.appendChild(kind);
-        inspector.appendChild(field("名称", p.name, v -> p.name = v));
+        inspector.appendChild(field(Lang.t(doc, "oriel.ui.editor.name"), p.name, v -> p.name = v));
         Element pos = Dom.el(doc, "div", "pair", null);
         pos.appendChild(number("X", p.x, v -> p.x = clamp(v, 0, boardW - p.w)));
         pos.appendChild(number("Y", p.y, v -> p.y = clamp(v, 0, boardH - p.h)));
-        pos.appendChild(number("宽", p.w, v -> p.w = clamp(v, 4, boardW - p.x)));
-        pos.appendChild(number("高", p.h, v -> p.h = clamp(v, 4, boardH - p.y)));
+        pos.appendChild(number(Lang.t(doc, "oriel.ui.editor.width"), p.w, v -> p.w = clamp(v, 4, boardW - p.x)));
+        pos.appendChild(number(Lang.t(doc, "oriel.ui.editor.high"), p.h, v -> p.h = clamp(v, 4, boardH - p.y)));
         inspector.appendChild(pos);
-        if (List.of("button", "title", "text").contains(p.kind)) inspector.appendChild(field("文字", p.text, v -> p.text = v));
+        if (List.of("button", "title", "text").contains(p.kind)) inspector.appendChild(field(Lang.t(doc, "oriel.ui.editor.text_2"), p.text, v -> p.text = v));
         if (List.of("slot", "block", "entity").contains(p.kind)) inspector.appendChild(picked(p));
         if (p.kind.equals("button")) {
-            inspector.appendChild(Dom.el(doc, "div", "o-caps", "样式"));
+            inspector.appendChild(Dom.el(doc, "div", "o-caps", Lang.t(doc, "oriel.ui.editor.style")));
             Element seg = Dom.el(doc, "div", "o-seg", null);
             for (String v : VARIANTS) {
                 Element o = Dom.el(doc, "span", v.equals(p.variant) ? "on" : null, variantName(v));
@@ -970,7 +973,7 @@ public final class EditorPreset implements PageControllers.Controller {
             inspector.appendChild(seg);
         }
         if (p.kind.equals("panel") || p.kind.equals("slot")) {
-            inspector.appendChild(Dom.el(doc, "div", "o-caps", "稀有度"));
+            inspector.appendChild(Dom.el(doc, "div", "o-caps", Lang.t(doc, "oriel.ui.editor.rarity")));
             Element tiers = Dom.el(doc, "div", "tiers", null);
             for (String t : TIERS) {
                 Element o = Dom.el(doc, "span", "r-" + t + (t.equals(p.tier) ? " on" : ""), null);
@@ -1000,7 +1003,7 @@ public final class EditorPreset implements PageControllers.Controller {
         boolean entity = p.kind.equals("entity");
         card.appendChild(entity ? entityFace(p.text) : itemFace(p.text));
         Element words = Dom.el(doc, "div", "words", null);
-        words.appendChild(Dom.el(doc, "b", null, entity ? GameRegistry.entityName(p.text) : GameRegistry.name(p.text)));
+        words.appendChild(Dom.el(doc, "b", null, entity ? Lang.value(doc, GameRegistry.entityName(p.text)) : Lang.value(doc, GameRegistry.name(p.text))));
         words.appendChild(Dom.el(doc, "span", null, p.text));
         card.appendChild(words);
         card.appendChild(icon("search", "o-ico"));
@@ -1036,7 +1039,7 @@ public final class EditorPreset implements PageControllers.Controller {
             try {
                 apply.accept(Integer.parseInt(v.trim()));
             } catch (NumberFormatException ignored) {
-                status("「" + v + "」不是数字");
+                status("「" + v + Lang.t(doc, "oriel.ui.editor.is_not_a_number"));
             }
         });
     }
@@ -1048,13 +1051,13 @@ public final class EditorPreset implements PageControllers.Controller {
         render();
     }
 
-    private static String variantName(String v) {
+    private String variantName(String v) {
         return switch (v) {
-            case "hero" -> "主";
-            case "primary" -> "确认";
-            case "secondary" -> "次";
-            case "destructive" -> "危";
-            default -> "普";
+            case "hero" -> Lang.t(doc, "oriel.ui.editor.main");
+            case "primary" -> Lang.t(doc, "oriel.ui.editor.confirm");
+            case "secondary" -> Lang.t(doc, "oriel.ui.editor.secondary");
+            case "destructive" -> Lang.t(doc, "oriel.ui.editor.critical");
+            default -> Lang.t(doc, "oriel.ui.editor.normal");
         };
     }
 
@@ -1079,7 +1082,7 @@ public final class EditorPreset implements PageControllers.Controller {
         Dom.text(Dom.byId(doc, "code"), html());
         Dom.byId(doc, "export-box").addClass("on");
         doc.host().send(OrielKit.CHANNEL, "\"export\"");
-        status("已导出 " + parts.size() + " 个组件");
+        status(Lang.t(doc, "oriel.ui.editor.exported") + parts.size() + Lang.t(doc, "oriel.ui.editor.components"));
     }
 
     // ---- Helpers ----

@@ -54,6 +54,12 @@ final class ValueContext {
         return attributesRead != null && attributesRead.contains(name);
     }
 
+    /** Translation depends on the owning document, so stylesheet probes cannot fold it into a constant. */
+    String message(String key, Object[] args) {
+        dependent = true;
+        return element == null ? "" : element.ownerDocument().messages().text(key, args);
+    }
+
     /** Resolves a {@code url()} against the declaring stylesheet. Not element-specific. */
     String resolveUrl(String url) {
         return resolve(host, baseUrl, url);

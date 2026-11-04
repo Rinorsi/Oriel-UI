@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 物品编辑器</title>
+<title data-i18n-text-0="oriel.ui.item_editor.easy_library_item_editor">oriel.ui.item_editor.easy_library_item_editor</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The item data editor (/oriel edit): the held item's data components on a working copy. The left column shows the
@@ -84,64 +84,64 @@
   <div class="o-window">
     <div class="o-titlebar">
       <img class="o-mark" src="../textures/icons/wand.png">
-      <h1>物品编辑器</h1><span class="o-crumb" id="crumb">/ 物品</span>
-      <span class="o-chip dirty" id="dirty"><img class="o-ico" src="../textures/icons/pin.png"><span id="dirty-n">0</span> 处修改</span>
+      <h1 data-i18n-text-0="oriel.ui.item_editor.item_editor">oriel.ui.item_editor.item_editor</h1><span class="o-crumb" id="crumb" data-i18n-text-0="oriel.ui.item_editor.items">oriel.ui.item_editor.items</span>
+      <span class="o-chip dirty" id="dirty" data-i18n-text-2="oriel.ui.item_editor.edit"><img class="o-ico" src="../textures/icons/pin.png"><span id="dirty-n">0</span> oriel.ui.item_editor.edit</span>
       <div class="o-grow"></div>
-      <div class="o-hints"><span><span class="o-kbd">Ctrl</span><span class="o-kbd">S</span>保存</span></div>
-      <div class="ore-btn icon" id="close" tabindex="0" title="取消"><img class="o-ico" src="../textures/icons/close.png"></div>
+      <div class="o-hints"><span data-i18n-text-2="oriel.ui.item_editor.save"><span class="o-kbd" data-i18n-text-0="oriel.ui.item_editor.ctrl">oriel.ui.item_editor.ctrl</span><span class="o-kbd" data-i18n-text-0="oriel.ui.item_editor.s">oriel.ui.item_editor.s</span>oriel.ui.item_editor.save</span></div>
+      <div class="ore-btn icon" id="close" tabindex="0" title="oriel.ui.item_editor.cancel" data-i18n-title="oriel.ui.item_editor.cancel"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-body">
       <div class="left r-common" id="left">
         <div class="stage"><canvas class="fx" id="stage-fx" data-fx="glint" data-rate="0"></canvas><model id="model" item="minecraft:diamond_sword"></model></div>
-        <div class="o-caps">游戏内提示</div>
+        <div class="o-caps" data-i18n-text-0="oriel.ui.item_editor.in_game_tooltip">oriel.ui.item_editor.in_game_tooltip</div>
         <div class="tooltip" id="tooltip"></div>
       </div>
       <div class="main">
         <div class="o-seg tabs" id="tabs">
-          <span class="on" data-tab="basic"><img class="o-ico" src="../textures/icons/file.png">基础</span>
-          <span data-tab="ench"><img class="o-ico" src="../textures/icons/enchant.png">附魔</span>
-          <span data-tab="attr"><img class="o-ico" src="../textures/icons/sword.png">属性</span>
-          <span data-tab="dura"><img class="o-ico" src="../textures/icons/shield.png">耐久</span>
-          <span data-tab="all"><img class="o-ico" src="../textures/icons/tree.png">全部组件</span>
+          <span class="on" data-tab="basic" data-i18n-text-1="oriel.ui.item_editor.base"><img class="o-ico" src="../textures/icons/file.png">oriel.ui.item_editor.base</span>
+          <span data-tab="ench" data-i18n-text-1="oriel.ui.item_editor.enchantment"><img class="o-ico" src="../textures/icons/enchant.png">oriel.ui.item_editor.enchantment</span>
+          <span data-tab="attr" data-i18n-text-1="oriel.ui.item_editor.properties"><img class="o-ico" src="../textures/icons/sword.png">oriel.ui.item_editor.properties</span>
+          <span data-tab="dura" data-i18n-text-1="oriel.ui.item_editor.durability"><img class="o-ico" src="../textures/icons/shield.png">oriel.ui.item_editor.durability</span>
+          <span data-tab="all" data-i18n-text-1="oriel.ui.item_editor.all_components"><img class="o-ico" src="../textures/icons/tree.png">oriel.ui.item_editor.all_components</span>
         </div>
         <div class="panes">
           <div class="pane on" data-pane="basic">
-            <div class="field"><label>名称</label><input class="ore-field" id="name" maxlength="50"></div>
-            <div class="field"><label>颜色</label><div class="colors" id="colors"></div></div>
-            <div class="field"><label>稀有度</label><div class="o-seg" id="rarity">
-              <span data-r="common">普通</span><span data-r="uncommon">罕见</span><span data-r="rare">稀有</span><span data-r="epic">史诗</span></div></div>
-            <div class="o-caps">说明（Lore）</div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.name">oriel.ui.item_editor.name</label><input class="ore-field" id="name" maxlength="50"></div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.color">oriel.ui.item_editor.color</label><div class="colors" id="colors"></div></div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.rarity">oriel.ui.item_editor.rarity</label><div class="o-seg" id="rarity">
+              <span data-r="common" data-i18n-text-0="oriel.ui.item_editor.common">oriel.ui.item_editor.common</span><span data-r="uncommon" data-i18n-text-0="oriel.ui.item_editor.uncommon">oriel.ui.item_editor.uncommon</span><span data-r="rare" data-i18n-text-0="oriel.ui.item_editor.rare">oriel.ui.item_editor.rare</span><span data-r="epic" data-i18n-text-0="oriel.ui.item_editor.epic">oriel.ui.item_editor.epic</span></div></div>
+            <div class="o-caps" data-i18n-text-0="oriel.ui.item_editor.lore">oriel.ui.item_editor.lore</div>
             <div class="lines" id="lore"></div>
-            <div><div class="ore-btn small" id="lore-add" tabindex="0"><img class="o-ico" src="../textures/icons/plus.png">添加一行</div></div>
+            <div><div class="ore-btn small" id="lore-add" tabindex="0" data-i18n-text-1="oriel.ui.item_editor.add_row"><img class="o-ico" src="../textures/icons/plus.png">oriel.ui.item_editor.add_row</div></div>
           </div>
           <div class="pane" data-pane="ench">
-            <div class="picker"><div class="field"><label>添加</label><input class="ore-field" id="ench-search" placeholder="搜索附魔，如 锋利"></div><div class="results" id="ench-results"></div></div>
-            <div class="o-caps">已有附魔</div>
+            <div class="picker"><div class="field"><label data-i18n-text-0="oriel.ui.item_editor.add">oriel.ui.item_editor.add</label><input class="ore-field" id="ench-search" placeholder="oriel.ui.item_editor.search_enchantments_e_g_sharpness" data-i18n-placeholder="oriel.ui.item_editor.search_enchantments_e_g_sharpness"></div><div class="results" id="ench-results"></div></div>
+            <div class="o-caps" data-i18n-text-0="oriel.ui.item_editor.existing_enchantments">oriel.ui.item_editor.existing_enchantments</div>
             <div class="rows" id="ench-rows"></div>
           </div>
           <div class="pane" data-pane="attr">
-            <div class="picker"><div class="field"><label>添加</label><input class="ore-field" id="attr-search" placeholder="搜索属性，如 攻击伤害"></div><div class="results" id="attr-results"></div></div>
-            <div class="o-caps">属性修饰符</div>
+            <div class="picker"><div class="field"><label data-i18n-text-0="oriel.ui.item_editor.add">oriel.ui.item_editor.add</label><input class="ore-field" id="attr-search" placeholder="oriel.ui.item_editor.search_attributes_e_g_attack_damage" data-i18n-placeholder="oriel.ui.item_editor.search_attributes_e_g_attack_damage"></div><div class="results" id="attr-results"></div></div>
+            <div class="o-caps" data-i18n-text-0="oriel.ui.item_editor.attribute_modifiers">oriel.ui.item_editor.attribute_modifiers</div>
             <div class="rows" id="attr-rows"></div>
           </div>
           <div class="pane" data-pane="dura">
-            <div class="field"><label>最大耐久</label><input class="ore-field" id="max-damage" style="flex: none; width: 70px"><span class="o-faint" id="dura-note"></span></div>
-            <div class="field"><label>已损耗</label><div class="ore-slider" id="damage" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div><span class="o-dim" id="damage-v" style="width: 70px; text-align: right"></span></div>
-            <div class="field"><label>无法破坏</label><span class="ore-toggle" id="unbreakable" tabindex="0"></span></div>
-            <div class="field"><label>附魔光效</label><div class="o-seg" id="glint"><span data-g="default">默认</span><span data-g="on">总是</span><span data-g="off">从不</span></div></div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.max_durability">oriel.ui.item_editor.max_durability</label><input class="ore-field" id="max-damage" style="flex: none; width: 70px"><span class="o-faint" id="dura-note"></span></div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.damaged">oriel.ui.item_editor.damaged</label><div class="ore-slider" id="damage" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div><span class="o-dim" id="damage-v" style="width: 70px; text-align: right"></span></div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.unbreakable">oriel.ui.item_editor.unbreakable</label><span class="ore-toggle" id="unbreakable" tabindex="0"></span></div>
+            <div class="field"><label data-i18n-text-0="oriel.ui.item_editor.enchantment_glint">oriel.ui.item_editor.enchantment_glint</label><div class="o-seg" id="glint"><span data-g="default" data-i18n-text-0="oriel.ui.item_editor.default">oriel.ui.item_editor.default</span><span data-g="on" data-i18n-text-0="oriel.ui.item_editor.always">oriel.ui.item_editor.always</span><span data-g="off" data-i18n-text-0="oriel.ui.item_editor.never">oriel.ui.item_editor.never</span></div></div>
           </div>
           <div class="pane" data-pane="all">
-            <div class="o-faint">物品上的全部数据组件（只读）。编辑器不认识的组件保存时原样保留。</div>
+            <div class="o-faint" data-i18n-text-0="oriel.ui.item_editor.all_data_components_on_the_item_read">oriel.ui.item_editor.all_data_components_on_the_item_read</div>
             <div class="tree" id="tree"></div>
           </div>
         </div>
       </div>
     </div>
     <div class="foot">
-      <span id="status">修改的是副本；保存前原物品不会变</span>
-      <div class="ore-btn" id="revert" tabindex="0"><img class="o-ico" src="../textures/icons/undo.png">还原</div>
-      <div class="ore-btn" id="cancel" tabindex="0">取消</div>
-      <div class="ore-btn primary m-ripple" id="save" tabindex="0"><img class="o-ico" src="../textures/icons/save.png">保存</div>
+      <span id="status" data-i18n-text-0="oriel.ui.item_editor.edits_are_made_to_a_copy_the">oriel.ui.item_editor.edits_are_made_to_a_copy_the</span>
+      <div class="ore-btn" id="revert" tabindex="0" data-i18n-text-1="oriel.ui.item_editor.revert"><img class="o-ico" src="../textures/icons/undo.png">oriel.ui.item_editor.revert</div>
+      <div class="ore-btn" id="cancel" tabindex="0" data-i18n-text-0="oriel.ui.item_editor.cancel">oriel.ui.item_editor.cancel</div>
+      <div class="ore-btn primary m-ripple" id="save" tabindex="0" data-i18n-text-1="oriel.ui.item_editor.save"><img class="o-ico" src="../textures/icons/save.png">oriel.ui.item_editor.save</div>
     </div>
   </div>
 </div>

@@ -41,7 +41,7 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xlint:all,-serial,-processing,-options', '-Werror']
 }
 
-// `./gradlew :preview:checkUi [-Pui=<dir or page>]`: loads every kit page (or the given ones) headless with its
+// `./gradlew :preview:checkUi [-Pui=<dir or page>] [-Plang=en_us]`: loads every kit page (or the given ones) headless with its
 // controller at 640x360 and 427x240, and fails on an engine or controller error or a missing image; CSS the engine
 // did not take as written is listed. The gate to run after editing a page.
 tasks.register('checkUi', JavaExec) {
@@ -52,4 +52,5 @@ tasks.register('checkUi', JavaExec) {
     workingDir = rootProject.projectDir
     systemProperty('java.awt.headless', 'true')
     args('--check', project.findProperty('ui') ?: 'kit/src/main/resources/assets/oriel/ui')
+    if (project.hasProperty('lang')) args('--lang', project.property('lang'))
 }

@@ -11,6 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /** Command line options of the previewer. */
 class PreviewOptionsTest {
     @Test
+    void languageCanBeSelectedWithoutChangingTheChineseDefault() {
+        assertEquals("zh_cn", Preview.Options.parse("page.html").language());
+        assertEquals("en_us", Preview.Options.parse("page.html", "--lang", "en_us").language());
+        assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("page.html", "--lang"));
+    }
+
+    @Test
     void backgroundAcceptsOpaqueCssColorsAndKeepsWorldDefault() {
         assertNull(Preview.Options.parse("page.html").background());
         assertEquals(0xFF123456, Preview.Options.parse("page.html", "--background", "#123456").background());

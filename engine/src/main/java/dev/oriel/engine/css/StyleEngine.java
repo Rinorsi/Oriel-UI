@@ -69,6 +69,7 @@ public final class StyleEngine {
     private MediaQuery.Environment environment;
     /** Bumped whenever something every element depends on changes: sheets, media, viewport, root font size. */
     private int generation;
+    private String styledLanguage;
     private float rootFontSize = dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize();
     /** Parsed {@code <style>} contents by text, kept while some element still uses them. */
     private Map<String, Stylesheet> styleSheets = new HashMap<>();
@@ -90,6 +91,11 @@ public final class StyleEngine {
     public void restyle() {
         Element root = document.documentElement();
         if (root == null) return;
+        String language = document.messages().language();
+        if (!language.equals(styledLanguage)) {
+            styledLanguage = language;
+            generation++;
+        }
         MediaQuery.Environment env = new MediaQuery.Environment(document.viewportWidth(), document.viewportHeight(),
                 document.devicePixelRatio(), host.prefersReducedMotion());
         boolean selectorsChanged = sources == null || document.selectorVersion() != styledVersion;

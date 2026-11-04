@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 锻造台</title>
+<title data-i18n-text-0="oriel.ui.forge.oriel_uiku_forge">oriel.ui.forge.oriel_uiku_forge</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* One stage lit by the forge: the anvil in 3D with the glowing ingot on it, the hammer swinging in, embers rising as
@@ -115,9 +115,9 @@
     <div class="o-titlebar">
       <div class="ore-btn icon" id="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
       <img class="o-mark" src="../textures/icons/anvil.png">
-      <h1>锻造台</h1><span class="o-crumb">/ 铁剑</span>
+      <h1 data-i18n-text-0="oriel.ui.forge.forge">oriel.ui.forge.forge</h1><span class="o-crumb" data-i18n-text-0="oriel.ui.forge.iron_sword">oriel.ui.forge.iron_sword</span>
       <div class="o-grow"></div>
-      <div class="o-hints"><span><span class="o-kbd">空格</span>击打</span><span><span class="o-kbd">B</span>按住鼓风</span></div>
+      <div class="o-hints"><span data-i18n-text-1="oriel.ui.forge.strike"><span class="o-kbd" data-i18n-text-0="oriel.ui.forge.space">oriel.ui.forge.space</span>oriel.ui.forge.strike</span><span data-i18n-text-1="oriel.ui.forge.hold_to_pump_bellows"><span class="o-kbd" data-i18n-text-0="oriel.ui.forge.b">oriel.ui.forge.b</span>oriel.ui.forge.hold_to_pump_bellows</span></div>
       <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-body">
@@ -140,39 +140,39 @@
             <div class="temp" id="temp">900°</div>
           </div>
           <div class="rhythm">
-            <span class="label">时机</span>
+            <span class="label" data-i18n-text-0="oriel.ui.forge.timing">oriel.ui.forge.timing</span>
             <div class="meter" id="meter"><div class="zone" id="zone"></div><div class="core" id="core"></div><div class="marker" id="marker"></div></div>
           </div>
         </div>
       </div>
       <div class="o-side">
-        <div class="o-caps">品质</div>
-        <div class="score"><span class="o-h1" id="quality">0%</span><span class="o-chip grade r-common" id="grade">粗糙</span></div>
+        <div class="o-caps" data-i18n-text-0="oriel.ui.forge.quality">oriel.ui.forge.quality</div>
+        <div class="score"><span class="o-h1" id="quality">0%</span><span class="o-chip grade r-common" id="grade" data-i18n-text-0="oriel.ui.forge.rough">oriel.ui.forge.rough</span></div>
         <div class="o-meter gold" id="quality-bar" style="--value: 0"><i></i></div>
-        <div class="o-caps">击打 <span id="strikes-left" class="o-faint">8</span></div>
+        <div class="o-caps" data-i18n-text-0="oriel.ui.forge.strike">oriel.ui.forge.strike <span id="strikes-left" class="o-faint">8</span></div>
         <div class="pips" id="pips"></div>
         <div class="log" id="log"></div>
         <div class="o-grow"></div>
         <div class="target o-tile">
           <item id="minecraft:iron_sword"></item>
-          <div class="o-dim">目标 · 铁剑<br><span class="o-faint">炉温保持在绿区，踩准金色中心</span></div>
+          <div class="o-dim" data-i18n-text-0="oriel.ui.forge.target_iron_sword">oriel.ui.forge.target_iron_sword<br><span class="o-faint" data-i18n-text-0="oriel.ui.forge.keep_the_furnace_temperature_in_the_green">oriel.ui.forge.keep_the_furnace_temperature_in_the_green</span></div>
         </div>
       </div>
     </div>
     <div class="foot">
-      <div class="ore-btn bellows" id="bellows" tabindex="0"><img class="o-ico" src="../textures/icons/flame.png">鼓风</div>
-      <div class="ore-btn hero" id="strike" tabindex="0"><img class="o-ico" src="../textures/icons/hammer.png">击打</div>
-      <div class="ore-btn secondary" id="quench" tabindex="0"><img class="o-ico" src="../textures/icons/flask.png">淬火</div>
+      <div class="ore-btn bellows" id="bellows" tabindex="0" data-i18n-text-1="oriel.ui.forge.bellows"><img class="o-ico" src="../textures/icons/flame.png">oriel.ui.forge.bellows</div>
+      <div class="ore-btn hero" id="strike" tabindex="0" data-i18n-text-1="oriel.ui.forge.strike"><img class="o-ico" src="../textures/icons/hammer.png">oriel.ui.forge.strike</div>
+      <div class="ore-btn secondary" id="quench" tabindex="0" data-i18n-text-1="oriel.ui.forge.quench"><img class="o-ico" src="../textures/icons/flask.png">oriel.ui.forge.quench</div>
       <div class="o-grow"></div>
-      <span class="o-faint" id="tip">铁在 1050° – 1350° 最好锻打</span>
+      <span class="o-faint" id="tip" data-i18n-text-0="oriel.ui.forge.iron_is_best_forged_at_1050_1350">oriel.ui.forge.iron_is_best_forged_at_1050_1350</span>
     </div>
     <div class="result" id="result">
       <div class="card o-tile o-frame r-rare" id="result-card">
         <canvas class="fx" id="result-fx" data-fx="stars" data-rate="8" data-seed="5"></canvas>
         <div class="stage3d"><model item="minecraft:iron_sword"></model></div>
-        <div class="o-h1" id="result-title">精良 铁剑</div>
-        <div class="o-dim" id="result-text">品质 78%</div>
-        <div class="ore-btn primary" id="again" tabindex="0"><img class="o-ico" src="../textures/icons/refresh.png">再锻一把</div>
+        <div class="o-h1" id="result-title" data-i18n-text-0="oriel.ui.forge.fine_iron_sword">oriel.ui.forge.fine_iron_sword</div>
+        <div class="o-dim" id="result-text" data-i18n-text-0="oriel.ui.forge.quality_78">oriel.ui.forge.quality_78</div>
+        <div class="ore-btn primary" id="again" tabindex="0" data-i18n-text-1="oriel.ui.forge.reforge_one_more"><img class="o-ico" src="../textures/icons/refresh.png">oriel.ui.forge.reforge_one_more</div>
       </div>
     </div>
   </div>

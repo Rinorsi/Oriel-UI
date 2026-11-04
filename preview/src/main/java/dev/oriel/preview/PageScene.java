@@ -25,6 +25,7 @@ final class PageScene implements Scene {
     private final String data;
     private String url;
     private Document document;
+    private String language;
     /** Why there is no document (the page was not found), or null. */
     private Throwable loadError;
     /** The viewport of the last frame (the window's size and scale), which a reload starts the page in. */
@@ -68,6 +69,7 @@ final class PageScene implements Scene {
     }
 
     void reload() {
+        language = host.language();
         // Like the game: a reload hands the controller's state to the new page's controller.
         Object state = document != null && document.controller() != null ? document.controller().saveState() : null;
         if (document != null) document.close();
@@ -87,6 +89,7 @@ final class PageScene implements Scene {
 
     @Override
     public void frame(double nowMs, float width, float height, float scale) {
+        if (!host.language().equals(language)) reload();
         viewport = new Viewport(width, height, scale);
         if (document == null) return;
         document.setViewport(width, height, scale);

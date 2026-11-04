@@ -27,6 +27,9 @@ final class KitHost implements Host {
     final List<String> navigations = new ArrayList<>();
     final Map<String, float[]> imageSizes = new HashMap<>();
     boolean closed;
+    String language = "zh_cn";
+
+    @Override public String language() { return language; }
     /** What {@link #send} answers: false is a page with no server (the previewer), true one that has one. */
     boolean acceptSends;
 

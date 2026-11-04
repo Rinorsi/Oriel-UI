@@ -1,5 +1,7 @@
 package dev.oriel.kit;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.kit.fx.Particles;
@@ -72,7 +74,7 @@ public final class Shell {
         // The one theme button on every page: a sun while dark (press for light), a moon while light.
         for (Element e : doc.querySelectorAll("[data-action=theme]")) {
             e.toggleClass("on", theme.equals("light"));
-            e.setAttribute("title", theme.equals("light") ? "切换到暗色" : "切换到亮色");
+            e.setAttribute("title", theme.equals("light") ? Lang.t(doc, "oriel.ui.shell.switch_to_dark") : Lang.t(doc, "oriel.ui.shell.switch_to_light"));
             Element img = e.querySelector("img");
             if (img != null && img.getAttribute("src") != null) {
                 String src = img.getAttribute("src").replaceAll("(sun|moon)[.]png$", theme.equals("light") ? "moon.png" : "sun.png");
@@ -98,7 +100,7 @@ public final class Shell {
             else root.setAttribute("data-font", font);
         }
         for (Element e : doc.querySelectorAll("[data-font-pick]")) e.toggleClass("on", e.getAttribute("data-font-pick").equals(font));
-        for (Element e : doc.querySelectorAll(".ore-select[data-font-select] .value")) Dom.text(e, Fonts.byId(font).name());
+        for (Element e : doc.querySelectorAll(".ore-select[data-font-select] .value")) Dom.text(e, Fonts.byId(font).name(doc));
     }
 
     /** The icon weight: {@code thin} (wireframe, 1px), {@code regular} (2px) or {@code bold} (3px). */
@@ -244,7 +246,7 @@ public final class Shell {
             if (host == null) return;
             bar = Dom.html(doc, "<div class=\"o-devbar\" id=\"o-devbar\"><img class=\"o-ico\" src=\"oriel:textures/icons/refresh.png\">"
                     + "<span class=\"t\"></span><div class=\"o-grow\"></div><div class=\"ore-btn primary\" tabindex=\"0\"></div>"
-                    + "<div class=\"x\" title=\"关闭\">×</div></div>");
+                    + ("<div class=\"x\" title=\"" + Lang.html(doc, "oriel.ui.shell.close") + "\">×</div></div>"));
             host.appendChild(bar);
             Element b = bar;
             activate(Dom.query(bar, ".ore-btn"), () -> doc.host().send(DEV_KEY, "\"reload\""));
@@ -307,7 +309,7 @@ public final class Shell {
             Element close = bar.querySelector("[data-action=close]");
             if (close == null) close = bar.querySelector("#close");
             if (close == null || bar.querySelector("[data-action=window]") != null) continue;
-            Element button = Dom.html(doc, "<div class=\"ore-btn icon o-winbtn\" data-action=\"window\" tabindex=\"0\" title=\"窗口化 / 最大化\">"
+            Element button = Dom.html(doc, ("<div class=\"ore-btn icon o-winbtn\" data-action=\"window\" tabindex=\"0\" title=\"" + Lang.html(doc, "oriel.ui.shell.windowed_maximized") + "\">")
                     + "<img class=\"o-ico i-restore\" src=\"../textures/icons/restore.png\">"
                     + "<img class=\"o-ico i-max\" src=\"../textures/icons/maximize.png\"></div>");
             close.parentElement().insertBefore(button, close);

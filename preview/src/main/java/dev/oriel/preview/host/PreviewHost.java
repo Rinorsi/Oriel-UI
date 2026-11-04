@@ -36,7 +36,7 @@ import java.util.function.Function;
  * The previewer's {@link Host}. Text and images come from the {@link MinecraftAssets} stack. A page that lives under
  * {@code <root>/assets/<ns>/} is addressed as {@code ns:path} with {@code <root>} on the stack, so its {@code ns:}
  * references resolve as in game; other pages are addressed by file path and resolve relative paths on disk.
- * Translations are the stack's {@code en_us} language files; canvases are images registered with the assets.
+ * Translations use the selected language files with an {@code en_us} fallback; canvases are images registered with the assets.
  */
 public final class PreviewHost implements Host {
     private static final float[] UNKNOWN = new float[0];
@@ -46,6 +46,33 @@ public final class PreviewHost implements Host {
     private final Map<String, Function<Element, ReplacedContent>> replacedElements;
     private final Map<String, float[]> imageSizes = new ConcurrentHashMap<>(), spriteSizes = new ConcurrentHashMap<>();
     private Map<String, String> translations;
+    private final Map<String, Map<String, String>> localeTranslations = new java.util.HashMap<>();
+    private String language = "en_us";
+
+    public void setLanguage(String language) {
+        String normalized = language.toLowerCase(Locale.ROOT).replace('-', '_');
+        if (!normalized.matches("[a-z0-9_]+")) throw new IllegalArgumentException("Invalid language: " + language);
+        this.language = normalized;
+        translations = null;
+        localeTranslations.clear();
+    }
+
+    @Override public String language() { return language; }
+
+    @Override public String translation(String key) {
+        return translation(language, key);
+    }
+
+    @Override public String translation(String locale, String key) {
+        if (key.startsWith("oriel.")) return localeTranslations.computeIfAbsent(locale, assets::translations).get(key);
+        // Native Minecraft data keeps its existing host fallback, independently of library copy.
+        if (!locale.equals(language)) return localeTranslations.computeIfAbsent(locale, assets::translations).get(key);
+        if (translations == null) {
+            translations = new java.util.HashMap<>(assets.translations("en_us"));
+            if (!language.equals("en_us")) translations.putAll(assets.translations(language));
+        }
+        return translations.get(key);
+    }
     private final Set<Path> loadedFiles = ConcurrentHashMap.newKeySet();
     private Consumer<String> navigator = url -> {};
     /** The clipboard when there is no system clipboard (headless). */
@@ -182,11 +209,10 @@ public final class PreviewHost implements Host {
         return new PreviewSurface(assets, width, height);
     }
 
-    /** {@code en_us} from every namespace on the stack, with Minecraft's {@code %s} / {@code %1$s} arguments. */
+    /** Selected language from every namespace on the stack, with Minecraft's {@code %s} / {@code %1$s} arguments. */
     @Override
     public String translate(String key, String... args) {
-        if (translations == null) translations = assets.translations("en_us");
-        String text = translations.get(key);
+        String text = translation(key);
         if (text == null) return key;
         try {
             return String.format(Locale.ROOT, text, (Object[]) args);

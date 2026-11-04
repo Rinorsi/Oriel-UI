@@ -1,5 +1,7 @@
 package dev.oriel.kit;
 
+import dev.oriel.kit.Lang;
+
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 
@@ -23,7 +25,7 @@ public final class Notice {
         closeBar(doc);
         Element host = host(doc);
         Element bar = Dom.html(doc, "<div class=\"o-notice " + kind(kind) + "\" id=\"o-notice\"><img class=\"o-ico\" src=\"oriel:textures/icons/"
-                + icon(kind) + ".png\"><span class=\"t\"></span><div class=\"x\" title=\"关闭\">×</div></div>");
+                + icon(kind) + (".png\"><span class=\"t\"></span><div class=\"x\" title=\"" + Lang.html(doc, "oriel.ui.notice.close") + "\">×</div></div>"));
         Dom.text(bar.querySelector(".t"), text);
         if (action != null) {
             Element button = Dom.el(doc, "div", "ore-btn primary", action);

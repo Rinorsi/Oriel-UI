@@ -191,6 +191,23 @@ public final class McHost implements Host {
     }
 
     @Override
+    public String language() {
+        return Minecraft.getInstance().getLanguageManager().getSelected();
+    }
+
+    @Override
+    public String translation(String key) {
+        return translation(language(), key);
+    }
+
+    @Override
+    public String translation(String locale, String key) {
+        if (key.startsWith("oriel.")) return McTranslations.lookup(locale, key);
+        var language = net.minecraft.locale.Language.getInstance();
+        return locale.equals(language()) && language.has(key) ? language.getOrDefault(key) : null;
+    }
+
+    @Override
     public boolean prefersReducedMotion() {
         return OrielConfig.CLIENT_REDUCED_MOTION.get();
     }

@@ -1074,7 +1074,7 @@ canvas.fx.off { display: none; }
 .o-mchex .sw { width: 14px; height: 14px; border: 1px solid var(--o-line-strong); background: var(--o-well); }
 .o-mcpreview { min-height: 15px; padding: 3px 5px; background: rgba(0, 0, 0, 0.55); color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
     border: 1px solid var(--o-line); white-space: pre-wrap; }
-.o-mcpreview.empty::before { content: "预览"; color: #8a8a8a; }
+.o-mcpreview.empty::before { content: i18n("oriel.ui.common.preview"); color: #8a8a8a; }
 [data-style=smooth] .o-mcfmts, [data-style=smooth] .o-mcpreview, [data-style=smooth] .o-mcswatches .sw { border-radius: 4px; }
 
 /* ---- Notices: a bar along the bottom of a window (o-notice: what happened, an action, a close), and toasts that
