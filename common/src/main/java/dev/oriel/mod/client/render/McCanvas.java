@@ -86,8 +86,8 @@ public final class McCanvas implements Canvas {
      * An open group: the GUI it draws onto when it ends, its content and mask layers with their operators, and the
      * opacity it is drawn with (the canvas's when it began; inside, primitives are drawn at full opacity).
      */
-    private record Group(McGui under, List<LayerRenderState.Segment> content, boolean page, List<Layers.Layer> masks,
-                         List<MaskComposite> ops, float alpha) {}
+    private record Group(McGui under, Layers.Space space, List<LayerRenderState.Segment> content, boolean page,
+                         List<Layers.Layer> masks, List<MaskComposite> ops, float alpha) {}
 
     /** The shape of the backdrop being drawn, between {@link #beginBackdrop} and {@link #endBackdrop}. */
     private Layers.@Nullable Layer backdropShape;
@@ -132,18 +132,36 @@ public final class McCanvas implements Canvas {
     /** Groups are drawn by {@link LayerRenderer} once the layer pipelines have compiled. */
     @Override
     public boolean beginGroup() {
-        return begin(false);
+        return begin(false, null);
+    }
+
+    /** The group's layer covers its extent where that is inside the clip. */
+    @Override
+    public boolean beginGroup(float x, float y, float width, float height) {
+        boundsOf(x, y, x + width, y + height);
+        return begin(false, new float[] {bx0, by0, bx1, by1});
     }
 
     @Override
     public boolean beginPageGroup() {
-        return begin(true);
+        return begin(true, null);
     }
 
-    private boolean begin(boolean page) {
+    /** {@code extent} is the screen box the group paints in, or null for anywhere. */
+    private boolean begin(boolean page, float @Nullable [] extent) {
         if (!Layers.available()) return false;
+        // The group's targets cover what it can draw: the clip it begins in, cut to its extent when known.
+        int x0 = clips.left(), y0 = clips.top(), x1 = clips.right(), y1 = clips.bottom();
+        if (extent != null) {
+            x0 = Math.max(x0, (int) Math.floor(extent[0]));
+            y0 = Math.max(y0, (int) Math.floor(extent[1]));
+            x1 = Math.min(x1, (int) Math.ceil(extent[2]));
+            y1 = Math.min(y1, (int) Math.ceil(extent[3]));
+        }
+        Layers.Space space = clippedAway() || x1 <= x0 || y1 <= y0 ? new Layers.Space(0, 0, 1, 1)
+                : new Layers.Space(x0, y0, x1 - x0, y1 - y0);
         Layers.Layer content = Layers.layer();
-        Group group = new Group(gui, new ArrayList<>(List.of(new LayerRenderState.Draw(content))), page,
+        Group group = new Group(gui, space, new ArrayList<>(List.of(new LayerRenderState.Draw(content))), page,
                 new ArrayList<>(), new ArrayList<>(), alpha);
         groups.push(group);
         enter(content);
@@ -211,14 +229,16 @@ public final class McCanvas implements Canvas {
         // The layer covers the clip: nothing outside it can show.
         int x0 = clips.left(), y0 = clips.top(), x1 = clips.right(), y1 = clips.bottom();
         if (x1 <= x0 || y1 <= y0) return;
+        Layers.Space space = group.space();
         gui.layer(new LayerRenderState(List.copyOf(group.content()), group.page(), filters, List.copyOf(group.masks()), List.copyOf(group.ops()),
-                opacity * alpha, blend, x0, y0, x1, y1, gui.scissor(),
+                opacity * alpha, blend, space, x0 - space.x(), y0 - space.y(), x0, y0, x1, y1, gui.scissor(),
                 net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState.getBounds(x0, y0, x1, y1, gui.scissor())));
     }
 
-    /** Draws into {@code layer} from now on, inside the clip there is now. */
+    /** Draws into {@code layer} (in the innermost group's space) from now on, inside the clip there is now. */
     private void enter(Layers.Layer layer) {
-        gui = new McGui(new GuiGraphicsExtractor(mc, layer.state, Math.round(mouseX), Math.round(mouseY)));
+        Layers.Space space = groups.peek().space();
+        gui = new McGui(new GuiGraphicsExtractor(mc, layer.state, Math.round(mouseX), Math.round(mouseY)), space.x(), space.y());
         gui.begin();
         if (!clippedAway()) gui.pushScissor(clips.left(), clips.top(), clips.right(), clips.bottom());
     }

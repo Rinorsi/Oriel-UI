@@ -67,14 +67,33 @@ import java.util.function.Function;
  * Everything about a layer is a GUI render state drawn into a target, filters and masks included, so the
  * version-specific parts are the targets, the swap and the pipelines below.
  *
+ * <p>A group's targets cover its {@link Space} only (its clip when it began), not the window: the group is recorded in
+ * screen coordinates and {@link McGui} moves what it hands vanilla by the space's origin, and while a layer is drawn
+ * the window's size is the target's, so vanilla's GUI renderer projects onto it. Sizes are rounded up to
+ * {@link #TILE} px, so targets of similar groups are shared.
+ *
  * <p>Layers are pooled and handed out again once a frame has been drawn: a frame's pictures are all prepared before
  * the frame's GUI is drawn, and the next frame's page is painted after it. Targets are too, and the ones a group only
  * needs on the way (filter steps, masks) are {@link #release released} as soon as they have been read, for the
- * next group of the frame: the GPU runs the passes in the order they are recorded. Targets have no depth buffer
- * (vanilla's GUI renderer draws without one when a target has none), to halve their memory.
+ * next group of the frame: the GPU runs the passes in the order they are recorded. Targets no frame has used for a
+ * while (after a resize, say) are freed. Targets have no depth buffer (vanilla's GUI renderer draws without one when
+ * a target has none), to halve their memory.
  */
 public final class Layers {
     private Layers() {}
+
+    /** A group's coordinate space: where its (0, 0) is on screen and its size, in GUI px. */
+    public record Space(int x, int y, int width, int height) {
+        public Space {
+            width = Math.max(1, width);
+            height = Math.max(1, height);
+        }
+    }
+
+    /** Target sizes are rounded up to a multiple of this many device px. */
+    static final int TILE = 64;
+    /** Frames a target may go unused before it is freed. */
+    private static final int KEEP_FRAMES = 300;
 
     /** A GUI render state and the GUI renderer that draws it. */
     static final class Layer {
@@ -96,6 +115,9 @@ public final class Layers {
     private static int layersUsed;
     private static final List<RenderTarget> targets = new ArrayList<>();
     private static final Deque<RenderTarget> free = new ArrayDeque<>();
+    /** The frame each target was last handed out in. */
+    private static final Map<RenderTarget, Integer> lastUsed = new java.util.IdentityHashMap<>();
+    private static int frame;
     /** A layer was drawn since the pools were last handed out again. */
     private static boolean drawn;
     /** Beyond this many layers in a frame, the pools are handed out again anyway (pictures that were never drawn). */
@@ -107,6 +129,14 @@ public final class Layers {
     static void beginFrame() {
         if (drawn || layersUsed > MAX_LAYERS) {
             layersUsed = 0;
+            frame++;
+            for (RenderTarget t : List.copyOf(targets)) {
+                if (frame - lastUsed.getOrDefault(t, frame) > KEEP_FRAMES) {
+                    targets.remove(t);
+                    lastUsed.remove(t);
+                    t.destroyBuffers();
+                }
+            }
             free.clear();
             free.addAll(targets);
             drawn = false;
@@ -119,18 +149,36 @@ public final class Layers {
         return layers.get(layersUsed++);
     }
 
-    /** A cleared window-sized target, the caller's until it is {@link #release}d or the frame has been drawn. */
-    static RenderTarget target() {
-        WindowRenderState window = window();
-        RenderTarget t = free.poll();
-        if (t == null) {
-            t = newTarget(window.width, window.height);
-            targets.add(t);
-        } else if (t.width != window.width || t.height != window.height) {
-            t.resize(window.width, window.height);
+    /**
+     * A cleared target for {@code space} (at least its size; all of a group's targets are the same size), the
+     * caller's until it is {@link #release}d or the frame has been drawn.
+     */
+    static RenderTarget target(Space space) {
+        int scale = Math.max(1, window().guiScale);
+        int width = Math.ceilDiv(space.width() * scale, TILE) * TILE, height = Math.ceilDiv(space.height() * scale, TILE) * TILE;
+        RenderTarget t = null;
+        for (RenderTarget f : free) {
+            if (f.width == width && f.height == height) {
+                t = f;
+                break;
+            }
         }
+        if (t != null) {
+            free.remove(t);
+        } else {
+            t = newTarget(width, height);
+            targets.add(t);
+        }
+        lastUsed.put(t, frame);
         RenderSystem.getDevice().createCommandEncoder().clearColorTexture(t.getColorTexture(), GuiRenderer.CLEAR_COLOR);
         return t;
+    }
+
+    /** The layers' targets: how many, and their memory in MB (for the autopilot's log). */
+    public static String describe() {
+        long bytes = 0;
+        for (RenderTarget t : targets) bytes += 4L * t.width * t.height;
+        return targets.size() + " targets, " + Math.round(bytes / 1048576.0 * 10) / 10.0 + " MB";
     }
 
     /** {@code t} has been read for the last time this frame: the next {@link #target} can have it. */
@@ -143,6 +191,7 @@ public final class Layers {
         for (RenderTarget t : targets) t.destroyBuffers();
         targets.clear();
         free.clear();
+        lastUsed.clear();
         for (Layer l : layers) l.renderer.close();
         layers.clear();
         layersUsed = 0;
@@ -151,10 +200,17 @@ public final class Layers {
 
     // ---- Drawing ----
 
-    /** Draws {@code layer}'s render state into {@code into} (over what is there), and empties the state. */
+    /**
+     * Draws {@code layer}'s render state into {@code into} (over what is there), and empties the state. The window is
+     * the target's size meanwhile: vanilla's GUI renderer projects and clips by it.
+     */
     static void draw(Layer layer, RenderTarget into) {
         drawn = true;
         Minecraft mc = Minecraft.getInstance();
+        WindowRenderState window = window();
+        int windowWidth = window.width, windowHeight = window.height;
+        window.width = into.width;
+        window.height = into.height;
         //? if >=26.2 {
         RenderTarget main = mc.gameRenderer.mainRenderTarget;
         mc.gameRenderer.mainRenderTarget = into;
@@ -173,6 +229,8 @@ public final class Layers {
             mc.gameRenderer.mainRenderTarget = main;
             //?} else
             //mc.mainRenderTarget = main;
+            window.width = windowWidth;
+            window.height = windowHeight;
         }
     }
 
@@ -183,11 +241,9 @@ public final class Layers {
 
     /** {@link #blit(RenderTarget, RenderTarget, RenderPipeline)} multiplied by {@code color} (premultiplied). */
     static void blit(RenderTarget from, RenderTarget into, RenderPipeline pipeline, int color) {
+        int scale = Math.max(1, window().guiScale), w = Math.ceilDiv(into.width, scale), h = Math.ceilDiv(into.height, scale);
         Layer l = layer();
-        WindowRenderState window = window();
-        int scale = Math.max(1, window.guiScale);
-        l.state.addBlitToCurrentLayer(blit(pipeline, from, 0, 0, Math.ceilDiv(window.width, scale),
-                Math.ceilDiv(window.height, scale), color, null));
+        l.state.addBlitToCurrentLayer(blit(pipeline, from, 0, 0, w, h, 0, 0, color, null));
         draw(l, into);
     }
 
@@ -196,12 +252,17 @@ public final class Layers {
      * the page for the {@code page} group (the frame so far: the world, or the panorama), through the filters within
      * {@code area}, cut to the backdrop's shape, drawn into {@code group}.
      */
-    static void backdrop(RenderTarget group, LayerRenderState.Backdrop backdrop, boolean page, float[] area) {
-        RenderTarget under = target();
-        if (page) blit(mainTarget(), under, OVER);
+    static void backdrop(RenderTarget group, LayerRenderState.Backdrop backdrop, boolean page, Space space) {
+        RenderTarget under = target(space);
+        if (page) {
+            // The frame under the space, at the space's own (0, 0).
+            Layer l = layer();
+            l.state.addBlitToCurrentLayer(blit(OVER, mainTarget(), 0, 0, space.width(), space.height(), space.x(), space.y(), -1, null));
+            draw(l, under);
+        }
         blit(group, under, OVER);
-        under = filter(under, backdrop.filters(), area);
-        RenderTarget shape = target();
+        under = filter(under, backdrop.filters(), space);
+        RenderTarget shape = target(space);
         draw(backdrop.shape(), shape);
         blit(shape, under, DESTINATION_IN);
         release(shape);
@@ -218,12 +279,12 @@ public final class Layers {
     }
 
     /**
-     * The blit of {@code from}'s pixels under GUI rectangle (x0, y0)–(x1, y1) onto the same rectangle, multiplied by
-     * {@code color} (premultiplied, as the target is).
+     * The blit of {@code from}'s pixels from (sx, sy) in its own GUI coordinates onto GUI rectangle (x0, y0)–(x1, y1),
+     * multiplied by {@code color} (premultiplied, as the target is).
      */
-    static BlitRenderState blit(RenderPipeline pipeline, RenderTarget from, int x0, int y0, int x1, int y1, int color,
-                                @Nullable ScreenRectangle scissor) {
-        float[] uv = uv(from, x0, y0, x1, y1);
+    static BlitRenderState blit(RenderPipeline pipeline, RenderTarget from, int x0, int y0, int x1, int y1, int sx, int sy,
+                                int color, @Nullable ScreenRectangle scissor) {
+        float[] uv = uv(from, sx, sy, sx + x1 - x0, sy + y1 - y0);
         return new BlitRenderState(pipeline, texture(from), new Matrix3x2f(), x0, y0, x1, y1, uv[0], uv[2], uv[1], uv[3],
                 color, scissor, null);
     }
@@ -262,30 +323,32 @@ public final class Layers {
      * {x0, y0, x1, y1}, which grows by what blurs and shadows reach. Returns the target with the result, {@code from}
      * itself when there are no filters; the others it used are released, {@code from} too when it is not returned.
      */
-    static RenderTarget filter(RenderTarget from, List<Filter> filters, float[] area) {
+    static RenderTarget filter(RenderTarget from, List<Filter> filters, Space space) {
+        // What there is to filter: the space, growing by what blurs and shadows reach (and only to its edges).
+        float[] area = {0, 0, space.width(), space.height()};
         for (Filter f : filters) {
             RenderTarget out;
             switch (f.kind()) {
                 case BLUR -> {
                     if (f.amount() <= 0) continue;
-                    grow(area, 3 * f.amount());
-                    out = blur(from, area, f.amount());
+                    grow(area, 3 * f.amount(), space);
+                    out = blur(from, area, f.amount(), space);
                 }
                 case DROP_SHADOW -> {
                     // The input's alpha, coloured, moved and blurred (sigma half the radius), under the input.
                     float sigma = f.amount() / 2;
-                    grow(area, Math.max(Math.abs(f.x()), Math.abs(f.y())) + 3 * sigma);
-                    out = target();
+                    grow(area, Math.max(Math.abs(f.x()), Math.abs(f.y())) + 3 * sigma, space);
+                    out = target(space);
                     pass(from, out, TINT, area, f.x(), f.y(), premultiplied(f.color()), 0);
                     if (sigma > 0) {
                         RenderTarget tint = out;
-                        out = blur(tint, area, sigma);
+                        out = blur(tint, area, sigma, space);
                         release(tint);
                     }
                     blit(from, out, OVER);
                 }
                 default -> {
-                    out = target();
+                    out = target(space);
                     pass(from, out, COLOR_FILTERS.get(f.kind()), area, 0, 0, -1, f.amount());
                 }
             }
@@ -296,11 +359,11 @@ public final class Layers {
     }
 
     /** {@code from} blurred by a Gaussian of {@code sigma} GUI px, in two passes (into a new target). */
-    private static RenderTarget blur(RenderTarget from, float[] area, float sigma) {
+    private static RenderTarget blur(RenderTarget from, float[] area, float sigma, Space space) {
         float deviceSigma = sigma * Math.max(1, window().guiScale);
-        RenderTarget across = target();
+        RenderTarget across = target(space);
         pass(from, across, BLUR_X, area, 0, 0, -1, deviceSigma);
-        RenderTarget out = target();
+        RenderTarget out = target(space);
         pass(across, out, BLUR_Y, area, 0, 0, -1, deviceSigma);
         release(across);
         return out;
@@ -319,14 +382,12 @@ public final class Layers {
         draw(l, into);
     }
 
-    /** Grows {x0, y0, x1, y1} by {@code by} on every side, within the screen. */
-    private static void grow(float[] area, float by) {
-        WindowRenderState window = window();
-        int scale = Math.max(1, window.guiScale);
+    /** Grows {x0, y0, x1, y1} by {@code by} on every side, within {@code space}. */
+    private static void grow(float[] area, float by, Space space) {
         area[0] = Math.max(0, area[0] - by);
         area[1] = Math.max(0, area[1] - by);
-        area[2] = Math.min(Math.ceilDiv(window.width, scale), area[2] + by);
-        area[3] = Math.min(Math.ceilDiv(window.height, scale), area[3] + by);
+        area[2] = Math.min(space.width(), area[2] + by);
+        area[3] = Math.min(space.height(), area[3] + by);
     }
 
     private static int premultiplied(int argb) {

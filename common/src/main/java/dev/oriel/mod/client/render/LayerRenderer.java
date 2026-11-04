@@ -46,20 +46,20 @@ public final class LayerRenderer extends PictureInPictureRenderer<LayerRenderSta
     *///?}
 
     private static void draw(LayerRenderState state, GuiRenderState out) {
-        RenderTarget content = Layers.target();
+        Layers.Space space = state.space();
+        RenderTarget content = Layers.target(space);
         for (LayerRenderState.Segment segment : state.content()) {
             switch (segment) {
                 case LayerRenderState.Draw d -> Layers.draw(d.layer(), content);
-                case LayerRenderState.Backdrop b -> Layers.backdrop(content, b, state.page(),
-                        new float[] {state.x0(), state.y0(), state.x1(), state.y1()});
+                case LayerRenderState.Backdrop b -> Layers.backdrop(content, b, state.page(), space);
             }
         }
-        content = Layers.filter(content, state.filters(), new float[] {state.x0(), state.y0(), state.x1(), state.y1()});
+        content = Layers.filter(content, state.filters(), space);
         if (!state.masks().isEmpty()) {
-            RenderTarget mask = Layers.target();
+            RenderTarget mask = Layers.target(space);
             Layers.draw(state.masks().getFirst(), mask);
             for (int i = 1; i < state.masks().size(); i++) {
-                RenderTarget next = Layers.target();
+                RenderTarget next = Layers.target(space);
                 Layers.draw(state.masks().get(i), next);
                 Layers.blit(next, mask, Layers.mask(state.ops().get(i)));
                 Layers.release(next);
@@ -70,7 +70,7 @@ public final class LayerRenderer extends PictureInPictureRenderer<LayerRenderSta
         RenderPipeline pipeline = Layers.blend(state.blend());
         int a = Math.round(Math.clamp(state.opacity(), 0, 1) * 255);
         out.addBlitToCurrentLayer(Layers.blit(pipeline == null ? Layers.OVER : pipeline, content, state.x0(), state.y0(),
-                state.x1(), state.y1(), a << 24 | a << 16 | a << 8 | a, state.scissorArea()));
+                state.x1(), state.y1(), state.sx(), state.sy(), a << 24 | a << 16 | a << 8 | a, state.scissorArea()));
     }
 
     @Override

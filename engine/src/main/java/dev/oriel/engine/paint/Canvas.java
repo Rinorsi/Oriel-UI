@@ -141,6 +141,12 @@ public interface Canvas {
     default boolean beginGroup() { return false; }
 
     /**
+     * {@link #beginGroup} for a group that paints nothing outside (x, y, width, height) in the current coordinates
+     * (conservatively: its descendants, shadows and filters included), so a backend can size its layer to it.
+     */
+    default boolean beginGroup(float x, float y, float width, float height) { return beginGroup(); }
+
+    /**
      * Inside a group, starts a mask layer: what is drawn next (until the next {@code beginMask} or {@link #endGroup})
      * is a mask whose alpha the group's content is multiplied by. Several mask layers combine in the order they are
      * begun, each onto the result of the ones before with {@code composite}; the first one's operator is ignored.

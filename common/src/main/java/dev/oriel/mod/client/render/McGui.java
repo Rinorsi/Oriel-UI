@@ -38,9 +38,36 @@ import java.util.List;
  */
 public final class McGui {
     private final GuiGraphicsExtractor g;
+    /**
+     * Where this GUI's (0, 0) is on screen, in GUI px: 0 for the frame's, a layer's origin for one of
+     * {@link McCanvas}'s groups (its offscreen target covers only the group). The canvas works in screen coordinates
+     * throughout; everything handed to vanilla is moved by this, and the scissor handed back is moved back.
+     */
+    private final int ox, oy;
+    private final Matrix3x2f shifted = new Matrix3x2f();
 
     McGui(GuiGraphicsExtractor g) {
+        this(g, 0, 0);
+    }
+
+    McGui(GuiGraphicsExtractor g, int ox, int oy) {
         this.g = g;
+        this.ox = ox;
+        this.oy = oy;
+    }
+
+    /** {@code pose} in this GUI's coordinates (a copy when moved: render states keep their pose). */
+    private Matrix3x2fc at(Matrix3x2fc pose) {
+        return ox == 0 && oy == 0 ? pose : new Matrix3x2f().translation(-ox, -oy).mul(pose);
+    }
+
+    /** {@code pose} in this GUI's coordinates, for vanilla's pose stack (which copies it). */
+    private Matrix3x2fc atStack(Matrix3x2fc pose) {
+        return ox == 0 && oy == 0 ? pose : shifted.translation(-ox, -oy).mul(pose);
+    }
+
+    private @Nullable ScreenRectangle at(@Nullable ScreenRectangle r) {
+        return r == null || ox == 0 && oy == 0 ? r : new ScreenRectangle(r.left() - ox, r.top() - oy, r.width(), r.height());
     }
 
     // ---- For McCanvas ----
@@ -80,7 +107,7 @@ public final class McGui {
     /** Pushes a scissor, in GUI px on screen (the transform is not applied). */
     void pushScissor(int left, int top, int right, int bottom) {
         g.pose().identity();
-        g.enableScissor(left, top, right, bottom);
+        g.enableScissor(left - ox, top - oy, right - ox, bottom - oy);
     }
 
     void popScissor() {
@@ -89,7 +116,8 @@ public final class McGui {
 
     /** The scissor elements are clipped to now, or null. */
     @Nullable ScreenRectangle scissor() {
-        return g.scissorStack.peek();
+        ScreenRectangle r = g.scissorStack.peek();
+        return r == null || ox == 0 && oy == 0 ? r : new ScreenRectangle(r.left() + ox, r.top() + oy, r.width(), r.height());
     }
 
     /** Whether text in this colour shows (vanilla skips text with alpha 0). */
@@ -105,8 +133,8 @@ public final class McGui {
      */
     void fill(Matrix3x2fc pose, float x0, float y0, float x1, float y1, int color, ScreenRectangle bounds,
               @Nullable ScreenRectangle scissor) {
-        g.guiRenderState.addGuiElement(new RectRenderState(RenderPipelines.GUI, TextureSetup.noTexture(), pose, x0, y0, x1,
-                y1, false, 0, 0, 0, 0, color, scissor, bounds));
+        g.guiRenderState.addGuiElement(new RectRenderState(RenderPipelines.GUI, TextureSetup.noTexture(), at(pose), x0, y0, x1,
+                y1, false, 0, 0, 0, 0, color, at(scissor), at(bounds)));
     }
 
     /** A texture region (normalised UVs) multiplied by {@code color}, wound as {@link #fill}. */
@@ -115,14 +143,14 @@ public final class McGui {
         AbstractTexture t = Minecraft.getInstance().getTextureManager().getTexture(texture);
         var sampler = smooth ? RenderSystem.getSamplerCache().getRepeat(FilterMode.LINEAR) : t.getSampler();
         g.guiRenderState.addGuiElement(new RectRenderState(RenderPipelines.GUI_TEXTURED,
-                TextureSetup.singleTexture(t.getTextureView(), sampler), pose, x0, y0, x1, y1, true, u0, v0, u1, v1, color,
-                scissor, bounds));
+                TextureSetup.singleTexture(t.getTextureView(), sampler), at(pose), x0, y0, x1, y1, true, u0, v0, u1, v1, color,
+                at(scissor), at(bounds)));
     }
 
     /** Quads with a colour per vertex, 4 vertices each, already wound as vanilla's. */
     void quads(Matrix3x2fc pose, float[] xy, int[] colors, ScreenRectangle bounds, @Nullable ScreenRectangle scissor) {
-        g.guiRenderState.addGuiElement(new QuadsRenderState(RenderPipelines.GUI, TextureSetup.noTexture(), pose, xy, colors,
-                scissor, bounds));
+        g.guiRenderState.addGuiElement(new QuadsRenderState(RenderPipelines.GUI, TextureSetup.noTexture(), at(pose), xy, colors,
+                at(scissor), at(bounds)));
     }
 
     /** Whether {@link #shape} can draw: the shape shader is compiled. */
@@ -142,24 +170,24 @@ public final class McGui {
      */
     void shape(Matrix3x2fc pose, SmoothShape shape, float edge, short[] radii, int color, ScreenRectangle bounds,
                @Nullable ScreenRectangle scissor) {
-        g.guiRenderState.addGuiElement(new SdfRenderState(pose, shape, edge, radii, color, scissor, bounds));
+        g.guiRenderState.addGuiElement(new SdfRenderState(at(pose), shape, edge, radii, color, at(scissor), at(bounds)));
     }
 
     /** Text at (x, y) in {@code m}, scaled by {@code scale}. */
     void text(Matrix3x2fc m, float x, float y, float scale, FormattedCharSequence text, int color, boolean shadow) {
-        g.pose().set(m).translate(x, y).scale(scale, scale);
+        g.pose().set(atStack(m)).translate(x, y).scale(scale, scale);
         g.text(Minecraft.getInstance().font, text, 0, 0, color, shadow);
     }
 
     /** A GUI sprite (nine-slice and tiling at its integer size {@code w × h}), at (x, y) in {@code m} scaled by (sx, sy). */
     void sprite(Matrix3x2fc m, float x, float y, float sx, float sy, Identifier sprite, int w, int h, int color) {
-        g.pose().set(m).translate(x, y).scale(sx, sy);
+        g.pose().set(atStack(m)).translate(x, y).scale(sx, sy);
         g.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 0, 0, w, h, color);
     }
 
     /** An item at (x, y) in {@code m}, scaled from its 16 px, with count and durability when asked. */
     void item(Matrix3x2fc m, float x, float y, float scale, ItemStack stack, boolean decorations) {
-        g.pose().set(m).translate(x, y).scale(scale, scale);
+        g.pose().set(atStack(m)).translate(x, y).scale(scale, scale);
         g.item(stack, 0, 0);
         if (decorations) g.itemDecorations(Minecraft.getInstance().font, stack, 0, 0);
     }
@@ -170,11 +198,12 @@ public final class McGui {
      */
     /** One of McCanvas's groups, drawn by {@link LayerRenderer}. */
     void layer(LayerRenderState layer) {
-        g.guiRenderState.addPicturesInPictureState(layer);
+        g.guiRenderState.addPicturesInPictureState(layer.moved(ox, oy));
     }
 
     void scene(Scene scene, int color, int x0, int y0, int x1, int y1, float scale, @Nullable ScreenRectangle scissor) {
-        g.guiRenderState.addPicturesInPictureState(new GuiSceneRenderState(scene, premultiplied(color), x0, y0, x1, y1, scale, scissor));
+        g.guiRenderState.addPicturesInPictureState(new GuiSceneRenderState(scene, premultiplied(color), x0 - ox, y0 - oy, x1 - ox,
+                y1 - oy, scale, at(scissor)));
     }
 
     /** {@code argb} with its colour channels multiplied by its alpha. */

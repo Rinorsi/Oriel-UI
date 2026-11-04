@@ -103,7 +103,9 @@ final class BoxPainter implements StackingOrder.Visitor {
         // The backdrop reads what is under the element, so it comes before the element's own group.
         if (!style.backdropFilter.isEmpty()) backdrop(box, style, bx, by);
         boolean effects = style.hasLayerEffects();
-        boolean group = effects && canvas.beginGroup();
+        float[] extent = effects ? Extents.of(box, style, bx, by) : null;
+        boolean group = effects && (extent == null ? canvas.beginGroup()
+                : canvas.beginGroup(extent[0], extent[1], extent[2] - extent[0], extent[3] - extent[1]));
         if (effects && !group) unsupported("filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: this canvas has no offscreen layers");
         String limits = group ? canvas.groupLimits(style.filter, style.mixBlendMode) : null;
         if (limits != null) unsupported(limits);
