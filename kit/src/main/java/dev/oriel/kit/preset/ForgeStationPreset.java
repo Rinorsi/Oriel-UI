@@ -8,6 +8,7 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.Lang;
 import dev.oriel.kit.Shell;
 
 /**
@@ -56,11 +57,11 @@ public final class ForgeStationPreset implements PageControllers.Controller {
         status.toggleClass("working", working);
         status.toggleClass("blocked", s == BLOCKED);
         status.toggleClass("ready", output && s != BLOCKED);
-        Dom.text(state, switch (s) {
-            case WORKING -> "正在修复…";
-            case BLOCKED -> "先取走成品，才能继续";
-            default -> output ? "修好了，取走成品" : input ? "放入对应的材料" : "放入一把受损的铁剑或钻石剑";
-        });
+        Dom.text(state, Lang.t(doc, "oriel.ui.forge_station.state." + switch (s) {
+            case WORKING -> "working";
+            case BLOCKED -> "blocked";
+            default -> output ? "done" : input ? "material" : "empty";
+        }));
         Dom.text(recipe, recipeName(selected));
     }
 
@@ -71,10 +72,10 @@ public final class ForgeStationPreset implements PageControllers.Controller {
         return index < slots.size() && !slots.get(index).getAsJsonObject().get("id").getAsString().isEmpty();
     }
 
-    private static String recipeName(String id) {
+    /** The recipe the menu reports, as "sword + material"; unknown recipes (another mod's) show nothing. */
+    private String recipeName(String id) {
         return switch (id) {
-            case "oriel:repair_iron_sword" -> "铁剑 + 铁锭";
-            case "oriel:repair_diamond_sword" -> "钻石剑 + 钻石";
+            case "oriel:repair_iron_sword", "oriel:repair_diamond_sword" -> Lang.t(doc, "oriel.ui.forge_station.recipe." + id.substring(13));
             default -> "";
         };
     }

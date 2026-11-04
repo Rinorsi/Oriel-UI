@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="utf-8">
-<title>魔法附魔</title>
+<title data-i18n="oriel.ui.tpl.arcane.title">oriel.ui.tpl.arcane.title</title>
 <link rel="stylesheet" href="showcase.css">
 <style>
 /*
@@ -93,7 +93,7 @@
 </head>
 <body>
 <div class="altar">
-  <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
+  <div class="sc-back" data-go="styles" tabindex="0" data-i18n="oriel.ui.nav.templates"><img src="../../textures/icons/back.png">oriel.ui.nav.templates<kbd>Esc</kbd></div>
 
   <span class="drift" style="left: 4%; top: 18%; --dx: 70px; --dy: 60px">g</span>
   <span class="drift" style="left: 8%; top: 82%; --dx: 60px; --dy: -50px; animation-delay: 1.1s">q</span>
@@ -118,28 +118,28 @@
   </div>
 
   <div class="table">
-    <h2>附魔台<span>elder scroll</span></h2>
+    <h2 data-i18n="oriel.ui.tpl.arcane.table">oriel.ui.tpl.arcane.table<span>elder scroll</span></h2>
     <div class="inputs">
-      <div class="well" title="要附魔的物品"><item id="minecraft:diamond_sword"></item></div>
-      <div class="well" title="青金石"><item id="minecraft:lapis_lazuli" count="9"></item></div>
-      <span class="xp">经验等级 31</span>
+      <div class="well" title="oriel.ui.tpl.arcane.slot.item" data-i18n-title="oriel.ui.tpl.arcane.slot.item"><item id="minecraft:diamond_sword"></item></div>
+      <div class="well" title="oriel.ui.tpl.arcane.slot.lapis" data-i18n-title="oriel.ui.tpl.arcane.slot.lapis"><item id="minecraft:lapis_lazuli" count="9"></item></div>
+      <span class="xp" data-i18n="oriel.ui.tpl.arcane.levels">oriel.ui.tpl.arcane.levels</span>
     </div>
     <div class="offer">
       <img class="cost" src="sprite:minecraft:container/enchanting_table/level_1">
-      <div class="text"><div class="runes">elder klaatu berata</div><div class="name"><b>锋利 III</b><span>近战伤害 +2</span></div></div>
+      <div class="text"><div class="runes">elder klaatu berata</div><div class="name"><b data-i18n="oriel.ui.tpl.arcane.offer.sharpness">oriel.ui.tpl.arcane.offer.sharpness</b><span data-i18n="oriel.ui.tpl.arcane.offer.sharpness.desc">oriel.ui.tpl.arcane.offer.sharpness.desc</span></div></div>
       <span class="lv">8</span>
     </div>
     <div class="offer">
       <img class="cost" src="sprite:minecraft:container/enchanting_table/level_2">
-      <div class="text"><div class="runes">nikto bless imbue</div><div class="name"><b>火焰附加 II</b><span>点燃目标 8 秒</span></div></div>
+      <div class="text"><div class="runes">nikto bless imbue</div><div class="name"><b data-i18n="oriel.ui.tpl.arcane.offer.fire">oriel.ui.tpl.arcane.offer.fire</b><span data-i18n="oriel.ui.tpl.arcane.offer.fire.desc">oriel.ui.tpl.arcane.offer.fire.desc</span></div></div>
       <span class="lv">19</span>
     </div>
-    <div class="offer locked" title="需要 30 级">
+    <div class="offer locked" title="oriel.ui.tpl.arcane.offer.cost" data-i18n-title="oriel.ui.tpl.arcane.offer.cost">
       <img class="cost" src="sprite:minecraft:container/enchanting_table/level_3_disabled">
-      <div class="text"><div class="runes">grow towards the void</div><div class="name"><b>？？？</b></div></div>
+      <div class="text"><div class="runes">grow towards the void</div><div class="name"><b data-i18n="oriel.ui.tpl.arcane.offer.unknown">oriel.ui.tpl.arcane.offer.unknown</b></div></div>
       <span class="lv">30</span>
     </div>
-    <span class="hint">把指针移到符文上，看清它是什么</span>
+    <span class="hint" data-i18n="oriel.ui.tpl.arcane.hint">oriel.ui.tpl.arcane.hint</span>
   </div>
   </div>
 </div>

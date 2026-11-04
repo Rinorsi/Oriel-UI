@@ -5,6 +5,7 @@ import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
 import dev.oriel.kit.GameEffects;
+import dev.oriel.kit.Lang;
 import dev.oriel.kit.Shell;
 
 import java.util.ArrayDeque;
@@ -22,7 +23,7 @@ import java.util.Map;
  *   cooldown, with the level and time; a new effect is announced by a card that slides out under the bar and then
  *   folds away into its tile; the handle (or H) unfolds the full panel;</li>
  *   <li>the full panel ({@link #mountPanel}), also embedded in the inventory: effects grouped into beneficial,
- *   harmful and neutral, each with a countdown and a draining bar. A group shows three rows and a "另有 N 个" chip
+ *   harmful and neutral, each with a countdown and a draining bar. A group shows three rows and an "N more" chip
  *   that expands it; its header folds it to a strip of icons.</li>
  * </ul>
  * Effects blink in their last ten seconds and fade out when they end. In game ({@link GameEffects} has a provider)
@@ -31,7 +32,7 @@ import java.util.Map;
  */
 public final class PotionHudPreset implements PageControllers.Controller {
     static final int SHOWN = 3, BAR_TILES = 5;
-    /** Rows a group shows beside the inventory before the rest fold under "另有 N 个效果". */
+    /** Rows a group shows beside the inventory before the rest fold under "N more effects". */
     static final int PANEL_SHOWN = 4;
     static final double ARRIVAL_SECONDS = 9, FRESH_SECONDS = 4, ANNOUNCE_SECONDS = 2.6;
 
@@ -76,31 +77,31 @@ public final class PotionHudPreset implements PageControllers.Controller {
     }
 
     static final List<Effect> INITIAL = List.of(
-            new Effect("speed", "速度", 2, Kind.BENEFICIAL, 42),
-            new Effect("strength", "力量", 1, Kind.BENEFICIAL, 190),
-            new Effect("regeneration", "生命恢复", 2, Kind.BENEFICIAL, 18),
-            new Effect("fire_resistance", "抗火", 1, Kind.BENEFICIAL, 480),
-            new Effect("night_vision", "夜视", 1, Kind.BENEFICIAL, 330),
-            new Effect("haste", "急迫", 2, Kind.BENEFICIAL, 105),
-            new Effect("jump_boost", "跳跃提升", 1, Kind.BENEFICIAL, 55),
-            new Effect("wither", "凋零", 2, Kind.HARMFUL, 8),
-            new Effect("poison", "中毒", 1, Kind.HARMFUL, 24),
-            new Effect("slowness", "缓慢", 1, Kind.HARMFUL, 72),
-            new Effect("weakness", "虚弱", 1, Kind.HARMFUL, 35),
-            new Effect("glowing", "发光", 1, Kind.NEUTRAL, 50),
-            new Effect("bad_omen", "不祥之兆", 3, Kind.NEUTRAL, 3600));
+            new Effect("speed", "oriel.ui.potions.effect.speed", 2, Kind.BENEFICIAL, 42),
+            new Effect("strength", "oriel.ui.potions.effect.strength", 1, Kind.BENEFICIAL, 190),
+            new Effect("regeneration", "oriel.ui.potions.effect.regeneration", 2, Kind.BENEFICIAL, 18),
+            new Effect("fire_resistance", "oriel.ui.potions.effect.fire_resistance", 1, Kind.BENEFICIAL, 480),
+            new Effect("night_vision", "oriel.ui.potions.effect.night_vision", 1, Kind.BENEFICIAL, 330),
+            new Effect("haste", "oriel.ui.potions.effect.haste", 2, Kind.BENEFICIAL, 105),
+            new Effect("jump_boost", "oriel.ui.potions.effect.jump_boost", 1, Kind.BENEFICIAL, 55),
+            new Effect("wither", "oriel.ui.potions.effect.wither", 2, Kind.HARMFUL, 8),
+            new Effect("poison", "oriel.ui.potions.effect.poison", 1, Kind.HARMFUL, 24),
+            new Effect("slowness", "oriel.ui.potions.effect.slowness", 1, Kind.HARMFUL, 72),
+            new Effect("weakness", "oriel.ui.potions.effect.weakness", 1, Kind.HARMFUL, 35),
+            new Effect("glowing", "oriel.ui.potions.effect.glowing", 1, Kind.NEUTRAL, 50),
+            new Effect("bad_omen", "oriel.ui.potions.effect.bad_omen", 3, Kind.NEUTRAL, 3600));
     static final List<Effect> ARRIVALS = List.of(
-            new Effect("water_breathing", "水下呼吸", 1, Kind.BENEFICIAL, 90),
-            new Effect("resistance", "抗性提升", 2, Kind.BENEFICIAL, 30),
-            new Effect("hunger", "饥饿", 1, Kind.HARMFUL, 20),
-            new Effect("slow_falling", "缓降", 1, Kind.BENEFICIAL, 45),
-            new Effect("invisibility", "隐身", 1, Kind.BENEFICIAL, 120),
-            new Effect("mining_fatigue", "挖掘疲劳", 3, Kind.HARMFUL, 26),
-            new Effect("luck", "幸运", 1, Kind.NEUTRAL, 300),
-            new Effect("absorption", "伤害吸收", 2, Kind.BENEFICIAL, 60));
+            new Effect("water_breathing", "oriel.ui.potions.effect.water_breathing", 1, Kind.BENEFICIAL, 90),
+            new Effect("resistance", "oriel.ui.potions.effect.resistance", 2, Kind.BENEFICIAL, 30),
+            new Effect("hunger", "oriel.ui.potions.effect.hunger", 1, Kind.HARMFUL, 20),
+            new Effect("slow_falling", "oriel.ui.potions.effect.slow_falling", 1, Kind.BENEFICIAL, 45),
+            new Effect("invisibility", "oriel.ui.potions.effect.invisibility", 1, Kind.BENEFICIAL, 120),
+            new Effect("mining_fatigue", "oriel.ui.potions.effect.mining_fatigue", 3, Kind.HARMFUL, 26),
+            new Effect("luck", "oriel.ui.potions.effect.luck", 1, Kind.NEUTRAL, 300),
+            new Effect("absorption", "oriel.ui.potions.effect.absorption", 2, Kind.BENEFICIAL, 60));
 
     private static final String[] ROMAN = {"", "", " II", " III", " IV", " V", " VI", " VII", " VIII", " IX", " X"};
-    private static final String[] GROUP_TITLES = {"增益", "减益", "中性"}, GROUP_CLASSES = {"beneficial", "harmful", "neutral"};
+    private static final String[] GROUP_CLASSES = {"beneficial", "harmful", "neutral"};
 
     final Map<Kind, List<Running>> groups = new LinkedHashMap<>();
     private final Map<Kind, Element> groupElements = new LinkedHashMap<>();
@@ -159,7 +160,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             expanded.put(k, false);
             Element g = Dom.html(doc, "<div class=\"group " + GROUP_CLASSES[k.ordinal()] + "\"><div class=\"head\">"
                     + "<img class=\"o-ico caret\" src=\"../textures/icons/down.png\"><i class=\"dot\"></i>"
-                    + GROUP_TITLES[k.ordinal()] + "<span class=\"n\"></span></div><div class=\"list\"></div>"
+                    + group(k) + "<span class=\"n\"></span></div><div class=\"list\"></div>"
                     + "<div class=\"strip\"></div><div class=\"more\"></div></div>");
             panel.appendChild(g);
             groupElements.put(k, g);
@@ -176,8 +177,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
         if (game != null) {
             sync(game, false);
         } else {
-            for (Effect e : INITIAL) add(e, false);
-            queue.addAll(ARRIVALS);
+            for (Effect e : INITIAL) add(fixture(e), false);
+            for (Effect e : ARRIVALS) queue.add(fixture(e));
         }
         // Every group's counts and empty state, also those nothing has been added to yet.
         for (Kind k : Kind.values()) refresh(k);
@@ -366,8 +367,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
         img.setAttribute("src", icon(e));
         toast.appendChild(img);
         Element text = Dom.el(doc, "div", "text", null);
-        text.appendChild(Dom.el(doc, "div", "name", (e.kind() == Kind.HARMFUL ? "受到 " : "获得 ") + e.name() + level(e.level())));
-        text.appendChild(Dom.el(doc, "div", "sub", clock((int) e.seconds()) + " · " + GROUP_TITLES[e.kind().ordinal()]));
+        text.appendChild(Dom.el(doc, "div", "name", Lang.t(doc, e.kind() == Kind.HARMFUL ? "oriel.ui.potions.toast.harmful" : "oriel.ui.potions.toast.gained", e.name() + level(e.level()))));
+        text.appendChild(Dom.el(doc, "div", "sub", clock((int) e.seconds()) + " · " + group(e.kind())));
         toast.appendChild(text);
         doc.scheduler().requestAnimationFrame(t -> toast.addClass("on"));
         toastUntil = now + ANNOUNCE_SECONDS;
@@ -393,7 +394,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         }
         int hidden = effects.size() - want.size();
         more.setAttribute("style", hidden == 0 && !expanded.get(k) ? "display: none" : "");
-        Dom.text(more, expanded.get(k) ? "收起 ▴" : "另有 " + hidden + " 个效果 ▾");
+        Dom.text(more, expanded.get(k) ? Lang.t(doc, "oriel.ui.potions.collapse") : Lang.plural(doc, "oriel.ui.potions.more", hidden));
         Dom.text(Dom.query(g, ".n"), Integer.toString(effects.size()));
         g.toggleClass("empty", effects.isEmpty());
         refreshBar();
@@ -417,7 +418,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         boolean empty = game != null && total == 0;
         if (hud != null && hud.hasClass("empty") != empty) {
             hud.toggleClass("empty", empty);
-            if (hint != null) Dom.text(hint, empty ? "身上没有药水效果" : "打开聊天栏后可展开全部效果");
+            if (hint != null) Dom.text(hint, Lang.t(doc, empty ? "oriel.ui.potions.hint.none" : "oriel.ui.potions.hint"));
         }
     }
 
@@ -434,7 +435,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         tip.setAttribute("class", "o-efftip on " + GROUP_CLASSES[e.kind().ordinal()]);
         Dom.query(tip, "img").setAttribute("src", icon(e));
         Dom.text(Dom.query(tip, "b"), e.name());
-        Dom.text(Dom.query(tip, ".kind"), GROUP_TITLES[e.kind().ordinal()]);
+        Dom.text(Dom.query(tip, ".kind"), group(e.kind()));
         String lv = level(e.level()).trim();
         Element badge = Dom.query(tip, ".lv");
         Dom.text(badge, lv);
@@ -461,8 +462,9 @@ public final class PotionHudPreset implements PageControllers.Controller {
         boolean infinite = Double.isInfinite(r.end);
         new Dom.Style(Dom.query(tip, ".bar i")).set("width", infinite || r.total <= 0 ? "100%"
                 : Math.round(Math.min(1, left / r.total) * 1000) / 10.0 + "%").apply();
-        Dom.text(Dom.query(tip, ".left"), infinite ? "无限持续" : "剩余 " + clock((int) Math.ceil(left))
-                + (Double.isInfinite(r.total) ? "" : " / " + clock((int) Math.ceil(r.total))));
+        Dom.text(Dom.query(tip, ".left"), infinite ? Lang.t(doc, "oriel.ui.potions.tip.infinite")
+                : Double.isInfinite(r.total) ? Lang.t(doc, "oriel.ui.potions.tip.left", clock((int) Math.ceil(left)))
+                : Lang.t(doc, "oriel.ui.potions.tip.left_of", clock((int) Math.ceil(left)), clock((int) Math.ceil(r.total))));
     }
 
     private void hideTip() {
@@ -483,6 +485,17 @@ public final class PotionHudPreset implements PageControllers.Controller {
         int colon = e.id().indexOf(':');
         String namespace = colon < 0 ? "minecraft" : e.id().substring(0, colon);
         return namespace + ":textures/mob_effect/" + e.id().substring(colon + 1) + ".png";
+    }
+
+    /** A group's title, in the page's language. */
+    private String group(Kind k) {
+        return Lang.t(doc, "oriel.ui.potions.group." + GROUP_CLASSES[k.ordinal()]);
+    }
+
+    /** A fixture as shown: its name and what it does in the page's language (game effects arrive translated). */
+    private Effect fixture(Effect e) {
+        return new Effect(e.id(), Lang.t(doc, e.name()), e.level(), e.kind(), e.seconds(),
+                Lang.t(doc, "oriel.effect.minecraft." + e.id() + ".desc"));
     }
 
     /** The level after a name: none for I, Roman numerals to X, digits beyond, as vanilla. */

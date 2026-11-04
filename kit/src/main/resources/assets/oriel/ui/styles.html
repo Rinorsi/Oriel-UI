@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>模板中心 · 优易库</title>
+<title data-i18n="oriel.ui.styles.window_title">oriel.ui.styles.window_title</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The template centre: complete looks to start a screen from. The sidebar picks what shows (all, official,
@@ -18,7 +18,8 @@
 .side .item:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); padding-left: 7px; }
 .side .item.on { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
 .side .item.on::before { content: ""; position: absolute; left: 0; top: 3px; width: 2px; height: 13px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
-.side .item .n { margin-left: auto; color: var(--o-text-faint); }
+.side .item > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side .item .n { flex: none; margin-left: auto; color: var(--o-text-faint); }
 .side .grow { flex: 1; }
 
 .main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -118,8 +119,12 @@
 .code .c { color: #8c8d90; }
 .tpls { display: none; }
 .foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
+.foot span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.foot #foot-count { flex: none; }
+.o-titlebar .o-crumb { min-width: 0; flex-shrink: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 @media (max-width: 560px) {
+    .bar #count { display: none; }
     .side { width: 94px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
     .tags { display: none; }
@@ -133,11 +138,11 @@
 <div class="o-app" id="app">
   <div class="o-window">
     <div class="o-titlebar">
-      <div class="o-brand"><img src="../textures/ui/emblem.png"><b>优易库</b><span>Oriel UI</span></div>
-      <span class="o-crumb" id="crumb">/ 模板中心</span>
+      <div class="o-brand"><img src="../textures/ui/emblem.png"><b data-i18n="oriel.ui.brand.name">oriel.ui.brand.name</b><span data-i18n="oriel.ui.brand.sub">oriel.ui.brand.sub</span></div>
+      <span class="o-crumb" id="crumb" data-i18n="oriel.ui.styles.crumb">oriel.ui.styles.crumb</span>
       <div class="o-grow"></div>
-      <div class="o-hints"><span><span class="o-kbd">Enter</span>预览</span><span><span class="o-kbd">S</span>保存</span><span><span class="o-kbd">Esc</span>返回</span></div>
-      <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
+      <div class="o-hints"><span data-i18n="oriel.ui.common.preview"><span class="o-kbd">Enter</span>oriel.ui.common.preview</span><span data-i18n="oriel.ui.styles.hint_save"><span class="o-kbd">S</span>oriel.ui.styles.hint_save</span><span data-i18n="oriel.ui.styles.hint_back"><span class="o-kbd">Esc</span>oriel.ui.styles.hint_back</span></div>
+      <div class="ore-btn icon" data-action="theme" tabindex="0" title="oriel.ui.gallery.toggle_light_dark" data-i18n-title="oriel.ui.gallery.toggle_light_dark"><img class="o-ico" src="../textures/icons/sun.png"></div>
       <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-tabbar">
@@ -152,43 +157,43 @@
     </div>
     <div class="o-body">
       <div class="side" id="side">
-        <div class="grp">浏览</div>
-        <div class="item on" data-view="all" tabindex="0"><img class="o-ico" src="../textures/icons/grid_bento.png"><span>全部模板</span><span class="n"></span></div>
-        <div class="item" data-view="official" tabindex="0"><img class="o-ico" src="../textures/icons/medal.png"><span>官方模板</span><span class="n"></span></div>
-        <div class="item" data-view="community" tabindex="0"><img class="o-ico" src="../textures/icons/users.png"><span>社区模板</span><span class="n"></span></div>
-        <div class="grp">我的</div>
-        <div class="item" data-view="fav" tabindex="0"><img class="o-ico" src="../textures/icons/heart.png"><span>收藏</span><span class="n"></span></div>
-        <div class="item" data-view="saved" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span>已保存</span><span class="n"></span></div>
-        <div class="item" data-view="recent" tabindex="0"><img class="o-ico" src="../textures/icons/clock.png"><span>最近浏览</span><span class="n"></span></div>
-        <div class="grp">分类</div>
-        <div class="item" data-view="group:hud" tabindex="0"><img class="o-ico" src="../textures/icons/swords.png"><span>战斗 HUD</span><span class="n"></span></div>
-        <div class="item" data-view="group:menu" tabindex="0"><img class="o-ico" src="../textures/icons/book_open.png"><span>界面与菜单</span><span class="n"></span></div>
-        <div class="item" data-view="group:theme" tabindex="0"><img class="o-ico" src="../textures/icons/sparkle.png"><span>主题氛围</span><span class="n"></span></div>
+        <div class="grp" data-i18n="oriel.ui.styles.side.browse">oriel.ui.styles.side.browse</div>
+        <div class="item on" data-view="all" tabindex="0"><img class="o-ico" src="../textures/icons/grid_bento.png"><span data-i18n="oriel.ui.styles.side.all">oriel.ui.styles.side.all</span><span class="n"></span></div>
+        <div class="item" data-view="official" tabindex="0"><img class="o-ico" src="../textures/icons/medal.png"><span data-i18n="oriel.ui.styles.side.official">oriel.ui.styles.side.official</span><span class="n"></span></div>
+        <div class="item" data-view="community" tabindex="0"><img class="o-ico" src="../textures/icons/users.png"><span data-i18n="oriel.ui.styles.side.community">oriel.ui.styles.side.community</span><span class="n"></span></div>
+        <div class="grp" data-i18n="oriel.ui.styles.side.mine">oriel.ui.styles.side.mine</div>
+        <div class="item" data-view="fav" tabindex="0"><img class="o-ico" src="../textures/icons/heart.png"><span data-i18n="oriel.ui.styles.side.favorites">oriel.ui.styles.side.favorites</span><span class="n"></span></div>
+        <div class="item" data-view="saved" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span data-i18n="oriel.ui.styles.side.saved">oriel.ui.styles.side.saved</span><span class="n"></span></div>
+        <div class="item" data-view="recent" tabindex="0"><img class="o-ico" src="../textures/icons/clock.png"><span data-i18n="oriel.ui.styles.side.recent">oriel.ui.styles.side.recent</span><span class="n"></span></div>
+        <div class="grp" data-i18n="oriel.ui.styles.side.categories">oriel.ui.styles.side.categories</div>
+        <div class="item" data-view="group:hud" tabindex="0"><img class="o-ico" src="../textures/icons/swords.png"><span data-i18n="oriel.ui.styles.group.hud">oriel.ui.styles.group.hud</span><span class="n"></span></div>
+        <div class="item" data-view="group:menu" tabindex="0"><img class="o-ico" src="../textures/icons/book_open.png"><span data-i18n="oriel.ui.styles.group.menu">oriel.ui.styles.group.menu</span><span class="n"></span></div>
+        <div class="item" data-view="group:theme" tabindex="0"><img class="o-ico" src="../textures/icons/sparkle.png"><span data-i18n="oriel.ui.styles.group.theme">oriel.ui.styles.group.theme</span><span class="n"></span></div>
         <div class="grow"></div>
-        <div class="item" data-view="guide" tabindex="0"><img class="o-ico" src="../textures/icons/help.png"><span>投稿指南</span></div>
+        <div class="item" data-view="guide" tabindex="0"><img class="o-ico" src="../textures/icons/help.png"><span data-i18n="oriel.ui.styles.side.guide">oriel.ui.styles.side.guide</span></div>
       </div>
       <div class="main">
         <div class="bar">
-          <div class="search"><input class="ore-field" id="q" placeholder="搜索模板"><img class="o-ico" src="../textures/icons/search.png"></div>
+          <div class="search"><input class="ore-field" id="q" placeholder="oriel.ui.styles.search" data-i18n-placeholder="oriel.ui.styles.search"><img class="o-ico" src="../textures/icons/search.png"></div>
           <span class="count" id="count"></span>
           <div class="o-grow"></div>
-          <div class="o-seg" id="sort"><span class="on" data-sort="pick">推荐</span><span data-sort="new">最新</span><span data-sort="name">名称</span></div>
+          <div class="o-seg" id="sort"><span class="on" data-sort="pick" data-i18n="oriel.ui.styles.sort.pick">oriel.ui.styles.sort.pick</span><span data-sort="new" data-i18n="oriel.ui.styles.sort.new">oriel.ui.styles.sort.new</span><span data-sort="name" data-i18n="oriel.ui.styles.sort.name">oriel.ui.styles.sort.name</span></div>
         </div>
         <div class="scroll" id="scroll">
-          <div class="headline"><span class="o-h2" id="view-title">全部模板</span><span class="o-faint" id="view-sub">完整的界面风格，都用 HTML 与 CSS 写成，可以直接保存来改</span></div>
+          <div class="headline"><span class="o-h2" id="view-title" data-i18n="oriel.ui.styles.view.all.title">oriel.ui.styles.view.all.title</span><span class="o-faint" id="view-sub" data-i18n="oriel.ui.styles.view.all.sub">oriel.ui.styles.view.all.sub</span></div>
           <div class="grid" id="grid"></div>
           <div class="empty" id="empty-community"><div class="art"><img class="o-ico" src="../textures/icons/users.png"></div>
-            <span class="o-h2">社区模板即将开放</span><span>你做的界面也可以出现在这里，左下角「投稿指南」写了怎么分享。</span></div>
+            <span class="o-h2" data-i18n="oriel.ui.styles.empty.community.title">oriel.ui.styles.empty.community.title</span><span data-i18n="oriel.ui.styles.empty.community.text">oriel.ui.styles.empty.community.text</span></div>
           <div class="empty" id="empty-mine"><div class="art"><img class="o-ico" src="../textures/icons/heart.png"></div>
-            <span class="o-h2" id="empty-mine-title">这里还没有模板</span><span id="empty-mine-text">在模板的详情里点「收藏」或「保存」，它就会出现在这里。</span></div>
+            <span class="o-h2" id="empty-mine-title" data-i18n="oriel.ui.styles.empty.mine.title">oriel.ui.styles.empty.mine.title</span><span id="empty-mine-text" data-i18n="oriel.ui.styles.empty.mine.text">oriel.ui.styles.empty.mine.text</span></div>
           <div class="empty" id="empty-search"><div class="art"><img class="o-ico" src="../textures/icons/search.png"></div>
-            <span class="o-h2">没有找到匹配的模板</span><span>换个关键词试试，比如「HUD」「水墨」或「像素」。</span></div>
+            <span class="o-h2" data-i18n="oriel.ui.styles.empty.search.title">oriel.ui.styles.empty.search.title</span><span data-i18n="oriel.ui.styles.empty.search.text">oriel.ui.styles.empty.search.text</span></div>
           <div class="empty" id="guide"><div class="art"><img class="o-ico" src="../textures/icons/help.png"></div>
-            <span class="o-h2">分享你的模板</span>
-            <span>模板就是一个页面文件夹：一个 HTML、它的样式和图片。保存过的模板在下面这个文件夹里，可以直接改，存盘后游戏里立刻刷新。</span>
+            <span class="o-h2" data-i18n="oriel.ui.styles.guide.title">oriel.ui.styles.guide.title</span>
+            <span data-i18n="oriel.ui.styles.guide.text">oriel.ui.styles.guide.text</span>
 <pre class="code" id="guide-folder">config/oriel/my-pages/</pre>
-            <div class="ore-btn m-ripple" id="open-folder" tabindex="0"><img class="o-ico" src="../textures/icons/folder_open.png">打开文件夹</div>
-            <span class="o-faint">社区投稿上线后，带上封面图（16:9）和作者名，就能出现在「社区模板」里。</span></div>
+            <div class="ore-btn m-ripple" id="open-folder" tabindex="0" data-i18n="oriel.ui.styles.guide.open_folder"><img class="o-ico" src="../textures/icons/folder_open.png">oriel.ui.styles.guide.open_folder</div>
+            <span class="o-faint" data-i18n="oriel.ui.styles.guide.cover">oriel.ui.styles.guide.cover</span></div>
         </div>
         <div class="veil" id="veil"></div>
         <div class="drawer" id="drawer">
@@ -197,9 +202,9 @@
             <div class="head"><span class="o-h1" id="d-title"></span><div class="by"><img src="../textures/ui/emblem.png"><span id="d-author"></span><em id="d-ver"></em></div>
               <span class="desc" id="d-desc"></span></div>
             <div class="acts">
-              <div class="ore-btn hero m-ripple" id="d-open" tabindex="0"><img class="o-ico" src="../textures/icons/play.png">全屏预览</div>
-              <div class="ore-btn m-ripple" id="d-save" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span>一键保存</span></div>
-              <div class="ore-btn icon m-ripple" id="d-fav" tabindex="0" title="收藏"><img class="o-ico" src="../textures/icons/heart.png"></div>
+              <div class="ore-btn hero m-ripple" id="d-open" tabindex="0" data-i18n="oriel.ui.styles.drawer.open"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.styles.drawer.open</div>
+              <div class="ore-btn m-ripple" id="d-save" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span data-i18n="oriel.ui.styles.drawer.save">oriel.ui.styles.drawer.save</span></div>
+              <div class="ore-btn icon m-ripple" id="d-fav" tabindex="0" title="oriel.ui.styles.drawer.favorite" data-i18n-title="oriel.ui.styles.drawer.favorite"><img class="o-ico" src="../textures/icons/heart.png"></div>
             </div>
             <div class="note" id="d-note"></div>
             <div class="spec" id="d-spec"></div>
@@ -207,104 +212,104 @@
         </div>
       </div>
     </div>
-    <div class="foot"><span id="foot-count"></span><span>官方模板由优易库维护；保存的副本在 config/oriel/my-pages/，可自由修改</span></div>
+    <div class="foot"><span id="foot-count"></span><span data-i18n="oriel.ui.styles.foot">oriel.ui.styles.foot</span></div>
   </div>
 </div>
 
 <!-- The templates: one entry each (data for the card, and the spec the details show). -->
 <div class="tpls" id="tpls">
-  <div class="tpl" data-id="rpg" data-title="RPG 战斗 HUD" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-04"
-       data-tags="HUD,动作,暗黑" data-desc="暗黑破坏神式的青铜底座：会晃动的血球与蓝球、技能冷却、Boss 血条、头像和任务追踪。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #c0201a">血</i><i style="background: #2040c0">法力</i><i style="background: #8a5a2a">青铜</i><i style="background: #ffd77a; color: #3a2a00">金</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>oriel:smiley<em>数值、伤害</em></span><span>minecraft:default<em>正文</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span>overflow 圆角裁切</span><span>radial-gradient</span><span>transform 动画</span><span>&lt;item&gt;</span><span>&lt;entity&gt;</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>球是圆形容器裁掉溢出，里面一块大圆角方块不停旋转，就是晃动的液面</span></div>
-      <div><b>2</b><span>冷却是一层半透明遮罩做 scaleY 动画，从上往下收</span></div><div><b>3</b><span>技能图标直接用 &lt;item&gt;，药水带 components 也能显示颜色</span></div></div>
+  <div class="tpl" data-id="rpg" data-title="oriel.ui.tpl.rpg.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="oriel.ui.tpl.rpg.tags" data-desc="oriel.ui.tpl.rpg.desc" data-i18n-data-title="oriel.ui.tpl.rpg.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #c0201a" data-i18n="oriel.ui.tpl.rpg.swatch.blood">oriel.ui.tpl.rpg.swatch.blood</i><i style="background: #2040c0" data-i18n="oriel.ui.tpl.rpg.swatch.mana">oriel.ui.tpl.rpg.swatch.mana</i><i style="background: #8a5a2a" data-i18n="oriel.ui.tpl.rpg.swatch.bronze">oriel.ui.tpl.rpg.swatch.bronze</i><i style="background: #ffd77a; color: #3a2a00" data-i18n="oriel.ui.tpl.rpg.swatch.gold">oriel.ui.tpl.rpg.swatch.gold</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>oriel:smiley<em data-i18n="oriel.ui.tpl.rpg.font.numbers">oriel.ui.tpl.rpg.font.numbers</em></span><span>minecraft:default<em data-i18n="oriel.ui.styles.spec.body">oriel.ui.styles.spec.body</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span data-i18n="oriel.ui.tpl.rpg.chip.overflow">oriel.ui.tpl.rpg.chip.overflow</span><span>radial-gradient</span><span data-i18n="oriel.ui.styles.chip.transform_anim">oriel.ui.styles.chip.transform_anim</span><span>&lt;item&gt;</span><span>&lt;entity&gt;</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.rpg.how.1">oriel.ui.tpl.rpg.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.rpg.how.2">oriel.ui.tpl.rpg.how.2</span></div><div><b>3</b><span data-i18n="oriel.ui.tpl.rpg.how.3">oriel.ui.tpl.rpg.how.3</span></div></div>
 <pre class="code">.orb { border-radius: 50%; overflow: hidden; }
-.orb::before { border-radius: 42%;  <span class="c">/* 液面 */</span>
+.orb::before { border-radius: 42%;  <span class="c" data-i18n="oriel.ui.tpl.rpg.code.liquid">oriel.ui.tpl.rpg.code.liquid</span>
   animation: slosh 6s linear infinite; }</pre>
   </div>
-  <div class="tpl" data-id="mcdungeons" data-title="方块地下城" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-05"
-       data-tags="HUD,等距,冒险" data-desc="方块地下城式的俯视冒险：等距地砖与熔岩、圆角石板面板、生命条与治疗药水、1 2 3 神器冷却、灵魂和绿宝石。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #e8413a">生命</i><i style="background: #5fd0ff; color: #06202a">灵魂</i><i style="background: #3ee07a; color: #06200e">绿宝石</i><i style="background: #1c1e24">石板</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>minecraft:default<em>全部</em></span><span>oriel:smiley<em>关卡名</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span>transform 等距地面</span><span>repeating-conic-gradient</span><span>mask-image</span><span>&lt;entity player&gt;</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>地面是方格棋盘转 45° 再压扁一半，看起来就是等距视角</span></div>
-      <div><b>2</b><span>神器冷却：就绪的格子描金边；冷却中的一层遮罩从上往下退去</span></div><div><b>3</b><span>掉落物下面一道竖光，颜色按稀有度给</span></div></div>
+  <div class="tpl" data-id="mcdungeons" data-title="oriel.ui.tpl.mcdungeons.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-05"
+       data-tags="oriel.ui.tpl.mcdungeons.tags" data-desc="oriel.ui.tpl.mcdungeons.desc" data-i18n-data-title="oriel.ui.tpl.mcdungeons.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #e8413a" data-i18n="oriel.ui.tpl.mcdungeons.swatch.health">oriel.ui.tpl.mcdungeons.swatch.health</i><i style="background: #5fd0ff; color: #06202a" data-i18n="oriel.ui.tpl.mcdungeons.swatch.souls">oriel.ui.tpl.mcdungeons.swatch.souls</i><i style="background: #3ee07a; color: #06200e" data-i18n="oriel.ui.tpl.mcdungeons.swatch.emerald">oriel.ui.tpl.mcdungeons.swatch.emerald</i><i style="background: #1c1e24" data-i18n="oriel.ui.tpl.mcdungeons.swatch.slate">oriel.ui.tpl.mcdungeons.swatch.slate</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>minecraft:default<em data-i18n="oriel.ui.styles.font.everything">oriel.ui.styles.font.everything</em></span><span>oriel:smiley<em data-i18n="oriel.ui.tpl.mcdungeons.font.level">oriel.ui.tpl.mcdungeons.font.level</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span data-i18n="oriel.ui.tpl.mcdungeons.chip.iso">oriel.ui.tpl.mcdungeons.chip.iso</span><span>repeating-conic-gradient</span><span>mask-image</span><span>&lt;entity player&gt;</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.mcdungeons.how.1">oriel.ui.tpl.mcdungeons.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.mcdungeons.how.2">oriel.ui.tpl.mcdungeons.how.2</span></div><div><b>3</b><span data-i18n="oriel.ui.tpl.mcdungeons.how.3">oriel.ui.tpl.mcdungeons.how.3</span></div></div>
 <pre class="code">.floor { transform: scaleY(0.5) rotate(45deg); }
 .tiles { background: repeating-conic-gradient(
   #5d6169 0 25%, #52565e 0 50%) 0 0 / 40px 40px; }</pre>
   </div>
-  <div class="tpl" data-id="military" data-title="现代军武" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-04"
-       data-tags="HUD,射击,科技" data-desc="战地式的冷色 HUD：平移的罗盘带、旋转扫描的雷达、开火扩散的准星、受击方向和依次滑入的击杀信息。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #7fe7ff; color: #06202a">友军</i><i style="background: #ff7a3c">敌方</i><i style="background: #8cf08c; color: #0a200a">正常</i><i style="background: #0a1418">底</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>oriel:sans<em>正文</em></span><span>oriel:smiley<em>弹药数</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span class="new">repeating-radial-gradient</span><span>conic-gradient</span><span>mask-image</span><span>mask 合成</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>雷达圈是重复径向渐变，扫描线是旋转的锥形渐变</span></div>
-      <div><b>2</b><span>罗盘是一条很长的刻度带在窄框里平移，两端用遮罩淡出</span></div><div><b>3</b><span>受击方向是锥形渐变再用径向遮罩切成一圈弧</span></div></div>
+  <div class="tpl" data-id="military" data-title="oriel.ui.tpl.military.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="hud" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="oriel.ui.tpl.military.tags" data-desc="oriel.ui.tpl.military.desc" data-i18n-data-title="oriel.ui.tpl.military.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #7fe7ff; color: #06202a" data-i18n="oriel.ui.tpl.military.swatch.friendly">oriel.ui.tpl.military.swatch.friendly</i><i style="background: #ff7a3c" data-i18n="oriel.ui.tpl.military.swatch.enemy">oriel.ui.tpl.military.swatch.enemy</i><i style="background: #8cf08c; color: #0a200a" data-i18n="oriel.ui.tpl.military.swatch.normal">oriel.ui.tpl.military.swatch.normal</i><i style="background: #0a1418" data-i18n="oriel.ui.tpl.military.swatch.base">oriel.ui.tpl.military.swatch.base</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>oriel:sans<em data-i18n="oriel.ui.styles.spec.body">oriel.ui.styles.spec.body</em></span><span>oriel:smiley<em data-i18n="oriel.ui.tpl.military.font.ammo">oriel.ui.tpl.military.font.ammo</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span class="new">repeating-radial-gradient</span><span>conic-gradient</span><span>mask-image</span><span data-i18n="oriel.ui.tpl.military.chip.mask">oriel.ui.tpl.military.chip.mask</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.military.how.1">oriel.ui.tpl.military.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.military.how.2">oriel.ui.tpl.military.how.2</span></div><div><b>3</b><span data-i18n="oriel.ui.tpl.military.how.3">oriel.ui.tpl.military.how.3</span></div></div>
 <pre class="code">.radar { background: repeating-radial-gradient(circle,
   transparent 0 10px, #7fe7ff40 10px 11px); }</pre>
   </div>
-  <div class="tpl" data-id="dungeon" data-title="暗黑地牢" data-author="优易库官方" data-source="official" data-group="hud" data-ver="v1.1" data-date="2026-11-05"
-       data-tags="HUD,回合制,哥特" data-desc="哥特风的回合战：火把光照、四人小队与骷髅对峙、压力值、崩溃时的「偏执」和旁白。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #d9c9a3; color: #2a1d0e">骨色</i><i style="background: #a8231b">血</i><i style="background: #c8a050">鎏金</i><i style="background: #0d0907">煤烟</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>oriel:brush<em>旁白、名字</em></span><span>oriel:kai<em>正文</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span>&lt;entity&gt; -mc-yaw</span><span>steps() 闪烁</span><span>radial-gradient 光照</span><span>drop-shadow</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>火光是一层径向渐变，用 steps(1) 的动画不规则地变亮变暗</span></div>
-      <div><b>2</b><span>小队和敌人是真的实体，-mc-yaw 让双方面对面</span></div><div><b>3</b><span>目标脚下一圈红光、头顶一个箭头</span></div></div>
+  <div class="tpl" data-id="dungeon" data-title="oriel.ui.tpl.dungeon.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="hud" data-ver="v1.1" data-date="2026-11-05"
+       data-tags="oriel.ui.tpl.dungeon.tags" data-desc="oriel.ui.tpl.dungeon.desc" data-i18n-data-title="oriel.ui.tpl.dungeon.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #d9c9a3; color: #2a1d0e" data-i18n="oriel.ui.tpl.dungeon.swatch.bone">oriel.ui.tpl.dungeon.swatch.bone</i><i style="background: #a8231b" data-i18n="oriel.ui.tpl.dungeon.swatch.blood">oriel.ui.tpl.dungeon.swatch.blood</i><i style="background: #c8a050" data-i18n="oriel.ui.tpl.dungeon.swatch.gilt">oriel.ui.tpl.dungeon.swatch.gilt</i><i style="background: #0d0907" data-i18n="oriel.ui.tpl.dungeon.swatch.soot">oriel.ui.tpl.dungeon.swatch.soot</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>oriel:brush<em data-i18n="oriel.ui.tpl.dungeon.font.narrator">oriel.ui.tpl.dungeon.font.narrator</em></span><span>oriel:kai<em data-i18n="oriel.ui.styles.spec.body">oriel.ui.styles.spec.body</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span>&lt;entity&gt; -mc-yaw</span><span data-i18n="oriel.ui.tpl.dungeon.chip.steps">oriel.ui.tpl.dungeon.chip.steps</span><span data-i18n="oriel.ui.tpl.dungeon.chip.light">oriel.ui.tpl.dungeon.chip.light</span><span>drop-shadow</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.dungeon.how.1">oriel.ui.tpl.dungeon.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.dungeon.how.2">oriel.ui.tpl.dungeon.how.2</span></div><div><b>3</b><span data-i18n="oriel.ui.tpl.dungeon.how.3">oriel.ui.tpl.dungeon.how.3</span></div></div>
 <pre class="code">.light { animation: flicker 2.3s steps(1) infinite; }
 .party entity { -mc-yaw: 55deg; }
 .foes entity  { -mc-yaw: -55deg; }</pre>
   </div>
-  <div class="tpl" data-id="arcane" data-title="魔法附魔" data-author="优易库官方" data-source="official" data-group="menu" data-ver="v1.0" data-date="2026-11-04"
-       data-tags="菜单,魔法,紫色" data-desc="附魔台长成法坛：两圈符文反向旋转，书悬浮自转，附魔选项悬停才显出名字。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #b48cff">紫光</i><i style="background: #3a1d6e">深紫</i><i style="background: #3f6fe0">青金石</i><i style="background: #b7ff8a; color: #1a3008">经验</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>minecraft:alt<em>符文</em></span><span>oriel:kai<em>标题与名字</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span>&lt;model&gt; -mc-yaw</span><span>clip-path 五角星</span><span>:hover 过渡</span><span>sprite: 原版图标</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>每个符文用自己的角度旋转后再平移出去，就排在圆环上</span></div>
-      <div><b>2</b><span>选项里叠着符文和名字两层，:hover 时交换透明度和位移</span></div><div><b>3</b><span>花费图标是原版精灵 sprite:minecraft:container/enchanting_table/level_1</span></div></div>
+  <div class="tpl" data-id="arcane" data-title="oriel.ui.tpl.arcane.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="menu" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="oriel.ui.tpl.arcane.tags" data-desc="oriel.ui.tpl.arcane.desc" data-i18n-data-title="oriel.ui.tpl.arcane.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #b48cff" data-i18n="oriel.ui.tpl.arcane.swatch.glow">oriel.ui.tpl.arcane.swatch.glow</i><i style="background: #3a1d6e" data-i18n="oriel.ui.tpl.arcane.swatch.deep">oriel.ui.tpl.arcane.swatch.deep</i><i style="background: #3f6fe0" data-i18n="oriel.ui.tpl.arcane.swatch.lapis">oriel.ui.tpl.arcane.swatch.lapis</i><i style="background: #b7ff8a; color: #1a3008" data-i18n="oriel.ui.tpl.arcane.swatch.xp">oriel.ui.tpl.arcane.swatch.xp</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>minecraft:alt<em data-i18n="oriel.ui.tpl.arcane.font.runes">oriel.ui.tpl.arcane.font.runes</em></span><span>oriel:kai<em data-i18n="oriel.ui.tpl.arcane.font.titles">oriel.ui.tpl.arcane.font.titles</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span>&lt;model&gt; -mc-yaw</span><span data-i18n="oriel.ui.tpl.arcane.chip.star">oriel.ui.tpl.arcane.chip.star</span><span data-i18n="oriel.ui.tpl.arcane.chip.hover">oriel.ui.tpl.arcane.chip.hover</span><span data-i18n="oriel.ui.tpl.arcane.chip.sprite">oriel.ui.tpl.arcane.chip.sprite</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.arcane.how.1">oriel.ui.tpl.arcane.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.arcane.how.2">oriel.ui.tpl.arcane.how.2</span></div><div><b>3</b><span data-i18n="oriel.ui.tpl.arcane.how.3">oriel.ui.tpl.arcane.how.3</span></div></div>
 <pre class="code">.rune { transform: rotate(var(--a)) translateY(-70px); }
 .offer:hover .name { opacity: 1; transform: none; }</pre>
   </div>
-  <div class="tpl" data-id="fantasy" data-title="奇幻任务" data-author="优易库官方" data-source="official" data-group="menu" data-ver="v1.1" data-date="2026-11-05"
-       data-tags="菜单,任务,羊皮纸" data-desc="皮面手札：拱窗里会转头的任务人、首字放大的任务说明、目标与奖励、蜡封和丝带。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #f3e6c6; color: #3a2614">羊皮纸</i><i style="background: #9c2a22">朱红</i><i style="background: #e0b45a; color: #3a2614">描金</i><i style="background: #3b1f12">皮面</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>oriel:kai<em>正文</em></span><span>oriel:brush<em>蜡封</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span class="new">::first-letter</span><span class="new">-webkit-text-stroke</span><span>&lt;entity follow-mouse&gt;</span><span>clip-path 丝带</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>首字用 ::first-letter 放大成朱红色，再描一道金边</span></div>
-      <div><b>2</b><span>书皮的金线是几层 box-shadow 叠出来的</span></div><div><b>3</b><span>任务人是 &lt;entity follow-mouse&gt;，会跟着鼠标转头</span></div></div>
+  <div class="tpl" data-id="fantasy" data-title="oriel.ui.tpl.fantasy.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="menu" data-ver="v1.1" data-date="2026-11-05"
+       data-tags="oriel.ui.tpl.fantasy.tags" data-desc="oriel.ui.tpl.fantasy.desc" data-i18n-data-title="oriel.ui.tpl.fantasy.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #f3e6c6; color: #3a2614" data-i18n="oriel.ui.tpl.fantasy.swatch.parchment">oriel.ui.tpl.fantasy.swatch.parchment</i><i style="background: #9c2a22" data-i18n="oriel.ui.tpl.fantasy.swatch.vermilion">oriel.ui.tpl.fantasy.swatch.vermilion</i><i style="background: #e0b45a; color: #3a2614" data-i18n="oriel.ui.tpl.fantasy.swatch.gilt">oriel.ui.tpl.fantasy.swatch.gilt</i><i style="background: #3b1f12" data-i18n="oriel.ui.tpl.fantasy.swatch.leather">oriel.ui.tpl.fantasy.swatch.leather</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>oriel:kai<em data-i18n="oriel.ui.styles.spec.body">oriel.ui.styles.spec.body</em></span><span>oriel:brush<em data-i18n="oriel.ui.tpl.fantasy.font.seal">oriel.ui.tpl.fantasy.font.seal</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span class="new">::first-letter</span><span class="new">-webkit-text-stroke</span><span>&lt;entity follow-mouse&gt;</span><span data-i18n="oriel.ui.tpl.fantasy.chip.ribbon">oriel.ui.tpl.fantasy.chip.ribbon</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.fantasy.how.1">oriel.ui.tpl.fantasy.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.fantasy.how.2">oriel.ui.tpl.fantasy.how.2</span></div><div><b>3</b><span data-i18n="oriel.ui.tpl.fantasy.how.3">oriel.ui.tpl.fantasy.how.3</span></div></div>
 <pre class="code">.lore::first-letter { font-size: 16px; color: #9c2a22;
   -webkit-text-stroke: 1px #e0b45a; }</pre>
   </div>
-  <div class="tpl" data-id="terraria" data-title="泰拉瑞亚风" data-author="优易库官方" data-source="official" data-group="menu" data-ver="v1.0" data-date="2026-11-04"
-       data-tags="背包,像素,2D" data-desc="半透明蓝色格子、金色热键、彩虹流动的稀有度名字、心与星、小地图，还有慢慢染红天空的血月。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #3f5297">格子</i><i style="background: #ffd94a; color: #3a2a00">选中</i><i style="background: #5aa83a">草</i><i style="background: #7a5230">土</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>minecraft:default<em>全部</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span>background-clip: text</span><span>background-position 动画</span><span>clip-path 阶梯</span><span>grid</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>稀有度名字是渐变裁到文字上，再让渐变平移，颜色就在字里流动</span></div>
-      <div><b>2</b><span>山坡是阶梯形 clip-path；同样的形状往下错 4px 再画一层土，草就沿着每一级台阶</span></div></div>
+  <div class="tpl" data-id="terraria" data-title="oriel.ui.tpl.terraria.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="menu" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="oriel.ui.tpl.terraria.tags" data-desc="oriel.ui.tpl.terraria.desc" data-i18n-data-title="oriel.ui.tpl.terraria.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #3f5297" data-i18n="oriel.ui.tpl.terraria.swatch.slot">oriel.ui.tpl.terraria.swatch.slot</i><i style="background: #ffd94a; color: #3a2a00" data-i18n="oriel.ui.tpl.terraria.swatch.selected">oriel.ui.tpl.terraria.swatch.selected</i><i style="background: #5aa83a" data-i18n="oriel.ui.tpl.terraria.swatch.grass">oriel.ui.tpl.terraria.swatch.grass</i><i style="background: #7a5230" data-i18n="oriel.ui.tpl.terraria.swatch.dirt">oriel.ui.tpl.terraria.swatch.dirt</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>minecraft:default<em data-i18n="oriel.ui.styles.font.everything">oriel.ui.styles.font.everything</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span>background-clip: text</span><span data-i18n="oriel.ui.tpl.terraria.chip.bgpos">oriel.ui.tpl.terraria.chip.bgpos</span><span data-i18n="oriel.ui.tpl.terraria.chip.steps">oriel.ui.tpl.terraria.chip.steps</span><span>grid</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.terraria.how.1">oriel.ui.tpl.terraria.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.terraria.how.2">oriel.ui.tpl.terraria.how.2</span></div></div>
 <pre class="code">.name { background: linear-gradient(90deg, red, gold,
   lime, cyan, violet, red); background-size: 200% 100%;
   background-clip: text; color: transparent; }</pre>
   </div>
-  <div class="tpl" data-id="scifi" data-title="未来科技" data-author="优易库官方" data-source="official" data-group="theme" data-ver="v1.0" data-date="2026-11-04"
-       data-tags="合成波,霓虹,玻璃" data-desc="落日沉入霓虹网格：切角玻璃面板、打字终端、闪烁的告警、分段能量环和滚动的舰队广播。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #5ff3ff; color: #06202a">青光</i><i style="background: #ff3d9a">警示</i><i style="background: #ffe08a; color: #3a2a00">落日</i><i style="background: #050a18">夜</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>oriel:smiley<em>标题、数值</em></span><span>minecraft:default<em>终端</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span>backdrop-filter</span><span>clip-path 切角</span><span>repeating-conic-gradient</span><span class="new">vertical-align 长度</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>地面是从消失点发出的重复锥形渐变，再叠一层越往下越疏的横线</span></div>
-      <div><b>2</b><span>玻璃面板 = backdrop-filter 模糊 + clip-path 切掉两个角</span></div></div>
+  <div class="tpl" data-id="scifi" data-title="oriel.ui.tpl.scifi.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="theme" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="oriel.ui.tpl.scifi.tags" data-desc="oriel.ui.tpl.scifi.desc" data-i18n-data-title="oriel.ui.tpl.scifi.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #5ff3ff; color: #06202a" data-i18n="oriel.ui.tpl.scifi.swatch.cyan">oriel.ui.tpl.scifi.swatch.cyan</i><i style="background: #ff3d9a" data-i18n="oriel.ui.tpl.scifi.swatch.alert">oriel.ui.tpl.scifi.swatch.alert</i><i style="background: #ffe08a; color: #3a2a00" data-i18n="oriel.ui.tpl.scifi.swatch.sunset">oriel.ui.tpl.scifi.swatch.sunset</i><i style="background: #050a18" data-i18n="oriel.ui.tpl.scifi.swatch.night">oriel.ui.tpl.scifi.swatch.night</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>oriel:smiley<em data-i18n="oriel.ui.tpl.scifi.font.titles">oriel.ui.tpl.scifi.font.titles</em></span><span>minecraft:default<em data-i18n="oriel.ui.tpl.scifi.font.terminal">oriel.ui.tpl.scifi.font.terminal</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span>backdrop-filter</span><span data-i18n="oriel.ui.tpl.scifi.chip.chamfer">oriel.ui.tpl.scifi.chip.chamfer</span><span>repeating-conic-gradient</span><span class="new" data-i18n="oriel.ui.tpl.scifi.chip.valign">oriel.ui.tpl.scifi.chip.valign</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.scifi.how.1">oriel.ui.tpl.scifi.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.scifi.how.2">oriel.ui.tpl.scifi.how.2</span></div></div>
 <pre class="code">.panel { backdrop-filter: blur(3px); clip-path: polygon(
   10px 0, 100% 0, 100% calc(100% - 10px),
   calc(100% - 10px) 100%, 0 100%, 0 10px); }</pre>
   </div>
-  <div class="tpl" data-id="xianxia" data-title="修仙" data-author="优易库官方" data-source="official" data-group="theme" data-ver="v1.0" data-date="2026-11-04"
-       data-tags="水墨,书法,竖排" data-desc="水墨群山与朱砂日：竖排书法标题和印章、八卦环绕的太极、展开的卷轴、符箓与飞剑。">
-    <span class="o-caps">配色</span><div class="swatches"><i style="background: #1e1a16">墨</i><i style="background: #f4ecd8; color: #1e1a16">宣纸</i><i style="background: #b8322a">朱砂</i><i style="background: #3f8f6f">青玉</i></div>
-    <span class="o-caps">字体</span><div class="fonts"><span>oriel:brush<em>标题、符箓</em></span><span>oriel:kai<em>正文</em></span></div>
-    <span class="o-caps">用到的能力</span><div class="chips"><span class="new">writing-mode 竖排</span><span class="new">-webkit-text-stroke</span><span>clip-path 山形</span><span>transform-origin 卷轴</span></div>
-    <span class="o-caps">做法</span><div class="how"><div><b>1</b><span>标题、印章和符箓都是 writing-mode: vertical-rl，从右往左一列一列排</span></div>
-      <div><b>2</b><span>「金丹」是金色字加墨色描边；卷轴展开是从顶部 scaleY</span></div></div>
+  <div class="tpl" data-id="xianxia" data-title="oriel.ui.tpl.xianxia.title" data-author="oriel.ui.styles.author.official" data-source="official" data-group="theme" data-ver="v1.0" data-date="2026-11-04"
+       data-tags="oriel.ui.tpl.xianxia.tags" data-desc="oriel.ui.tpl.xianxia.desc" data-i18n-data-title="oriel.ui.tpl.xianxia.title">
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #1e1a16" data-i18n="oriel.ui.tpl.xianxia.swatch.ink">oriel.ui.tpl.xianxia.swatch.ink</i><i style="background: #f4ecd8; color: #1e1a16" data-i18n="oriel.ui.tpl.xianxia.swatch.paper">oriel.ui.tpl.xianxia.swatch.paper</i><i style="background: #b8322a" data-i18n="oriel.ui.tpl.xianxia.swatch.cinnabar">oriel.ui.tpl.xianxia.swatch.cinnabar</i><i style="background: #3f8f6f" data-i18n="oriel.ui.tpl.xianxia.swatch.jade">oriel.ui.tpl.xianxia.swatch.jade</i></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.fonts">oriel.ui.styles.spec.fonts</span><div class="fonts"><span>oriel:brush<em data-i18n="oriel.ui.tpl.xianxia.font.titles">oriel.ui.tpl.xianxia.font.titles</em></span><span>oriel:kai<em data-i18n="oriel.ui.styles.spec.body">oriel.ui.styles.spec.body</em></span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.features">oriel.ui.styles.spec.features</span><div class="chips"><span class="new" data-i18n="oriel.ui.tpl.xianxia.chip.vertical">oriel.ui.tpl.xianxia.chip.vertical</span><span class="new">-webkit-text-stroke</span><span data-i18n="oriel.ui.tpl.xianxia.chip.mountains">oriel.ui.tpl.xianxia.chip.mountains</span><span data-i18n="oriel.ui.tpl.xianxia.chip.scroll">oriel.ui.tpl.xianxia.chip.scroll</span></div>
+    <span class="o-caps" data-i18n="oriel.ui.styles.spec.how">oriel.ui.styles.spec.how</span><div class="how"><div><b>1</b><span data-i18n="oriel.ui.tpl.xianxia.how.1">oriel.ui.tpl.xianxia.how.1</span></div>
+      <div><b>2</b><span data-i18n="oriel.ui.tpl.xianxia.how.2">oriel.ui.tpl.xianxia.how.2</span></div></div>
 <pre class="code">h1 { writing-mode: vertical-rl; font-family: oriel:brush; }
 .realm b { color: #c99a3b; -webkit-text-stroke: 2px #1e1a16; }</pre>
   </div>

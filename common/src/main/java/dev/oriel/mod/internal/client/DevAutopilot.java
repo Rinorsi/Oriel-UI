@@ -1146,7 +1146,11 @@ public final class DevAutopilot {
         grab(mc, "allfx_inventory", 5);
         steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.hover(".o-effects .eff")).orElse(false),
                 "hovered an effect row", "could not hover an effect row"));
-        pause(10);
+        // The panel may still be sliding in, and its countdowns relayout it every second: aim again until the card shows.
+        until("the hovered row's card shows", ticks -> OrielAutomation.hud(InventoryEffects.PANEL).map(p -> {
+            if (ticks % 10 == 0) p.hover(".o-effects .eff");
+            return p.exists(".o-efftip.on");
+        }).orElse(false), 40, "the hovered row's card did not show", true);
         steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.exists(".o-efftip.on")).orElse(false),
                 "a hovered row shows its card", "a hovered row shows no card"));
         grab(mc, "allfx_tooltip", 5);

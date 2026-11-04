@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="utf-8">
-<title>地下城风格</title>
+<title data-i18n="oriel.ui.tpl.dungeon.title">oriel.ui.tpl.dungeon.title</title>
 <link rel="stylesheet" href="showcase.css">
 <style>
 /*
@@ -59,7 +59,7 @@
 .stress { display: flex; gap: 1px; margin-top: 2px; }
 .stress b { width: 2px; height: 3px; background: rgba(232, 224, 255, 0.15); }
 .stress b.on { background: var(--stress); box-shadow: 0 0 2px rgba(200, 180, 255, 0.8); }
-.unit .name { margin-top: 1px; font-size: 8px; color: var(--bone-dim); white-space: nowrap; }
+.unit .name { width: 52px; margin-top: 1px; font-size: 8px; line-height: 9px; color: var(--bone-dim); text-align: center; }
 /* The hero whose turn it is, and the foe in the sights. */
 .unit.active::after { content: ""; position: absolute; left: 50%; bottom: -10px; margin-left: -4px; border: 4px solid transparent;
     border-bottom: 5px solid var(--gilt); animation: bob 1s ease-in-out infinite; }
@@ -123,39 +123,39 @@
 <body>
 <div class="crypt">
   <i class="wall"></i><i class="floor"></i><i class="light"></i><i class="dark"></i>
-  <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
+  <div class="sc-back" data-go="styles" tabindex="0" data-i18n="oriel.ui.nav.templates"><img src="../../textures/icons/back.png">oriel.ui.nav.templates<kbd>Esc</kbd></div>
 
-  <div class="torch"><div class="bar l"><i></i></div><i class="flame"></i><div class="bar r"><i></i></div><span class="v">光照 72</span></div>
-  <div class="narrator">「希望……在这里是一种奢侈。」</div>
+  <div class="torch"><div class="bar l"><i></i></div><i class="flame"></i><div class="bar r"><i></i></div><span class="v" data-i18n="oriel.ui.tpl.dungeon.light">oriel.ui.tpl.dungeon.light</span></div>
+  <div class="narrator" data-i18n="oriel.ui.tpl.dungeon.narrator">oriel.ui.tpl.dungeon.narrator</div>
 
   <div class="line">
     <div class="party">
       <div class="unit active"><entity type="minecraft:vindicator"></entity><div class="hp"><i style="width: 82%"></i></div>
-        <div class="stress"><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name">十字军</span></div>
+        <div class="stress"><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.hero.crusader">oriel.ui.tpl.dungeon.hero.crusader</span></div>
       <div class="unit"><entity type="minecraft:pillager"></entity><div class="hp"><i style="width: 64%"></i></div>
-        <div class="stress"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name">强盗</span></div>
-      <div class="unit broken"><span class="afflict">偏执</span><entity type="minecraft:witch"></entity><div class="hp"><i style="width: 40%"></i></div>
-        <div class="stress"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></div><span class="name">瘟疫医生</span></div>
+        <div class="stress"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.hero.highwayman">oriel.ui.tpl.dungeon.hero.highwayman</span></div>
+      <div class="unit broken"><span class="afflict" data-i18n="oriel.ui.tpl.dungeon.affliction">oriel.ui.tpl.dungeon.affliction</span><entity type="minecraft:witch"></entity><div class="hp"><i style="width: 40%"></i></div>
+        <div class="stress"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.hero.plague_doctor">oriel.ui.tpl.dungeon.hero.plague_doctor</span></div>
       <div class="unit"><entity type="minecraft:evoker"></entity><div class="hp"><i style="width: 91%"></i></div>
-        <div class="stress"><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name">秘术师</span></div>
+        <div class="stress"><b class="on"></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.hero.occultist">oriel.ui.tpl.dungeon.hero.occultist</span></div>
     </div>
     <div class="foes">
-      <div class="unit target"><entity type="minecraft:skeleton"></entity><div class="hp"><i style="width: 55%"></i></div><span class="name">骸骨士兵</span></div>
-      <div class="unit"><entity type="minecraft:zombie"></entity><div class="hp"><i style="width: 100%"></i></div><span class="name">腐尸</span></div>
-      <div class="unit"><entity type="minecraft:wither_skeleton"></entity><div class="hp"><i style="width: 100%"></i></div><span class="name">骸骨队长</span></div>
+      <div class="unit target"><entity type="minecraft:skeleton"></entity><div class="hp"><i style="width: 55%"></i></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.foe.soldier">oriel.ui.tpl.dungeon.foe.soldier</span></div>
+      <div class="unit"><entity type="minecraft:zombie"></entity><div class="hp"><i style="width: 100%"></i></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.foe.ghoul">oriel.ui.tpl.dungeon.foe.ghoul</span></div>
+      <div class="unit"><entity type="minecraft:wither_skeleton"></entity><div class="hp"><i style="width: 100%"></i></div><span class="name" data-i18n="oriel.ui.tpl.dungeon.foe.captain">oriel.ui.tpl.dungeon.foe.captain</span></div>
     </div>
   </div>
 
   <div class="bar-wrap">
     <div class="portrait"><entity type="minecraft:vindicator"></entity></div>
-    <div class="who"><b>雷纳德</b><span>十字军 · 等级 3</span><span>生命 33 / 40</span></div>
+    <div class="who"><b data-i18n="oriel.ui.tpl.dungeon.hero.name">oriel.ui.tpl.dungeon.hero.name</b><span data-i18n="oriel.ui.tpl.dungeon.hero.class">oriel.ui.tpl.dungeon.hero.class</span><span data-i18n="oriel.ui.tpl.dungeon.hero.hp">oriel.ui.tpl.dungeon.hero.hp</span></div>
     <div class="skills">
       <div class="skill sel"><item id="minecraft:iron_sword"></item><div class="ranks"><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
       <div class="skill"><item id="minecraft:mace"></item><div class="ranks"><i class="on"></i><i></i><i></i><i></i></div></div>
       <div class="skill"><item id="minecraft:shield"></item><div class="ranks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
       <div class="skill off"><item id="minecraft:golden_apple"></item><div class="ranks"><i></i><i></i><i class="on"></i><i class="on"></i></div></div>
     </div>
-    <div class="tip"><b>致命一击</b> <span>· 伤害 +15% · 暴击 +5% · 打击 1–2 列</span></div>
+    <div class="tip"><b data-i18n="oriel.ui.tpl.dungeon.skill.name">oriel.ui.tpl.dungeon.skill.name</b> <span data-i18n="oriel.ui.tpl.dungeon.skill.stats">oriel.ui.tpl.dungeon.skill.stats</span></div>
   </div>
 </div>
 </body>

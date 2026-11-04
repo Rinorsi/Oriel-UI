@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>优易库 · 药水 HUD</title>
+<title data-i18n="oriel.ui.potions.window_title">oriel.ui.potions.window_title</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* Drawn over the world. The bar is the always-on form: up to five 22px tiles, each its own small glass square with
@@ -68,11 +68,11 @@ html, body { background: none; }
   <div class="hud-bar">
     <div class="tiles" id="tiles"></div>
     <span class="more-tiles none" id="more-tiles"></span>
-    <div class="handle" id="handle" tabindex="0" title="全部效果 (H)"><img class="o-ico" src="../textures/icons/down.png"></div>
+    <div class="handle" id="handle" tabindex="0" title="oriel.ui.potions.handle" data-i18n-title="oriel.ui.potions.handle"><img class="o-ico" src="../textures/icons/down.png"></div>
   </div>
   <div class="toast" id="toast"></div>
   <div class="panel o-effects" id="panel"></div>
-  <div class="hint">打开聊天栏后可展开全部效果</div>
+  <div class="hint" data-i18n="oriel.ui.potions.hint">oriel.ui.potions.hint</div>
 </div>
 </body>
 </html>

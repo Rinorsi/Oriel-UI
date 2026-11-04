@@ -9,6 +9,7 @@ import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.KeyboardEvent;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.Lang;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
 
@@ -145,14 +146,14 @@ public final class StylesPreset implements PageControllers.Controller {
     /** A template's card: its cover, badges, favourite, title, author and tags. */
     private Element card(Template t) {
         Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"shot\">"
-                + "<i class=\"sheen\"></i><span class=\"badge\"></span><div class=\"fav\" title=\"收藏\"><img class=\"o-ico\" "
-                + "src=\"../textures/icons/heart.png\"></div><span class=\"saved-mark\"><img class=\"o-ico\" src=\"../textures/icons/check.png\">已保存</span>"
+                + "<i class=\"sheen\"></i><span class=\"badge\"></span><div class=\"fav\" title=\"" + Lang.html(doc, "oriel.ui.styles.drawer.favorite") + "\"><img class=\"o-ico\" "
+                + "src=\"../textures/icons/heart.png\"></div><span class=\"saved-mark\"><img class=\"o-ico\" src=\"../textures/icons/check.png\">" + Lang.html(doc, "oriel.ui.styles.side.saved") + "</span>"
                 + "</div><div class=\"meta\"><b></b><div class=\"by\"><img src=\"../textures/ui/emblem.png\"><span></span><em></em></div>"
                 + "<div class=\"tags\"></div></div></div>");
         Dom.query(card, "img.shot").setAttribute("src", "../textures/ui/templates/" + t.id + ".png");
         Element badge = Dom.query(card, ".badge");
         boolean official = t.source.equals("official");
-        Dom.text(badge, official ? "官方" : "社区");
+        Dom.text(badge, Lang.t(doc, official ? "oriel.ui.styles.badge.official" : "oriel.ui.styles.badge.community"));
         badge.toggleClass("official", official);
         Dom.text(Dom.query(card, ".meta b"), t.title);
         Dom.text(Dom.query(card, ".by span"), t.author);
@@ -193,17 +194,17 @@ public final class StylesPreset implements PageControllers.Controller {
         show("empty-mine", mine && shown.isEmpty() && query.isEmpty());
         show("empty-search", !guide && shown.isEmpty() && !query.isEmpty());
         show("guide", guide);
-        Dom.text(Dom.byId(doc, "empty-mine-title"), switch (view) {
-            case "fav" -> "还没有收藏";
-            case "saved" -> "还没有保存过模板";
-            default -> "还没有浏览过模板";
-        });
+        Dom.text(Dom.byId(doc, "empty-mine-title"), Lang.t(doc, "oriel.ui.styles.empty." + switch (view) {
+            case "fav" -> "fav";
+            case "saved" -> "saved";
+            default -> "recent";
+        }));
         if (guide) Dom.text(Dom.byId(doc, "guide-folder"), folder);
         Dom.text(Dom.byId(doc, "view-title"), title(view));
-        Dom.text(Dom.byId(doc, "view-sub"), subtitle(view));
-        Dom.text(Dom.byId(doc, "count"), guide ? "" : shown.size() + " 个模板");
-        Dom.text(Dom.byId(doc, "crumb"), "/ 模板中心 / " + title(view));
-        Dom.text(Dom.byId(doc, "foot-count"), templates.size() + " 个官方模板");
+        Dom.text(Dom.byId(doc, "view-sub"), Lang.t(doc, "oriel.ui.styles.view." + (view.startsWith("group:") ? "all" : view) + ".sub"));
+        Dom.text(Dom.byId(doc, "count"), guide ? "" : Lang.plural(doc, "oriel.ui.styles.count", shown.size()));
+        Dom.text(Dom.byId(doc, "crumb"), Lang.t(doc, "oriel.ui.styles.crumb.view", title(view)));
+        Dom.text(Dom.byId(doc, "foot-count"), Lang.plural(doc, "oriel.ui.styles.foot_count", templates.size()));
         counts();
     }
 
@@ -243,33 +244,13 @@ public final class StylesPreset implements PageControllers.Controller {
         return false;
     }
 
-    private static String title(String view) {
-        if (view.startsWith("group:")) return switch (view.substring(6)) {
-            case "hud" -> "战斗 HUD";
-            case "menu" -> "界面与菜单";
-            default -> "主题氛围";
-        };
-        return switch (view) {
-            case "official" -> "官方模板";
-            case "community" -> "社区模板";
-            case "fav" -> "收藏";
-            case "saved" -> "已保存";
-            case "recent" -> "最近浏览";
-            case "guide" -> "投稿指南";
-            default -> "全部模板";
-        };
-    }
-
-    private String subtitle(String view) {
-        return switch (view) {
-            case "official" -> "优易库维护的模板，跟着库一起更新";
-            case "community" -> "玩家和模组作者分享的模板";
-            case "fav" -> "你收藏的模板";
-            case "saved" -> "保存过的副本可以直接改，存盘后游戏里立刻刷新";
-            case "recent" -> "最近打开过的模板";
-            case "guide" -> "把你做的界面分享出去";
-            default -> "完整的界面风格，都用 HTML 与 CSS 写成，可以直接保存来改";
-        };
+    /** A view's title in the headline and the crumb: the sidebar's label, in full where that is shortened. */
+    private String title(String view) {
+        String v = view.startsWith("group:") ? view.substring(6) : view;
+        return Lang.t(doc, "oriel.ui.styles.view." + (switch (v) {
+            case "official", "community", "fav", "saved", "recent", "guide", "hud", "menu", "theme" -> v;
+            default -> "all";
+        }) + ".title");
     }
 
     private void show(String id, boolean on) {
@@ -317,7 +298,7 @@ public final class StylesPreset implements PageControllers.Controller {
         if (open == null) return;
         boolean isSaved = saved.contains(open.id);
         Element save = Dom.byId(doc, "d-save");
-        Dom.text(Dom.query(save, "span"), isSaved ? "打开我的副本" : "一键保存");
+        Dom.text(Dom.query(save, "span"), Lang.t(doc, isSaved ? "oriel.ui.styles.drawer.open_copy" : "oriel.ui.styles.drawer.save"));
         save.toggleClass("primary", isSaved);
         Dom.byId(doc, "d-fav").toggleClass("on", favorites.contains(open.id));
     }
@@ -337,7 +318,7 @@ public final class StylesPreset implements PageControllers.Controller {
             return;
         }
         if (!send("save", t.id, false)) saved.add(t.id);
-        Dom.text(Dom.byId(doc, "d-note"), "已保存到 " + folder + t.id + ".html，改完存盘游戏里就会刷新");
+        Dom.text(Dom.byId(doc, "d-note"), Lang.t(doc, "oriel.ui.styles.saved_to", folder + t.id + ".html"));
         render();
         refreshDetails();
     }
@@ -399,8 +380,9 @@ public final class StylesPreset implements PageControllers.Controller {
         return null;
     }
 
-    private static String attr(Element e, String name) {
+    /** A template's metadata; the library's own templates give keys, resolved in the page's language. */
+    private String attr(Element e, String name) {
         String v = e.getAttribute(name);
-        return v == null ? "" : v;
+        return v == null ? "" : Lang.value(doc, v);
     }
 }

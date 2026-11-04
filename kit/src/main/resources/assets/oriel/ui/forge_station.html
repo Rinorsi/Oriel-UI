@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>锻造台</title>
+<title data-i18n="oriel.ui.forge_station.title">oriel.ui.forge_station.title</title>
 <link rel="stylesheet" href="ore.css">
 <style>
 /* The repair forge as a real container (the server's ForgeMenu, oriel:forge): the item and its material go in, the
@@ -53,20 +53,20 @@ slot.ore-slot { width: 22px; height: 22px; }
 <body>
 <div class="backdrop"></div>
 <div class="station" data-oriel-bounds>
-  <div class="head"><img class="o-ico" src="../textures/icons/anvil.png"><span id="title">锻造台</span><div class="o-grow"></div>
+  <div class="head"><img class="o-ico" src="../textures/icons/anvil.png"><span id="title" data-i18n="oriel.ui.forge_station.title">oriel.ui.forge_station.title</span><div class="o-grow"></div>
     <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
   <div class="body">
     <div class="work" id="work">
       <i class="glow"></i>
-      <div class="cell"><span class="o-caps">物品</span><slot class="ore-slot" index="0"></slot></div>
+      <div class="cell"><span class="o-caps" data-i18n="oriel.ui.forge_station.cell.item">oriel.ui.forge_station.cell.item</span><slot class="ore-slot" index="0"></slot></div>
       <span class="plus">+</span>
-      <div class="cell"><span class="o-caps">材料</span><slot class="ore-slot" index="1"></slot></div>
+      <div class="cell"><span class="o-caps" data-i18n="oriel.ui.forge_station.cell.material">oriel.ui.forge_station.cell.material</span><slot class="ore-slot" index="1"></slot></div>
       <div class="arrow"><i id="fill"></i></div>
       <canvas class="fx off" id="embers" data-fx="embers" data-rate="9" data-seed="4"></canvas>
-      <div class="cell out"><span class="o-caps">成品</span><slot class="ore-slot" index="2"></slot></div>
+      <div class="cell out"><span class="o-caps" data-i18n="oriel.ui.forge_station.cell.result">oriel.ui.forge_station.cell.result</span><slot class="ore-slot" index="2"></slot></div>
     </div>
-    <div class="status" id="status"><i class="dot"></i><span id="state">放入一把受损的铁剑或钻石剑</span><span class="recipe" id="recipe"></span></div>
-    <div class="label" id="inv-label">物品栏</div>
+    <div class="status" id="status"><i class="dot"></i><span id="state" data-i18n="oriel.ui.forge_station.state.empty">oriel.ui.forge_station.state.empty</span><span class="recipe" id="recipe"></span></div>
+    <div class="label" id="inv-label" data-i18n="oriel.ui.forge_station.inventory">oriel.ui.forge_station.inventory</div>
     <div class="grid"><slot class="ore-slot" index="3"></slot><slot class="ore-slot" index="4"></slot><slot class="ore-slot" index="5"></slot><slot class="ore-slot" index="6"></slot><slot class="ore-slot" index="7"></slot><slot class="ore-slot" index="8"></slot><slot class="ore-slot" index="9"></slot><slot class="ore-slot" index="10"></slot><slot class="ore-slot" index="11"></slot><slot class="ore-slot" index="12"></slot><slot class="ore-slot" index="13"></slot><slot class="ore-slot" index="14"></slot><slot class="ore-slot" index="15"></slot><slot class="ore-slot" index="16"></slot><slot class="ore-slot" index="17"></slot><slot class="ore-slot" index="18"></slot><slot class="ore-slot" index="19"></slot><slot class="ore-slot" index="20"></slot><slot class="ore-slot" index="21"></slot><slot class="ore-slot" index="22"></slot><slot class="ore-slot" index="23"></slot><slot class="ore-slot" index="24"></slot><slot class="ore-slot" index="25"></slot><slot class="ore-slot" index="26"></slot><slot class="ore-slot" index="27"></slot><slot class="ore-slot" index="28"></slot><slot class="ore-slot" index="29"></slot></div>
     <div class="grid hotbar"><slot class="ore-slot" index="30"></slot><slot class="ore-slot" index="31"></slot><slot class="ore-slot" index="32"></slot><slot class="ore-slot" index="33"></slot><slot class="ore-slot" index="34"></slot><slot class="ore-slot" index="35"></slot><slot class="ore-slot" index="36"></slot><slot class="ore-slot" index="37"></slot><slot class="ore-slot" index="38"></slot></div>
   </div>

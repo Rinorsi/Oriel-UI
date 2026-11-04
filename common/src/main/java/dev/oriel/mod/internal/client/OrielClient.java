@@ -101,8 +101,12 @@ public final class OrielClient {
     /**
      * Gives the player every registered effect that lasts (instant ones such as instant health are left out), at
      * varied levels and durations, through {@code /effect}: so it works only where the player may cheat, and says so
-     * in chat otherwise, as the command does.
+     * in chat otherwise, as the command does. The ones that hide the screen or the player are left out too, since the
+     * point is to look at the effect lists: blindness, darkness, nausea and invisibility.
      */
+    private static final java.util.Set<String> OBSCURING = java.util.Set.of(
+            "minecraft:blindness", "minecraft:darkness", "minecraft:nausea", "minecraft:invisibility");
+
     static void giveEveryLastingEffect() {
         var player = Minecraft.getInstance().player;
         if (player == null) return;
@@ -113,6 +117,7 @@ public final class OrielClient {
             //?} else
             //if (effect.isInstantenous()) continue;
             Identifier id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+            if (id == null || OBSCURING.contains(id.toString())) continue;
             int seconds = 40 + (i * 53) % 560, amplifier = i % 3;
             // With their particles: hiding them hides the effect's icon too (vanilla ties showIcon to them).
             player.connection.sendCommand("effect give @s " + id + " " + seconds + " " + amplifier);
