@@ -1,7 +1,12 @@
 package dev.oriel.engine.paint;
 
 import dev.oriel.engine.host.FontSpec;
+import dev.oriel.engine.style.BlendMode;
+import dev.oriel.engine.style.Filter;
+import dev.oriel.engine.style.MaskComposite;
 import dev.oriel.engine.style.Shadow;
+
+import java.util.List;
 
 /**
  * The drawing backend. The {@link Painter} turns the box tree into calls on this interface each frame; Minecraft
@@ -124,6 +129,41 @@ public interface Canvas {
     default void fillBoxShadow(float[] box, float[] radii, Shadow shadow) {
         Shadows.fill(this, box, radii, shadow);
     }
+
+    // ---- Groups: offscreen layers for effects on a whole element ----
+
+    /**
+     * Starts a group: what is drawn until {@link #endGroup} goes into an offscreen layer instead of the target, then
+     * is composited as one image (CSS filters, masks, clip-path, blend modes, group opacity). Returns false when the
+     * backend has no layers: the painter then draws the element directly, without the effects, and says so.
+     * Groups nest. Transform, clip and alpha are unchanged by the call.
+     */
+    default boolean beginGroup() { return false; }
+
+    /**
+     * Inside a group, starts a mask layer: what is drawn next (until the next {@code beginMask} or {@link #endGroup})
+     * is a mask whose alpha the group's content is multiplied by. Several mask layers combine in the order they are
+     * begun, each onto the result of the ones before with {@code composite}; the first one's operator is ignored.
+     */
+    default void beginMask(MaskComposite composite) {}
+
+    /**
+     * Ends the innermost group and draws it onto what was the target: its pixels through {@code filters} (in order),
+     * then its masks, then {@code opacity}, blended with {@code blend}.
+     */
+    default void endGroup(float opacity, List<Filter> filters, BlendMode blend) {}
+
+    /**
+     * Starts a backdrop ({@code backdrop-filter}): what is drawn until {@link #endBackdrop} is a shape mask. False
+     * when the backend cannot read back what it has drawn.
+     */
+    default boolean beginBackdrop() { return false; }
+
+    /**
+     * Ends the backdrop: what had been drawn under the shape is drawn again through {@code filters}, inside the shape
+     * (the mask drawn since {@link #beginBackdrop}).
+     */
+    default void endBackdrop(List<Filter> filters) {}
 
     /**
      * Whether the shapes that follow ({@link #fillRoundedRect}, {@link #fillBorder}, {@link #fillBoxShadow}) keep hard

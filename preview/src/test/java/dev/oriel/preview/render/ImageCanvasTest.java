@@ -182,4 +182,67 @@ class ImageCanvasTest {
         c.restore();
         Snapshots.assertMatches("primitives", c.image());
     }
+
+    // ---- Groups ----
+
+    @Test
+    void aGroupIsCompositedWithItsOpacityOnce() {
+        ImageCanvas c = canvas(2, 1, 1);
+        c.fillRect(0, 0, 2, 1, B);
+        assertTrue(c.beginGroup());
+        c.fillRect(0, 0, 2, 1, R);
+        c.fillRect(1, 0, 1, 1, G); // overlaps red inside the group: no red shows through it
+        c.endGroup(0.5f, java.util.List.of(), dev.oriel.engine.style.BlendMode.NORMAL);
+        int[] px = pixels(c);
+        assertEquals(0x80, (px[0] >> 16) & 0xFF, 2, "red over blue at half: red");
+        assertEquals(0x80, px[0] & 0xFF, 2, "red over blue at half: blue");
+        assertEquals(0, (px[1] >> 16) & 0xFF, "the green covers the red inside the group, so none reaches the target");
+    }
+
+    @Test
+    void filtersRunOnTheGroup() {
+        ImageCanvas c = canvas(3, 1, 1);
+        c.beginGroup();
+        c.fillRect(0, 0, 3, 1, R);
+        c.endGroup(1, java.util.List.of(dev.oriel.engine.style.Filter.of(dev.oriel.engine.style.Filter.Kind.GRAYSCALE, 1)),
+                dev.oriel.engine.style.BlendMode.NORMAL);
+        int p = pixels(c)[1];
+        assertEquals((p >> 16) & 0xFF, (p >> 8) & 0xFF, "grey: red equals green");
+        assertEquals((p >> 16) & 0xFF, p & 0xFF, "grey: red equals blue");
+    }
+
+    @Test
+    void masksCutTheGroup() {
+        ImageCanvas c = canvas(4, 1, 1);
+        c.beginGroup();
+        c.fillRect(0, 0, 4, 1, R);
+        c.beginMask(dev.oriel.engine.style.MaskComposite.ADD);
+        c.fillRect(1, 0, 2, 1, W);
+        c.endGroup(1, java.util.List.of(), dev.oriel.engine.style.BlendMode.NORMAL);
+        assertArrayEquals(new int[] {CLEAR, R, R, CLEAR}, pixels(c));
+    }
+
+    @Test
+    void blendModesMixWithWhatIsUnder() {
+        ImageCanvas c = canvas(1, 1, 1);
+        c.fillRect(0, 0, 1, 1, 0xFF808080);
+        c.beginGroup();
+        c.fillRect(0, 0, 1, 1, 0xFFFF8000);
+        c.endGroup(1, java.util.List.of(), dev.oriel.engine.style.BlendMode.MULTIPLY);
+        assertEquals(0xFF804000, pixels(c)[0], "multiply: grey times orange");
+    }
+
+    @Test
+    void aBackdropRedrawsWhatIsUnderInsideItsShape() {
+        ImageCanvas c = canvas(6, 1, 1);
+        c.fillRect(0, 0, 3, 1, W);
+        c.fillRect(3, 0, 3, 1, B);
+        assertTrue(c.beginBackdrop());
+        c.fillRect(2, 0, 2, 1, W);
+        c.endBackdrop(java.util.List.of(dev.oriel.engine.style.Filter.of(dev.oriel.engine.style.Filter.Kind.BLUR, 2)));
+        int[] px = pixels(c);
+        assertEquals(W, px[0], "outside the shape: untouched");
+        assertEquals(B, px[5], "outside the shape: untouched");
+        assertTrue(px[2] != W && px[3] != B, "inside: blurred across the edge");
+    }
 }

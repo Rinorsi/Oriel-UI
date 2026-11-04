@@ -1,5 +1,6 @@
 package dev.oriel.engine.paint;
 
+import dev.oriel.engine.style.Length;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.replaced.CanvasContent;
 import dev.oriel.engine.replaced.ImageSources;
@@ -49,6 +50,12 @@ final class Backgrounds {
             }
         }
         for (int i = layers.size() - 1; i >= 0; i--) layer(canvas, batch, g, s, layers.get(i), dp);
+    }
+
+    /** One mask layer's image, drawn like a background image clipped to {@code clip}. */
+    void mask(Canvas canvas, QuadBatch batch, Geometry g, ComputedStyle s, Image image, BackgroundLayer.Box clip, float dp) {
+        layer(canvas, batch, g, s, new BackgroundLayer(image, null, Length.AUTO, Length.AUTO, Length.ZERO, Length.ZERO,
+                BackgroundLayer.Repeat.NO_REPEAT, BackgroundLayer.Repeat.NO_REPEAT, clip), dp);
     }
 
     private void layer(Canvas canvas, QuadBatch batch, Geometry g, ComputedStyle s, BackgroundLayer layer, float dp) {

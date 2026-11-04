@@ -31,6 +31,7 @@ final class Gradients {
         switch (image) {
             case Image.LinearGradient g -> linear(batch, g, x, y, w, h);
             case Image.RadialGradient g -> radial(batch, g, x, y, w, h, devicePixel);
+            case Image.ConicGradient g -> conic(batch, g, x, y, w, h);
             default -> {}
         }
     }
@@ -139,6 +140,77 @@ final class Gradients {
                     centerX + r1 * cos1, centerY + ry1 * sin1, centerX + r0 * cos1, centerY + ry0 * sin1,
                     c0, c1, c1, c0);
         }
+    }
+
+    // ---- Conic ----
+
+    /** Slices of at most this many degrees; stops add their own edges, so hard stops stay hard. */
+    private static final float CONIC_STEP = 2;
+
+    /**
+     * A fan of thin slices around the centre, out past the farthest corner (the batch clips it to the tile). Each
+     * slice shades from the colour at its first edge to the one at its second.
+     */
+    private void conic(QuadBatch batch, Image.ConicGradient g, float x, float y, float w, float h) {
+        if (!resolveStops(g.stops(), 1)) return;
+        float cx = x + g.centerX().resolve(w), cy = y + g.centerY().resolve(h);
+        float reach = (float) Math.max(Math.max(Math.hypot(cx - x, cy - y), Math.hypot(x + w - cx, cy - y)),
+                Math.max(Math.hypot(cx - x, y + h - cy), Math.hypot(x + w - cx, y + h - cy))) + 1;
+        float period = stopPos[stopCount - 1] - stopPos[0];
+        boolean repeating = g.repeating() && period > 1e-3f;
+        // The slice edges: an even step, plus every stop (repeated through the turn when the gradient repeats).
+        java.util.TreeSet<Float> edges = new java.util.TreeSet<>();
+        int steps = (int) Math.ceil(360 / CONIC_STEP);
+        for (int i = 0; i <= steps; i++) edges.add((float) i / steps);
+        if (repeating) {
+            for (float base = stopPos[0] - (float) Math.ceil(stopPos[0] / period) * period; base < 1; base += period) {
+                for (int i = 0; i < stopCount; i++) addEdge(edges, base + stopPos[i] - stopPos[0]);
+            }
+        } else {
+            for (int i = 0; i < stopCount; i++) addEdge(edges, stopPos[i]);
+        }
+        Float prev = null;
+        for (float t : edges) {
+            if (prev != null && t - prev > 1e-5f) {
+                float t0 = prev, t1 = t, eps = Math.min(1e-4f, (t1 - t0) / 4);
+                int c0 = conicColor(t0 + eps, repeating, period), c1 = conicColor(t1 - eps, repeating, period);
+                double a0 = Math.toRadians(g.fromDeg() + t0 * 360), a1 = Math.toRadians(g.fromDeg() + t1 * 360);
+                float x0 = cx + reach * (float) Math.sin(a0), y0 = cy - reach * (float) Math.cos(a0);
+                float x1 = cx + reach * (float) Math.sin(a1), y1 = cy - reach * (float) Math.cos(a1);
+                int mid = conicColor((t0 + t1) / 2, repeating, period);
+                batch.quad(cx, cy, x1, y1, x0, y0, x0, y0, mid, c1, c0, c0);
+            }
+            prev = t;
+        }
+    }
+
+    private static void addEdge(java.util.TreeSet<Float> edges, float t) {
+        if (t > 0 && t < 1) edges.add(t);
+    }
+
+    /** The colour at {@code t} (a fraction of the turn), interpolated premultiplied between the stops around it. */
+    private int conicColor(float t, boolean repeating, float period) {
+        if (repeating) t = stopPos[0] + (((t - stopPos[0]) % period) + period) % period;
+        if (t <= stopPos[0]) return stopColor[0];
+        for (int i = 1; i < stopCount; i++) {
+            if (t <= stopPos[i]) {
+                float span = stopPos[i] - stopPos[i - 1];
+                float f = span <= 0 ? 1 : (t - stopPos[i - 1]) / span;
+                return lerpPremultiplied(stopColor[i - 1], stopColor[i], f);
+            }
+        }
+        return stopColor[stopCount - 1];
+    }
+
+    private static int lerpPremultiplied(int a, int b, float f) {
+        float aa = Colors.alpha(a) / 255f, ba = Colors.alpha(b) / 255f, oa = aa + (ba - aa) * f;
+        if (oa <= 0) return 0;
+        int out = Math.round(oa * 255) << 24;
+        for (int shift = 16; shift >= 0; shift -= 8) {
+            float ca = (a >> shift & 255) * aa, cb = (b >> shift & 255) * ba;
+            out |= Math.clamp(Math.round((ca + (cb - ca) * f) / oa), 0, 255) << shift;
+        }
+        return out;
     }
 
     // ---- Stops ----

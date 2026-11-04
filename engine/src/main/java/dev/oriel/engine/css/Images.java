@@ -35,6 +35,8 @@ final class Images {
             case "linear-gradient" -> linear(f, ctx, false);
             case "repeating-linear-gradient" -> linear(f, ctx, true);
             case "radial-gradient" -> radial(f, ctx);
+            case "conic-gradient" -> conic(f, ctx, false);
+            case "repeating-conic-gradient" -> conic(f, ctx, true);
             default -> null;
         };
     }
@@ -129,6 +131,56 @@ final class Images {
         List<Image.ColorStop> stops = stops(parts.subList(prelude ? 1 : 0, parts.size()), ctx);
         return stops == null ? null : new Image.RadialGradient(circle, center[0], center[1], stops,
                 size == null ? Image.RadialSize.FARTHEST_CORNER : size);
+    }
+
+    /**
+     * {@code conic-gradient([from <angle>] [at <position>], stops)} (CSS Images 4 §3.4): stops are placed by angle or
+     * percentage of the turn (unitless 0 too); they are kept as percentages of the turn.
+     */
+    private static Image conic(Func f, ValueContext ctx, boolean repeating) {
+        List<List<ComponentValue>> parts = ValueReader.splitCommas(f.args());
+        ValueReader r = new ValueReader(parts.get(0));
+        float from = 0;
+        Length[] center = {Length.PERCENT_50, Length.PERCENT_50};
+        boolean prelude = false;
+        if (r.ident("from")) {
+            Float a = Numeric.angle(r, ctx);
+            if (a == null) return null;
+            from = a;
+            prelude = true;
+        }
+        if (r.ident("at")) {
+            center = position(r.rest(), ctx);
+            if (center == null) return null;
+            prelude = true;
+        }
+        if (prelude && !r.atEnd()) return null;
+        List<Image.ColorStop> stops = new ArrayList<>();
+        for (List<ComponentValue> part : parts.subList(prelude ? 1 : 0, parts.size())) {
+            ValueReader s = new ValueReader(part);
+            Length hint = turn(s, ctx);
+            if (hint != null && s.atEnd()) continue; // a transition hint: ignored, as in the other gradients
+            Integer color = CssColors.read(s, ctx);
+            if (color == null) return null;
+            Length p1 = turn(s, ctx), p2 = p1 == null ? null : turn(s, ctx);
+            if (!s.atEnd()) return null;
+            stops.add(new Image.ColorStop(color, p1));
+            if (p2 != null) stops.add(new Image.ColorStop(color, p2));
+        }
+        return stops.size() < 2 ? null : new Image.ConicGradient(from, center[0], center[1], List.copyOf(stops), repeating);
+    }
+
+    /** An angle or a percentage, as a percentage of the turn; null (nothing read) for anything else. */
+    private static Length turn(ValueReader r, ValueContext ctx) {
+        int m = r.mark();
+        Float deg = Numeric.angle(r, ctx);
+        if (deg != null) return Length.percent(deg / 3.6f);
+        r.reset(m);
+        Length l = Numeric.length(r, ctx, true);
+        // A percentage of the turn, or a unitless 0 (which also counts as an angle); no px lengths.
+        if (l != null && l.isLinear() && l.px == 0) return l.hasPercent() ? l : Length.percent(0);
+        r.reset(m);
+        return null;
     }
 
     private static final Map<String, Image.RadialSize.Extent> EXTENTS = Keywords.table(Image.RadialSize.Extent.class, Map.of());
@@ -237,6 +289,8 @@ final class Images {
                     + CssText.deg(g.angleDeg()) + ", " + stops(g.stops()) + ")";
             case Image.RadialGradient g -> "radial-gradient(" + (g.circle() ? "circle " : "ellipse ") + size(g)
                     + "at " + g.centerX() + " " + g.centerY() + ", " + stops(g.stops()) + ")";
+            case Image.ConicGradient g -> (g.repeating() ? "repeating-" : "") + "conic-gradient(from " + CssText.deg(g.fromDeg())
+                    + " at " + g.centerX() + " " + g.centerY() + ", " + stops(g.stops()) + ")";
         };
     }
 

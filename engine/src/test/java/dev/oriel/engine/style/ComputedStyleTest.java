@@ -116,6 +116,7 @@ class ComputedStyleTest {
             case BorderImage.Sides sd -> sd.equals(BorderImage.Sides.ONE) ? BorderImage.Sides.ZERO : BorderImage.Sides.ONE;
             case BorderImage.Repeats r -> r.equals(BorderImage.Repeats.STRETCH)
                     ? new BorderImage.Repeats(BorderImage.Repeat.ROUND, BorderImage.Repeat.ROUND) : BorderImage.Repeats.STRETCH;
+            case ClipShape c -> c == ClipShape.NONE ? new ClipShape.Inset(Length.px(1), Length.px(1), Length.px(1), Length.px(1), null) : ClipShape.NONE;
             default -> throw new AssertionError("no different value for " + v.getClass());
         };
     }

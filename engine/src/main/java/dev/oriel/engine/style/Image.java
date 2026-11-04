@@ -33,6 +33,12 @@ public sealed interface Image {
     /** {@code linear-gradient(<angle>, stops...)}. Angle in degrees, CSS convention (0 = to top, 90 = to right). */
     record LinearGradient(float angleDeg, List<ColorStop> stops, boolean repeating) implements Image {}
 
+    /**
+     * {@code conic-gradient(from <angle> at <position>, stops)}: colour by angle around the centre, clockwise from
+     * {@code fromDeg} (0 is up). Stop positions are fractions of a full turn, as percentages.
+     */
+    record ConicGradient(float fromDeg, Length centerX, Length centerY, List<ColorStop> stops, boolean repeating) implements Image {}
+
     /** {@code radial-gradient(circle|ellipse <size> at x y, stops...)}. */
     record RadialGradient(boolean circle, Length centerX, Length centerY, List<ColorStop> stops, RadialSize size)
             implements Image {

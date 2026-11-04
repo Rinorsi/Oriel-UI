@@ -35,7 +35,7 @@ final class StackingOrder {
     /** Receives the walk. Every {@code pushClip} or {@code enterContext} returning true is matched by a pop. */
     interface Visitor {
         /**
-         * Enters a box with opacity below 1 and/or a transform. {@code transform} (null for none) maps the box's
+         * Enters a box with opacity below 1, a transform or group effects ({@link ComputedStyle#hasGroupEffects}). {@code transform} (null for none) maps the box's
          * border-box space, origin at 0,0, to the current space translated to ({@code x}, {@code y}); it is scratch,
          * valid only during the call. Return false to skip the box and its descendants.
          */
@@ -128,10 +128,11 @@ final class StackingOrder {
     // ---- Walk ----
 
     /** Paints a box whole: a stacking context, or a positioned box or atomic inline treated like one. */
-    private void layer(Box box, ComputedStyle s, float x, float y, boolean context, Visitor v) {
+    private void layer(Box box, ComputedStyle s, float x, float y, boolean stacking, Visitor v) {
         Box outerSpace = space;
         boolean transformed = Coordinates.transform(box, s, transform);
-        if (s.opacity < 1 || transformed) {
+        boolean context = s.opacity < 1 || transformed || s.hasGroupEffects();
+        if (context) {
             if (!v.enterContext(box, s, x, y, transformed ? transform : null)) return;
             if (transformed) {
                 space = box;
@@ -140,7 +141,7 @@ final class StackingOrder {
             }
         }
         v.box(box, s, x, y);
-        if (context) {
+        if (stacking) {
             Box[] items = layers.of(box);
             int i = 0;
             for (; i < items.length && zIndex(items[i]) < 0; i++) item(box, items[i], v);
@@ -152,7 +153,7 @@ final class StackingOrder {
             inlines(box, x, y, v);
         }
         v.after(box, s, x, y);
-        if (s.opacity < 1 || transformed) v.exitContext();
+        if (context) v.exitContext();
         space = outerSpace;
     }
 

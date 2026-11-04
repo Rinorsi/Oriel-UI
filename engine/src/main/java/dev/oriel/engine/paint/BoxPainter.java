@@ -1,5 +1,8 @@
 package dev.oriel.engine.paint;
 
+import dev.oriel.engine.style.MaskComposite;
+import dev.oriel.engine.style.Image;
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.ReplacedContent;
 import dev.oriel.engine.input.Controls;
@@ -35,6 +38,11 @@ final class BoxPainter implements StackingOrder.Visitor {
     private float dp;
     private float[] dpStack = new float[8];
     private int depth;
+    /** Per open context: the box and its style when it is drawn as a group (effects), else null. */
+    private Group[] groups = new Group[8];
+
+    /** A context drawn through a group: what {@link #exitContext} needs to draw its masks and composite it. */
+    private record Group(Box box, ComputedStyle style, float x, float y) {}
 
     private final float[] rect = new float[4], radii = new float[8], widths = new float[4];
     /** The border or padding box a box-shadow is drawn from, for {@link Canvas#fillBoxShadow}. */
@@ -70,21 +78,77 @@ final class BoxPainter implements StackingOrder.Visitor {
         float opacity = Math.min(1, style.opacity);
         if (!(opacity > 0)) return false;
         canvas.save();
-        if (depth == dpStack.length) dpStack = Arrays.copyOf(dpStack, depth * 2);
-        dpStack[depth++] = dp;
+        if (depth == dpStack.length) {
+            dpStack = Arrays.copyOf(dpStack, depth * 2);
+            groups = Arrays.copyOf(groups, depth * 2);
+        }
+        float bx = x, by = y;
+        dpStack[depth] = dp;
         if (transform != null) {
             canvas.translate(x, y);
             canvas.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
             dp = Geometry.devicePixel(canvas);
+            bx = by = 0;
         }
-        if (opacity < 1) canvas.multiplyAlpha(opacity);
+        // The backdrop reads what is under the element, so it comes before the element's own group.
+        if (!style.backdropFilter.isEmpty()) backdrop(box, style, bx, by);
+        boolean effects = style.hasGroupEffects();
+        boolean group = effects && canvas.beginGroup();
+        if (effects && !group) unsupported("this canvas has no offscreen layers");
+        groups[depth++] = group ? new Group(box, style, bx, by) : null;
+        if (!group && opacity < 1) canvas.multiplyAlpha(opacity);
         return true;
     }
 
     @Override
     public void exitContext() {
-        dp = dpStack[--depth];
+        Group group = groups[--depth];
+        groups[depth] = null;
+        if (group != null) {
+            masks(group);
+            ComputedStyle s = group.style;
+            canvas.endGroup(Math.min(1, s.opacity), s.filter, s.mixBlendMode);
+        }
+        dp = dpStack[depth];
         canvas.restore();
+    }
+
+    /** {@code backdrop-filter}: what is under the border box, through the filters, inside its rounded shape. */
+    private void backdrop(Box box, ComputedStyle s, float x, float y) {
+        if (!canvas.beginBackdrop()) {
+            unsupported("this canvas cannot read back what it has drawn, so backdrop-filter is not drawn");
+            return;
+        }
+        Geometry g = geometry.box(box, s, x, y, dp);
+        if (Shapes.isRounded(g.radii)) canvas.fillRoundedRect(g.x, g.y, g.width, g.height, g.radii, Colors.WHITE);
+        else canvas.fillRect(g.x, g.y, g.width, g.height, Colors.WHITE);
+        canvas.endBackdrop(s.backdropFilter);
+    }
+
+    /** The group's masks: its mask images bottom layer first, then its clip-path, which every mask is cut by. */
+    private void masks(Group group) {
+        ComputedStyle s = group.style;
+        boolean any = false;
+        List<Image> images = s.maskImage;
+        if (!images.isEmpty()) {
+            Geometry g = geometry.box(group.box, s, group.x, group.y, dp);
+            for (int i = images.size() - 1; i >= 0; i--) {
+                canvas.beginMask(s.maskComposite.get(i % s.maskComposite.size()));
+                backgrounds.mask(canvas, batch, g, s, images.get(i), s.maskClip.get(i % s.maskClip.size()), dp);
+                any = true;
+            }
+        }
+        float[] outline = s.clipPath.outline(group.x, group.y, group.box.width, group.box.height);
+        if (outline != null) {
+            canvas.beginMask(any ? MaskComposite.INTERSECT : MaskComposite.ADD);
+            Polygons.fill(canvas, outline, Colors.WHITE);
+        }
+    }
+
+    /** Reports, once per page and reason, that group effects are drawn without them. */
+    private void unsupported(String why) {
+        painter.document().diagnostics().report(new Diagnostic(Diagnostic.Severity.WARNING, "effects-unsupported",
+                painter.document().url(), 0, "filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: " + why, ""));
     }
 
     @Override
