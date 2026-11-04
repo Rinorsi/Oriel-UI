@@ -353,11 +353,12 @@ public final class ImageCanvas implements Canvas {
         return out.toString();
     }
 
-    /** Unknown textures draw the missing texture. */
+    /** Unknown textures draw nothing, as a browser draws an image that failed to load (the page reports it). */
     @Override
     public void drawImage(String url, float x, float y, float width, float height,
                           float u0, float v0, float u1, float v1, int tint, boolean smooth) {
-        Texture texture = assets.texture(url).orElse(MinecraftAssets.MISSING);
+        Texture texture = assets.texture(url).orElse(null);
+        if (texture == null) return;
         blit(texture.image(), u0, v0, u1, v1, x, y, width, height, modulate(tint), smooth || texture.blur());
     }
 

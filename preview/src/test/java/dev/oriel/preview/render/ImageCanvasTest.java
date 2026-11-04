@@ -136,10 +136,10 @@ class ImageCanvasTest {
     }
 
     @Test
-    void missingTexturesDrawMinecraftsChecks() {
+    void missingTexturesDrawNothing() {
         ImageCanvas c = canvas(2, 2, 1);
         c.drawImage("test:textures/nothing.png", 0, 0, 2, 2, 0, 0, 1, 1, W, false);
-        assertArrayEquals(new int[] {0xFF000000, 0xFFF800F8, 0xFFF800F8, 0xFF000000}, pixels(c));
+        assertArrayEquals(new int[] {0, 0, 0, 0}, pixels(c));
     }
 
     @Test
