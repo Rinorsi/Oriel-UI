@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 /**
  * {@code preview --check <dir or page>}: loads every page headless with its controller, runs a second of frames at
  * two GUI sizes, and reports each page's problems: an engine or controller error, CSS the engine did not take as
- * written (diagnostics at warning level), and images that do not resolve. One line per page, then a summary;
+ * written (diagnostics at warning level), images that do not resolve, and design rules ({@link DesignLint}). One line per page, then a summary;
  * exits 1 when any page failed. Meant as the gate an AI (or CI) runs after editing a page.
  */
 final class Check {
@@ -58,6 +58,11 @@ final class Check {
                 if (size == SIZES[0]) {
                     for (String d : host.diagnosticLines()) problems.add("css: " + d);
                     warnings = host.problems();
+                    if (scene.document() != null && scene.error() == null) {
+                        List<String> design = DesignLint.run(scene.document());
+                        for (String d : design) problems.add("design: " + d);
+                        warnings += design.size();
+                    }
                 }
             }
             boolean bad = problems.stream().anyMatch(p -> p.startsWith("error") || p.startsWith("missing"));
@@ -66,7 +71,7 @@ final class Check {
             System.out.println((bad ? "FAIL " : warnings > 0 ? "WARN " : "OK   ") + page.getFileName());
             for (String p : problems) System.out.println("     " + p);
         }
-        System.out.println(pages.size() + " page(s): " + (pages.size() - failed - warned) + " ok, " + warned + " with CSS warnings, " + failed + " failed");
+        System.out.println(pages.size() + " page(s): " + (pages.size() - failed - warned) + " ok, " + warned + " with warnings, " + failed + " failed");
         return failed > 0 ? 1 : 0;
     }
 

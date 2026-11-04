@@ -35,4 +35,25 @@ class CheckTest {
         assertTrue(report.contains("css: "), report);
         assertTrue(report.contains("OK   good.html"), report);
     }
+
+    @Test
+    void designRulesCatchCheapLooks(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("ugly.html"), "<html><head><style>.o-tile { padding: 4px; }</style></head><body>"
+                + "<div class=\"o-tile\"><div class=\"o-tile\">inner</div></div>"
+                + "<div style=\"font-size: 11px\">odd size</div>"
+                + "<div style=\"background-color: #303030; color: #3a3a3a\">faint</div></body></html>");
+        PrintStream out = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        try {
+            System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
+            Check.run(dir);
+        } finally {
+            System.setOut(out);
+        }
+        String report = captured.toString(StandardCharsets.UTF_8);
+        assertTrue(report.contains("WARN ugly.html"), report);
+        assertTrue(report.contains("块里套块"), report);
+        assertTrue(report.contains("字号 11px"), report);
+        assertTrue(report.contains("对比度"), report);
+    }
 }
