@@ -11,6 +11,7 @@ dependencies {
     compileOnly("com.google.code.gson:gson:${gson_version}")
     testImplementation("com.google.code.gson:gson:${gson_version}")
     testImplementation(project(':script-rhino'))
+    testImplementation(project(':mc-extension'))
 }
 
 tasks.withType(JavaCompile).configureEach {
