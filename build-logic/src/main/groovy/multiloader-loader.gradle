@@ -89,6 +89,13 @@ tasks.named('sourcesJar', Jar) {
 // `-Ptour=scene,shop` plays only those beats (title, mobdex, turntable, shop, scene, end).
 def clientRunProperties = [:]
 def clientRunArgs = []
+if (project.hasProperty('probeRole')) {
+    String role = project.property('probeRole').toString()
+    if (!(role in ['A', 'B'])) throw new GradleException('probeRole must be A or B')
+    clientRunProperties['oriel.probeRole'] = role
+    clientRunArgs.addAll('--username', 'OrielProbe' + role, '--quickPlayMultiplayer',
+            project.findProperty('probeAddress')?.toString() ?: '127.0.0.1:25565')
+}
 if (project.hasProperty('autopilot') || project.hasProperty('tour')) {
     clientRunProperties['oriel.autopilot'] = 'true'
     String only = project.findProperty('autopilot')?.toString()
