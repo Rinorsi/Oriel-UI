@@ -378,7 +378,7 @@ final class InlineLayout {
         m.below = m.glyphHeight - m.ascent + halfLeading;
         if (span.parent != null) {
             Metrics parent = metrics(span.parent);
-            m.shift = parent.shift + alignShift(s.verticalAlign, parent, m.above, m.below);
+            m.shift = parent.shift + alignShift(s, parent, m.above, m.below);
         }
         span.metrics = m;
         return m;
@@ -389,10 +389,11 @@ final class InlineLayout {
      * {@code vertical-align} in a parent inline box. Line-relative {@code top}/{@code bottom} give 0 here; the line
      * handles atomics with them (inline boxes with them are treated as baseline-aligned).
      */
-    private static float alignShift(VerticalAlign align, Metrics parent, float above, float below) {
+    private static float alignShift(ComputedStyle s, Metrics parent, float above, float below) {
         float size = parent.font.size();
-        return switch (align) {
+        return switch (s.verticalAlign) {
             case BASELINE, TOP, BOTTOM -> 0;
+            case LENGTH -> -s.verticalAlignLength.resolve(s.usedLineHeight());
             case SUB -> size * 0.2f;
             case SUPER -> -size * 0.34f;
             case TEXT_TOP -> -parent.ascent + above;
@@ -437,7 +438,7 @@ final class InlineLayout {
                     atomicTop[j - line.start] = Float.POSITIVE_INFINITY;
                 } else {
                     float baseline = b.marginTop + atomicBaseline(b, atomics[j]);
-                    float boxTop = m.shift + alignShift(align, m, baseline, height - baseline) - baseline;
+                    float boxTop = m.shift + alignShift(b.style, m, baseline, height - baseline) - baseline;
                     atomicTop[j - line.start] = boxTop;
                     top = Math.min(top, boxTop);
                     bottom = Math.max(bottom, boxTop + height);

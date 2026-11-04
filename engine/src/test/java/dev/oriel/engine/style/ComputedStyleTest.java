@@ -59,6 +59,7 @@ class ComputedStyleTest {
     void sameAsCoversEveryField() throws IllegalAccessException {
         ComputedStyle initial = new ComputedStyle();
         initial.zIndexAuto = false; // so both z-index fields show through Prop.Z_INDEX
+        initial.verticalAlign = VerticalAlign.LENGTH; // and the vertical-align length through Prop.VERTICAL_ALIGN
         for (Field f : ComputedStyle.class.getDeclaredFields()) {
             if (Modifier.isStatic(f.getModifiers()) || Modifier.isTransient(f.getModifiers())) continue; // caches
             ComputedStyle changed = initial.copy();

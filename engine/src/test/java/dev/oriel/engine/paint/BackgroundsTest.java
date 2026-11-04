@@ -142,6 +142,20 @@ class BackgroundsTest {
     }
 
     @Test
+    void repeatingRadialGradientsRepeatTheirRings() {
+        // Rings every 4px from the centre (20, 10), each red inside and blue outside.
+        RecordingCanvas c = paint("background: repeating-radial-gradient(circle at 20px 10px, red 0, blue 4px)");
+        // Every ring runs from red to blue: inside the box (where nothing is cut), its vertices are its stops' colours.
+        c.forEachVertex((x, y, color) -> {
+            if (x > 0.01f && x < 39.99f && y > 0.01f && y < 19.99f) {
+                assertTrue(color == RED || color == BLUE, "at " + x + "," + y + ": " + Integer.toHexString(color));
+            }
+        });
+        assertTrue(c.quadCount() > 5 * 8, "a ring every 4px out to the corners: " + c.quadCount());
+        assertEquals(800, c.quadArea(), 1, "the rings cover the box");
+    }
+
+    @Test
     void radialGradientsAreRingsFromTheCentre() {
         RecordingCanvas c = paint("background: radial-gradient(circle at 50% 50%, red, blue)");
         assertEquals(800, c.quadArea(), 1);

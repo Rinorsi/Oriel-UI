@@ -59,7 +59,16 @@ public enum Prop {
             (s, v) -> { s.zIndexAuto = v == null; s.zIndex = v == null ? 0 : (Integer) v; }),
     OPACITY("opacity", false, false, Interp.FLOAT, s -> s.opacity, (s, v) -> s.opacity = (Float) v),
     VISIBILITY("visibility", true, false, Interp.DISCRETE, s -> s.visibility, (s, v) -> s.visibility = (Visibility) v),
-    VERTICAL_ALIGN("vertical-align", false, true, Interp.DISCRETE, s -> s.verticalAlign, (s, v) -> s.verticalAlign = (VerticalAlign) v),
+    VERTICAL_ALIGN("vertical-align", false, true, Interp.DISCRETE,
+            s -> s.verticalAlign == VerticalAlign.LENGTH ? s.verticalAlignLength : s.verticalAlign, (s, v) -> {
+                if (v instanceof Length l) {
+                    s.verticalAlign = VerticalAlign.LENGTH;
+                    s.verticalAlignLength = l;
+                } else {
+                    s.verticalAlign = (VerticalAlign) v;
+                    s.verticalAlignLength = Length.ZERO;
+                }
+            }),
     ASPECT_RATIO("aspect-ratio", false, true, Interp.FLOAT, s -> s.aspectRatio, (s, v) -> s.aspectRatio = (Float) v),
     OBJECT_FIT("object-fit", false, false, Interp.DISCRETE, s -> s.objectFit, (s, v) -> s.objectFit = (ObjectFit) v),
     /** {@code object-position}'s axes ({@link Length#AUTO} until set). */

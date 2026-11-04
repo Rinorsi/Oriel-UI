@@ -34,7 +34,8 @@ final class Images {
             case "sprite" -> sprite(f.args());
             case "linear-gradient" -> linear(f, ctx, false);
             case "repeating-linear-gradient" -> linear(f, ctx, true);
-            case "radial-gradient" -> radial(f, ctx);
+            case "radial-gradient" -> radial(f, ctx, false);
+            case "repeating-radial-gradient" -> radial(f, ctx, true);
             case "conic-gradient" -> conic(f, ctx, false);
             case "repeating-conic-gradient" -> conic(f, ctx, true);
             default -> null;
@@ -93,7 +94,7 @@ final class Images {
      * {@code circle} or {@code ellipse}; the size an extent keyword, one length (a circle) or two lengths or
      * percentages (an ellipse). Without a shape, one length makes a circle and anything else an ellipse.
      */
-    private static Image radial(Func f, ValueContext ctx) {
+    private static Image radial(Func f, ValueContext ctx, boolean repeating) {
         List<List<ComponentValue>> parts = ValueReader.splitCommas(f.args());
         ValueReader r = new ValueReader(parts.get(0));
         String shape = null;
@@ -130,7 +131,7 @@ final class Images {
         if (prelude && !r.atEnd()) return null;
         List<Image.ColorStop> stops = stops(parts.subList(prelude ? 1 : 0, parts.size()), ctx);
         return stops == null ? null : new Image.RadialGradient(circle, center[0], center[1], stops,
-                size == null ? Image.RadialSize.FARTHEST_CORNER : size);
+                size == null ? Image.RadialSize.FARTHEST_CORNER : size, repeating);
     }
 
     /**
@@ -287,7 +288,7 @@ final class Images {
             case Image.Canvas c -> "url(" + CssText.string(Image.CANVAS_SCHEME + c.id()) + ")";
             case Image.LinearGradient g -> (g.repeating() ? "repeating-" : "") + "linear-gradient("
                     + CssText.deg(g.angleDeg()) + ", " + stops(g.stops()) + ")";
-            case Image.RadialGradient g -> "radial-gradient(" + (g.circle() ? "circle " : "ellipse ") + size(g)
+            case Image.RadialGradient g -> (g.repeating() ? "repeating-" : "") + "radial-gradient(" + (g.circle() ? "circle " : "ellipse ") + size(g)
                     + "at " + g.centerX() + " " + g.centerY() + ", " + stops(g.stops()) + ")";
             case Image.ConicGradient g -> (g.repeating() ? "repeating-" : "") + "conic-gradient(from " + CssText.deg(g.fromDeg())
                     + " at " + g.centerX() + " " + g.centerY() + ", " + stops(g.stops()) + ")";

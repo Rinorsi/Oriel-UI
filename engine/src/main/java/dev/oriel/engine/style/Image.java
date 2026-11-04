@@ -41,12 +41,16 @@ public sealed interface Image {
      */
     record ConicGradient(float fromDeg, Length centerX, Length centerY, List<ColorStop> stops, boolean repeating) implements Image {}
 
-    /** {@code radial-gradient(circle|ellipse <size> at x y, stops...)}. */
-    record RadialGradient(boolean circle, Length centerX, Length centerY, List<ColorStop> stops, RadialSize size)
+    /** {@code radial-gradient(circle|ellipse <size> at x y, stops...)}, or {@code repeating-radial-gradient}. */
+    record RadialGradient(boolean circle, Length centerX, Length centerY, List<ColorStop> stops, RadialSize size, boolean repeating)
             implements Image {
+        public RadialGradient(boolean circle, Length centerX, Length centerY, List<ColorStop> stops, RadialSize size) {
+            this(circle, centerX, centerY, stops, size, false);
+        }
+
         /** A farthest-corner gradient, CSS's default size. */
         public RadialGradient(boolean circle, Length centerX, Length centerY, List<ColorStop> stops) {
-            this(circle, centerX, centerY, stops, RadialSize.FARTHEST_CORNER);
+            this(circle, centerX, centerY, stops, RadialSize.FARTHEST_CORNER, false);
         }
     }
 

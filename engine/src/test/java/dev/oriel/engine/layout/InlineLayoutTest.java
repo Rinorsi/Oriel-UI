@@ -242,6 +242,17 @@ class InlineLayoutTest {
     }
 
     @Test
+    void verticalAlignByALengthOrAPercentageOfTheLineHeight() {
+        Page page = new TestHost().load("<div id=p>a<span style='vertical-align: 4px'>b</span>"
+                + "<span style='vertical-align: -50%; line-height: 10px'>c</span></div>");
+        List<Fragment.TextRun> runs = runs(page, "p");
+        float base = runs.get(0).y();
+        assertEquals(base - 4, runs.get(1).y(), 0.01, "4px up");
+        assertEquals(base + 5, runs.get(2).y(), 0.01, "half its 10px line height down");
+        assertEquals("4px", page.computed("#p > span", "vertical-align"));
+    }
+
+    @Test
     void pseudoElements() {
         Page page = new TestHost().load("""
                 <style>

@@ -53,6 +53,8 @@ public final class ComputedStyle implements Cloneable {
     public float opacity = 1f;
     public Visibility visibility = Visibility.VISIBLE;
     public VerticalAlign verticalAlign = VerticalAlign.BASELINE;
+    /** The raise of {@code vertical-align: <length-percentage>} ({@link VerticalAlign#LENGTH}). */
+    public Length verticalAlignLength = Length.ZERO;
     /** width / height, or NaN for {@code auto}. */
     public float aspectRatio = Float.NaN;
     public ObjectFit objectFit = ObjectFit.FILL;
@@ -305,7 +307,7 @@ public final class ComputedStyle implements Cloneable {
                 && same(borderBottomWidth, o.borderBottomWidth) && same(borderLeftWidth, o.borderLeftWidth)
                 && borderTopStyle == o.borderTopStyle && borderRightStyle == o.borderRightStyle
                 && borderBottomStyle == o.borderBottomStyle && borderLeftStyle == o.borderLeftStyle
-                && overflowX == o.overflowX && overflowY == o.overflowY && verticalAlign == o.verticalAlign
+                && overflowX == o.overflowX && overflowY == o.overflowY && verticalAlign == o.verticalAlign && verticalAlignLength.equals(o.verticalAlignLength)
                 && same(aspectRatio, o.aspectRatio)
                 && flexDirection == o.flexDirection && flexWrap == o.flexWrap && justifyContent == o.justifyContent
                 && alignItems == o.alignItems && alignContent == o.alignContent && alignSelf == o.alignSelf

@@ -226,7 +226,13 @@ final class Properties {
             return f == null ? null : Math.max(0, Math.min(1, f));
         }, NUMBER);
         add(Prop.VISIBILITY, Keywords.parser(Visibility.class), KEYWORD);
-        add(Prop.VERTICAL_ALIGN, Keywords.parser(VerticalAlign.class), KEYWORD);
+        // A keyword, or a length or percentage to raise the box by.
+        java.util.Map<String, VerticalAlign> alignKeywords = new java.util.HashMap<>(Keywords.table(VerticalAlign.class, java.util.Map.of()));
+        alignKeywords.remove("length");
+        add(Prop.VERTICAL_ALIGN, (r, ctx) -> {
+            Object keyword = Keywords.read(r, alignKeywords);
+            return keyword != null ? keyword : Numeric.length(r, ctx, true);
+        }, v -> v instanceof Length l ? l.toString() : Keywords.css((Enum<?>) v));
         add(Prop.ASPECT_RATIO, Properties::aspectRatio, v -> Float.isNaN((Float) v) ? "auto" : CssText.number((Float) v));
         add(Prop.OBJECT_FIT, Keywords.parser(ObjectFit.class), KEYWORD);
         // Unset (auto) serialises as CSS's initial value; only the content tells the two apart.
