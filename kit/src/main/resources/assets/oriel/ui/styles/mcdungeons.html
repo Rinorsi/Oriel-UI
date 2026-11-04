@@ -31,6 +31,12 @@
     background: linear-gradient(transparent, rgba(255, 196, 60, 0.85)); animation: beam 1.8s ease-in-out infinite; }
 @keyframes bob { 50% { transform: translateY(-3px); } }
 @keyframes beam { 50% { opacity: 0.4; } }
+/* Fireflies drifting over the level. */
+.fly { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #e8ff9a; box-shadow: 0 0 4px #d8ff70; opacity: 0;
+    animation: fly 6s ease-in-out infinite; }
+@keyframes fly { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 1; } 80% { opacity: 0.8; } 100% { opacity: 0; transform: translate(var(--dx), -26px); } }
+.ground { position: absolute; left: 50%; top: 60%; width: 380px; height: 150px; margin: -75px 0 0 -190px; border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5), transparent 68%); pointer-events: none; }
 .shade { position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(ellipse 70% 65% at 50% 46%, transparent 50%, rgba(5, 10, 6, 0.75)),
         linear-gradient(rgba(120, 170, 255, 0.07), transparent 40%); }
@@ -40,16 +46,20 @@
 .effects span { position: relative; width: 14px; height: 14px; padding: 1px; background: rgba(20, 20, 24, 0.75); border: 1px solid var(--rim); }
 .effects img { width: 12px; height: 12px; }
 
-/* ---- The utility bar ---- */
-.ubar { position: absolute; left: 50%; bottom: 3px; width: 322px; height: 30px; margin-left: -161px;
-    display: flex; align-items: center; gap: 2px; padding: 0 3px;
-    background: linear-gradient(#2a2b2f, var(--bar)); border-top: 1px solid #45464c;
-    box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.6); }
-.ubar::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -3px; height: 2px; background: rgba(0, 0, 0, 0.6); }
-.xp { position: absolute; left: 14px; bottom: -3px; width: 36%; height: 2px; z-index: 1; background: var(--xp); box-shadow: 0 0 4px var(--xp); }
-.slot { position: relative; flex: none; width: 24px; height: 24px; padding: 3px; background: var(--slot);
-    border: 1px solid var(--rim); box-shadow: inset 0 0 0 1px #000, inset 0 2px 0 rgba(255, 255, 255, 0.06); transition: border-color 120ms; }
-.slot:hover { border-color: var(--rim-hi); }
+/* ---- The utility bar: one slab, bevelled ends, lit top edge, sized to what it holds ---- */
+.ubar { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); height: 30px;
+    display: flex; align-items: center; gap: 2px; padding: 0 9px;
+    background: linear-gradient(#3a3b40, #26272b 45%, #1a1b1e);
+    clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 0 100%, 0 7px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -2px 0 rgba(0, 0, 0, 0.45); }
+.ubar-shadow { position: absolute; left: 50%; bottom: 0; width: 70%; height: 12px; transform: translateX(-50%); border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6), transparent 70%); pointer-events: none; }
+.xp { position: absolute; left: 9px; right: 9px; bottom: 1px; height: 2px; background: rgba(0, 0, 0, 0.55); }
+.xp i { display: block; width: 36%; height: 2px; background: linear-gradient(90deg, #6a2cd8, #b07aff); box-shadow: 0 0 4px var(--xp); }
+.slot { position: relative; flex: none; width: 24px; height: 24px; padding: 3px; background: linear-gradient(#24252a, #121316);
+    border: 1px solid var(--rim); box-shadow: inset 0 0 0 1px #000, inset 0 2px 3px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.07);
+    transition: border-color 120ms, transform 120ms; }
+.slot:hover { border-color: var(--rim-hi); transform: translateY(-1px); }
 .slot item { width: 16px; height: 16px; }
 .slot .k { position: absolute; right: 1px; bottom: 0; color: var(--key); font-size: 8px; line-height: 8px; text-shadow: 1px 1px 0 #000; }
 .slot .n { position: absolute; left: 2px; bottom: 0; line-height: 8px; }
@@ -71,6 +81,7 @@
 .oct.quiver { width: 28px; height: 30px; margin-left: 3px; }
 /* The heart: low-poly, red, lit from the top left; it shrinks with health and beats when hit. */
 .heart .h { position: relative; width: 30px; height: 26px; margin-top: -6px; animation: hurt 5s ease-in-out infinite;
+    filter: drop-shadow(0 0 4px rgba(255, 60, 40, 0.55));
     clip-path: polygon(50% 20%, 62% 6%, 80% 3%, 94% 13%, 100% 32%, 94% 54%, 76% 74%, 50% 97%, 24% 74%, 6% 54%, 0 32%, 6% 13%, 20% 3%, 38% 6%);
     background: linear-gradient(135deg, #ff6a5c 0 22%, #e0261c 22% 55%, #b5150e 55% 78%, #8c0d08 78%); }
 @keyframes hurt { 0%, 64%, 100% { transform: scale(0.86); } 67% { transform: scale(0.95); filter: brightness(1.5); } 72% { transform: scale(0.8); } }
@@ -86,7 +97,7 @@
 .gems item { width: 12px; height: 12px; }
 
 @media (min-width: 560px) {
-    .ubar { width: 380px; margin-left: -190px; height: 34px; }
+    .ubar { height: 34px; }
     .slot { width: 27px; height: 27px; padding: 4px; }
     .oct.heart { width: 64px; height: 46px; }
     .heart .h { width: 38px; height: 33px; }
@@ -96,6 +107,7 @@
 </head>
 <body>
 <div class="level">
+  <i class="ground"></i>
   <div class="world">
     <item class="b" id="minecraft:dirt" style="left: -20.0px; top: -90.7px"></item>
     <item class="b" id="minecraft:dirt" style="left: -20.0px; top: -112.4px"></item>
@@ -220,11 +232,15 @@
     <div class="mob " style="left: 40.0px; top: -21.1px; width: 26px; height: 40px"><i class="hp"><b></b></i><entity type="minecraft:creeper" style="width: 26px; height: 40px; -mc-yaw: 100deg"></entity></div>
   </div>
   <i class="shade"></i>
+  <i class="fly" style="left: 30%; top: 40%; --dx: 14px"></i><i class="fly" style="left: 62%; top: 34%; --dx: -10px; animation-delay: 1.4s"></i>
+  <i class="fly" style="left: 46%; top: 58%; --dx: 8px; animation-delay: 2.6s"></i><i class="fly" style="left: 70%; top: 52%; --dx: -14px; animation-delay: 3.8s"></i>
+  <i class="fly" style="left: 24%; top: 62%; --dx: 10px; animation-delay: 4.6s"></i>
   <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
   <div class="effects"><span><img src="minecraft:textures/mob_effect/speed.png"></span><span><img src="minecraft:textures/mob_effect/strength.png"></span></div>
 
+  <i class="ubar-shadow"></i>
   <div class="ubar">
-    <i class="xp"></i>
+    <i class="xp"><i></i></i>
     <div class="souls"><i></i><span>27</span></div>
     <div class="slot"><item id="minecraft:chest"></item><span class="k">I</span></div>
     <div class="slot ready"><item id="minecraft:totem_of_undying"></item><span class="k">1</span></div>
