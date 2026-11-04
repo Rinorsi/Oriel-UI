@@ -103,17 +103,32 @@
 .effs .e span { position: relative; color: var(--o-text-dim); }
 .effs .e:nth-child(n+4) { display: none; }
 
-/* Component editor: a miniature canvas with a selected element and the crafting table. */
-.editor { grid-column: 2; grid-row: 2; }
-.mock { position: absolute; left: 4px; top: 4px; bottom: 4px; right: 36%;
+/* Component editor: the editor in miniature (tool strip, canvas with a selection being moved, properties). */
+.editor .thumb { display: flex; gap: 3px; padding: 3px; }
+.ed-tools { flex: none; width: 8px; display: flex; flex-direction: column; gap: 2px; }
+.ed-tools i { height: 8px; background: var(--o-line-strong); }
+.ed-tools i:nth-child(2) { background: var(--o-accent-strong); }
+.mock { position: relative; flex: 1; min-width: 0;
     background-image: repeating-linear-gradient(to right, var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px), repeating-linear-gradient(var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px); }
 .mock i { position: absolute; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
-.mock .a { left: 6%; top: 10%; width: 58%; height: 24%; }
-.mock .b { left: 6%; top: 46%; width: 24%; height: 42%; }
+.mock .a { left: 8%; top: 12%; width: 56%; height: 22%; }
+.mock .b { left: 8%; top: 46%; width: 22%; height: 42%; }
 .mock .c { left: 38%; top: 46%; width: 48%; height: 42%; border-color: var(--o-accent-strong); animation: nudge 3.2s var(--m-out) infinite; }
+.mock .c::after { content: ""; position: absolute; right: -2px; bottom: -2px; width: 3px; height: 3px; background: #ffffff; }
 @keyframes nudge { 0%, 40% { left: 38%; } 60%, 100% { left: 46%; } }
-.editor model { position: absolute; right: 2%; top: 6%; width: 32%; height: 88%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
-.editor:hover model { -mc-yaw: 210deg; }
+.ed-props { flex: none; width: 30%; display: flex; flex-direction: column; gap: 3px; padding: 2px; border-left: 1px solid var(--o-line); }
+.ed-props i { height: 4px; background: var(--o-line-strong); }
+.ed-props i:nth-child(odd) { width: 70%; }
+.ed-props b { height: 6px; background: var(--o-accent); opacity: 0.5; margin-top: auto; }
+
+/* Components: a sampler filling the tile in two columns. */
+/* Auto-fill: as many 44px columns as the tile is wide, rows of 18px; samples past the last row are clipped away. */
+.kit .thumb { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); grid-auto-rows: 18px; gap: 4px 6px; padding: 7px 8px;
+    align-content: start; align-items: center; }
+.kit .thumb > * { justify-self: start; }
+.kit .ore-btn { min-height: 14px; padding: 0 5px; }
+.kit .mini-meter { justify-self: stretch; height: 4px; background: var(--o-line-strong); }
+.kit .mini-meter i { display: block; height: 4px; width: 64%; background: var(--o-accent-strong); }
 
 /* Settings: rows spread over the tile. */
 .settings { grid-column: 3; grid-row: 2; }
@@ -131,11 +146,6 @@
 .stats .v { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); }
 .stats .k { color: #b9b2e0; white-space: nowrap; }
 
-/* Components: a few live controls. */
-.kit { grid-column: 4; grid-row: 2; }
-.kit .thumb { display: flex; flex-direction: column; justify-content: space-evenly; align-items: flex-start; gap: 3px; padding: 3px 6px; }
-.kit .thumb > div { display: flex; align-items: center; gap: 3px; }
-.kit .ore-btn { min-height: 14px; padding: 0 5px; }
 
 /* Small GUIs (427×240 is 1280×720 at GUI scale 3). */
 @media (max-width: 560px) { .o-seg em { display: none; } }
@@ -144,7 +154,7 @@
 @media (max-height: 300px) {
     .stage .tag { display: none; }
     .stage .pitch { gap: 6px; padding: 0 10px; }
-    .track, .progress, .stats, .settings .more, .kit .more { display: none; }
+    .track, .progress, .stats, .settings .more { display: none; }
 }
 /* Large GUIs, maximized (the window mode decides the room, not only the screen). */
 @media (min-width: 760px) and (min-height: 400px) {
@@ -178,6 +188,7 @@
     <div class="o-apptabs" id="nav">
       <div class="on" data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
       <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
+      <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em>图标</em></div>
       <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
       <i class="m-indicator" id="indicator"></i>
     </div>
@@ -191,8 +202,8 @@
       <div class="sheen"></div>
       <canvas class="fx" data-fx="stars" data-rate="2" data-seed="11"></canvas>
       <div class="stats">
-        <div class="s"><span class="v" data-count="77">0</span><span class="k">像素图标</span></div>
-        <div class="s"><span class="v" data-count="11">0</span><span class="k">组件分类</span></div>
+        <div class="s"><span class="v" data-count="200">0</span><span class="k">像素图标</span></div>
+        <div class="s"><span class="v" data-count="13">0</span><span class="k">组件分类</span></div>
         <div class="s"><span class="v" data-count="8">0</span><span class="k">粒子预设</span></div>
         <div class="s"><span class="v" data-count="6">0</span><span class="k">构建目标</span></div>
       </div>
@@ -241,7 +252,7 @@
 
     <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
       <div class="head"><img class="o-ico" src="../textures/icons/layers.png"><span class="label">组件编辑器</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb"><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><model block="minecraft:crafting_table"></model></div>
+      <div class="thumb"><div class="ed-tools"><i></i><i></i><i></i><i></i></div><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="ed-props"><i></i><i></i><i></i><i></i><i></i><b></b></div></div>
     </div>
 
     <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
@@ -256,10 +267,12 @@
 
     <div class="card kit o-tile hot m-spot" tabindex="0" data-go="catalog">
       <div class="head"><img class="o-ico" src="../textures/icons/grid.png"><span class="label">组件目录</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb">
-        <div><span class="ore-btn hero">确认</span><span class="ore-btn secondary">取消</span></div>
-        <div><span class="o-chip on">选中</span><span class="o-chip">芯片</span><span class="o-badge red">9</span></div>
-        <div class="more"><span class="ore-toggle on"></span><span class="o-kbd">Ctrl</span><span class="o-kbd">Z</span></div>
+      <div class="thumb o-fit">
+        <span class="ore-btn hero">确认</span><span class="ore-btn secondary">取消</span><span class="ore-btn destructive">删除</span>
+        <span class="o-chip on">选中</span><span class="ore-toggle on"></span><span class="ore-toggle"></span>
+        <div class="mini-meter"><i></i></div><span class="o-badge red">9</span><span class="o-chip">芯片</span>
+        <span class="o-kbd">Ctrl</span><span class="o-badge">3</span><div class="mini-meter"><i style="width: 30%"></i></div>
+        <span class="ore-btn">普通</span><span class="o-chip on">稀有</span><span class="o-kbd">Esc</span>
       </div>
     </div>
   </div>

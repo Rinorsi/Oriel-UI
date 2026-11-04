@@ -3,6 +3,7 @@ package dev.oriel.kit;
 import dev.oriel.kit.preset.CatalogPreset;
 import dev.oriel.kit.preset.EditorPreset;
 import dev.oriel.kit.preset.ForgePreset;
+import dev.oriel.kit.preset.IconsPreset;
 import dev.oriel.kit.preset.GalleryPreset;
 import dev.oriel.kit.preset.InventoryPreset;
 import dev.oriel.kit.preset.ItemEditorPreset;
@@ -27,6 +28,7 @@ public final class OrielKit {
     public static final String POTIONS = page("potions");
     public static final String EDITOR = page("editor");
     public static final String CATALOG = page("catalog");
+    public static final String ICONS = page("icons");
     /** The item data editor, opened by the server ({@code /oriel edit}). */
     public static final String ITEM_EDITOR = page("item_editor");
     /** The presets, in gallery order. */
@@ -54,6 +56,7 @@ public final class OrielKit {
         PageControllers.register(POTIONS, PotionHudPreset::new);
         PageControllers.register(EDITOR, EditorPreset::new);
         PageControllers.register(CATALOG, CatalogPreset::new);
+        PageControllers.register(ICONS, IconsPreset::new);
         PageControllers.register(ITEM_EDITOR, ItemEditorPreset::new);
     }
 }

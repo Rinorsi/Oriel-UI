@@ -52,6 +52,10 @@ class MusicPresetTest {
         MusicPreset music = new MusicPreset();
         Document doc = host.open(OrielKit.MUSIC, music);
         String first = music.playlist.get(0).title();
+        // The queue shares its place with the lyrics: open its tab.
+        KitHost.click(doc, "[data-show='#queue']", 0, Modifiers.NONE, clock);
+        assertFalse(doc.getElementById("queue").hasClass("o-hidden"));
+        assertTrue(doc.getElementById("lyrics").hasClass("o-hidden"));
         Element row = music.rows.get(0);
         float[] r = row.getBoundingClientRect();
         float x = r[0] + 30, y = r[1] + r[3] / 2;

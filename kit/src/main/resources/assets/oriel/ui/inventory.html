@@ -11,7 +11,7 @@
 .col { display: flex; flex-direction: column; gap: 6px; padding: 6px; min-height: 0; }
 .doll { width: 148px; flex: none; }
 .bag { flex: 1; min-width: 0; justify-content: center; }
-.info { width: 158px; flex: none; border-left: 1px solid var(--o-line-strong); box-shadow: inset 1px 0 0 var(--o-line); background: var(--o-well); }
+.info { width: 158px; padding-left: 14px; border-left: 1px solid var(--o-line-strong); box-shadow: inset 1px 0 0 var(--o-line); background: var(--o-well); }
 
 /* Paper doll: armour down the left, the player in the middle, the off hand at the bottom right. */
 .paper { position: relative; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
@@ -37,8 +37,13 @@
 .info-tabs > span { flex: 1; justify-content: center; gap: 3px; }
 .info .pane.off { display: none; }
 .effects { flex: 1; min-height: 0; }
-.paper { flex: 1; min-height: 0; }
-.equip { flex: 1; grid-template-rows: repeat(4, minmax(24px, 1fr)); align-items: center; }
+/* The paper doll fills its column: the slots stay together beside a large player, on a lit floor and a faint grid. */
+.paper { flex: 1; min-height: 0; justify-content: center; }
+.equip { flex: 1; min-height: 0; grid-template-rows: repeat(4, minmax(24px, 34px)); align-content: center; align-items: center; row-gap: 4px; }
+/* The player takes the whole paper doll; the equipment slots sit over it at the sides. */
+.equip entity { position: absolute; left: 0; top: 2%; width: 100%; height: 94%; }
+.equip .ore-slot { position: relative; z-index: 1; }
+.doll .floor { display: none; }
 .o-meter.xp { --fill-hi: #d8ff9a; --fill: #8fe04a; --fill-lo: #4c9a1e; }
 
 /* Tabs and search share a toolbar. */
@@ -47,7 +52,8 @@
 .cats > span .o-ico { width: 16px; height: 16px; }
 
 /* Slots: 24px Ore recesses; the item sits at 4px. A rarity ring inside the frame, and a glint on enchanted items. */
-.ore-slot { width: 24px; height: 24px; transition: opacity 180ms; }
+/* The frame counts in the slot's size (the grid columns are the slot's outer width), the item centred inside it. */
+.ore-slot { box-sizing: border-box; width: 24px; height: 24px; transition: opacity 180ms; }
 .ore-slot item { position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; }
 .ore-slot.r-uncommon::before, .ore-slot.r-rare::before, .ore-slot.r-epic::before {
     content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
@@ -73,10 +79,11 @@
 
 /* The details pane. */
 .details { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 3px; }
-.details .stage { position: relative; height: 70px; flex: none; display: flex; justify-content: center; }
+.details .stage { position: relative; height: 84px; flex: none; display: flex; align-items: center; justify-content: center; }
+/* The glow is a circle smaller than the stage, so nothing cuts it. */
 .details .stage::before {
-    content: ""; position: absolute; left: 10px; right: 10px; top: 0; bottom: 0; pointer-events: none;
-    background: radial-gradient(circle, color-mix(in srgb, var(--tier) 40%, transparent), rgba(0, 0, 0, 0) 62%);
+    content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none;
+    background: radial-gradient(circle, color-mix(in srgb, var(--tier) 40%, transparent), rgba(0, 0, 0, 0) 38px);
 }
 .details .stage model { width: 70px; height: 70px; animation: turn 6s linear infinite; -mc-pitch: 12deg; }
 @keyframes turn { from { -mc-yaw: 0deg; } to { -mc-yaw: 360deg; } }
@@ -124,14 +131,17 @@
     .bag { gap: 3px; }
 }
 @keyframes lift { from { transform: none; } to { transform: rotate(-10deg) scale(1.25); } }
-/* Large GUIs, maximized: 32px slots with 24px items; wider side columns. */
+/* From 600×330 (the window mode too): 32px slots with 24px items, so the bag fills its column. */
+@media (min-width: 600px) and (min-height: 330px) {
+    .ore-slot { width: 32px; height: 32px; }
+    .ore-slot item, .ore-slot .hint { left: 2px; top: 2px; width: 24px; height: 24px; }
+    .grid, .hotbar, .keys { grid-template-columns: repeat(9, 32px); gap: 2px; }
+    .equip { grid-template-columns: 32px 1fr 32px; }
+}
+/* Large GUIs, maximized: wider side columns. */
 @media (min-width: 700px) and (min-height: 390px) {
-    [data-window=max] .ore-slot { width: 32px; height: 32px; }
-    [data-window=max] .ore-slot item, [data-window=max] .ore-slot .hint { left: 4px; top: 4px; width: 24px; height: 24px; }
-    [data-window=max] .grid, [data-window=max] .hotbar, [data-window=max] .keys { grid-template-columns: repeat(9, 32px); gap: 2px; }
     [data-window=max] .doll { width: 176px; }
     [data-window=max] .info { width: 190px; }
-    [data-window=max] .equip { grid-template-columns: 32px 1fr 32px; grid-template-rows: repeat(4, minmax(32px, 1fr)); }
     [data-window=max] .bag { gap: 8px; }
 }
 
@@ -155,7 +165,8 @@
     <div class="o-body">
       <div class="col doll">
         <div class="o-caps">角色</div>
-        <div class="paper o-well">
+        <div class="paper o-well deco-host">
+          <i class="deco grid"></i><i class="deco floor" style="--deco-c: #6cc349"></i><i class="deco corners"></i><i class="deco shine"></i>
           <div class="equip" id="equip"><entity player follow-mouse rotatable></entity></div>
           <div class="floor"></div>
         </div>
@@ -191,8 +202,9 @@
           <div class="tiers" id="tiers"></div>
         </div>
       </div>
-      <div class="col info">
-        <div class="o-seg info-tabs" id="info-tabs"><span class="on" data-pane="details"><img class="o-ico" src="../textures/icons/gem.png">物品</span><span data-pane="effects"><img class="o-ico" src="../textures/icons/flask.png">状态效果</span></div>
+      <div class="col info o-drawer" id="info">
+        <div class="o-drawer-handle" title="收起 / 展开"><img class="o-ico" src="../textures/icons/forward.png"></div>
+        <div class="o-seg info-tabs" id="info-tabs"><span class="on" data-pane="details"><img class="o-ico" src="../textures/icons/gem.png">物品</span><span data-pane="effects"><img class="o-ico" src="../textures/icons/flask.png">效果</span></div>
         <div class="details r-common pane" id="details"></div>
         <div class="o-effects o-scroll effects pane off" id="effects"></div>
       </div>

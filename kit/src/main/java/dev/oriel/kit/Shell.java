@@ -20,7 +20,7 @@ import java.util.List;
  *   of the new tab ({@link #go});</li>
  *   <li>the window mode: {@code data-window="max"} (the window fills the screen) or {@code "mini"} (a centred window
  *   over the game), kept across pages; every title bar gets the switch before its close button;</li>
- *   <li>the controls' default behaviour ({@link Widgets}).</li>
+ *   <li>the controls' default behaviour ({@link Widgets}), and loading ({@link Lazy}: {@code .o-lazy}, {@code .o-preload}).</li>
  * </ul>
  * <p>Page transitions: {@link #go} plays a leaving animation on {@code .o-body}, opens the page and gives the new
  * page's {@code .o-body} the matching entrance ({@code m-page-forward}, {@code -next}, {@code -prev}, {@code -back}; see
@@ -134,6 +134,7 @@ public final class Shell {
             }
         }
         Widgets.attach(doc);
+        Lazy.attach(doc);
         Motion.attach(doc);
         return Particles.attach(doc);
     }

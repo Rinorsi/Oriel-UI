@@ -880,7 +880,7 @@ public final class EditorPreset implements PageControllers.Controller {
             case "slot" -> "<div class=\"ore-slot\"><item id=\"" + text + "\"></item></div>";
             case "toggle" -> "<div class=\"ore-toggle on\"></div>";
             case "meter" -> "<div class=\"o-meter\" style=\"--value: 0.6\"><i></i></div>";
-            case "block" -> "<model block=\"" + text + "\"></model>";
+            case "block" -> GameRegistry.isBlock(p.text) ? "<model block=\"" + text + "\"></model>" : "<model item=\"" + text + "\"></model>";
             default -> "";
         };
     }

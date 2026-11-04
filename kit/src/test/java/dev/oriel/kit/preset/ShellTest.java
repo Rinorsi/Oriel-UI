@@ -83,9 +83,37 @@ class ShellTest {
         click(doc, ".sec .ore-select .option:nth-child(3)", 0, Modifiers.NONE, clock);
         assertFalse(select.hasClass("open"));
         assertEquals("流畅", select.querySelector(".value").textContent());
+        // The drawer folds to its handle; the popover opens under its button and closes on Escape.
+        var drawer = doc.querySelector(".sec .o-drawer");
+        drawer.querySelector(".o-drawer-handle").click();
+        assertTrue(drawer.hasClass("shut"));
+        drawer.querySelector(".o-drawer-handle").click();
+        assertFalse(drawer.hasClass("shut"));
+        doc.querySelector("[data-pop=pop-demo]").click();
+        assertTrue(doc.getElementById("pop-demo").hasClass("open"));
+        doc.input().keyDown("Escape", "Escape", Modifiers.NONE);
+        assertFalse(doc.getElementById("pop-demo").hasClass("open"));
         var toggle = doc.querySelector(".sec .ore-toggle");
         boolean was = toggle.hasClass("on");
         toggle.click();
         assertEquals(!was, toggle.hasClass("on"));
+    }
+
+    @Test
+    void sectionsLoadAsTheyComeIntoViewAndTheCoverLifts() {
+        Document doc = host.open(OrielKit.CATALOG, new CatalogPreset(), 640, 360);
+        var last = doc.querySelectorAll(".sec").getLast();
+        assertTrue(last.hasClass("o-lazy"), "far sections wait as skeletons");
+        assertFalse(doc.getElementById("preload").hasClass("done"));
+        for (int i = 0; i < 60; i++) frame(doc, clock, 16);
+        assertTrue(doc.getElementById("preload").hasClass("done"), "the loading screen lifts");
+        assertTrue(last.hasClass("o-lazy"), "still out of view");
+        var pane = doc.getElementById("pane");
+        // Sections opening above push the rest down, so keep scrolling to the end, as a reader would.
+        for (int n = 0; n < 15 && !last.hasClass("o-loaded"); n++) {
+            pane.scrollTo(0, 100000, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+            for (int i = 0; i < 10; i++) frame(doc, clock, 16);
+        }
+        assertTrue(last.hasClass("o-loaded"), "and loads once scrolled to");
     }
 }

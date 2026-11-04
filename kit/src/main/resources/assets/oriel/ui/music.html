@@ -4,18 +4,26 @@
 <title>优易库 · 音乐播放器</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* The deck: a vinyl that spins while playing (the tonearm swings onto it and notes rise off it), the track, a
-   24-band LED spectrum with its reflection, and the transport. The queue is on the right; rows drag to reorder.
-   "迷你" folds the window into the HUD form: a small bar at the bottom right that keeps playing. */
-.o-main { flex-direction: row; gap: 10px; padding: 10px 10px 8px; }
-.deck { position: relative; width: 132px; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-    background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--disc, #c46aff) 14%, transparent), rgba(0, 0, 0, 0) 65%); }
-.platter { position: relative; width: 124px; height: 124px; }
+/* One colour, two halves, one dock (the way a good desktop player is laid out): the room takes the colour of the
+   record playing (--disc), the record turns on the left (the tonearm swings onto it, notes rise off it), the title
+   and the lyrics or the queue are on the right, a quiet spectrum runs along the bottom, and the dock under it holds
+   the progress, the transport and the volume. "迷你" folds the window into a small bar that keeps playing. */
+.o-body { flex-direction: column; }
+.room { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; grid-template-rows: 1fr auto; column-gap: 12px;
+    padding: 8px 14px 0; overflow: hidden;
+    background: radial-gradient(ellipse at 28% 45%, color-mix(in srgb, var(--disc, #c46aff) 22%, transparent), rgba(0, 0, 0, 0) 60%),
+        linear-gradient(color-mix(in srgb, var(--disc, #c46aff) 8%, transparent), rgba(0, 0, 0, 0.25)); }
+
+/* The record. */
+.deck { position: relative; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.platter { position: relative; width: 124px; height: 124px; transform: scale(1.25); margin: 14px 0; }
+.halo { position: absolute; left: -10px; top: -10px; width: 144px; height: 144px; border-radius: 72px; pointer-events: none;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0) 62px, color-mix(in srgb, var(--disc, #c46aff) 18%, transparent) 63px 71px, rgba(0, 0, 0, 0) 72px); }
 .vinyl {
     position: absolute; left: 6px; top: 6px; width: 112px; height: 112px; border-radius: 56px;
     background: radial-gradient(circle, #1a1a1c 0 19px, #0b0b0c 20px 21px, #19191b 22px 26px, #0e0e0f 27px, #1b1b1d 28px 32px,
         #0e0e0f 33px, #19191b 34px 39px, #0e0e0f 40px, #1c1c1e 41px 46px, #0e0e0f 47px, #19191b 48px 53px, #050505 54px 56px);
-    box-shadow: 0 0 0 1px #000000, 0 3px 0 rgba(0, 0, 0, 0.5), 0 0 14px color-mix(in srgb, var(--disc, #c46aff) 35%, transparent);
+    box-shadow: 0 0 0 1px #000000, 0 3px 0 rgba(0, 0, 0, 0.5), 0 0 18px color-mix(in srgb, var(--disc, #c46aff) 40%, transparent);
     animation: fx-spin 3.2s linear infinite; animation-play-state: paused;
 }
 .playing .vinyl { animation-play-state: running; }
@@ -30,50 +38,34 @@
 .arm::before { content: ""; position: absolute; left: 0; top: 0; width: 8px; height: 8px; background: #8c8d90; border: 1px solid #1e1e1f; }
 .arm::after { content: ""; position: absolute; left: 3px; top: 8px; width: 2px; height: 60px; background: linear-gradient(#d0d1d4, #8c8d90); box-shadow: 1px 0 0 #1e1e1f; }
 .arm i { position: absolute; left: 0; bottom: 0; width: 8px; height: 9px; background: #58585a; border: 1px solid #1e1e1f; }
-
-.now { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.track .o-h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.track .who { display: flex; align-items: center; gap: 4px; color: var(--o-text-dim); }
-.track .who .o-ico { -mc-tint: var(--o-text-faint); }
 .state { display: flex; align-items: center; gap: 3px; color: var(--o-text-faint); }
 .playing .state { color: var(--o-accent-strong); }
 .state i { width: 5px; height: 5px; background: var(--o-text-faint); }
 .playing .state i { background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); animation: fx-pulse 1s ease-in-out infinite; }
 
-.spectrum { position: relative; flex: 1; min-height: 50px; display: flex; flex-direction: column; }
-.eq { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; padding: 0 2px; }
-.eq .bar { position: relative; flex: 1; height: 100%; }
-.eq .lvl { position: absolute; left: 0; right: 0; bottom: 0; height: 0;
-    background: repeating-linear-gradient(to top, var(--c) 0 2px, rgba(0, 0, 0, 0) 2px 3px);
-    box-shadow: 0 0 4px color-mix(in srgb, var(--c) 50%, transparent); }
-.eq .cap { position: absolute; left: 0; right: 0; height: 1px; bottom: 1px; background: #ffffff; opacity: 0.85; }
-.floor { height: 1px; background: var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
-.mirror { height: 14px; display: flex; gap: 2px; padding: 0 2px; opacity: 0.22; }
-.mirror .bar { flex: 1; position: relative; }
-.mirror .lvl { position: absolute; left: 0; right: 0; top: 0; background: var(--c); }
-
-.progress { display: flex; align-items: center; gap: 6px; }
-.progress .time { width: 24px; color: var(--o-text-dim); }
-.progress .time.right { text-align: right; }
-.controls { display: flex; align-items: center; gap: 3px; }
-.controls .ore-btn { min-height: 20px; }
-.controls .ore-btn.big { min-width: 34px; min-height: 22px; }
-.controls .toggle.on .o-ico { -mc-tint: var(--o-accent-strong); }
-.volume { display: flex; align-items: center; gap: 4px; margin-left: auto; width: 110px; }
-.volume .o-ico { -mc-tint: var(--o-text-dim); }
-
-/* Large GUIs, maximized: a larger record. */
-@media (min-width: 700px) and (min-height: 390px) {
-    [data-window=max] .deck { width: 190px; gap: 14px; }
-    [data-window=max] .platter { transform: scale(1.4); margin: 26px 0; }
-    [data-window=max] .o-side { width: 200px; }
-}
-
-/* The queue. */
-.o-side { width: 176px; padding: 6px 6px 4px; }
-.queue-head { display: flex; align-items: center; gap: 4px; }
-.queue-head .n { margin-left: auto; color: var(--o-text-faint); }
-.rows { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+/* The words: title, artist, then the lyrics or the queue. */
+.now { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding-top: 8px; }
+.track .o-h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track .who { display: flex; align-items: center; gap: 4px; color: var(--o-text-dim); margin-top: 2px; }
+.track .who .o-ico { -mc-tint: var(--o-text-faint); }
+.track .who .o-faint { margin-left: 4px; }
+.pane-tabs { align-self: flex-start; }
+.pane-tabs b { font-weight: normal; color: var(--o-text-faint); margin-left: 3px; }
+.lyrics { position: relative; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 7px; padding: 6px 0; }
+.ly { flex: none; line-height: 12px; color: var(--o-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: color 300ms, transform 300ms var(--o-ease-out); }
+.ly.near { color: var(--o-text-dim); }
+.ly.now { color: var(--o-text); transform: translateX(3px); line-height: 12px; text-shadow: 0 0 6px color-mix(in srgb, var(--disc, #c46aff) 60%, transparent); }
+.queue { position: relative; flex: 1; min-height: 0; }
+/* An instrumental: a quiet note instead of lyrics. */
+.lyrics.pure { justify-content: center; }
+.pure-note { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; -mc-tint: color-mix(in srgb, var(--disc, #c46aff) 70%, #ffffff); }
+.pure-eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; margin-top: 4px; }
+.pure-eq i { width: 3px; height: 4px; background: color-mix(in srgb, var(--disc, #c46aff) 70%, #ffffff); opacity: 0.8; }
+.playing .pure-eq i { animation: mini-eq 0.7s ease-in-out infinite alternate; }
+.pure-eq i:nth-child(2) { animation-delay: -0.3s; } .pure-eq i:nth-child(3) { animation-delay: -0.5s; } .pure-eq i:nth-child(4) { animation-delay: -0.1s; }
+.pure-eq i:nth-child(5) { animation-delay: -0.6s; } .pure-eq i:nth-child(6) { animation-delay: -0.2s; } .pure-eq i:nth-child(7) { animation-delay: -0.4s; }
+.rows { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; }
 .row { position: absolute; left: 0; right: 0; top: 0; height: 20px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 2px;
     border: 1px solid rgba(0, 0, 0, 0); cursor: grab; transition: transform 160ms var(--o-ease-out), background-color 120ms; }
 .row:hover { background: var(--o-line); }
@@ -81,7 +73,7 @@
 .row item { width: 16px; height: 16px; flex: none; }
 .row .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--o-text-dim); }
 .row .len { color: var(--o-text-faint); }
-.row.current { background: color-mix(in srgb, var(--o-accent) 20%, transparent); border-color: color-mix(in srgb, var(--o-accent) 55%, transparent); }
+.row.current { background: color-mix(in srgb, var(--disc, #c46aff) 18%, transparent); border-color: color-mix(in srgb, var(--disc, #c46aff) 45%, transparent); }
 .row.current .name { color: var(--o-text); }
 .row .mini-eq { display: none; gap: 1px; align-items: flex-end; height: 7px; }
 .row.current .mini-eq { display: flex; }
@@ -92,7 +84,47 @@
 @keyframes mini-eq { from { height: 2px; } to { height: 7px; } }
 .row.dragging { z-index: 5; transition: none; background: var(--o-tile-hover); border-color: var(--o-accent-strong); box-shadow: 0 3px 0 var(--o-shade), 0 0 6px color-mix(in srgb, var(--o-accent) 40%, transparent); cursor: grabbing; }
 
-.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
+/* The spectrum along the bottom of the room, quiet (it decorates; the record and the words lead). */
+.spectrum { grid-column: 1 / 3; position: relative; height: 38px; display: flex; flex-direction: column; opacity: 0.7; margin: 4px -14px 0; padding: 0 14px; }
+.eq { position: relative; flex: 1; display: flex; align-items: flex-end; gap: 2px; }
+.eq .bar { position: relative; flex: 1; height: 100%; }
+.eq .lvl { position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+    background: repeating-linear-gradient(to top, var(--c) 0 2px, rgba(0, 0, 0, 0) 2px 3px); }
+.eq .cap { position: absolute; left: 0; right: 0; height: 1px; bottom: 1px; background: #ffffff; opacity: 0.6; }
+.floor { height: 1px; background: var(--o-line-strong); }
+.mirror { height: 6px; display: flex; gap: 2px; opacity: 0.25; }
+.mirror .bar { flex: 1; position: relative; }
+.mirror .lvl { position: absolute; left: 0; right: 0; top: 0; background: var(--c); }
+
+/* The dock: progress over the transport. */
+.dock { flex: none; display: flex; flex-direction: column; gap: 3px; padding: 4px 10px 5px; border-top: 1px solid var(--o-line-strong);
+    background: linear-gradient(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.28)); }
+.progress { display: flex; align-items: center; gap: 6px; }
+.progress .time { width: 24px; color: var(--o-text-dim); }
+.progress .time.right { text-align: right; }
+.controls { display: flex; align-items: center; gap: 3px; }
+.controls .side { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+.controls .side.right { justify-content: flex-end; }
+.controls .ore-btn { min-height: 20px; }
+.controls .ore-btn.big { min-width: 34px; min-height: 22px; }
+.controls .toggle.on .o-ico { -mc-tint: var(--o-accent-strong); }
+.volume { display: flex; align-items: center; gap: 4px; width: 100px; }
+.volume .o-ico { -mc-tint: var(--o-text-dim); }
+.vol { color: var(--o-text-faint); width: 44px; text-align: right; white-space: nowrap; }
+
+/* Large GUIs, maximized: a larger record. */
+@media (min-width: 700px) and (min-height: 390px) {
+    [data-window=max] .platter { transform: scale(1.6); margin: 40px 0; }
+    [data-window=max] .spectrum { height: 52px; }
+    [data-window=max] .lyrics { gap: 10px; }
+    [data-window=max] .ly.now { font-size: 16px; line-height: 20px; }
+}
+/* Small GUIs: the record and the title; the spectrum and the volume make way. */
+@media (max-height: 300px) {
+    .platter { transform: scale(0.9); margin: 0; }
+    .spectrum, .volume, .vol { display: none; }
+    .room { padding-top: 4px; }
+}
 
 /* The mini player: the window folds away and a small bar plays on at the bottom right. */
 .mini-bar { position: absolute; right: 8px; bottom: 8px; width: 200px; display: none; align-items: center; gap: 6px; padding: 4px 6px 6px 4px;
@@ -121,9 +153,11 @@
       <div class="ore-btn icon" id="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-body">
-      <div class="o-main">
+      <div class="room deco-host">
+        <i class="deco scan"></i>
         <div class="deck">
           <div class="platter">
+            <i class="halo"></i>
             <canvas class="fx" id="notes" data-fx="notes" data-rate="0" data-area="centre" data-seed="4"></canvas>
             <div class="vinyl" id="vinyl"><div class="label"><item class="disc" id="minecraft:music_disc_cat"></item></div></div>
             <div class="arm"><i></i></div>
@@ -133,41 +167,40 @@
         <div class="now">
           <div class="track">
             <div class="o-h1" id="title">-</div>
-            <div class="who"><img class="o-ico" src="../textures/icons/user.png"><span id="meta">-</span></div>
+            <div class="who"><img class="o-ico" src="../textures/icons/user.png"><span id="meta">-</span><span class="o-faint">· 唱片机</span></div>
           </div>
-          <div class="spectrum">
-            <div class="eq" id="eq"></div>
-            <div class="floor"></div>
-            <div class="mirror" id="mirror"></div>
-          </div>
-          <div class="progress">
-            <div class="time" id="elapsed">0:00</div>
-            <div class="ore-slider" id="seek" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
-            <div class="time right" id="length">0:00</div>
-          </div>
-          <div class="controls">
-            <div class="ore-btn icon toggle" id="shuffle" tabindex="0" title="随机"><img class="o-ico" src="../textures/icons/shuffle.png"></div>
-            <div class="ore-btn icon" id="prev" tabindex="0" title="上一首"><img class="o-ico" src="../textures/icons/prev.png"></div>
-            <div class="ore-btn hero big" id="play" tabindex="0" title="播放 (空格)"><img class="o-ico" id="play-icon" src="../textures/icons/play.png"></div>
-            <div class="ore-btn icon" id="next" tabindex="0" title="下一首"><img class="o-ico" src="../textures/icons/next.png"></div>
-            <div class="ore-btn icon toggle on" id="repeat" tabindex="0" title="列表循环"><img class="o-ico" src="../textures/icons/repeat.png"></div>
-            <div class="volume">
-              <img class="o-ico" id="vol-icon" src="../textures/icons/volume.png">
-              <div class="ore-slider" id="volume" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
-            </div>
-          </div>
+          <div class="o-seg pane-tabs"><span class="on" data-show="#lyrics">歌词</span><span data-show="#queue">播放队列<b id="count"></b></span></div>
+          <div class="lyrics" id="lyrics"></div>
+          <div class="queue" id="queue"><div class="rows" id="rows"></div></div>
+        </div>
+        <div class="spectrum">
+          <div class="eq" id="eq"></div>
+          <div class="floor"></div>
+          <div class="mirror" id="mirror"></div>
         </div>
       </div>
-      <div class="o-side">
-        <div class="queue-head"><img class="o-ico" src="../textures/icons/list.png"><span>播放队列</span><span class="n" id="count"></span></div>
-        <div class="rows" id="rows"></div>
-        <div class="o-faint">拖动排序 · Enter 播放</div>
-      </div>
     </div>
-    <div class="foot">
-      <div class="o-hints"><span><span class="o-kbd">空格</span>播放 / 暂停</span><span><span class="o-kbd">←</span><span class="o-kbd">→</span>切歌</span></div>
-      <div class="o-grow"></div>
-      <span class="o-faint" id="vol-label">音量 70%</span>
+    <div class="dock">
+      <div class="progress">
+        <div class="time" id="elapsed">0:00</div>
+        <div class="ore-slider" id="seek" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+        <div class="time right" id="length">0:00</div>
+      </div>
+      <div class="controls">
+        <div class="side"><div class="o-hints"><span><span class="o-kbd">空格</span>播放</span><span><span class="o-kbd">←</span><span class="o-kbd">→</span>切歌</span></div></div>
+        <div class="ore-btn icon toggle" id="shuffle" tabindex="0" title="随机"><img class="o-ico" src="../textures/icons/shuffle.png"></div>
+        <div class="ore-btn icon" id="prev" tabindex="0" title="上一首"><img class="o-ico" src="../textures/icons/prev.png"></div>
+        <div class="ore-btn hero big" id="play" tabindex="0" title="播放 (空格)"><img class="o-ico" id="play-icon" src="../textures/icons/play.png"></div>
+        <div class="ore-btn icon" id="next" tabindex="0" title="下一首"><img class="o-ico" src="../textures/icons/next.png"></div>
+        <div class="ore-btn icon toggle on" id="repeat" tabindex="0" title="列表循环"><img class="o-ico" src="../textures/icons/repeat.png"></div>
+        <div class="side right">
+          <div class="volume">
+            <img class="o-ico" id="vol-icon" src="../textures/icons/volume.png">
+            <div class="ore-slider" id="volume" tabindex="0"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div>
+          </div>
+          <span class="vol" id="vol-label">音量 70%</span>
+        </div>
+      </div>
     </div>
   </div>
   <div class="mini-bar" id="mini-bar">

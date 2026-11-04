@@ -990,6 +990,13 @@ public final class DevAutopilot {
         onPage("the effects tab", p -> p.click("#info-tabs [data-pane=effects]"));
         pause(12);
         grab(mc, "home_inventory_effects", 5);
+        onPage("fold the info drawer", p -> p.click("#info .o-drawer-handle"));
+        pause(16);
+        grab(mc, "home_inventory_drawer", 5);
+        shoot(mc, "home_music", () -> OrielClientCommands.preset("music"));
+        onPage("play", p -> p.click("#play"));
+        pause(60);
+        grab(mc, "home_music_playing", 5);
         guiScale(mc, 3);
         shoot(mc, "home_gui3", () -> OrielClientCommands.preset("gallery"));
         onPage("light", p -> p.click("[data-theme-pick=light]"));

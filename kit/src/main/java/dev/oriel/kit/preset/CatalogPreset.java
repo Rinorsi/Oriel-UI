@@ -4,6 +4,7 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.Lazy;
 import dev.oriel.kit.Motion;
 import dev.oriel.kit.Shell;
 import dev.oriel.kit.fx.Particles;
@@ -73,10 +74,22 @@ public final class CatalogPreset implements PageControllers.Controller {
     /** Scrolls to section {@code index} and marks it. */
     void show(int index) {
         Element pane = Dom.byId(doc, "pane");
-        float top = sections.get(index).getBoundingClientRect()[1] - pane.getBoundingClientRect()[1] + pane.scrollTop() - 8;
-        pinnedUntil = doc.scheduler().now() + 600; // the smooth scroll passes other sections on its way
-        pane.scrollTo(0, Math.max(0, top), Element.ScrollBehavior.SMOOTH);
+        // Load everything down to the target first, so nothing above it grows while the pane scrolls there.
+        boolean loaded = false;
+        for (int i = 0; i <= index; i++) {
+            if (sections.get(i).hasClass("o-lazy")) {
+                Lazy.reveal(sections.get(i));
+                loaded = true;
+            }
+        }
+        pinnedUntil = doc.scheduler().now() + 700; // the smooth scroll passes other sections on its way
         mark(index);
+        Runnable go = () -> {
+            float top = sections.get(index).getBoundingClientRect()[1] - pane.getBoundingClientRect()[1] + pane.scrollTop() - 8;
+            pane.scrollTo(0, Math.max(0, top), Element.ScrollBehavior.SMOOTH);
+        };
+        if (loaded) doc.scheduler().requestAnimationFrame(t -> go.run());
+        else go.run();
     }
 
     /** The section under the top of the pane (the last one when scrolled to the end). */
@@ -109,6 +122,15 @@ public final class CatalogPreset implements PageControllers.Controller {
             }
             case "count" -> Motion.count(Dom.byId(doc, "count-demo"), 0, 2235, 1200, "");
             case "modal" -> Dom.byId(doc, "modal").addClass("on");
+            case "lazy" -> {
+                for (Element row : Dom.byId(doc, "lazy-demo").children()) Lazy.replay(row);
+            }
+            case "preload" -> {
+                Element cover = Dom.byId(doc, "preload");
+                cover.removeClass("gone");
+                cover.removeClass("done");
+                doc.scheduler().setTimeout(() -> Lazy.ready(doc), 1600);
+            }
             case "toast" -> {
                 Element toast = Dom.el(doc, "div", "o-toast", "已保存 · 3 项修改");
                 Dom.byId(doc, "app").appendChild(toast);

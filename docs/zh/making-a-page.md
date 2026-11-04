@@ -50,6 +50,13 @@ public void attach(Document doc) {
 - 页签 `.ore-tabs`、分段 `.o-seg`、开关 `.ore-toggle`、可点芯片 `.o-chip.hot`、滑块 `.ore-slider`、下拉框 `.ore-select`（`.value` + `.menu > .option`）写在 HTML 里就能点。要自己接的控件给它一个 `id`，默认行为就不会碰它。
 - 标题栏 `.o-apptabs` 里写 `data-go` 的项是页签式切页，带方向动画；每个标题栏都会自动加"窗口化 / 最大化"按钮。
 
+布局、装饰和加载也都是类名（详见 `ore.css` 里各段开头的注释，组件目录里有可以点的演示）：
+
+- 布局：`o-cols`（双栏）、`o-cols three`、`o-split`（侧栏 + 主区，`--side`）、`o-center`、`o-auto`（按宽度自动换列，`--min`）、`o-stack`、`o-spread`、`o-ratio`（`--ratio`）。
+- 抽屉与浮层：`o-drawer`（挤压，收起时周围重新排）、`o-sheet`（浮动，盖在上面），把手都是 `.o-drawer-handle`；`data-pop="id"` + `.o-pop` 浮层；`data-context="id"` + `.o-context` 右键菜单；`.o-menubar` 菜单栏。
+- 装饰：盒子加 `deco-host`，里面放 `<i class="deco grid">`、`dots`、`stripes`、`scan`、`glow`、`vignette`、`frame`、`corners`、`shine`、`aurora`、`floor`，可以叠几层。页面有空处时先用它们填，而不是留一大片灰。
+- 加载：`o-lazy`（骨架占位，进入视野后逐个显示内容，重的模型和列表在此之前不渲染）；`o-preload`（加载页，`data-min` 毫秒后或 `Lazy.ready(doc)` 时揭开）。
+
 要列出游戏里的物品（选择器、搜索）：用 `GameRegistry.entries()`。游戏里它是完整的物品注册表，包括所有模组的物品，名字跟随游戏当前语言；预览器里是一份小的内置清单。`GameRegistry.name(id)` 返回显示名。
 
 ## 4. 验证（每次改完都跑）

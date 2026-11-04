@@ -26,12 +26,21 @@ class CatalogPresetTest {
         for (int i = 0; i < 40; i++) frame(doc, clock, 16);
         float paneTop = doc.getElementById("pane").getBoundingClientRect()[1];
         assertEquals(paneTop + 8, doc.querySelector(".sec[data-sec=motion]").getBoundingClientRect()[1], 2f, "scrolled to the section");
+        doc.querySelector("[data-demo=modal]").scrollIntoView(dev.oriel.engine.dom.Element.ScrollAlign.CENTER,
+                dev.oriel.engine.dom.Element.ScrollAlign.NEAREST, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+        frame(doc, clock, 16);
         click(doc, "[data-demo=modal]", 0, Modifiers.NONE, clock);
         assertTrue(doc.getElementById("modal").hasClass("on"));
         click(doc, "#modal-close", 0, Modifiers.NONE, clock);
+        doc.querySelector("[data-demo=count]").scrollIntoView(dev.oriel.engine.dom.Element.ScrollAlign.CENTER,
+                dev.oriel.engine.dom.Element.ScrollAlign.NEAREST, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+        frame(doc, clock, 16);
         click(doc, "[data-demo=count]", 0, Modifiers.NONE, clock);
         for (int i = 0; i < 90; i++) frame(doc, clock, 16);
         assertEquals("2235", doc.getElementById("count-demo").textContent());
+        doc.getElementById("acc-head").scrollIntoView(dev.oriel.engine.dom.Element.ScrollAlign.CENTER,
+                dev.oriel.engine.dom.Element.ScrollAlign.NEAREST, dev.oriel.engine.dom.Element.ScrollBehavior.INSTANT);
+        frame(doc, clock, 16);
         click(doc, "#acc-head", 0, Modifiers.NONE, clock);
         for (int i = 0; i < 20; i++) frame(doc, clock, 16);
         assertTrue(doc.getElementById("acc").hasClass("m-open"));

@@ -23,15 +23,16 @@ public final class MusicPreset implements PageControllers.Controller {
     static final float ROW = 21;
     static final int BARS = 24;
 
-    record Track(String title, String artist, String disc, int seconds) {}
+    /** A track; {@code lyrics} spread evenly over its length, none for an instrumental. */
+    record Track(String title, String artist, String disc, int seconds, List<String> lyrics) {}
 
     final List<Track> playlist = new ArrayList<>(List.of(
-            new Track("晨光矿道", "Oriel 合奏团", "minecraft:music_disc_cat", 185),
-            new Track("深板岩回响", "地下乐队", "minecraft:music_disc_13", 214),
-            new Track("下界之风", "烈焰三重奏", "minecraft:music_disc_pigstep", 148),
-            new Track("林间小憩", "苔藓与蕨", "minecraft:music_disc_chirp", 196),
-            new Track("海底神殿", "潮涌", "minecraft:music_disc_mellohi", 233),
-            new Track("末地星尘", "紫颂", "minecraft:music_disc_otherside", 171)));
+            new Track("晨光矿道", "Oriel 合奏团", "minecraft:music_disc_cat", 185, List.of("矿灯在岩壁上摇晃", "回声从深处一层层传上来", "我们把火把插在转角", "让下一个人不会迷路", "铁镐落下的节拍", "和滴水声慢慢对上", "晨光从洞口照进来", "像一张刚铺开的地图", "背包里装着今天的收获", "还有一块舍不得用的钻石", "回家的路有点远", "但每一步都亮着")),
+            new Track("深板岩回响", "地下乐队", "minecraft:music_disc_13", 214, List.of("往下，再往下一点", "石头的颜色越来越深", "远处传来低低的咕哝", "我们屏住呼吸", "灯光照不到的地方", "也有路")),
+            new Track("下界之风", "烈焰三重奏", "minecraft:music_disc_pigstep", 148, List.of("热风卷着灰烬", "红色的天没有星星", "桥搭在岩浆上面", "每一块都要放稳", "回头看传送门的紫光", "它一直在等我们")),
+            new Track("林间小憩", "苔藓与蕨", "minecraft:music_disc_chirp", 196, List.of("树荫下躺一会儿", "蜜蜂绕着花打转", "远处有狼在叫", "不急，太阳还没落", "把面包分一半", "给路过的猫")),
+            new Track("海底神殿", "潮涌", "minecraft:music_disc_mellohi", 233, List.of()),
+            new Track("末地星尘", "紫颂", "minecraft:music_disc_otherside", 171, List.of())));
     final List<Element> rows = new ArrayList<>();
     int current;
     double position;
@@ -41,6 +42,10 @@ public final class MusicPreset implements PageControllers.Controller {
     private Document doc;
     private Slider seek, volumeSlider;
     private Element title, meta, state, elapsed, length, disc, play, rowsBox;
+    /** The lyric lines (spread evenly over the track) and the one being sung. */
+    private Element lyricsBox;
+    private List<Element> lyrics = List.of();
+    private int lyric = -1;
     private final float[] levels = new float[BARS], caps = new float[BARS], targets = new float[BARS];
     private final List<Dom.Style> levelStyles = new ArrayList<>(), capStyles = new ArrayList<>(), mirrorStyles = new ArrayList<>();
     private Element screen, playIcon, miniPlayIcon, miniTitle;
@@ -72,6 +77,7 @@ public final class MusicPreset implements PageControllers.Controller {
         disc = Dom.query(doc, ".disc");
         play = Dom.byId(doc, "play");
         rowsBox = Dom.byId(doc, "rows");
+        lyricsBox = Dom.byId(doc, "lyrics");
         Element eq = Dom.byId(doc, "eq"), mirror = Dom.byId(doc, "mirror");
         for (int i = 0; i < BARS; i++) {
             String colour = "--c: " + bandColour(i / (float) (BARS - 1));
@@ -127,6 +133,7 @@ public final class MusicPreset implements PageControllers.Controller {
         Dom.onMouse(doc, "mousemove", this::dragMove);
         Dom.onMouse(doc, "mouseup", this::dragEnd);
         select(0, false);
+        renderLyric();
         doc.scheduler().requestAnimationFrame(this::frame);
     }
 
@@ -161,6 +168,21 @@ public final class MusicPreset implements PageControllers.Controller {
         Dom.text(Dom.byId(doc, "state-text"), playing ? "正在播放" : "已暂停");
     }
 
+    /** Marks the line for the current position and keeps it a third of the way down the lyrics. */
+    private void renderLyric() {
+        if (lyrics.isEmpty()) return;
+        int at = (int) Math.min(lyrics.size() - 1, Math.floor(position / track().seconds() * lyrics.size()));
+        if (at == lyric) return;
+        lyric = at;
+        for (int i = 0; i < lyrics.size(); i++) {
+            lyrics.get(i).toggleClass("now", i == at);
+            lyrics.get(i).toggleClass("near", Math.abs(i - at) == 1);
+        }
+        float[] box = lyricsBox.getBoundingClientRect(), line = lyrics.get(at).getBoundingClientRect();
+        float top = line[1] - box[1] + lyricsBox.scrollTop() - box[3] / 3;
+        lyricsBox.scrollTo(0, Math.max(0, top), Element.ScrollBehavior.SMOOTH);
+    }
+
     void skip(int delta) {
         int next = shuffle && playlist.size() > 1 ? Math.floorMod(current + 1 + random.nextInt(playlist.size() - 1), playlist.size())
                 : Math.floorMod(current + delta, playlist.size());
@@ -178,7 +200,30 @@ public final class MusicPreset implements PageControllers.Controller {
         new Dom.Style(screen).set("--disc", discColour(t.disc())).apply();
         Dom.text(length, time(t.seconds()));
         for (int i = 0; i < rows.size(); i++) rows.get(i).toggleClass("current", i == current);
+        showLyrics(t);
         renderTime();
+    }
+
+    /** The track's lyrics, or for an instrumental a quiet "纯音乐" with a small equalizer. */
+    private void showLyrics(Track t) {
+        lyricsBox.removeAllChildren();
+        lyricsBox.toggleClass("pure", t.lyrics().isEmpty());
+        lyric = -1;
+        if (t.lyrics().isEmpty()) {
+            lyricsBox.appendChild(Dom.html(doc, "<div class=\"pure-note\"><img class=\"o-ico x2\" src=\"../textures/icons/music.png\">"
+                    + "<span class=\"o-h1\">纯音乐</span><span class=\"o-dim\">没有歌词，请欣赏</span>"
+                    + "<div class=\"pure-eq\"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>"));
+            lyrics = List.of();
+        } else {
+            List<Element> lines = new ArrayList<>();
+            for (String line : t.lyrics()) {
+                Element e = Dom.el(doc, "div", "ly", line);
+                lyricsBox.appendChild(e);
+                lines.add(e);
+            }
+            lyrics = lines;
+        }
+        lyricsBox.scrollTo(0, 0, Element.ScrollBehavior.INSTANT);
     }
 
     private void frame(double now) {

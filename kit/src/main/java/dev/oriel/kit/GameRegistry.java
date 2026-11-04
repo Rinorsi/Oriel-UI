@@ -54,6 +54,13 @@ public final class GameRegistry {
         return all != null ? all : refresh();
     }
 
+    /** Whether {@code id} places a block (true when the game does not know it: a block id written by hand). */
+    public static boolean isBlock(String id) {
+        if (cached == null) entries();
+        Entry e = byId.get(id);
+        return e == null || e.block();
+    }
+
     /** The display name for {@code id}, or the id itself when the game does not know it. */
     public static String name(String id) {
         if (cached == null) entries();

@@ -45,6 +45,24 @@
 .stagger-box > span { width: 18px; height: 18px; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
 .tip-demo { position: relative; display: inline-block; padding: 3px 6px 4px; border: 2px solid transparent; border-image: url(../textures/ore/tooltip.png) 2 fill; color: #ffffff; }
 .tip-demo.rare { border-image-source: url(../textures/ore/tooltip_rare.png); }
+.drawer-demo { position: relative; display: flex; height: 104px; overflow: hidden; }
+/* The drawers' main areas hold small tiles, so the difference shows: the push drawer re-flows them, the sheet covers them. */
+.tiles-demo { flex: 1; min-width: 0; padding: 5px; align-content: start; }
+.tiles-demo i { display: block; height: 14px; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
+.tiles-demo i:nth-child(3n+1) { border-color: color-mix(in srgb, var(--o-accent) 50%, var(--o-tile-edge)); }
+.lazy-demo { width: 220px; }
+.lazy-row { display: flex; align-items: center; gap: 5px; height: 18px; padding: 0 4px; background-size: 100% 100%; }
+.lazy-row.o-lazy { background: linear-gradient(var(--o-line), var(--o-line)) 4px 5px / 60% 8px no-repeat; }
+.lazy-row item { width: 16px; height: 16px; }
+.ctx-demo { height: 40px; }
+.lay { height: 34px; }
+.lay i { display: block; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
+.lay.small i { height: 10px; }
+.lay.well { background: var(--o-well); border: 1px solid var(--o-line-strong); }
+.lay b { display: block; width: 16px; height: 12px; background: var(--o-accent); opacity: 0.6; }
+.dd-main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 8px; }
+.dd-side { width: 96px; padding: 4px 6px 4px 14px; display: flex; flex-direction: column; gap: 2px; background: var(--o-tile); border-left: 1px solid var(--o-line-strong); }
+.dd-side .o-spread, .o-pop .o-spread, .o-sheet .o-spread { color: var(--o-text-dim); }
 .foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
 </style>
 </head>
@@ -63,6 +81,7 @@
       <div class="o-apptabs">
         <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em>首页</em></div>
         <div class="on" data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em>组件与动效</em></div>
+        <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em>图标</em></div>
         <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em>编辑器</em></div>
         <i class="m-indicator"></i>
       </div>
@@ -96,7 +115,7 @@
 &lt;div class="ore-select"&gt;&lt;div class="value"&gt;高品质&lt;/div&gt;&lt;div class="menu"&gt;…&lt;/div&gt;&lt;/div&gt;</pre>
         </section>
 
-        <section class="sec" data-sec="toggles" data-title="开关与进度" data-icon="sliders">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="toggles" data-title="开关与进度" data-icon="sliders">
           <div class="sec-head"><span class="o-h1">开关与进度</span></div>
           <div class="row"><span class="cap">开关</span><span class="ore-toggle"></span><span class="ore-toggle on"></span></div>
           <div class="row"><span class="cap">滑块</span><div class="ore-slider" style="max-width: 180px"><div class="track"></div><div class="fill" style="width: 60%"></div><div class="thumb" style="left: 60%"></div></div></div>
@@ -109,14 +128,78 @@
 &lt;div class="o-meter" style="--value: 0.64"&gt;&lt;i&gt;&lt;/i&gt;&lt;/div&gt;   <span class="c">控制器里改 --value 会平滑过渡</span></pre>
         </section>
 
-        <section class="sec" data-sec="tabs" data-title="页签与分段" data-icon="list">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="tabs" data-title="页签与分段" data-icon="list">
           <div class="sec-head"><span class="o-h1">页签与分段</span><span class="o-faint">指示条用 m-indicator，Motion.indicator 让它滑动</span></div>
           <div class="row"><div class="ore-tabs"><div class="ore-tab selected">视频</div><div class="ore-tab">声音</div><div class="ore-tab">控制</div></div></div>
           <div class="row"><div class="o-seg" id="seg-demo"><span class="on"><img class="o-ico" src="../textures/icons/grid.png">全部</span><span><img class="o-ico" src="../textures/icons/sword.png">武器</span><span><img class="o-ico" src="../textures/icons/heart.png">食物</span></div></div>
 <pre class="code">&lt;div class="o-seg"&gt;&lt;span class="on"&gt;…&lt;/span&gt;&lt;span&gt;…&lt;/span&gt;&lt;/div&gt;</pre>
         </section>
 
-        <section class="sec" data-sec="slots" data-title="物品格" data-icon="gem">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="drawers" data-title="抽屉与浮层" data-icon="move">
+          <div class="sec-head"><span class="o-h1">抽屉与浮层</span><span class="o-faint">点把手收起或拉开；浮层点别处或 Esc 关闭</span></div>
+          <div class="o-cols">
+            <div class="demo o-stack" style="--gap: 4px">
+              <span class="o-caps">挤压式抽屉 o-drawer · 收起后方块重新排列</span>
+              <div class="drawer-demo o-well">
+                <div class="o-auto tiles-demo" style="--min: 20px; --gap: 3px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="o-drawer dd-side">
+                  <div class="o-drawer-handle" title="收起 / 展开"><img class="o-ico" src="../textures/icons/forward.png"></div>
+                  <div class="o-caps">统计</div>
+                  <div class="o-spread"><span>史诗</span><span>3</span></div>
+                  <div class="o-spread"><span>稀有</span><span>5</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="demo o-stack" style="--gap: 4px">
+              <span class="o-caps">浮动式抽屉 o-sheet · 盖在方块上面</span>
+              <div class="drawer-demo o-well sheet-demo">
+                <div class="o-auto tiles-demo" style="--min: 20px; --gap: 3px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="o-sheet shut" style="width: 96px">
+                  <div class="o-drawer-handle" title="收起 / 展开"><img class="o-ico" src="../textures/icons/forward.png"></div>
+                  <div class="o-caps">筛选</div>
+                  <div class="o-spread"><span>附魔</span><span class="ore-toggle on"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="demo o-stack" style="--gap: 4px; position: relative">
+              <span class="o-caps">浮层 o-pop</span>
+              <div class="o-spread" style="justify-content: flex-start">
+                <div class="ore-btn m-ripple" data-pop="pop-demo" tabindex="0"><img class="o-ico" src="../textures/icons/filter.png">筛选</div>
+                <span class="o-faint">点按钮弹出，位置自动避开边缘</span>
+              </div>
+              <div class="o-pop" id="pop-demo">
+                <span class="o-caps">显示</span>
+                <div class="o-spread"><span>只看附魔</span><span class="ore-toggle on"></span></div>
+                <div class="o-spread"><span>隐藏空格</span><span class="ore-toggle"></span></div>
+                <div class="o-seg"><span class="on">全部</span><span>武器</span><span>方块</span></div>
+              </div>
+            </div>
+            <div class="demo o-stack" style="--gap: 4px">
+              <span class="o-caps">右键菜单 o-context</span>
+              <div class="ctx-demo o-well o-center" data-context="ctx-demo"><span class="o-dim">在这里点右键</span></div>
+            </div>
+          </div>
+<pre class="code">&lt;div class="o-drawer" style="width: 150px"&gt;&lt;div class="o-drawer-handle"&gt;…&lt;/div&gt;…&lt;/div&gt;   <span class="c">挤压：周围重新排</span>
+&lt;div class="o-sheet shut" style="width: 150px"&gt;&lt;div class="o-drawer-handle"&gt;…&lt;/div&gt;…&lt;/div&gt;   <span class="c">浮动：盖在上面</span>
+&lt;div class="ore-btn" data-pop="filters"&gt;筛选&lt;/div&gt; &lt;div class="o-pop" id="filters"&gt;…&lt;/div&gt;
+&lt;div data-context="menu"&gt;…&lt;/div&gt; &lt;div class="o-context" id="menu"&gt;&lt;div class="item"&gt;复制&lt;/div&gt;…&lt;/div&gt;</pre>
+        </section>
+
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="layouts" data-title="布局" data-icon="grid">
+          <div class="sec-head"><span class="o-h1">布局</span><span class="o-faint">写一个类名就是一种排法，间距自带</span></div>
+          <div class="o-cols three layouts">
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps">双栏 o-cols</span><div class="o-cols lay" style="--gap: 3px"><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps">三栏 o-cols three</span><div class="o-cols three lay" style="--gap: 3px"><i></i><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps">侧栏 o-split</span><div class="o-split lay" style="--side: 24px; --gap: 3px"><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps">居中 o-center</span><div class="o-center lay well"><b></b></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps">自动换列 o-auto</span><div class="o-auto lay small" style="--min: 12px; --gap: 2px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="o-stack" style="--gap: 3px"><span class="o-caps">两端 o-spread</span><div class="o-spread lay well" style="padding: 0 4px"><b></b><b></b></div></div>
+          </div>
+<pre class="code">&lt;div class="o-cols"&gt;…&lt;/div&gt;  &lt;div class="o-split" style="--side: 150px"&gt;…&lt;/div&gt;  &lt;div class="o-auto" style="--min: 64px"&gt;…&lt;/div&gt;
+&lt;div class="o-center"&gt;…&lt;/div&gt;  &lt;div class="o-stack"&gt;…&lt;/div&gt;  &lt;div class="o-spread"&gt;…&lt;/div&gt;  &lt;div class="o-ratio" style="--ratio: 2 / 1"&gt;</pre>
+        </section>
+
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="slots" data-title="物品格" data-icon="gem">
           <div class="sec-head"><span class="o-h1">物品格</span><span class="o-faint">稀有度光圈、附魔光泽、拖放目标</span></div>
           <div class="row"><span class="cap">状态</span>
             <div class="ore-slot"></div>
@@ -127,7 +210,7 @@
 <pre class="code">&lt;div class="ore-slot fx-glint"&gt;&lt;item id="minecraft:enchanted_book"&gt;&lt;/item&gt;&lt;/div&gt;</pre>
         </section>
 
-        <section class="sec" data-sec="chips" data-title="芯片与徽章" data-icon="star">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="chips" data-title="芯片与徽章" data-icon="star">
           <div class="sec-head"><span class="o-h1">芯片与徽章</span></div>
           <div class="row"><span class="cap">芯片</span><span class="o-chip"><img class="o-ico" src="../textures/icons/sparkle.png">粒子</span><span class="o-chip hot">可点</span><span class="o-chip on">选中</span></div>
           <div class="row"><span class="cap">徽章</span><span class="o-badge">3</span><span class="o-badge red">9</span></div>
@@ -135,7 +218,7 @@
 <pre class="code">&lt;span class="o-chip on"&gt;选中&lt;/span&gt; &lt;span class="o-badge red"&gt;9&lt;/span&gt; &lt;span class="o-kbd"&gt;Tab&lt;/span&gt;</pre>
         </section>
 
-        <section class="sec" data-sec="type" data-title="字体与层级" data-icon="layers">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="type" data-title="字体与层级" data-icon="layers">
           <div class="sec-head"><span class="o-h1">字体与层级</span><span class="o-faint">只有 8/16 两档；只有底/面/浮三层</span></div>
           <div class="row"><span class="o-h1">标题 16px</span><span>正文 8px</span><span class="o-dim">次要</span><span class="o-faint">更弱</span><span class="o-accent">强调</span></div>
           <div class="o-caps">小标题（o-caps）</div>
@@ -144,7 +227,7 @@
 o-well（装东西）· o-tile（浮起，块里不再放块）· .hot 可交互 · .sel 选中</pre>
         </section>
 
-        <section class="sec" data-sec="rarity" data-title="稀有度与光效" data-icon="sparkle">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="rarity" data-title="稀有度与光效" data-icon="sparkle">
           <div class="sec-head"><span class="o-h1">稀有度与光效</span><span class="o-faint">普通无光，史诗呼吸，传说渐变框 + 扫光</span></div>
           <div class="row">
             <div class="swatch o-tile r-common"><span class="o-tier">普通</span></div>
@@ -158,7 +241,7 @@ o-well（装东西）· o-tile（浮起，块里不再放块）· .hot 可交互
 <span class="c">还有 fx-glint 附魔光泽 · fx-pool 光晕底 · fx-float 漂浮 · fx-pulse 闪烁</span></pre>
         </section>
 
-        <section class="sec" data-sec="particles" data-title="粒子" data-icon="flame">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="particles" data-title="粒子" data-icon="flame">
           <div class="sec-head"><span class="o-h1">粒子</span><span class="o-faint">真像素、可复现；每屏 2–3 个常驻</span></div>
           <div class="grid4">
             <div class="fxbox"><canvas class="fx" data-fx="embers" data-rate="14"></canvas>embers</div>
@@ -173,7 +256,7 @@ o-well（装东西）· o-tile（浮起，块里不再放块）· .hot 可交互
 <span class="c">爆发：Shell.setup(doc).emitter("id").burst("sparks", x, y, 20)</span></pre>
         </section>
 
-        <section class="sec" data-sec="motion" data-title="动效" data-icon="bolt">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="motion" data-title="动效" data-icon="bolt">
           <div class="sec-head"><span class="o-h1">动效</span><span class="o-faint">点按钮看效果；时长与曲线统一在 --m-* 里</span></div>
           <div class="row"><span class="cap">反馈</span>
             <div class="ore-btn m-ripple" data-demo="pop" tabindex="0">弹出</div><div class="ore-btn m-ripple" data-demo="error" tabindex="0">失败抖动</div>
@@ -185,13 +268,20 @@ o-well（装东西）· o-tile（浮起，块里不再放块）· .hot 可交互
           <div class="row"><span class="cap">展开</span>
             <div class="acc o-well" style="width: 220px" id="acc"><div class="acc-head" id="acc-head"><img class="o-ico m-caret" src="../textures/icons/down.png">点击展开</div>
               <div class="acc-body" id="acc-body"><div>高度从 0 平滑过渡到内容高度，箭头同时旋转；收起时反过来。</div></div></div></div>
-          <div class="row"><span class="cap">加载</span><div class="skel"><div class="m-skeleton"></div><div class="m-skeleton" style="width: 70%"></div><div class="m-skeleton" style="width: 85%"></div></div></div>
+          <div class="row"><span class="cap">加载</span><div class="skel"><div class="m-skeleton"></div><div class="m-skeleton" style="width: 70%"></div><div class="m-skeleton" style="width: 85%"></div></div>
+            <div class="ore-btn m-ripple" data-demo="lazy" tabindex="0">逐条加载</div><div class="ore-btn m-ripple" data-demo="preload" tabindex="0">加载页</div></div>
+          <div class="lazy-demo o-stack" id="lazy-demo" style="--gap: 3px">
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:diamond_sword"></item><span>锋利 V 钻石剑</span><span class="o-faint">稀有</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:elytra"></item><span>鞘翅</span><span class="o-faint">史诗</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:golden_apple"></item><span>金苹果</span><span class="o-faint">稀有</span></div>
+            <div class="o-lazy lazy-row" style="--lazy-h: 18px"><item id="minecraft:netherite_ingot"></item><span>下界合金锭</span><span class="o-faint">史诗</span></div>
+          </div>
           <div class="row"><span class="cap">弹层</span><div class="ore-btn m-ripple" data-demo="modal" tabindex="0">模态框</div><div class="ore-btn m-ripple" data-demo="toast" tabindex="0">提示</div></div>
 <pre class="code">Motion.play(el, "m-success", 520)   Motion.toggle(body, open)   Motion.count(el, 0, 2235, 1200, "")
 Motion.zoomInto(card, () -&gt; doc.navigate(...))   <span class="c">或在链接上写 data-go="forge" data-zoom</span></pre>
         </section>
 
-        <section class="sec" data-sec="models" data-title="3D 模型" data-icon="cube">
+        <section class="sec o-lazy" style="--lazy-h: 90px" data-sec="models" data-title="3D 模型" data-icon="cube">
           <div class="sec-head"><span class="o-h1">3D 模型</span><span class="o-faint">方块、物品、实体、玩家；用 CSS 转动</span></div>
           <div class="row">
             <model class="model3d spin" block="minecraft:grass_block"></model>
@@ -205,8 +295,14 @@ Motion.zoomInto(card, () -&gt; doc.navigate(...))   <span class="c">或在链接
         </section>
       </div>
     </div>
+    <div class="o-preload" id="preload" data-min="700">
+    <div class="o-loader"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><img src="../textures/ui/emblem.png"></div>
+    <span class="o-preload-what">正在准备组件…</span>
+    <div class="o-preload-bar indeterminate"><i></i></div>
+    </div>
     <div class="foot"><span id="count">11 节</span><div class="o-grow"></div><div class="o-hints"><span><span class="o-kbd">↑</span><span class="o-kbd">↓</span>切换</span></div></div>
   </div>
+  <div class="o-context" id="ctx-demo"><div class="item" tabindex="0"><span>复制</span><span class="k">Ctrl+C</span></div><div class="item" tabindex="0"><span>粘贴</span><span class="k">Ctrl+V</span></div><i class="sep"></i><div class="item" tabindex="0"><span>删除</span><span class="k">Delete</span></div></div>
   <div class="m-modal" id="modal">
     <div class="ore-panel" style="width: 200px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start">
       <span class="o-h1">模态框</span><span class="o-dim">背景淡入，面板弹起。</span>

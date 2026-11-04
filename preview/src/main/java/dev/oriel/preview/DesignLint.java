@@ -45,7 +45,7 @@ final class DesignLint {
             if (s.fontSize != 8 && s.fontSize != 16) out.add("字号 " + fmt(s.fontSize) + "px 不在 8/16 阶梯上（像素字会糊）: " + where);
             float[] r = e.getBoundingClientRect();
             if (r[0] + r[2] > vw + 0.5f || r[1] + r[3] > vh + 0.5f || r[0] < -0.5f || r[1] < -0.5f) {
-                if (!inScroller(e)) out.add("文字超出窗口: " + where + " 「" + clip(text) + "」");
+                if (!inScroller(e) && !clippedInside(e, vw, vh)) out.add("文字超出窗口: " + where + " 「" + clip(text) + "」");
             }
             if ((s.overflowX == Overflow.HIDDEN || s.overflowX == Overflow.CLIP) && s.textOverflow != TextOverflow.ELLIPSIS
                     && e.box.scrollWidth > e.box.paddingBoxWidth() + 1) {
@@ -71,6 +71,21 @@ final class DesignLint {
 
     private static boolean insideTile(Element e) {
         for (Element p = e.parentElement(); p != null; p = p.parentElement()) if (p.hasClass("o-tile")) return true;
+        return false;
+    }
+
+    /**
+     * Whether an ancestor that clips its overflow (hidden or clip) lies inside the viewport: then what pokes past the
+     * window is cut away on purpose (a tile showing as many samples as fit), not drawn off screen.
+     */
+    private static boolean clippedInside(Element e, float vw, float vh) {
+        for (Element p = e.parentElement(); p != null; p = p.parentElement()) {
+            ComputedStyle s = p.computedStyle();
+            if (s == null || !(s.overflowX == Overflow.HIDDEN || s.overflowX == Overflow.CLIP || s.overflowY == Overflow.HIDDEN
+                    || s.overflowY == Overflow.CLIP)) continue;
+            float[] r = p.getBoundingClientRect();
+            if (r[0] >= -0.5f && r[1] >= -0.5f && r[0] + r[2] <= vw + 0.5f && r[1] + r[3] <= vh + 0.5f) return true;
+        }
         return false;
     }
 

@@ -10,10 +10,11 @@ import java.util.regex.Pattern;
 /**
  * The default behaviour of the kit's controls written straight into markup, so a page (or a demo) works with no
  * code: tabs ({@code .ore-tabs > .ore-tab}) and segments ({@code .o-seg > *}) select the one clicked, a toggle
- * ({@code .ore-toggle}) and a hot chip ({@code .o-chip.hot}) flip {@code on}, and a slider ({@code .ore-slider}) can be
+ * ({@code .ore-toggle}); an item with {@code data-show="#pane"} also shows that pane and hides its siblings' panes) and a hot chip ({@code .o-chip.hot}) flip {@code on}, and a slider ({@code .ore-slider}) can be
  * dragged, starting from its {@code .fill} width, and a select ({@code .ore-select} with {@code .value} and a {@code .menu}
  * of {@code .option}s) opens, picks (the arrow keys and Enter too) and closes (Escape, or a press elsewhere), and a
- * menu bar ({@code .o-menubar}) opens its menus, and {@code data-context} opens a right-click menu. A {@code .m-indicator} inside a tab or segment group glides under
+ * menu bar ({@code .o-menubar}) opens its menus, {@code data-context} opens a right-click menu, a drawer's
+ * {@code .o-drawer-handle} folds the {@code .o-drawer} and {@code data-pop} opens a popover. A {@code .m-indicator} inside a tab or segment group glides under
  * the selected one.
  *
  * <p>Toggles, chips and sliders with an {@code id} are left to the page's controller (it wires them itself, from its
@@ -37,6 +38,30 @@ public final class Widgets {
         }
         for (Element bar : doc.querySelectorAll(".o-menubar")) menubar(doc, bar);
         if (!doc.querySelectorAll(".o-context").isEmpty()) contextMenus(doc);
+        for (Element drawer : doc.querySelectorAll(".o-drawer, .o-sheet")) {
+            Element handle = drawer.querySelector(".o-drawer-handle");
+            if (handle != null) Shell.activate(handle, () -> drawer.toggleClass("shut", !drawer.hasClass("shut")));
+        }
+        if (!doc.querySelectorAll("[data-pop]").isEmpty()) popovers(doc);
+        List<Element> fits = doc.querySelectorAll(".o-fit");
+        if (!fits.isEmpty()) {
+            // Every frame (sizes change with the window): a child whose box pokes out of its box's content area hides.
+            doc.scheduler().requestAnimationFrame(new java.util.function.DoubleConsumer() {
+                @Override
+                public void accept(double t) {
+                    for (Element box : fits) {
+                        if (!box.isConnected()) continue;
+                        float[] r = box.getBoundingClientRect();
+                        float right = r[0] + box.clientWidth() + 0.5f, bottom = r[1] + box.clientHeight() - 2f;
+                        for (Element c : box.children()) {
+                            float[] cr = c.getBoundingClientRect();
+                            c.toggleClass("o-out", cr[1] + cr[3] > bottom || cr[0] + cr[2] > right);
+                        }
+                    }
+                    doc.scheduler().requestAnimationFrame(this);
+                }
+            });
+        }
         for (Element sel : doc.querySelectorAll(".ore-select")) {
             if (!sel.hasAttribute("id") && sel.querySelector(".value") != null && sel.querySelector(".menu") != null) select(doc, sel);
         }
@@ -116,6 +141,46 @@ public final class Widgets {
         });
     }
 
+    /**
+     * Popovers: an element with {@code data-pop="id"} toggles the {@code .o-pop} with that id, placed under it (or
+     * above, when there is no room below) inside the popover's parent; a press outside both, or Escape, closes it.
+     */
+    private static void popovers(Document doc) {
+        Element[] open = {null, null};
+        Runnable close = () -> {
+            if (open[0] != null) open[0].removeClass("open");
+            open[0] = open[1] = null;
+        };
+        for (Element trigger : doc.querySelectorAll("[data-pop]")) {
+            Element pop = doc.getElementById(trigger.getAttribute("data-pop"));
+            if (pop == null) continue;
+            Shell.activate(trigger, () -> {
+                boolean again = open[0] == pop;
+                close.run();
+                if (again) return;
+                pop.addClass("open");
+                open[0] = pop;
+                open[1] = trigger;
+                float[] box = pop.parentElement().getBoundingClientRect(), t = trigger.getBoundingClientRect(), size = pop.getBoundingClientRect();
+                float x = Math.max(2, Math.min(t[0] - box[0], box[2] - size[2] - 2));
+                float below = t[1] + t[3] - box[1] + 3, above = t[1] - box[1] - size[3] - 3;
+                float y = below + size[3] <= box[3] || above < 0 ? below : above;
+                new Dom.Style(pop).px("left", x).px("top", y).apply();
+            });
+        }
+        Dom.onMouse(doc, "mousedown", e -> {
+            if (open[0] == null) return;
+            Element in = Dom.closest(e, ".o-pop"), on = Dom.closest(e, "[data-pop]");
+            if (in != open[0] && on != open[1]) close.run();
+        });
+        Dom.onKey(doc, e -> {
+            if (open[0] != null && e.key.equals("Escape")) {
+                e.preventDefault();
+                close.run();
+            }
+        });
+    }
+
     private static void select(Document doc, Element sel) {
         Element value = sel.querySelector(".value");
         List<Element> options = sel.querySelector(".menu").children();
@@ -175,15 +240,27 @@ public final class Widgets {
                 .filter(c -> !c.hasClass("m-indicator") && (cls == null || c.hasClass(cls))).toList();
         if (items.isEmpty() || items.stream().anyMatch(Widgets::claimed)) return;
         Element indicator = box.children().stream().filter(c -> c.hasClass("m-indicator")).findFirst().orElse(null);
+        Document doc = box.ownerDocument();
         for (Element item : items) {
             Shell.activate(item, () -> {
                 for (Element c : items) c.toggleClass(selected, c == item);
                 if (indicator != null) Motion.indicator(indicator, item);
+                showPanes(doc, items, item);
             });
         }
+        items.stream().filter(c -> c.hasClass(selected)).findFirst().ifPresent(on -> showPanes(doc, items, on));
         Element on = items.stream().filter(c -> c.hasClass(selected)).findFirst().orElse(null);
         if (indicator != null && on != null) {
             box.ownerDocument().scheduler().requestAnimationFrame(t -> Motion.indicator(indicator, on));
+        }
+    }
+
+    /** Items with {@code data-show="#id"} switch panes: the chosen item's shows, the others' get {@code o-hidden}. */
+    private static void showPanes(Document doc, List<Element> items, Element chosen) {
+        for (Element c : items) {
+            String target = c.getAttribute("data-show");
+            Element pane = target == null ? null : doc.querySelector(target);
+            if (pane != null) pane.toggleClass("o-hidden", c != chosen);
         }
     }
 
