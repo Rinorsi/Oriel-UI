@@ -1,5 +1,6 @@
 package dev.oriel.engine.paint;
 
+import dev.oriel.engine.style.BlendMode;
 import dev.oriel.engine.style.MaskComposite;
 import dev.oriel.engine.style.Image;
 import dev.oriel.engine.diag.Diagnostic;
@@ -151,8 +152,52 @@ final class BoxPainter implements StackingOrder.Visitor {
                 painter.document().url(), 0, "filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: " + why, ""));
     }
 
+    /** Per open clip: whether it is a group cut to rounded corners when it pops. */
+    private boolean[] roundedClips = new boolean[8];
+    private final float[] clipBox = new float[4], clipRadii = new float[8];
+    private Box[] clipBoxes = new Box[8];
+    private float[] clipOrigins = new float[16];
+    private int clips;
+
+    /**
+     * Overflow clips: the padding box as a rectangle, and when the clipping box has rounded corners and the canvas
+     * has groups, the content as a group masked to the rounded padding box (CSS Backgrounds 3 §5.3).
+     */
     @Override
-    public boolean pushClip(float x, float y, float width, float height) {
+    public boolean pushClip(Box clipper, float x, float y, float width, float height) {
+        if (!pushClip(x, y, width, height)) return false;
+        if (clips == roundedClips.length) {
+            roundedClips = Arrays.copyOf(roundedClips, clips * 2);
+            clipBoxes = Arrays.copyOf(clipBoxes, clips * 2);
+            clipOrigins = Arrays.copyOf(clipOrigins, clips * 4);
+        }
+        ComputedStyle s = StackingOrder.styleOf(clipper);
+        boolean rounded = s.hasRadius() && canvas.beginGroup();
+        roundedClips[clips] = rounded;
+        clipBoxes[clips] = rounded ? clipper : null;
+        clipOrigins[clips * 2] = x - clipper.borderLeft;
+        clipOrigins[clips * 2 + 1] = y - clipper.borderTop;
+        clips++;
+        return true;
+    }
+
+    @Override
+    public void popClip(Box clipper) {
+        clips--;
+        if (roundedClips[clips]) {
+            Box box = clipBoxes[clips];
+            ComputedStyle s = StackingOrder.styleOf(box);
+            geometry.box(box, s, clipOrigins[clips * 2], clipOrigins[clips * 2 + 1], dp).area(BackgroundLayer.Box.PADDING_BOX, clipBox, clipRadii);
+            canvas.beginMask(MaskComposite.ADD);
+            canvas.fillRoundedRect(clipBox[0], clipBox[1], clipBox[2], clipBox[3], clipRadii, Colors.WHITE);
+            canvas.endGroup(1, List.of(), BlendMode.NORMAL);
+            clipBoxes[clips] = null;
+        }
+        popClip();
+    }
+
+    /** A plain rectangle clip (the overflow of replaced content, and every overflow clip's rectangle). */
+    private boolean pushClip(float x, float y, float width, float height) {
         if (width <= 0 || height <= 0) return false;
         canvas.save();
         float x0 = snap(x), y0 = snap(y);
@@ -160,8 +205,7 @@ final class BoxPainter implements StackingOrder.Visitor {
         return true;
     }
 
-    @Override
-    public void popClip() {
+    private void popClip() {
         canvas.restore();
     }
 

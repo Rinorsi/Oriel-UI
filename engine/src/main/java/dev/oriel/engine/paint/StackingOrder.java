@@ -43,10 +43,14 @@ final class StackingOrder {
 
         void exitContext();
 
-        /** Clips what follows to a rectangle; return false when nothing inside can matter (it is skipped). */
-        boolean pushClip(float x, float y, float width, float height);
+        /**
+         * Clips what follows to {@code clipper}'s padding box (a rectangle in the current space; the clipper's rounded
+         * corners, if any, are its painter's business). Return false when nothing inside can matter (it is skipped).
+         */
+        boolean pushClip(Box clipper, float x, float y, float width, float height);
 
-        void popClip();
+        /** Ends the clip {@code pushClip} began for {@code clipper}. */
+        void popClip(Box clipper);
 
         /** The box's own painting (shadows, background, border, form control, replaced content) at border-box origin (x, y). */
         void box(Box box, ComputedStyle style, float x, float y);
@@ -64,6 +68,7 @@ final class StackingOrder {
         void inlineOutline(Fragment.InlineBox fragment, ComputedStyle style, float x, float y);
     }
 
+    private static final Box[] NO_BOXES = {};
     private final Layers layers;
     private final Affine transform = new Affine(), offset = new Affine();
     /** The transformed box whose border box is the current space, or null for the viewport. */
@@ -246,11 +251,11 @@ final class StackingOrder {
     }
 
     private static boolean clipToPaddingBox(Box box, float x, float y, Visitor v) {
-        return v.pushClip(x + box.borderLeft, y + box.borderTop, box.paddingBoxWidth(), box.paddingBoxHeight());
+        return v.pushClip(box, x + box.borderLeft, y + box.borderTop, box.paddingBoxWidth(), box.paddingBoxHeight());
     }
 
     private static void exitContent(Box box, Visitor v) {
-        if (clips(box, styleOf(box))) v.popClip();
+        if (clips(box, styleOf(box))) v.popClip(box);
     }
 
     /**
@@ -275,18 +280,19 @@ final class StackingOrder {
         }
         int pushed = 0;
         boolean visible = true;
+        Box[] clipped = holders == 0 ? NO_BOXES : new Box[holders];
         for (int i = holders - 1; i >= 0 && visible; i--) {
             Box a = chain[i];
             if (!clips(a, styleOf(a))) continue;
             Coordinates.offset(a, space, offset);
             visible = a == space ? clipToPaddingBox(a, 0, 0, v) : clipToPaddingBox(a, offset.e, offset.f, v);
-            if (visible) pushed++;
+            if (visible) clipped[pushed++] = a;
         }
         if (visible) {
             ComputedStyle s = styleOf(item);
             Coordinates.offset(item, space, offset);
             layer(item, s, offset.e, offset.f, isContext(item, s), v);
         }
-        for (; pushed > 0; pushed--) v.popClip();
+        for (; pushed > 0; pushed--) v.popClip(clipped[pushed - 1]);
     }
 }
