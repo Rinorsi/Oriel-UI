@@ -1,6 +1,7 @@
 package dev.oriel.preview;
 
 import dev.oriel.engine.dom.Element;
+import dev.oriel.engine.css.CssColors;
 import dev.oriel.engine.dom.Viewport;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.preview.host.PreviewHost;
@@ -23,15 +24,17 @@ public final class Preview {
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
                    preview --check <dir or page.html>   (every page at 640x360 and 427x240: errors, missing images, CSS)
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
+            --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
             Diagnostics (CSS the engine did not take as written) go to stderr; with --strict a warning fails the run
             (exit code 3).""";
 
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
-                   Path actions, Path out, boolean narrate, boolean strict, String boxes) {
+                   Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
             String boxes = null;
+            Integer background = null;
             boolean canvasTest = false, narrate = false, strict = false;
             int scale = 2, width = CanvasTest.WIDTH, height = CanvasTest.HEIGHT, frames = 1;
             for (int i = 0; i < args.length; i++) {
@@ -47,6 +50,13 @@ public final class Preview {
                     case "--narrate" -> narrate = true;
                     case "--strict" -> strict = true;
                     case "--boxes" -> boxes = value(args, ++i, arg);
+                    case "--background" -> {
+                        String color = value(args, ++i, arg);
+                        background = CssColors.parse(color, 0xFF000000);
+                        if (background == null || (background >>> 24) != 255) {
+                            throw new IllegalArgumentException("--background needs an opaque CSS color, got " + color);
+                        }
+                    }
                     case "--size" -> {
                         String[] size = value(args, ++i, arg).split("x");
                         if (size.length != 2) throw new IllegalArgumentException("--size takes WxH, e.g. 427x240");
@@ -63,7 +73,7 @@ public final class Preview {
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes);
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
@@ -127,12 +137,12 @@ public final class Preview {
         if (options.narrate()) ((PageScene) scene).narrateTo(System.out);
 
         if (options.actions() != null) {
-            System.exit(strict(actions((PageScene) scene, new FrameRenderer(assets, font), options), host, options));
+            System.exit(strict(actions((PageScene) scene, new FrameRenderer(assets, font, options.background()), options), host, options));
         }
         if (options.snapshot() != null) {
-            System.exit(strict(snapshot(scene, new FrameRenderer(assets, font), options), host, options));
+            System.exit(strict(snapshot(scene, new FrameRenderer(assets, font, options.background()), options), host, options));
         }
-        SwingUtilities.invokeLater(() -> new PreviewWindow(scene, host, options.scale(), options.width(), options.height()).show());
+        SwingUtilities.invokeLater(() -> new PreviewWindow(scene, host, options.scale(), options.width(), options.height(), options.background()).show());
     }
 
     /**

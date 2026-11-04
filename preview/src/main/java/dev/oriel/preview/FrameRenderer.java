@@ -19,14 +19,20 @@ import java.util.function.Consumer;
 final class FrameRenderer {
     private final MinecraftAssets assets;
     private final MinecraftFont font;
+    private final Integer background;
     private BufferedImage image;
     private ImageCanvas canvas;
     /** The backdrop is static, so it is painted once per size and scale and copied into each frame. */
     private int[] backdrop;
 
     FrameRenderer(MinecraftAssets assets, MinecraftFont font) {
+        this(assets, font, null);
+    }
+
+    FrameRenderer(MinecraftAssets assets, MinecraftFont font, Integer background) {
         this.assets = assets;
         this.font = font;
+        this.background = background;
     }
 
     /**
@@ -47,8 +53,8 @@ final class FrameRenderer {
         int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         canvas.reset();
         if (backdrop == null) {
-            Arrays.fill(pixels, 0);
-            Backdrop.paint(canvas, guiWidth, guiHeight, assets.hasMinecraft());
+            Arrays.fill(pixels, background == null ? 0 : background);
+            if (background == null) Backdrop.paint(canvas, guiWidth, guiHeight, assets.hasMinecraft());
             backdrop = pixels.clone();
         } else {
             System.arraycopy(backdrop, 0, pixels, 0, pixels.length);
