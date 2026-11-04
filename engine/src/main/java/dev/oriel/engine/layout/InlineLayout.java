@@ -14,6 +14,7 @@ import dev.oriel.engine.style.TextAlign;
 import dev.oriel.engine.style.TextOverflow;
 import dev.oriel.engine.style.VerticalAlign;
 import dev.oriel.engine.style.WordBreak;
+import dev.oriel.engine.style.WritingMode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -285,6 +286,13 @@ final class InlineLayout {
     float intrinsicWidth(LayoutBox box, boolean max) {
         InlineContent content = box.inline;
         Pieces p = pieces(content);
+        if (vertical(box)) {
+            int columns = 0;
+            for (Line line : breakLines(p, columnAdvances(content, p), columnLength(box, Float.NaN), 0, false)) {
+                if (!line.empty) columns++;
+            }
+            return columns * box.style.usedLineHeight();
+        }
         float[] widths = pieceWidths(content, p, Float.NaN, (j, atomic) -> pass.contribution(atomic, max));
         float indent = box.style.textIndent;
         List<Line> lines = breakLines(p, widths, max ? Float.POSITIVE_INFINITY : 0, indent, false);
@@ -346,6 +354,105 @@ final class InlineLayout {
                 written == 0);
     }
 
+    // ---- Vertical text ----
+
+    /** Whether the box sets its text in columns: {@code writing-mode: vertical-*}, over text without atomic inlines. */
+    static boolean vertical(LayoutBox box) {
+        if (!box.style.writingMode.vertical() || box.inline == null) return false;
+        for (Item item : box.inline.items) if (item instanceof Atomic) return false;
+        return true;
+    }
+
+    /** Each piece's advance down a column: a character an em plus letter-spacing, a space its width. */
+    private float[] columnAdvances(InlineContent content, Pieces p) {
+        float[] advances = new float[p.size];
+        for (int j = 0; j < p.size; j++) {
+            if (p.kind[j] == SPACE) {
+                advances[j] = p.width[j];
+            } else if (p.kind[j] == TEXT) {
+                TextItem t = (TextItem) content.items.get(p.item[j]);
+                advances[j] = t.text().codePointCount(p.start[j], p.end[j]) * step(t.span());
+            }
+        }
+        return advances;
+    }
+
+    private float step(Span span) {
+        return metrics(span).font.size() + span.style.letterSpacing;
+    }
+
+    /** How long the box's columns may run: its definite content height, else its max-height, else unbounded. */
+    private static float columnLength(LayoutBox box, float contentHeight) {
+        if (!Float.isNaN(contentHeight)) return contentHeight;
+        ComputedStyle s = box.style;
+        float pb = BoxModel.paddingBorderHeight(box);
+        float h = BoxModel.borderBoxSize(s, s.height, Float.NaN, pb);
+        if (Float.isNaN(h)) h = BoxModel.borderBoxSize(s, s.maxHeight, Float.NaN, pb);
+        return Float.isNaN(h) ? Float.POSITIVE_INFINITY : Math.max(0, h - pb);
+    }
+
+    /**
+     * Sets the box's text in columns (CSS Writing Modes 4, with {@code text-orientation: upright}): columns a line
+     * height wide, right to left ({@code vertical-rl}) or left to right ({@code vertical-lr}), each broken to the
+     * column length, with {@code text-align} placing the text along it. The content height is the longest column;
+     * the width, the columns side by side, comes from {@link #intrinsicWidth}.
+     */
+    LayoutResult layoutVertical(LayoutBox box, float contentWidth, float contentHeight, boolean measure) {
+        InlineContent content = box.inline;
+        Pieces p = pieces(content);
+        ComputedStyle style = box.style;
+        float[] advances = columnAdvances(content, p);
+        float length = columnLength(box, contentHeight);
+        float column = style.usedLineHeight();
+        boolean rightToLeft = style.writingMode == WritingMode.VERTICAL_RL;
+        if (!measure) box.lines.clear();
+        float longest = 0;
+        int columns = 0;
+        for (Line line : breakLines(p, advances, length, 0, true)) {
+            if (line.empty) continue;
+            float used = lineWidth(p, advances, line, 0);
+            longest = Math.max(longest, used);
+            float x = rightToLeft ? box.contentX() + contentWidth - (columns + 1) * column
+                    : box.contentX() + columns * column;
+            if (!measure) writeColumn(box, content, p, advances, line, x, column, Float.isInfinite(length) ? used : length);
+            columns++;
+        }
+        return new LayoutResult(longest, Float.NaN, Float.NaN, MarginSet.EMPTY, MarginSet.EMPTY, columns == 0);
+    }
+
+    /** One column: each character its own run, centred across the column. */
+    private void writeColumn(LayoutBox box, InlineContent content, Pieces p, float[] advances, Line line, float x,
+                             float column, float length) {
+        float free = Math.max(0, length - lineWidth(p, advances, line, 0));
+        float y = box.contentY() + switch (box.style.textAlign) {
+            case RIGHT, END -> free;
+            case CENTER -> free / 2;
+            case LEFT, START, JUSTIFY -> 0;
+        };
+        LineBox lineBox = new LineBox(x, box.contentY(), column, length, box.contentY());
+        box.lines.add(lineBox);
+        int first = firstContent(p, line), last = lastContent(p, line);
+        for (int j = line.start; j < line.end; j++) {
+            if (p.isStrippable(j) && (j < first || j > last)) continue;
+            if (p.kind[j] == SPACE) y += advances[j];
+            if (p.kind[j] != TEXT) continue;
+            TextItem t = (TextItem) content.items.get(p.item[j]);
+            Span span = t.span();
+            Metrics m = metrics(span);
+            String text = t.text();
+            for (int i = p.start[j]; i < p.end[j]; ) {
+                int next = text.offsetByCodePoints(i, 1);
+                String ch = text.substring(i, next);
+                float w = pass.text.width(ch, m.font, span.style);
+                lineBox.fragments.add(new Fragment.TextRun(t.node(), span.element, span.style, ch, t.sourceSlice(i, next),
+                        pass.text.spaced(ch, m.font, span.style), x + (column - w) / 2,
+                        y + (m.font.size() - m.glyphHeight) / 2, w, m.glyphHeight));
+                y += step(span);
+                i = next;
+            }
+        }
+    }
+
     private static boolean hasLineAfter(List<Line> lines, int i) {
         for (int k = i + 1; k < lines.size(); k++) if (!lines.get(k).empty) return true;
         return false;
@@ -378,7 +485,7 @@ final class InlineLayout {
         m.below = m.glyphHeight - m.ascent + halfLeading;
         if (span.parent != null) {
             Metrics parent = metrics(span.parent);
-            m.shift = parent.shift + alignShift(s.verticalAlign, parent, m.above, m.below);
+            m.shift = parent.shift + alignShift(s, parent, m.above, m.below);
         }
         span.metrics = m;
         return m;
@@ -389,10 +496,11 @@ final class InlineLayout {
      * {@code vertical-align} in a parent inline box. Line-relative {@code top}/{@code bottom} give 0 here; the line
      * handles atomics with them (inline boxes with them are treated as baseline-aligned).
      */
-    private static float alignShift(VerticalAlign align, Metrics parent, float above, float below) {
+    private static float alignShift(ComputedStyle s, Metrics parent, float above, float below) {
         float size = parent.font.size();
-        return switch (align) {
+        return switch (s.verticalAlign) {
             case BASELINE, TOP, BOTTOM -> 0;
+            case LENGTH -> -s.verticalAlignLength.resolve(s.usedLineHeight());
             case SUB -> size * 0.2f;
             case SUPER -> -size * 0.34f;
             case TEXT_TOP -> -parent.ascent + above;
@@ -437,7 +545,7 @@ final class InlineLayout {
                     atomicTop[j - line.start] = Float.POSITIVE_INFINITY;
                 } else {
                     float baseline = b.marginTop + atomicBaseline(b, atomics[j]);
-                    float boxTop = m.shift + alignShift(align, m, baseline, height - baseline) - baseline;
+                    float boxTop = m.shift + alignShift(b.style, m, baseline, height - baseline) - baseline;
                     atomicTop[j - line.start] = boxTop;
                     top = Math.min(top, boxTop);
                     bottom = Math.max(bottom, boxTop + height);

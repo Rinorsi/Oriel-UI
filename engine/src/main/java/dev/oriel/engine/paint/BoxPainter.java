@@ -127,7 +127,11 @@ final class BoxPainter implements StackingOrder.Visitor {
         canvas.restore();
     }
 
-    /** {@code backdrop-filter}: what is under the border box, through the filters, inside its rounded shape. */
+    /**
+     * {@code backdrop-filter}: what is under the border box, through the filters, inside its rounded shape, or inside
+     * its clip-path, which cuts the backdrop with the rest of the element (Filter Effects 2 §3; the clip-path alone
+     * when the box is also rounded).
+     */
     private void backdrop(Box box, ComputedStyle s, float x, float y) {
         if (!canvas.beginBackdrop()) {
             if (canvas.backdropNeedsGroup() && !rootGroup && !pageGroup) {
@@ -137,8 +141,10 @@ final class BoxPainter implements StackingOrder.Visitor {
             unsupported("backdrop-filter is not drawn: this canvas cannot read back what it has drawn");
             return;
         }
+        float[] outline = s.clipPath.outline(x, y, box.width, box.height);
         Geometry g = geometry.box(box, s, x, y, dp);
-        if (Shapes.isRounded(g.radii)) canvas.fillRoundedRect(g.x, g.y, g.width, g.height, g.radii, Colors.WHITE);
+        if (outline != null) Polygons.fill(canvas, outline, Colors.WHITE);
+        else if (Shapes.isRounded(g.radii)) canvas.fillRoundedRect(g.x, g.y, g.width, g.height, g.radii, Colors.WHITE);
         else canvas.fillRect(g.x, g.y, g.width, g.height, Colors.WHITE);
         canvas.endBackdrop(s.backdropFilter);
     }

@@ -40,7 +40,8 @@ public final class OrielServer {
 
     /**
      * Opens the page at {@code url} ({@code namespace:path/page.html} under {@code assets/}) on the player's screen.
-     * If the player's client lacks Oriel the returned session is already closed.
+     * If the player's client lacks Oriel the returned session is already closed with CLIENT_UNSUPPORTED; inspect
+     * {@link OrielSession#openStatus()} or register {@link OrielSession#onOpenFailure} to provide a fallback.
      *
      * @param data the initial {@code oriel.data}; may be null
      */
@@ -71,6 +72,7 @@ public final class OrielServer {
         nextId = nextId == Integer.MAX_VALUE ? 1 : nextId + 1; // ids stay positive: the client takes negative ones for its own pages
         SESSIONS.put(session.id(), session);
         if (!OrielNetwork.sendToPlayer(player, new OpenPayload(session.id(), url, html, json))) {
+            session.unsupportedClient();
             Constants.LOG.debug("Oriel: {} cannot show {} (no Oriel on the client)", player.getGameProfile().name(), url);
             end(session);
         }

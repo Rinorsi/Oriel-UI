@@ -122,6 +122,18 @@ final class Gradients {
                 ringSin[j] = (float) Math.sin(a);
             }
         }
+        float period = stopPos[last] - stopPos[0];
+        if (g.repeating() && period > 0.25f) {
+            // The stops again every period, outward to the farthest corner and inward to the centre (CSS Images 3 §3.5).
+            float base = stopPos[0] - (float) Math.ceil(stopPos[0] / period) * period;
+            for (int n = 0; base < outer && n < 2048; base += period, n++) {
+                for (int i = 0; i < last; i++) {
+                    float r0 = base + stopPos[i] - stopPos[0], r1 = base + stopPos[i + 1] - stopPos[0];
+                    if (r1 > 0 && r0 < outer) ring(batch, r0, Math.min(r1, outer), stopColor[i], stopColor[i + 1]);
+                }
+            }
+            return;
+        }
         ring(batch, 0, stopPos[0], stopColor[0], stopColor[0]);
         for (int i = 0; i < last; i++) ring(batch, stopPos[i], stopPos[i + 1], stopColor[i], stopColor[i + 1]);
         ring(batch, stopPos[last], outer, stopColor[last], stopColor[last]);

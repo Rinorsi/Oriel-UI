@@ -242,6 +242,52 @@ class InlineLayoutTest {
     }
 
     @Test
+    void verticalAlignByALengthOrAPercentageOfTheLineHeight() {
+        Page page = new TestHost().load("<div id=p>a<span style='vertical-align: 4px'>b</span>"
+                + "<span style='vertical-align: -50%; line-height: 10px'>c</span></div>");
+        List<Fragment.TextRun> runs = runs(page, "p");
+        float base = runs.get(0).y();
+        assertEquals(base - 4, runs.get(1).y(), 0.01, "4px up");
+        assertEquals(base + 5, runs.get(2).y(), 0.01, "half its 10px line height down");
+        assertEquals("4px", page.computed("#p > span", "vertical-align"));
+    }
+
+    @Test
+    void verticalTextRunsInColumnsAsWideAsItsLines() {
+        Page page = new TestHost().load("<div id=p style='writing-mode: vertical-rl; font-size: 8px; line-height: 10px;"
+                + " height: 16px'>一二三四</div><div id=q style='writing-mode: vertical-lr; font-size: 8px;"
+                + " line-height: 10px; letter-spacing: 2px'>一二</div>");
+        Box p = page.byId("p").box;
+        assertEquals(20, p.width, 0.01, "two columns of a line height");
+        assertEquals(16, p.height, 0.01);
+        List<Fragment.TextRun> runs = runs(p);
+        assertEquals(List.of("一", "二", "三", "四"), runs.stream().map(Fragment.TextRun::text).toList());
+        assertEquals(runs.get(0).y() + 8, runs.get(1).y(), 0.01, "an em down the column");
+        assertEquals(runs.get(0).y(), runs.get(2).y(), 0.01, "the next column starts at the top");
+        assertEquals(runs.get(0).x() - 10, runs.get(2).x(), 0.01, "vertical-rl: columns right to left");
+
+        Box q = page.byId("q").box;
+        assertEquals(10, q.width, 0.01, "one column when the height is the content's");
+        assertEquals(20, q.height, 0.01, "an em plus letter-spacing per character");
+        assertEquals("vertical-lr", page.computed("#q", "writing-mode"));
+    }
+
+    @Test
+    void theFirstLetterWithItsPunctuationTakesItsOwnStyle() {
+        Page page = new TestHost().load("<style>#p::first-letter { font-size: 16px } #q::first-letter { color: red }</style>"
+                + "<div id=p>  “Hi”, she said</div><div id=q><div>block first</div>no letter</div>");
+        List<Fragment.TextRun> runs = runs(page, "p");
+        assertEquals("“H", runs.get(0).text());
+        assertEquals(16, runs.get(0).style().fontSize, 0.01);
+        assertEquals("i”, she said", runs.get(1).text());
+        assertEquals(8, runs.get(1).style().fontSize, 0.01);
+        Element q = page.byId("q");
+        for (Box b : q.box.children) for (Fragment.TextRun r : runs(b)) {
+            assertEquals(q.style.color, r.style().color, "only the first line counts, and a block took it: " + r.text());
+        }
+    }
+
+    @Test
     void pseudoElements() {
         Page page = new TestHost().load("""
                 <style>

@@ -38,6 +38,8 @@ loom {
         }
         server {
             server()
+            programArg('--nogui')
+            if (project.hasProperty('serverProbe')) property('oriel.serverProbe', 'true')
             setConfigName('Fabric Server')
             ideConfigGenerated(true)
             runDirectory.set(orielRunDir('server'))

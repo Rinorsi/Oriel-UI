@@ -71,6 +71,7 @@ final class Shorthands {
         pair("place-self", "align-self", "justify-self");
         anyOrder("flex-flow", slot("flex-direction"), slot("flex-wrap"));
         anyOrder("outline", slot("outline-width"), slot("outline-style"), slot("outline-color"));
+        anyOrder("-webkit-text-stroke", slot("-webkit-text-stroke-width"), slot("-webkit-text-stroke-color"));
         register("border-image", longhands("border-image-source", "border-image-slice", "border-image-width",
                 "border-image-outset", "border-image-repeat"), Shorthands::borderImage);
         for (String side : List.of("top", "right", "bottom", "left")) {

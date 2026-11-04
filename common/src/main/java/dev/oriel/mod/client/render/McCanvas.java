@@ -363,6 +363,9 @@ public final class McCanvas implements Canvas {
                           float u0, float v0, float u1, float v1, int tint, boolean smooth) {
         Identifier texture = McImages.id(url);
         if (texture == null || OrielPages.isFolder(texture.getNamespace()) && !FolderTextures.ensure(texture)) return;
+        // An image the resource packs do not have draws nothing, as in a browser (the page reports it), not
+        // Minecraft's missing texture.
+        if (!OrielPages.isFolder(texture.getNamespace()) && McImages.textureSize(url) == null) return;
         blit(texture, x, y, width, height, u0, v0, u1, v1, tint, smooth);
     }
 

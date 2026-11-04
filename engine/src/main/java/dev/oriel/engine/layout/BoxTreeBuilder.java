@@ -279,7 +279,16 @@ final class BoxTreeBuilder {
         void finish() {
             endRun();
             ComputedStyle anonymousStyle = null;
+            // ::first-letter styles the first letter of the first line, when inline content comes before any block.
+            ComputedStyle firstLetter = container.kind != Box.Kind.PSEUDO && container.element != null
+                    ? container.element.firstLetterStyle : null;
             for (Object entry : entries) {
+                if (firstLetter != null && entry instanceof Run r && r.content.hasContent()) {
+                    r.content.firstLetter(container.element, firstLetter);
+                    firstLetter = null;
+                } else if (entry instanceof LayoutBox box && !box.style.position.isOutOfFlow()) {
+                    firstLetter = null;
+                }
                 if (entry instanceof LayoutBox box) {
                     container.add(box);
                 } else if (entry instanceof Run r && !hasBlocks) {

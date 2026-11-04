@@ -104,10 +104,11 @@ final class StackingOrder {
         return box.style;
     }
 
-    /** The live style of a text run (generated content keeps its own). */
+    /** The live style of a text run (generated content and the ::first-letter keep their own). */
     static ComputedStyle styleOf(Fragment.TextRun run) {
         Element source = run.styleSource();
-        return run.node() == null || source == null || source.style == null ? run.style() : source.style;
+        if (run.node() == null || source == null || source.style == null) return run.style();
+        return run.style() == source.firstLetterStyle ? run.style() : source.style;
     }
 
     /** Positioned boxes and stacking contexts are painted from their stacking context's z-ordered list. */

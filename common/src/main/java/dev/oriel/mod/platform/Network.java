@@ -8,6 +8,9 @@ import net.minecraft.server.level.ServerPlayer;
  * {@code OrielNetwork}; common code only sends.
  */
 public interface Network {
+    /** Whether a play channel was negotiated, without sending or opening a page. */
+    boolean canReceive(ServerPlayer player, CustomPacketPayload.Type<?> type);
+
     /**
      * Sends a clientbound play payload to one player.
      *

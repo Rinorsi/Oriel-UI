@@ -12,6 +12,8 @@ public final class OrielCommand {
     private OrielCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> d) {
+        d.register(Commands.literal("oriel-forge").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .executes(c -> ForgeMenu.open(c.getSource().getPlayerOrException()) ? 1 : 0));
         d.register(Commands.literal("oriel")
                 .then(Commands.literal("demo").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("chest").executes(c -> {

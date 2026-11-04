@@ -26,6 +26,8 @@ neoForge {
         }
         server {
             server()
+            programArguments.add('--nogui')
+            if (project.hasProperty('serverProbe')) systemProperty('oriel.serverProbe', 'true')
             gameDirectory = this.mkdir(orielRunDir('server'))
         }
     }

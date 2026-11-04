@@ -77,7 +77,7 @@ import java.util.function.Function;
  * needs on the way (filter steps, masks) are {@link #release released} as soon as they have been read, for the
  * next group of the frame: the GPU runs the passes in the order they are recorded. Targets no frame has used for a
  * while (after a resize, say) are freed. Targets have no depth buffer (vanilla's GUI renderer draws without one when
- * a target has none), to halve their memory.
+ * a target has none), to halve their memory, unless the loader asks for one ({@link #withDepth}).
  */
 public final class Layers {
     private Layers() {}
@@ -109,6 +109,16 @@ public final class Layers {
 
     public static void renderers(Function<GuiRenderState, GuiRenderer> factory) {
         renderers = factory;
+    }
+
+    private static boolean depth;
+
+    /**
+     * Gives the targets a depth buffer: NeoForge's picture-in-picture renderers (items, entities) read the format of
+     * the main target's depth, and inside a layer the main target is the layer's.
+     */
+    public static void withDepth() {
+        depth = true;
     }
 
     private static final List<Layer> layers = new ArrayList<>();
@@ -170,14 +180,19 @@ public final class Layers {
             targets.add(t);
         }
         lastUsed.put(t, frame);
-        RenderSystem.getDevice().createCommandEncoder().clearColorTexture(t.getColorTexture(), GuiRenderer.CLEAR_COLOR);
+        var encoder = RenderSystem.getDevice().createCommandEncoder();
+        if (t.getDepthTexture() != null) {
+            encoder.clearColorAndDepthTextures(t.getColorTexture(), GuiRenderer.CLEAR_COLOR, t.getDepthTexture(), 1.0);
+        } else {
+            encoder.clearColorTexture(t.getColorTexture(), GuiRenderer.CLEAR_COLOR);
+        }
         return t;
     }
 
     /** The layers' targets: how many, and their memory in MB (for the autopilot's log). */
     public static String describe() {
         long bytes = 0;
-        for (RenderTarget t : targets) bytes += 4L * t.width * t.height;
+        for (RenderTarget t : targets) bytes += (t.getDepthTexture() != null ? 8L : 4L) * t.width * t.height;
         return targets.size() + " targets, " + Math.round(bytes / 1048576.0 * 10) / 10.0 + " MB";
     }
 
@@ -309,11 +324,11 @@ public final class Layers {
 
     private static RenderTarget newTarget(int width, int height) {
         //? if >=26.3 {
-        return new TextureTarget("oriel layer", width, height, GpuFormat.RGBA8_UNORM, null);
+        return new TextureTarget("oriel layer", width, height, GpuFormat.RGBA8_UNORM, depth ? GpuFormat.D32_FLOAT : null);
         //?} else if >=26.2 {
-        /*return new TextureTarget("oriel layer", width, height, false, GpuFormat.RGBA8_UNORM);
+        /*return new TextureTarget("oriel layer", width, height, depth, GpuFormat.RGBA8_UNORM);
         *///?} else
-        //return new TextureTarget("oriel layer", width, height, false);
+        //return new TextureTarget("oriel layer", width, height, depth);
     }
 
     // ---- Filters ----

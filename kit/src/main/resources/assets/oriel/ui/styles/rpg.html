@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>RPG 战斗 HUD</title>
+<link rel="stylesheet" href="showcase.css">
+<style>
+/*
+ * An action RPG's combat HUD over the world, in the Diablo line: bronze action bar between a health and a mana
+ * orb (liquid that sways, glass that shines), skills with Minecraft's own cooldown wipe, a boss bar whose lost
+ * health trails off, the player's own face in a portrait frame, buffs, a quest tracker and combat text.
+ */
+:root {
+    --bronze-hi: #f0cf86; --bronze: #b98a46; --bronze-lo: #5e3f1c; --iron: #1c1612; --ink: #0d0907;
+    --gold: #ffd977; --blood: #d92a35; --blood-lo: #5d0710; --mana: #3d8bff; --mana-lo: #0b2462;
+}
+.hud { position: absolute; inset: 0; color: #f6ead2; font-size: 8px; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.75); }
+
+/* ---- Low health: the screen's edge breathes red ---- */
+.hurt { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(150, 0, 12, 0.32) 88%, rgba(110, 0, 8, 0.55));
+    animation: hurt 1.6s ease-in-out infinite; }
+@keyframes hurt { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+/* ---- Portrait (top left, under the way back) ---- */
+.hero { position: absolute; left: 6px; top: 22px; display: flex; align-items: center; gap: 5px; }
+.portrait { position: relative; width: 34px; height: 34px; border-radius: 50%; padding: 2px;
+    background: conic-gradient(from 210deg, var(--bronze-hi), var(--bronze) 30%, var(--bronze-lo) 50%, var(--bronze) 70%, var(--bronze-hi));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); }
+.portrait .face { width: 30px; height: 30px; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, #4b3a2a, #120d09); box-shadow: inset 0 0 6px #000; }
+.portrait entity { width: 30px; height: 30px; -mc-entity-focus: eyes; }
+.portrait .lv { position: absolute; right: -3px; bottom: -2px; min-width: 13px; height: 11px; padding: 0 2px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; color: var(--ink); text-shadow: none;
+    background: linear-gradient(var(--bronze-hi), var(--bronze)); border: 1px solid var(--bronze-lo); }
+.hero .who b { display: block; color: var(--gold); font-family: oriel:kai; font-size: 10px; line-height: 11px; }
+.hero .who span { color: rgba(246, 234, 210, 0.6); }
+.buffs { position: absolute; left: 8px; top: 62px; display: flex; gap: 8px; }
+.buff { position: relative; width: 16px; height: 16px; padding: 1px; border: 1px solid #000; background: #18110b;
+    box-shadow: inset 0 0 0 1px rgba(255, 220, 140, 0.25); }
+.buff.bad { box-shadow: inset 0 0 0 1px rgba(255, 70, 70, 0.55); }
+.buff img { width: 14px; height: 14px; }
+.buff .wipe { position: absolute; left: 1px; right: 1px; top: 1px; bottom: 1px; background: rgba(0, 0, 0, 0.6); transform-origin: 50% 0%; animation: wipe var(--t) linear infinite; }
+.buff span { position: absolute; left: -4px; right: -4px; top: 17px; text-align: center; color: #e8dcc0; }
+
+/* ---- Boss (top centre) ---- */
+.boss { position: absolute; left: 50%; top: 5px; width: 184px; margin-left: -92px; display: flex; flex-direction: column; align-items: center; }
+.boss .name { display: flex; align-items: center; gap: 4px; height: 12px; white-space: nowrap; font-family: oriel:kai; font-size: 11px; color: var(--gold);
+    text-shadow: 0 0 4px rgba(255, 140, 40, 0.8), 1px 1px 0 #000; }
+.boss .name::before, .boss .name::after { content: ""; width: 26px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--bronze-hi)); }
+.boss .name::after { background: linear-gradient(90deg, var(--bronze-hi), transparent); }
+.boss .skull { width: 9px; height: 9px; }
+.boss .bar { position: relative; width: 100%; height: 9px; margin-top: 2px; padding: 1px 1px 1px 12px;
+    background: linear-gradient(#2a0b0b, #140404); border: 1px solid var(--bronze-lo);
+    box-shadow: 0 0 0 1px #000, 0 2px 4px rgba(0, 0, 0, 0.7); }
+.boss .bar i { position: absolute; left: 12px; top: 1px; bottom: 1px; }
+/* The boss's own head in a ring over the bar's left end, and spikes at both ends. */
+.boss .face { position: absolute; left: -9px; top: -6px; width: 20px; height: 20px; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, #3b1010, #0a0202); border: 2px solid var(--bronze);
+    box-shadow: 0 0 0 1px #000, 0 0 6px rgba(255, 60, 40, 0.6); }
+.boss .face entity { width: 16px; height: 16px; -mc-entity-focus: eyes; }
+.boss .bar::after { content: ""; position: absolute; right: -6px; top: 1px; width: 0; height: 0;
+    border-top: 3px solid transparent; border-bottom: 3px solid transparent; border-left: 5px solid var(--bronze); }
+.boss .trail { width: 52%; background: #f3d9b8; animation: trail 4s ease-in infinite; }
+.boss .life { width: 41%; background: linear-gradient(#ff6b5f, #c4121f 55%, #7c0710); box-shadow: 0 0 4px rgba(255, 60, 40, 0.7);
+    animation: life 4s steps(1) infinite; }
+.boss .life::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: rgba(255, 255, 255, 0.35); }
+@keyframes trail { 0% { width: 52%; } 35% { width: 52%; } 100% { width: 41%; } }
+@keyframes life { 0% { width: 52%; } 30% { width: 41%; } }
+.boss .notch { position: absolute; top: -1px; bottom: -1px; width: 1px; background: rgba(255, 230, 180, 0.6); }
+.boss .sub { display: flex; justify-content: space-between; width: 100%; margin-top: 1px; padding-left: 14px; color: rgba(246, 234, 210, 0.75); }
+.boss .sub b { color: #ff8b70; font-weight: normal; }
+
+/* ---- Quest tracker (right) ---- */
+.quest { position: absolute; right: 6px; top: 26px; width: 118px; padding: 4px 6px 5px 8px;
+    background: linear-gradient(90deg, rgba(8, 5, 3, 0) 0%, rgba(8, 5, 3, 0.62) 22%);
+    border-right: 2px solid var(--bronze); }
+.quest h4 { margin: 0 0 3px; display: flex; justify-content: flex-end; align-items: center; gap: 3px;
+    font-family: oriel:kai; font-size: 9px; font-weight: normal; color: var(--gold); }
+.quest h4 img { width: 8px; height: 8px; }
+.quest li { list-style: none; display: flex; justify-content: flex-end; align-items: center; gap: 3px; margin-top: 2px; color: #eadfc6; }
+.quest ul { margin: 0; padding: 0; }
+.quest li i { width: 6px; height: 6px; border: 1px solid var(--bronze); background: rgba(0, 0, 0, 0.4); }
+.quest li.done { color: #9be29b; }
+.quest li.done i { background: #6fd36f; border-color: #c8ffc8; box-shadow: 0 0 3px #6fd36f; }
+.quest li.done span { text-decoration: line-through; }
+.quest li.now span { animation: now 2.2s ease-in-out infinite; }
+@keyframes now { 50% { color: var(--gold); } }
+
+/* ---- Combat text ---- */
+.hit { position: absolute; font-family: oriel:smiley; font-size: 12px; color: #ffffff; opacity: 0;
+    text-shadow: 1px 1px 0 #000, 0 0 3px rgba(0, 0, 0, 0.8); animation: hit 2.4s ease-out infinite; }
+.hit.crit { font-size: 18px; color: var(--gold); text-shadow: 1px 1px 0 #5b2c00, 0 0 6px rgba(255, 160, 40, 0.9); }
+.hit.heal { color: #8cf58c; font-size: 11px; }
+@keyframes hit {
+    0% { opacity: 0; transform: translateY(6px) scale(0.6); }
+    8% { opacity: 1; transform: translateY(0) scale(1.15); }
+    16% { transform: translateY(-2px) scale(1); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-22px) scale(0.95); }
+}
+
+/* ---- Action bar (bottom centre): the orbs, and the skill plate between them ---- */
+.dock { position: absolute; left: 50%; bottom: 3px; width: 268px; margin-left: -134px; height: 58px; }
+.plate { position: absolute; left: 50px; right: 50px; bottom: 2px; height: 34px; padding: 6px 7px 0;
+    background: linear-gradient(#3b2918, #21160c 55%, #150d06);
+    border: 2px solid var(--bronze); border-radius: 2px;
+    box-shadow: inset 0 1px 0 var(--bronze-hi), inset 0 -2px 0 rgba(0, 0, 0, 0.55), 0 0 0 1px #000, 0 3px 6px rgba(0, 0, 0, 0.7); }
+/* Bronze clasps where the plate meets the orbs, and a gem at its crown. */
+.clasp { position: absolute; bottom: 9px; width: 10px; height: 20px; border: 1px solid #000;
+    background: linear-gradient(90deg, var(--bronze-lo), var(--bronze-hi) 50%, var(--bronze-lo)); }
+.clasp.l { left: 45px; } .clasp.r { right: 45px; }
+.gem { position: absolute; left: 50%; bottom: 30px; width: 9px; height: 9px; margin-left: -5px; transform: rotate(45deg);
+    background: radial-gradient(circle at 35% 35%, #ffd0d0, #e0263a 45%, #5a0612); border: 1px solid var(--bronze-hi);
+    box-shadow: 0 0 0 1px #000, 0 0 6px rgba(255, 60, 60, 0.8); animation: gem 3s ease-in-out infinite; }
+@keyframes gem { 50% { box-shadow: 0 0 0 1px #000, 0 0 10px rgba(255, 90, 90, 1); } }
+.xp { position: absolute; left: 62px; right: 62px; bottom: 37px; height: 4px;
+    background: #0e0905; border: 1px solid #000; }
+.xp i { display: block; height: 100%; width: 67%;
+    background: repeating-linear-gradient(90deg, transparent 0 15px, rgba(0, 0, 0, 0.6) 15px 16px), linear-gradient(#ffe48a, #c98b17);
+    box-shadow: 0 0 4px rgba(255, 200, 60, 0.8); }
+.slots { display: flex; justify-content: center; gap: 2px; }
+.slot { position: relative; width: 22px; height: 22px; padding: 2px; background: #0f0a06;
+    border: 1px solid #000; box-shadow: inset 0 0 0 1px var(--bronze-lo), inset 0 0 6px rgba(0, 0, 0, 0.9); }
+.slot:hover { box-shadow: inset 0 0 0 1px var(--bronze-hi), inset 0 0 6px rgba(0, 0, 0, 0.9); }
+.slot item { width: 18px; height: 18px; }
+.slot .cd { position: absolute; left: 2px; right: 2px; top: 2px; bottom: 2px; background: rgba(0, 0, 0, 0.62);
+    transform-origin: 50% 0%; animation: cool var(--cd) linear infinite; }
+.slot .key { position: absolute; left: 1px; top: -1px; color: #e9d9b0; }
+.slot .ready { position: absolute; inset: -1px; border: 1px solid var(--gold); opacity: 0; animation: ready var(--cd) linear infinite;
+    box-shadow: 0 0 5px var(--gold), inset 0 0 4px rgba(255, 210, 90, 0.6); }
+.slot.potion { margin-left: 5px; }
+.slot .n { position: absolute; right: 0; bottom: -1px; }
+@keyframes cool { 0% { transform: scaleY(1); } 70% { transform: scaleY(0); } 100% { transform: scaleY(0); } }
+@keyframes ready { 0%, 69% { opacity: 0; } 72% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes wipe { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* The orbs: a bronze ring, a dark well, liquid with a swaying surface, glass on top. */
+.orb { position: absolute; bottom: 0; width: 56px; height: 56px; border-radius: 50%; padding: 3px;
+    background: conic-gradient(from 200deg, var(--bronze-hi), var(--bronze) 25%, var(--bronze-lo) 50%, var(--bronze) 75%, var(--bronze-hi));
+    box-shadow: 0 0 0 1px #000, 0 3px 6px rgba(0, 0, 0, 0.8); }
+.orb.hp { left: 0; }
+.orb.mp { right: 0; }
+.orb .well { position: relative; width: 50px; height: 50px; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, #241812, #050302); box-shadow: inset 0 0 8px #000; }
+.orb .liquid { position: absolute; left: -25px; width: 100px; height: 100px; border-radius: 42%; animation: sway 7s linear infinite; }
+.orb.hp .liquid { top: 16px; background: radial-gradient(circle at 50% 20%, #ff5a5a, var(--blood) 30%, var(--blood-lo) 60%); }
+.orb.mp .liquid { top: 24px; animation-duration: 9s; background: radial-gradient(circle at 50% 20%, #7fb6ff, var(--mana) 30%, var(--mana-lo) 60%); }
+.orb .liquid.back { opacity: 0.45; animation-duration: 11s; animation-direction: reverse; margin-top: -2px; }
+@keyframes sway { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.orb .glass { position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(ellipse 60% 40% at 38% 22%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%),
+        radial-gradient(circle at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.55)); }
+.orb .value { position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-family: oriel:smiley; font-size: 12px; color: #fff; }
+.orb .bubble { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); bottom: 6px;
+    animation: bubble 3s ease-in infinite; }
+@keyframes bubble { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-26px); opacity: 0; } }
+.level { position: absolute; left: 44px; bottom: 30px; width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: var(--ink); text-shadow: none;
+    background: radial-gradient(circle at 40% 35%, #fff2c0, var(--bronze-hi) 40%, var(--bronze)); border: 1px solid #000;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+</style>
+</head>
+<body>
+<div class="hud">
+  <div class="hurt"></div>
+  <div class="sc-back" data-go="styles" tabindex="0"><img src="../../textures/icons/back.png">风格示例<kbd>Esc</kbd></div>
+
+  <div class="hero">
+    <div class="portrait"><div class="face"><entity player follow-mouse></entity></div><span class="lv">42</span></div>
+    <div class="who"><b>龙裔 · 猎手</b><span>生命 640 / 900</span></div>
+  </div>
+  <div class="buffs">
+    <div class="buff" style="--t: 9s"><img src="minecraft:textures/mob_effect/strength.png"><i class="wipe"></i><span>2:10</span></div>
+    <div class="buff" style="--t: 6s"><img src="minecraft:textures/mob_effect/speed.png"><i class="wipe"></i><span>0:45</span></div>
+    <div class="buff bad" style="--t: 4s"><img src="minecraft:textures/mob_effect/poison.png"><i class="wipe"></i><span>0:12</span></div>
+  </div>
+
+  <div class="boss">
+    <div class="name">远古巨龙 · 赫尔维斯</div>
+    <div class="bar"><span class="face"><entity type="minecraft:ender_dragon"></entity></span><i class="trail"></i><i class="life"></i><i class="notch" style="left: 25%"></i><i class="notch" style="left: 50%"></i><i class="notch" style="left: 75%"></i></div>
+    <div class="sub"><span>第二阶段 · 龙炎</span><b>46%</b></div>
+  </div>
+
+  <div class="quest">
+    <h4>主线 · 龙之巢穴<img src="minecraft:textures/mob_effect/hero_of_the_village.png"></h4>
+    <ul>
+      <li class="done"><span>找到古老的地图</span><i></i></li>
+      <li class="now"><span>击败远古巨龙 0 / 1</span><i></i></li>
+      <li><span>收集龙鳞 3 / 5</span><i></i></li>
+    </ul>
+  </div>
+
+  <span class="hit" style="left: 60%; top: 40%; animation-delay: 0s">-1,284</span>
+  <span class="hit crit" style="left: 44%; top: 28%; animation-delay: 1.2s">暴击 4,902</span>
+  <span class="hit" style="left: 52%; top: 50%; animation-delay: 0.6s">-967</span>
+  <span class="hit heal" style="left: 22%; top: 58%; animation-delay: 1.1s">+320</span>
+
+  <div class="dock">
+    <div class="xp" title="经验 67%"><i></i></div>
+    <span class="clasp l"></span><span class="clasp r"></span>
+    <div class="plate">
+      <div class="slots">
+        <div class="slot" style="--cd: 2s"><item id="minecraft:diamond_sword"></item><i class="cd"></i><i class="ready"></i><span class="key">1</span></div>
+        <div class="slot" style="--cd: 5s"><item id="minecraft:fire_charge"></item><i class="cd"></i><i class="ready"></i><span class="key">2</span></div>
+        <div class="slot" style="--cd: 8s"><item id="minecraft:ender_pearl"></item><i class="cd"></i><i class="ready"></i><span class="key">3</span></div>
+        <div class="slot" style="--cd: 12s"><item id="minecraft:trident"></item><i class="cd"></i><i class="ready"></i><span class="key">4</span></div>
+        <div class="slot potion"><item id="minecraft:potion" components='{"minecraft:potion_contents":{"potion":"minecraft:healing"}}'></item><span class="key">Q</span><span class="n">5</span></div>
+      </div>
+    </div>
+    <i class="gem"></i>
+    <div class="orb hp" title="生命 640 / 900"><div class="well"><i class="liquid back"></i><i class="liquid"></i>
+      <i class="bubble" style="left: 18px"></i><i class="bubble" style="left: 30px; animation-delay: 1.4s"></i><i class="glass"></i><span class="value">640</span></div></div>
+    <div class="orb mp" title="法力 310 / 600"><div class="well"><i class="liquid back"></i><i class="liquid"></i>
+      <i class="bubble" style="left: 22px; animation-delay: 0.6s"></i><i class="glass"></i><span class="value">310</span></div></div>
+    <span class="level">42</span>
+  </div>
+</div>
+</body>
+</html>

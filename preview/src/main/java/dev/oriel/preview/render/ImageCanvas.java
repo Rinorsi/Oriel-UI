@@ -41,9 +41,11 @@ public final class ImageCanvas implements Canvas {
 
     /**
      * An open group (or backdrop): its layer, the target it draws onto when it ends, its mask layers and their
-     * operators, and the alpha it is drawn with (the canvas's alpha when it began; inside, drawing is at full alpha).
+     * operators, the alpha it is drawn with (the canvas's alpha when it began; inside, drawing is at full alpha), and
+     * the device rectangle it paints within (null for anywhere).
      */
-    private record Group(Target content, Target under, List<Target> masks, List<MaskComposite> ops, float alpha) {}
+    private record Group(Target content, Target under, List<Target> masks, List<MaskComposite> ops, float alpha,
+                         Rectangle area) {}
 
     private static final AffineTransform IDENTITY = new AffineTransform();
 
@@ -152,7 +154,19 @@ public final class ImageCanvas implements Canvas {
 
     @Override
     public boolean beginGroup() {
-        groups.push(new Group(layer(), current, new ArrayList<>(), new ArrayList<>(), alpha));
+        return beginGroup((Rectangle) null);
+    }
+
+    /** Filters, masks and compositing then cover only the group's own area, not the whole image. */
+    @Override
+    public boolean beginGroup(float x, float y, float width, float height) {
+        Rectangle area = transform.createTransformedShape(new Rectangle2D.Float(x, y, width, height)).getBounds();
+        area.grow(1, 1);
+        return beginGroup(area);
+    }
+
+    private boolean beginGroup(Rectangle area) {
+        groups.push(new Group(layer(), current, new ArrayList<>(), new ArrayList<>(), alpha, area));
         alpha = 1;
         bind(groups.peek().content());
         return true;
@@ -173,6 +187,7 @@ public final class ImageCanvas implements Canvas {
         Group group = groups.pop();
         bind(group.under());
         Rectangle area = clip.intersection(bounds);
+        if (group.area() != null) area = area.intersection(group.area());
         if (!area.isEmpty()) {
             int w = image.getWidth();
             int[] px = group.content().pixels();
@@ -191,7 +206,7 @@ public final class ImageCanvas implements Canvas {
 
     @Override
     public boolean beginBackdrop() {
-        groups.push(new Group(layer(), current, List.of(), List.of(), alpha));
+        groups.push(new Group(layer(), current, List.of(), List.of(), alpha, null));
         alpha = 1;
         bind(groups.peek().content());
         return true;
@@ -353,11 +368,12 @@ public final class ImageCanvas implements Canvas {
         return out.toString();
     }
 
-    /** Unknown textures draw the missing texture. */
+    /** Unknown textures draw nothing, as a browser draws an image that failed to load (the page reports it). */
     @Override
     public void drawImage(String url, float x, float y, float width, float height,
                           float u0, float v0, float u1, float v1, int tint, boolean smooth) {
-        Texture texture = assets.texture(url).orElse(MinecraftAssets.MISSING);
+        Texture texture = assets.texture(url).orElse(null);
+        if (texture == null) return;
         blit(texture.image(), u0, v0, u1, v1, x, y, width, height, modulate(tint), smooth || texture.blur());
     }
 

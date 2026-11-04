@@ -180,6 +180,50 @@ final class InlineContent {
     }
 
     /**
+     * Wraps the first letter, with the punctuation before and after it, in a span styled by {@code ::first-letter}
+     * (CSS Pseudo-Elements 4 §2.1), when text comes before any atomic inline or forced break.
+     */
+    void firstLetter(Element host, ComputedStyle style) {
+        for (int i = 0; i < items.size(); i++) {
+            Item item = items.get(i);
+            if (item instanceof Atomic || item instanceof Break) return;
+            if (!(item instanceof TextItem t)) continue;
+            String text = t.text();
+            int start = 0;
+            while (start < text.length() && text.charAt(start) == ' ') start++;
+            if (start == text.length()) continue;
+            int end = skipPunctuation(text, start);
+            if (end < text.length()) end = skipPunctuation(text, text.offsetByCodePoints(end, 1));
+            Span span = new Span(host, style, t.span(), new Box(Box.Kind.PSEUDO, host, style));
+            List<Item> split = new ArrayList<>();
+            if (start > 0) split.add(slice(t, t.span(), 0, start));
+            split.add(new Open(span));
+            split.add(slice(t, span, start, end));
+            split.add(new Close(span));
+            if (end < text.length()) split.add(slice(t, t.span(), end, text.length()));
+            items.remove(i);
+            items.addAll(i, split);
+            return;
+        }
+    }
+
+    private static int skipPunctuation(String text, int i) {
+        while (i < text.length()) {
+            int c = text.codePointAt(i), type = Character.getType(c);
+            if (type != Character.START_PUNCTUATION && type != Character.END_PUNCTUATION
+                    && type != Character.INITIAL_QUOTE_PUNCTUATION && type != Character.FINAL_QUOTE_PUNCTUATION
+                    && type != Character.OTHER_PUNCTUATION) break;
+            i += Character.charCount(c);
+        }
+        return i;
+    }
+
+    private static TextItem slice(TextItem t, Span span, int start, int end) {
+        return new TextItem(span, t.node(), t.text().substring(start, end),
+                t.sourceIndex() == null ? null : t.sourceSlice(start, end));
+    }
+
+    /**
      * Whether the content produces at least one line box: text (white space that survived collapsing counts), an
      * atomic inline, a forced break, or an inline box with horizontal padding, border or margin.
      */

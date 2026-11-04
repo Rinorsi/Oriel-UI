@@ -49,6 +49,7 @@ public final class OrielGameTests {
         GameTests.add("demo_chest_menu", OrielGameTests::chest);
         GameTests.add("page_data", OrielGameTests::pageData);
         SecurityGameTests.init();
+        ServerFeaturesGameTests.init();
     }
 
     // ---- Payloads ----

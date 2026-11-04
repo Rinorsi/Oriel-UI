@@ -108,4 +108,18 @@ class MinecraftFontTest {
                 "glyph ff3f3f3f at 2.0", "glyph ff3f3f3f at 14.0", "rect ff3f3f3f 0.0,18.0-26.0,20.0",
                 "glyph ffffffff at 0.0", "glyph ffffffff at 12.0", "rect ffffffff -2.0,16.0-24.0,18.0"), calls);
     }
+
+    @Test
+    void ttfFontsAreRasterizedAtTheirOversample() throws IOException {
+        // The kit's bundled fonts are ttf providers (Noto Sans SC: size 8.5, oversample 6).
+        try (MinecraftAssets kit = MinecraftAssets.open(List.of(java.nio.file.Path.of("../kit/src/main/resources")), Optional.empty())) {
+            MinecraftFont font = new MinecraftFont(kit);
+            FontSpec sans = new FontSpec(List.of("oriel:sans"), 8, false, false);
+            MinecraftFont.Glyph han = font.glyph('字', sans);
+            assertNotNull(han.image());
+            assertTrue(han.pixelSize() < 1, "drawn at the oversample, not by the 1px fallback: " + han.pixelSize());
+            assertTrue(han.advance() > 6 && han.advance() < 12, "a full-width glyph: " + han.advance());
+            assertTrue(font.width("ABC", sans) != FALLBACK.width("ABC", sans), "Latin from the font too");
+        }
+    }
 }

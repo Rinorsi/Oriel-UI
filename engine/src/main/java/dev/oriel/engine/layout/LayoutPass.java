@@ -188,7 +188,8 @@ final class LayoutPass {
             float height = resolveSize(box, Axis.VERTICAL, s.height, cbWidth, cbHeight, available);
             w = BoxModel.transfer(box, height, Axis.VERTICAL);
             if (Float.isNaN(w)) {
-                w = fill ? available : fitContent(box, available);
+                // Vertical text is as wide as its columns (an orthogonal flow sizes to its content).
+                w = fill && !InlineLayout.vertical(box) ? available : fitContent(box, available);
             } else if (s.minWidth.isAuto() && !s.isScrollContainer()) {
                 // The automatic minimum in a ratio-dependent axis is the min-content size, capped by max-width.
                 float max = resolveSize(box, Axis.HORIZONTAL, s.maxWidth, cbWidth, cbHeight, available);
