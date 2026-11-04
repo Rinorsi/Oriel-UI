@@ -1416,7 +1416,6 @@
   "oriel.ui.mcformat.yellow": "黄色",
   "oriel.ui.mcformat.white": "白色",
   "oriel.ui.notice.close": "关闭",
-  "oriel.ui.catalog.section": " 节",
   "oriel.ui.catalog.saved": "已保存",
   "oriel.ui.catalog.3_changes": "3 项修改",
   "oriel.ui.editor.default": "默认",
@@ -2336,5 +2335,7 @@
   "oriel.ui.styles.view.guide.title": "投稿指南",
   "oriel.ui.styles.view.hud.title": "战斗 HUD",
   "oriel.ui.styles.view.menu.title": "界面与菜单",
-  "oriel.ui.styles.view.theme.title": "主题氛围"
+  "oriel.ui.styles.view.theme.title": "主题氛围",
+  "oriel.ui.catalog.sections.one": "%s 节",
+  "oriel.ui.catalog.sections.other": "%s 节"
 }

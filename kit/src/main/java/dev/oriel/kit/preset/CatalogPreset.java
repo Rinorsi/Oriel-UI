@@ -47,7 +47,7 @@ public final class CatalogPreset implements PageControllers.Controller {
             items.add(item);
             Shell.activate(item, () -> show(index));
         }
-        Dom.text(Dom.byId(doc, "count"), sections.size() + Lang.t(doc, "oriel.ui.catalog.section"));
+        Dom.text(Dom.byId(doc, "count"), Lang.plural(doc, "oriel.ui.catalog.sections", sections.size()));
         Dom.onKey(doc, e -> {
             if (!e.defaultPrevented() && (e.key.equals("ArrowDown") || e.key.equals("ArrowUp"))) {
                 e.preventDefault();

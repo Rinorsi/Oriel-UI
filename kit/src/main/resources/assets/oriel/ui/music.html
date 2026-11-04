@@ -124,6 +124,9 @@
     [data-window=max] .ly.now { font-size: 16px; line-height: 20px; }
 }
 /* Small GUIs: the record and the title; the spectrum and the volume make way. */
+@media (max-width: 560px) {
+    .controls .side .o-hints { display: none; }
+}
 @media (max-height: 300px) {
     .platter { transform: scale(0.9); margin: 0; }
     .spectrum, .volume, .vol { display: none; }

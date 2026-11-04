@@ -36,6 +36,8 @@
 .info-tabs { flex: none; }
 .info-tabs > span { flex: 1; justify-content: center; gap: 3px; }
 .info .pane.off { display: none; }
+/* A long overview scrolls inside its column instead of running into the footer. */
+.info { min-height: 0; overflow-y: auto; scrollbar-width: none; }
 .effects { flex: 1; min-height: 0; }
 /* The paper doll fills its column: the slots stay together beside a large player, on a lit floor and a faint grid. */
 .paper { flex: 1; min-height: 0; justify-content: center; }
@@ -112,7 +114,8 @@
 
 .foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
 .foot .ore-btn { min-height: 22px; padding: 0 7px; }
-.foot #status { flex: 1; color: var(--o-text-dim); }
+.foot #status { flex: 1; min-width: 0; color: var(--o-text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-tabs span { white-space: nowrap; }
 
 .search { position: relative; display: flex; align-items: center; }
 .search .o-ico { position: absolute; left: 3px; top: 1px; -mc-tint: var(--o-text-faint); pointer-events: none; }
@@ -125,6 +128,7 @@
 @media (max-width: 560px) {
     .doll { display: none; }
     .info { width: 120px; }
+    .info-tabs .o-ico { display: none; }
 }
 @media (max-height: 300px) {
     .doll .o-caps, .keys, .capacity, .bag .o-caps, .foot .o-hints { display: none; }

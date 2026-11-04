@@ -31,6 +31,14 @@
 
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 6px 8px; }
 .tabs { flex: none; }
+.tabs > span { white-space: nowrap; }
+.tabs b { font-weight: normal; }
+/* Small windows: the other tabs are their icons (named on hover), the open one keeps its name. */
+@media (max-width: 560px) {
+    .tabs b { display: none; }
+    .tabs > span.on b { display: inline; }
+    #rarity > span { padding: 0 4px; }
+}
 .panes { position: relative; flex: 1; min-height: 0; }
 .pane { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; flex-direction: column; gap: 5px; overflow-y: auto; }
 .pane.on { display: flex; animation: m-slide-left var(--m-base) var(--m-out) both; }
@@ -98,11 +106,11 @@
       </div>
       <div class="main">
         <div class="o-seg tabs" id="tabs">
-          <span class="on" data-tab="basic" data-i18n-text-1="oriel.ui.item_editor.base"><img class="o-ico" src="../textures/icons/file.png">oriel.ui.item_editor.base</span>
-          <span data-tab="ench" data-i18n-text-1="oriel.ui.item_editor.enchantment"><img class="o-ico" src="../textures/icons/enchant.png">oriel.ui.item_editor.enchantment</span>
-          <span data-tab="attr" data-i18n-text-1="oriel.ui.item_editor.properties"><img class="o-ico" src="../textures/icons/sword.png">oriel.ui.item_editor.properties</span>
-          <span data-tab="dura" data-i18n-text-1="oriel.ui.item_editor.durability"><img class="o-ico" src="../textures/icons/shield.png">oriel.ui.item_editor.durability</span>
-          <span data-tab="all" data-i18n-text-1="oriel.ui.item_editor.all_components"><img class="o-ico" src="../textures/icons/tree.png">oriel.ui.item_editor.all_components</span>
+          <span class="on" data-tab="basic" title="oriel.ui.item_editor.base" data-i18n-title="oriel.ui.item_editor.base"><img class="o-ico" src="../textures/icons/file.png"><b data-i18n="oriel.ui.item_editor.base">oriel.ui.item_editor.base</b></span>
+          <span data-tab="ench" title="oriel.ui.item_editor.enchantment" data-i18n-title="oriel.ui.item_editor.enchantment"><img class="o-ico" src="../textures/icons/enchant.png"><b data-i18n="oriel.ui.item_editor.enchantment">oriel.ui.item_editor.enchantment</b></span>
+          <span data-tab="attr" title="oriel.ui.item_editor.properties" data-i18n-title="oriel.ui.item_editor.properties"><img class="o-ico" src="../textures/icons/sword.png"><b data-i18n="oriel.ui.item_editor.properties">oriel.ui.item_editor.properties</b></span>
+          <span data-tab="dura" title="oriel.ui.item_editor.durability" data-i18n-title="oriel.ui.item_editor.durability"><img class="o-ico" src="../textures/icons/shield.png"><b data-i18n="oriel.ui.item_editor.durability">oriel.ui.item_editor.durability</b></span>
+          <span data-tab="all" title="oriel.ui.item_editor.all_components" data-i18n-title="oriel.ui.item_editor.all_components"><img class="o-ico" src="../textures/icons/tree.png"><b data-i18n="oriel.ui.item_editor.all_components">oriel.ui.item_editor.all_components</b></span>
         </div>
         <div class="panes">
           <div class="pane on" data-pane="basic">

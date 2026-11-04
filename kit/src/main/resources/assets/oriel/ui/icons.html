@@ -15,7 +15,8 @@
 .cats .cat:hover { background: var(--o-line); color: var(--o-text); }
 .cats .cat.on { background: var(--o-tile); color: var(--o-text); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
 .cats .cat.on::before { content: ""; position: absolute; left: -4px; top: 4px; width: 2px; height: 12px; background: var(--o-accent-strong); }
-.cats .cat .n { margin-left: auto; color: var(--o-text-faint); }
+.cats .cat span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cats .cat .n { flex: none; margin-left: auto; color: var(--o-text-faint); }
 
 .main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 6px; }
 .bar { flex: none; display: flex; align-items: center; gap: 6px; }
@@ -56,11 +57,13 @@
 .tints span.on { box-shadow: 0 0 0 1px var(--o-text); }
 .code { margin: 0; padding: 4px 5px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f; line-height: 10px; white-space: normal; word-break: break-all; }
 [data-theme=light] .code { background: #2b2b2b; }
-.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
+.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; white-space: nowrap; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
 
 @media (max-width: 560px) {
     .detail { display: none; }
     .cats { width: 92px; }
+    .cats .cat .o-ico, .bar .count { display: none; }
+    .foot > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 }
 </style>
 </head>

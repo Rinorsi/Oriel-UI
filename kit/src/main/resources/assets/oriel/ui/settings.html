@@ -57,6 +57,12 @@
 
 .foot { flex: none; display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); }
 .foot .ore-btn { min-height: 22px; padding: 0 7px; }
+/* The preview pane scrolls rather than running into the footer; on small windows it makes way for the settings. */
+.o-side { min-height: 0; overflow-y: auto; scrollbar-width: none; }
+@media (max-width: 600px) {
+    .o-side { display: none; }
+    .nav { width: 96px; }
+}
 </style>
 </head>
 <body>

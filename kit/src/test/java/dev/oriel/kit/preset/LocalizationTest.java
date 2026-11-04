@@ -167,7 +167,8 @@ class LocalizationTest {
     }
 
     private static void assertEnglishFixture(Node node) {
-        if (node instanceof Element e && "effects".equals(e.id())) return; // Lead-owned potion component.
+        // Text marked as Chinese on purpose (font specimens, calligraphy) stays Chinese in every language.
+        if (node instanceof Element e && e.getAttribute("lang") != null && e.getAttribute("lang").startsWith("zh")) return;
         if (node instanceof Text text) {
             assertFalse(text.data().codePoints().anyMatch(c -> c >= 0x3400 && c <= 0x9FFF), text.data());
         }
