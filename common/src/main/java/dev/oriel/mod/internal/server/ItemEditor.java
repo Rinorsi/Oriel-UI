@@ -90,6 +90,7 @@ public final class ItemEditor {
 
     /** A refused save; the message is shown to the player. */
     static final class Rejected extends Exception {
+        @java.io.Serial private static final long serialVersionUID = 1L;
         Rejected(String message) {
             super(message);
         }

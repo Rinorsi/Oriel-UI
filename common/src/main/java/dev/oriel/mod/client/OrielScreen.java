@@ -28,6 +28,8 @@ public class OrielScreen extends Screen implements DocumentDriver.Owner {
      * @param session the server session, or -1 for a client-side page
      */
     @org.jetbrains.annotations.ApiStatus.Internal
+    // DocumentDriver retains the owner without invoking callbacks until init/resize after construction.
+    @SuppressWarnings("this-escape")
     public OrielScreen(String url, @Nullable String html, int session) {
         super(Component.translatable("oriel.screen"));
         this.driver = new DocumentDriver(this, url, html, session);

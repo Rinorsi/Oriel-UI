@@ -934,8 +934,9 @@ public final class DevAutopilot {
             var held = mc.player.getMainHandItem();
             check(held.get(net.minecraft.core.component.DataComponents.RARITY) == net.minecraft.world.item.Rarity.EPIC,
                     "the edited sword is epic", "the edited sword is {}", held.get(net.minecraft.core.component.DataComponents.RARITY));
-            check(held.getEnchantments().size() == 2, "the sword has two enchantments", "the sword has {} enchantments",
-                    held.getEnchantments().size());
+            int enchantments = held.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS,
+                    net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY).size();
+            check(enchantments == 2, "the sword has two enchantments", "the sword has {} enchantments", enchantments);
         });
 
         shoot(mc, "preset_gallery_light", () -> OrielClientCommands.preset("gallery"));
@@ -1069,10 +1070,6 @@ public final class DevAutopilot {
         onPage("the result", p -> Constants.LOG.info("Oriel autopilot: reload bar says {}", p.text("#o-devbar .t").orElse("(gone)")));
     }
 
-    /**
-     * {@code -Pautopilot=potions}: the potion HUD over the player's own effects: none, then a few (one infinite, one of
-     * a high level), the full panel, one taken away, and the inventory with its effects column.
-     */
     /**
      * The style showcase ({@code -Pautopilot=styles}): its index and every look at GUI scale 2, two of them at 3,
      * then Escape: from a look back to the index, from the index back to the gallery.

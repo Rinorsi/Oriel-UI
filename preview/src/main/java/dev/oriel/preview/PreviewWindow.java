@@ -239,6 +239,7 @@ final class PreviewWindow {
 
     /** Shows the last frame 1:1, nearest-neighbour so HiDPI displays keep pixels sharp. */
     private final class View extends JComponent {
+        @java.io.Serial private static final long serialVersionUID = 1L;
         @Override
         protected void paintComponent(Graphics g) {
             if (lastFrame == null) return;

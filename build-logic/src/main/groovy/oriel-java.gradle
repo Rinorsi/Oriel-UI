@@ -17,7 +17,7 @@ dependencies {
 
 tasks.named('test', Test) {
     useJUnitPlatform()
-    testLogging { events 'failed', 'skipped'; exceptionFormat 'full' }
+    testLogging { events 'failed', 'skipped'; exceptionFormat = 'full' }
 }
 
 tasks.withType(JavaCompile).configureEach {
