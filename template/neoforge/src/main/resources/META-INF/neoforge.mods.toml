@@ -23,8 +23,9 @@ side = "BOTH"
 
 # Required: launchers install Oriel along with your mod. Also list it as a required dependency on your Modrinth and
 # CurseForge pages.
+# Previous 0.9 API: [0.9.0,0.10.0). This template uses the incompatible 0.10 API boundary.
 [[dependencies.${mod_id}]]
 modId = "oriel"
 type = "required"
-versionRange = "[${oriel_version},)"
+versionRange = "[0.10.0,0.11.0)"
 side = "BOTH"

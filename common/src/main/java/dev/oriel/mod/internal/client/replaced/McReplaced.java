@@ -1,0 +1,55 @@
+package dev.oriel.mod.internal.client.replaced;
+
+
+import dev.oriel.engine.dom.Element;
+import dev.oriel.engine.host.ReplacedContent;
+import dev.oriel.engine.paint.Canvas;
+import dev.oriel.mod.internal.client.render.McCanvas;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+/**
+ * The Minecraft elements, drawn by Minecraft: {@code <item>}, {@code <slot>}, {@code <entity>}, {@code <model>} and
+ * {@code <player-head>} ({@code img}, {@code sprite} and {@code canvas} are the engine's). Layout sizes them like
+ * images (intrinsic size, CSS size, object-fit). {@link #ELEMENTS} also has {@code <scene>}, whose
+ * {@link SceneContent} builds on the engine's scene content instead.
+ */
+public abstract class McReplaced implements ReplacedContent, OwnTooltip {
+    /** The host's replaced elements, by tag ({@code Host.replacedElements}). */
+    public static final Map<String, Function<Element, ReplacedContent>> ELEMENTS = Map.of(
+            "item", ItemContent::new, "slot", SlotContent::new, "entity", EntityContent::new, "model", ModelContent::new,
+            "player-head", PlayerHeadContent::new, "scene", SceneContent::new);
+
+    protected final Element element;
+
+    protected McReplaced(Element element) {
+        this.element = element;
+    }
+
+    /**
+     * Minecraft content draws with Minecraft calls, so it needs the Minecraft canvas; documents in game are always
+     * painted on one, so this is the one place that looks for it.
+     */
+    @Override
+    public final void paint(Canvas canvas, float x, float y, float width, float height) {
+        if (canvas instanceof McCanvas mc) draw(mc, x, y, width, height);
+    }
+
+    /** Draws into the content box {@code (x, y, width, height)}, in the canvas's current transform. */
+    protected abstract void draw(McCanvas canvas, float x, float y, float width, float height);
+
+    /** None, unless the content {@link #showsTooltip shows one}. */
+    @Override
+    public boolean showTooltip(GuiGraphicsExtractor g, List<Component> extra, int x, int y) {
+        return false;
+    }
+
+    protected String attr(String name, String fallback) {
+        String v = element.getAttribute(name);
+        return v == null || v.isBlank() ? fallback : v.strip();
+    }
+}

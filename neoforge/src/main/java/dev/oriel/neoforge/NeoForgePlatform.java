@@ -1,6 +1,6 @@
 package dev.oriel.neoforge;
 
-import dev.oriel.mod.platform.Platform;
+import dev.oriel.mod.internal.platform.Platform;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLPaths;

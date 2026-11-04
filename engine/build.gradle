@@ -7,6 +7,12 @@ plugins {
     id 'maven-publish'
 }
 
+// Ported from wip/main-checkout-20261105: generated documentation is a real verification input.
+tasks.named('test') {
+    inputs.file(rootProject.file('docs/zh/css-reference.md')).withPropertyName('cssReference')
+    inputs.property('updateDocs', providers.environmentVariable('ORIEL_UPDATE_DOCS').orElse(''))
+}
+
 dependencies {
     // Provided by Minecraft at runtime.
     compileOnly("com.google.code.gson:gson:${gson_version}")

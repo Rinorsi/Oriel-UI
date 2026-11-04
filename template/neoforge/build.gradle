@@ -11,11 +11,8 @@ base.archivesName = mod_id
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
-    // Oriel's maven. Only dev.oriel comes from it.
-    maven {
-        url = 'https://maven.maxleiter.com'
-        content { includeGroup('dev.oriel') }
-    }
+    maven { url = uri(findProperty('orielRepository') ?: '../../build/template-maven') }
+    mavenLocal()
 }
 
 neoForge {

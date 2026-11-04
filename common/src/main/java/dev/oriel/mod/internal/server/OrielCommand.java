@@ -1,0 +1,32 @@
+package dev.oriel.mod.internal.server;
+
+import dev.oriel.mod.server.ForgeMenu;
+
+import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+
+/**
+ * Server commands: {@code /oriel demo chest | live}, {@code /oriel edit} (the item data editor, ItemEditor). The client registers the rest of {@code /oriel} (open, demo
+ * pages, reload) and forwards these two here ({@code OrielClientCommands.SERVER_DEMOS}).
+ */
+public final class OrielCommand {
+    private OrielCommand() {}
+
+    public static void register(CommandDispatcher<CommandSourceStack> d) {
+        d.register(Commands.literal("oriel-forge").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .executes(c -> ForgeMenu.open(c.getSource().getPlayerOrException()) ? 1 : 0));
+        d.register(Commands.literal("oriel")
+                .then(Commands.literal("demo").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("chest").executes(c -> {
+                            OrielDemos.openChest(c.getSource().getPlayerOrException());
+                            return 1;
+                        }))
+                        .then(Commands.literal("live").executes(c -> {
+                            OrielDemos.openLive(c.getSource().getPlayerOrException());
+                            return 1;
+                        })))
+                .then(Commands.literal("edit").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .executes(c -> ItemEditor.open(c.getSource().getPlayerOrException()) ? 1 : 0)));
+    }
+}

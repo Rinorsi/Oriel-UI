@@ -1,9 +1,11 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.mod.internal.client.McClient;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.oriel.engine.host.Urls;
-import dev.oriel.mod.Constants;
+import dev.oriel.mod.internal.Constants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -126,7 +128,8 @@ public final class OrielScreens {
     }
 
     /** {@link DocumentDriver}: {@code url} is loading. */
-    static void pageLoading(String url, DocumentDriver driver) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static void pageLoading(String url, DocumentDriver driver) {
         Consumer<DocumentDriver> hook = PAGE_HOOKS.get(Urls.withoutQuery(url));
         if (hook != null) hook.accept(driver);
     }

@@ -1,6 +1,6 @@
 package dev.oriel.neoforge;
 
-import dev.oriel.mod.platform.Network;
+import dev.oriel.mod.internal.platform.Network;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;

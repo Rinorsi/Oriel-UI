@@ -1,6 +1,7 @@
 package dev.oriel.mod.client;
 
-import dev.oriel.mod.client.replaced.EntityPortrait;
+
+import dev.oriel.mod.internal.client.replaced.EntityPortrait;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;

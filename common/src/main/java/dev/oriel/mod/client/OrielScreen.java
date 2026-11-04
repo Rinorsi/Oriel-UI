@@ -1,5 +1,7 @@
 package dev.oriel.mod.client;
 
+import dev.oriel.mod.internal.client.PageNarrator;
+
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -25,7 +27,8 @@ public class OrielScreen extends Screen implements DocumentDriver.Owner {
      * @param html    inline HTML, or null to load {@code url}
      * @param session the server session, or -1 for a client-side page
      */
-    OrielScreen(String url, @Nullable String html, int session) {
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public OrielScreen(String url, @Nullable String html, int session) {
         super(Component.translatable("oriel.screen"));
         this.driver = new DocumentDriver(this, url, html, session);
     }

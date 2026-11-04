@@ -3,6 +3,8 @@
 Oriel shows HTML, CSS and JavaScript pages as Minecraft screens, inventories and HUD overlays. The Java API is the same
 on NeoForge and Fabric, and on Minecraft 26.3, 26.2 and 26.1.2 apart from the differences listed where they apply.
 
+中文文档（实现原理、接入指南、服务端篇、CSS 支持参考）：[zh/index.md](zh/index.md)。
+
 ## Java API
 
 - [Setting up](api/setup.md): how to depend on Oriel, and which parts of its API are stable.

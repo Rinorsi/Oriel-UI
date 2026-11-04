@@ -1,9 +1,9 @@
 package dev.oriel.fabric;
 
-import dev.oriel.mod.OrielCommon;
-import dev.oriel.mod.net.OrielNetwork;
-import dev.oriel.mod.registry.Entry;
-import dev.oriel.mod.registry.OrielRegistry;
+import dev.oriel.mod.internal.OrielCommon;
+import dev.oriel.mod.internal.net.OrielNetwork;
+import dev.oriel.mod.internal.registry.Entry;
+import dev.oriel.mod.internal.registry.OrielRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -22,6 +22,7 @@ public final class OrielFabric implements ModInitializer {
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) clientbound(c);
         for (OrielNetwork.Serverbound<?> s : OrielNetwork.SERVERBOUND) serverbound(s);
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> OrielCommon.registerCommands(dispatcher));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> OrielNetwork.requireOnClient(handler.player));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> OrielCommon.onPlayerLeft(handler.player));
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> OrielCommon.onServerStopping());
     }
