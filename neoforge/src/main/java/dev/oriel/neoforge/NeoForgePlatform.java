@@ -11,4 +11,7 @@ public final class NeoForgePlatform implements Platform {
     @Override public boolean isDevelopmentEnvironment() { return !FMLEnvironment.isProduction(); }
     @Override public Path configDir() { return FMLPaths.CONFIGDIR.get(); }
     @Override public boolean isModLoaded(String modId) { return ModList.get().isLoaded(modId); }
+    @Override public String modVersion(String modId) {
+        return ModList.get().getModContainerById(modId).orElseThrow().getModInfo().getVersion().toString();
+    }
 }

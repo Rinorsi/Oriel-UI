@@ -21,6 +21,16 @@ import java.util.List;
 /** Server-only regressions for fallback, per-player routing and atomic forge inventory changes. */
 public final class ServerFeaturesGameTests {
     public static void init() {
+        GameTests.add("runtime_version", h -> {
+            String version = dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel");
+            h.assertFalse(version.isBlank(), "loader supplies the running library version");
+            try {
+                int result = h.getLevel().getServer().getCommands().getDispatcher().execute("oriel version",
+                        h.getLevel().getServer().createCommandSourceStack());
+                h.assertValueEqual(result, 1, "version command executes");
+            } catch (com.mojang.brigadier.exceptions.CommandSyntaxException e) { throw new IllegalStateException(e); }
+            h.succeed();
+        });
         GameTests.add("protocol_compatibility", h -> {
             h.assertFalse(OrielNetwork.compatible(type -> false), "missing client rejected");
             h.assertFalse(OrielNetwork.compatible(type -> type != dev.oriel.mod.internal.net.ProtocolPayload.TYPE), "old or mismatched protocol rejected");

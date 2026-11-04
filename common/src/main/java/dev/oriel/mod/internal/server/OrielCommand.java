@@ -17,6 +17,11 @@ public final class OrielCommand {
         d.register(Commands.literal("oriel-forge").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .executes(c -> ForgeMenu.open(c.getSource().getPlayerOrException()) ? 1 : 0));
         d.register(Commands.literal("oriel")
+                .then(Commands.literal("version").executes(c -> {
+                    c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal("Oriel UI runtime version: "
+                            + dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel")), false);
+                    return 1;
+                }))
                 .then(Commands.literal("demo").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("chest").executes(c -> {
                             OrielDemos.openChest(c.getSource().getPlayerOrException());

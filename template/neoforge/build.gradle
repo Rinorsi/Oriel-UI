@@ -22,6 +22,14 @@ neoForge {
             client()
             gameDirectory = file('runs/client')
         }
+        if (project.hasProperty('jijAcceptance')) {
+            server {
+                server()
+                gameDirectory = file(project.property('jijRunDir'))
+                programArguments.add('--nogui')
+                systemProperty('oriel.jijProbe', 'true')
+            }
+        }
     }
     mods {
         "${mod_id}" {
@@ -33,7 +41,8 @@ neoForge {
 dependencies {
     // Oriel for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
     // instead: jarJar(implementation("dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"))
-    implementation "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
+    if (project.hasProperty('jijAcceptance')) compileOnly "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
+    else implementation "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
 }
 
 tasks.withType(JavaCompile).configureEach {

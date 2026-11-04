@@ -4,11 +4,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import net from 'node:net';
 import crypto from 'node:crypto';
-import {spawn} from 'node:child_process';
+import {spawn, spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 const [loader, requestedRoot, ...flags] = process.argv.slice(2);
-if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--mismatch', '--missing-client', '--accept-eula'].includes(f))) {
+if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--mismatch', '--missing-client', '--jij', '--accept-eula'].includes(f))) {
   console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--multiplayer] [--mismatch] [--missing-client] [--accept-eula]');
   process.exit(2);
 }
@@ -23,7 +23,9 @@ if (insideRepo(root)) throw Error('Run root must be outside the source repositor
 fs.mkdirSync(root, {recursive: true});
 root = fs.realpathSync(root);
 if (insideRepo(root)) throw Error('Run root resolves inside the source repository');
-const serverDir = path.join(root, loader + '-26.1', 'server');
+const jij = flags.includes('--jij');
+if (jij && flags.some(f => ['--multiplayer', '--mismatch', '--missing-client'].includes(f))) throw Error('--jij is a separate server-only check');
+const serverDir = path.join(root, loader + (jij ? '-26.3' : '-26.1'), 'server');
 fs.mkdirSync(serverDir, {recursive: true});
 const eula = path.join(serverDir, 'eula.txt');
 if (flags.includes('--accept-eula')) fs.writeFileSync(eula, 'eula=true' + LF);
@@ -40,6 +42,13 @@ fs.writeFileSync(path.join(serverDir, 'server.properties'), [
   'level-type=minecraft:flat', 'generate-structures=false', 'difficulty=peaceful', 'max-players=3',
   'motd=Oriel local server acceptance'
 ].join(LF) + LF);
+if (jij) {
+  const version = fs.readFileSync(path.join(repo, 'gradle.properties'), 'utf8').split(LF).find(l => l.startsWith('version=')).slice(8).trim();
+  const library = path.join(repo, loader, 'versions/26.3/build/libs', 'oriel-' + loader + '-26.3-' + version + '.jar');
+  if (!fs.existsSync(library)) throw Error('Build templateCompile before --jij: ' + library);
+  const fixture = spawnSync('java', [path.join(repo, 'tools/compat/BundleFixtures.java'), loader, library, path.join(serverDir, 'mods')], {encoding:'utf8'});
+  if (fixture.status !== 0) throw Error('Nested fixture creation failed: ' + fixture.stdout + fixture.stderr);
+}
 
 const quote = value => "'" + value.replaceAll("'", "'" + BS + "''") + "'";
 function launch(name, task, extra = [], runRoot = root) {
@@ -101,11 +110,21 @@ function rcon(command) {
 const runs = [];
 let server, ready = false, success = false;
 try {
-  server = launch('dedicated', ':' + loader + ':26.1:runServer', ['-PserverProbe']);
+  server = jij ? launch('dedicated', 'runServer', ['-p', path.join(repo, 'template', loader), '-PjijAcceptance',
+    '-PjijRunDir=' + serverDir, '-PorielRepository=' + path.join(repo, 'build/template-maven')])
+    : launch('dedicated', ':' + loader + ':26.1:runServer', ['-PserverProbe']);
   runs.push(server);
-  await until(server, text => text.includes('Done (') && text.includes('ORIEL_SERVER_PROBE loaded')
-    && text.includes('RCON running on'), 300);
+  await until(server, text => text.includes('Done (') && text.includes('RCON running on'), 300);
   ready = true;
+  if (!server.text.includes(jij ? 'ORIEL_JIJ_PROBE parents=true,true' : 'ORIEL_SERVER_PROBE loaded'))
+    throw Error('Server started without the expected acceptance modules; see ' + server.log);
+  if (jij) {
+    const version = await rcon('oriel version');
+    if (!version.includes('Oriel UI runtime version: 0.10.2')) throw Error('Loader selected the wrong nested library: ' + version);
+    const starts = server.text.split('Oriel UI runtime version:').length - 1;
+    if (starts !== 1 || !server.text.includes('Oriel UI runtime version: 0.10.2')) throw Error('Expected exactly one 0.10.2 runtime: ' + starts);
+    console.log('JAR_IN_JAR PASS two parents, versions 0.10.1/0.10.2, one runtime 0.10.2; /oriel version confirmed');
+  }
   if (flags.includes('--mismatch')) {
     const clientRoot = path.join(root, 'mismatch');
     const clientDir = path.join(clientRoot, loader + '-26.1', 'client');
@@ -163,6 +182,6 @@ try {
     await rcon('stop').catch(error => console.error('Could not stop server through RCON: ' + error.message));
   }
   const results = await Promise.all(runs.map(async run => ({name: run.name, exit: await run.done, log: run.log})));
-  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), missingClientChannels: flags.includes('--missing-client'), success, results}, null, 2));
+  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, jij, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), missingClientChannels: flags.includes('--missing-client'), success, results}, null, 2));
 }
 console.log('PASS: ' + loader + ' dedicated startup, library loading, ' + (flags.includes('--multiplayer') ? 'two-client isolation, ' : '') + 'clean shutdown');
