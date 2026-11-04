@@ -217,6 +217,10 @@ public final class DevAutopilot {
             hotReload(mc);
             return;
         }
+        if (ONLY.equals("text")) {
+            text(mc);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -901,13 +905,16 @@ public final class DevAutopilot {
         });
 
         shoot(mc, "preset_gallery_light", () -> OrielClientCommands.preset("gallery"));
-        onPage("the light theme", p -> p.click("[data-theme-pick=light]"));
+        onPage("the light theme", p -> p.click("[data-action=theme]"));
         pause(10);
         grab(mc, "preset_gallery_light", 5);
-        onPage("the smooth style", p -> p.click("[data-style-pick=smooth]"));
-        pause(10);
+        steps.add(() -> {
+            dev.oriel.kit.Shell.setStyle("smooth");
+            OrielClientCommands.preset("gallery");
+        });
+        pause(20);
         grab(mc, "preset_gallery_smooth_light", 5);
-        onPage("smooth and dark", p -> p.click("[data-theme-pick=dark]"));
+        onPage("smooth and dark", p -> p.click("[data-action=theme]"));
         pause(10);
         grab(mc, "preset_gallery_smooth", 5);
         shoot(mc, "preset_catalog_smooth", () -> OrielClientCommands.preset("catalog"));
@@ -1003,10 +1010,10 @@ public final class DevAutopilot {
         grab(mc, "home_music_playing", 5);
         guiScale(mc, 3);
         shoot(mc, "home_gui3", () -> OrielClientCommands.preset("gallery"));
-        onPage("light", p -> p.click("[data-theme-pick=light]"));
+        onPage("light", p -> p.click("[data-action=theme]"));
         pause(10);
         grab(mc, "home_gui3_light", 5);
-        onPage("dark", p -> p.click("[data-theme-pick=dark]"));
+        onPage("dark", p -> p.click("[data-action=theme]"));
         guiScale(mc, 2);
     }
 
@@ -1023,9 +1030,74 @@ public final class DevAutopilot {
         onPage("press 热重载", p -> p.click("#o-devbar .ore-btn"));
         until("the reload finished", t -> OrielAutomation.screen().flatMap(p -> p.text("#o-devbar .t"))
                 .map(s -> s.startsWith("已") || s.contains("失败") || s.contains("重启")).orElse(false), 7200, "no result", true);
-        pause(10);
+        pause(50); // past the resource reload's fading overlay
         grab(mc, "reload_done", 5);
         onPage("the result", p -> Constants.LOG.info("Oriel autopilot: reload bar says {}", p.text("#o-devbar .t").orElse("(gone)")));
+    }
+
+    /**
+     * {@code -Pautopilot=text}: the catalog's text section in every bundled font, the formatted text field after
+     * colouring a selection, and the notices.
+     */
+    private static void text(Minecraft mc) {
+        guiScale(mc, 2);
+        shoot(mc, "text_open", () -> OrielClientCommands.preset("catalog"));
+        onPage("the text section", p -> p.click("#list .item[data-sec=type]"));
+        pause(30);
+        grab(mc, "text_fonts_mc", 5);
+        for (String font : new String[] {"pixel", "pixel_12", "cubic", "sans", "kai", "smiley", "kuaile"}) {
+            onPage("font " + font, p -> p.click(".font-card[data-font-pick=" + font + "]"));
+            pause(10);
+            grab(mc, "text_font_" + font, 5);
+        }
+        onPage("back to the game's font", p -> p.click(".font-card[data-font-pick=mc]"));
+        onPage("the font select in the status bar", p -> p.click("[data-font-select] .value"));
+        pause(8);
+        grab(mc, "text_globals_open", 5);
+        onPage("pick a font there", p -> p.click("[data-font-select] .option[data-font-pick=sans]"));
+        pause(8);
+        grab(mc, "text_globals_sans", 5);
+        onPage("and back", p -> p.click(".font-card[data-font-pick=mc]"));
+        onPage("the inputs section", p -> p.click("#list .item[data-sec=inputs]"));
+        pause(30);
+        onPage("type into the formatted field", p -> {
+            p.click(".o-mcfield > input");
+            p.key("End");
+            p.type(" 新增");
+        });
+        pause(4);
+        onPage("colour it", p -> p.click(".o-mcfield .sw[data-mc=e]"));
+        pause(6);
+        grab(mc, "text_mcfield", 5);
+        onPage("the custom colour", p -> p.click(".o-mcfield .sw.custom"));
+        pause(6);
+        grab(mc, "text_mcfield_hex", 5);
+        onPage("the notices section", p -> p.click("#list .item[data-sec=notices]"));
+        pause(30);
+        onPage("a notice and toasts", p -> {
+            p.click(".sec[data-sec=notices] [data-kind=warn][data-notice]");
+            p.click(".sec[data-sec=notices] [data-kind=success][data-toast]");
+            p.click(".sec[data-sec=notices] [data-kind=error][data-toast]");
+        });
+        pause(12);
+        grab(mc, "text_notices", 5);
+        guiScale(mc, 3);
+        shoot(mc, "text_gui3", () -> OrielClientCommands.preset("catalog"));
+        onPage("the text section", p -> p.click("#list .item[data-sec=type]"));
+        pause(30);
+        onPage("font kai", p -> p.click(".font-card[data-font-pick=kai]"));
+        pause(10);
+        grab(mc, "text_gui3_kai", 5);
+        onPage("font pixel 12", p -> p.click(".font-card[data-font-pick=pixel_12]"));
+        pause(10);
+        grab(mc, "text_gui3_pixel12", 5);
+        onPage("back to the game's font", p -> p.click(".font-card[data-font-pick=mc]"));
+        shoot(mc, "text_home", () -> OrielClientCommands.preset("gallery"));
+        onPage("the theme button", p -> p.click("[data-action=theme]"));
+        pause(10);
+        grab(mc, "text_home_light", 5);
+        onPage("dark again", p -> p.click("[data-action=theme]"));
+        guiScale(mc, 2);
     }
 
     /** Play mode: things to try, the home page open, and a chat note on what to look at. */

@@ -26,20 +26,24 @@ import java.util.jar.Manifest;
 import java.util.stream.Stream;
 
 /**
- * Java hot reload for dev runs: watches the Java sources and the compiled classes the game runs from, shows every
- * page a bar when they change ({@code oriel-dev} data field; Shell draws it) with a 热重载 button, and on that button
- * compiles (Gradle, the loader project's {@code classes}), swaps the changed classes into the running JVM (the JDK's
- * class redefinition, through {@link DevAgent} attached to this process) and reopens the pages. What the JVM cannot
- * swap (a field or a method added, removed or renamed) is named in the bar as needing a restart.
+ * Hot reload for dev runs, for what saving a page does not already reload ({@link OrielResources} reads pages,
+ * stylesheets and their JSON from the sources as they are saved): Java sources and classes, and the resources the
+ * game itself loads (images, fonts, language files, models, sounds). Every page gets a bar when they change
+ * ({@code oriel-dev} data field; Shell draws it) with a 热重载 button, which compiles and copies the resources
+ * (Gradle, the loader project's {@code classes}), swaps the changed classes into the running JVM (the JDK's class
+ * redefinition, through {@link DevAgent} attached to this process), reloads the resources when some changed (F3+T)
+ * and reopens the pages. What cannot change while the game runs is named in the bar as needing a restart: a class
+ * whose fields or methods were added, removed or renamed, and the mod's metadata ({@code fabric.mod.json},
+ * {@code neoforge.mods.toml}, mixin configs).
  */
 public final class DevReload {
     static final String CHANNEL = "oriel-dev";
     private static final long POLL_MS = 1500;
 
-    private static final Map<Path, Long> classTimes = new HashMap<>(), sourceTimes = new HashMap<>();
+    private static final Map<Path, Long> classTimes = new HashMap<>(), sourceTimes = new HashMap<>(), resourceTimes = new HashMap<>();
     /** The content checksum of each class file, so a build that rewrites files unchanged swaps nothing. */
     private static final Map<Path, Long> classSums = new HashMap<>();
-    private static final List<Path> classDirs = new ArrayList<>(), sourceDirs = new ArrayList<>();
+    private static final List<Path> classDirs = new ArrayList<>(), sourceDirs = new ArrayList<>(), resourceDirs = new ArrayList<>();
     private static volatile boolean busy;
     private static String root, gradlePath;
     private static String lastState = "";
@@ -57,6 +61,15 @@ public final class DevReload {
         for (String module : List.of("kit", "engine", "common")) {
             Path src = Path.of(root, module, "src", "main", "java");
             if (Files.isDirectory(src)) sourceDirs.add(src);
+            Path res = Path.of(root, module, "src", "main", "resources");
+            if (Files.isDirectory(res)) resourceDirs.add(res);
+        }
+        // The loader's own resources: its project folder and the ones above it, up to the root (fabric/src/...).
+        String loader = System.getProperty("oriel.sourceRoot");
+        for (Path dir = loader == null ? null : Path.of(loader).toAbsolutePath(); dir != null && dir.startsWith(Path.of(root).toAbsolutePath()); dir = dir.getParent()) {
+            Path res = dir.resolve("src/main/resources");
+            if (Files.isDirectory(res) && !resourceDirs.contains(res)) resourceDirs.add(res);
+            if (dir.equals(Path.of(root).toAbsolutePath())) break;
         }
         if (classDirs.isEmpty()) {
             Constants.LOG.info("Oriel dev reload: the game runs from jars here; Java hot reload is off");
@@ -64,11 +77,12 @@ public final class DevReload {
         }
         snapshotClasses();
         scan(sourceDirs, ".java", sourceTimes, true);
+        scan(resourceDirs, "", resourceTimes, true);
         DocumentDriver.onMessageFromAny(CHANNEL, v -> reload());
         Thread watcher = new Thread(DevReload::watch, "Oriel dev reload");
         watcher.setDaemon(true);
         watcher.start();
-        Constants.LOG.info("Oriel dev reload: watching {} class and {} source folders", classDirs.size(), sourceDirs.size());
+        Constants.LOG.info("Oriel dev reload: watching {} class, {} source and {} resource folders", classDirs.size(), sourceDirs.size(), resourceDirs.size());
     }
 
     private static void addClassDir(Class<?> type) {
@@ -93,9 +107,57 @@ public final class DevReload {
             }
             if (busy) continue;
             int sources = changed(sourceDirs, ".java", sourceTimes).size(), classes = changed(classDirs, ".class", classTimes).size();
-            if (sources > 0) show("changed", "Java 源码有 " + sources + " 个文件改动", "热重载");
-            else if (classes > 0) show("changed", "检测到 " + classes + " 个类已重新编译", "热重载");
+            List<Path> res = changed(resourceDirs, "", resourceTimes);
+            List<Path> assets = res.stream().filter(f -> kind(f) == Kind.ASSET).toList();
+            List<Path> meta = res.stream().filter(f -> kind(f) == Kind.RESTART).toList();
+            if (!meta.isEmpty()) {
+                show("restart", meta.getFirst().getFileName() + (meta.size() > 1 ? " 等 " + meta.size() + " 个文件" : "") + " 改了：模组信息只在启动时读取，需要重启游戏", null);
+                continue;
+            }
+            List<String> parts = new ArrayList<>();
+            if (sources > 0) parts.add("Java 源码 " + sources + " 个文件");
+            else if (classes > 0) parts.add(classes + " 个类已重新编译");
+            if (!assets.isEmpty()) parts.add(describe(assets));
+            if (!parts.isEmpty()) show("changed", String.join(" · ", parts) + "改动，还没生效", "热重载");
         }
+    }
+
+    /** What a resource change needs: nothing (pages reload themselves), a resource reload, or a restart. */
+    private enum Kind { LIVE, ASSET, RESTART }
+
+    private static Kind kind(Path file) {
+        String rel = relative(file);
+        String name = file.getFileName().toString();
+        if (rel.startsWith("assets/") || rel.startsWith("data/")) {
+            // Pages, stylesheets, scripts and their data are read from the sources when they are saved.
+            boolean text = name.endsWith(".html") || name.endsWith(".css") || name.endsWith(".js") || name.endsWith(".md")
+                    || name.endsWith(".json") || name.endsWith(".txt");
+            return rel.matches("assets/[^/]+/ui/.*") && text ? Kind.LIVE : Kind.ASSET;
+        }
+        return name.endsWith(".mod.json") || name.endsWith(".toml") || name.contains("mixins") || rel.startsWith("META-INF/")
+                ? Kind.RESTART : Kind.LIVE;
+    }
+
+    /** {@code file} relative to its resource folder, with forward slashes. */
+    private static String relative(Path file) {
+        for (Path dir : resourceDirs) if (file.startsWith(dir)) return dir.relativize(file).toString().replace('\\', '/');
+        return file.getFileName().toString();
+    }
+
+    /** "资源 3 个文件（图标、字体）". */
+    private static String describe(List<Path> assets) {
+        java.util.LinkedHashSet<String> what = new java.util.LinkedHashSet<>();
+        for (Path f : assets) {
+            String rel = relative(f), name = f.getFileName().toString();
+            if (rel.contains("/textures/icons/")) what.add("图标");
+            else if (name.endsWith(".png")) what.add("贴图");
+            else if (rel.contains("/font/")) what.add("字体");
+            else if (rel.contains("/lang/")) what.add("语言");
+            else if (rel.contains("/sounds") || name.endsWith(".ogg")) what.add("声音");
+            else if (rel.contains("/models/") || rel.contains("/blockstates/")) what.add("模型");
+            else what.add("资源");
+        }
+        return "资源 " + assets.size() + " 个文件（" + String.join("、", what) + "）";
     }
 
     /**
@@ -157,23 +219,31 @@ public final class DevReload {
 
     // ---- Reloading ----
 
-    /** The bar's button: compile when sources changed, then swap the changed classes in and reopen the pages. */
+    /**
+     * The bar's button: compile and copy resources when sources or resources changed, then swap the changed classes
+     * in, reload the resources if some changed, and reopen the pages.
+     */
     static void reload() {
         if (busy) return;
         busy = true;
         Thread worker = new Thread(() -> {
             try {
-                if (!changed(sourceDirs, ".java", sourceTimes).isEmpty()) {
-                    show("building", "正在编译…", null);
+                boolean java = !changed(sourceDirs, ".java", sourceTimes).isEmpty();
+                List<Path> assetFiles = changed(resourceDirs, "", resourceTimes).stream().filter(f -> kind(f) == Kind.ASSET).toList();
+                boolean assets = !assetFiles.isEmpty();
+                String assetNote = assets ? describe(assetFiles) : null;
+                if (java || assets) {
+                    show("building", java ? "正在编译…" : "正在复制资源…", null);
                     String error = compile();
                     if (error != null) {
                         show("failed", "编译失败：" + error, "重试");
                         return;
                     }
                     scan(sourceDirs, ".java", sourceTimes, true);
+                    scan(resourceDirs, "", resourceTimes, true);
                 }
                 List<Path> classes = changed(classDirs, ".class", classTimes);
-                Minecraft.getInstance().execute(() -> swap(classes));
+                Minecraft.getInstance().execute(() -> swap(classes, assetNote));
             } catch (RuntimeException e) {
                 Constants.LOG.error("Oriel dev reload failed", e);
                 show("failed", "热重载出错：" + e.getMessage(), "重试");
@@ -214,14 +284,29 @@ public final class DevReload {
         }
     }
 
-    /** Swaps the changed classes into the JVM (on the client thread, between frames), then reopens every page. */
-    private static void swap(List<Path> files) {
+    /**
+     * Swaps the changed classes into the JVM (on the client thread, between frames), reloads the resources when some
+     * changed ({@code assets} says which, else null), then reopens every page.
+     */
+    private static void swap(List<Path> files, String assets) {
+        if (assets != null) {
+            show("building", "正在重新加载资源…", null);
+            Minecraft.getInstance().reloadResourcePacks().thenRun(() -> Minecraft.getInstance().execute(() -> swapClasses(files, "已重新加载" + assets)));
+            return;
+        }
+        swapClasses(files, null);
+    }
+
+    /** {@link #swap} after the resources: the classes, then the pages; {@code reloaded} leads the result, or null. */
+    private static void swapClasses(List<Path> files, String reloaded) {
         if (files.isEmpty()) {
-            show("done", "没有需要替换的类", null);
+            DocumentDriver.reloadAll();
+            show("done", (reloaded != null ? reloaded : "已检查：代码没有变化") + "，页面已重新打开", null);
             return;
         }
         Instrumentation inst = instrumentation();
         if (inst == null) {
+            snapshotClasses();
             show("restart", "无法热替换（JVM 不允许自连接）：需要重启游戏", null);
             return;
         }
@@ -261,10 +346,11 @@ public final class DevReload {
         snapshotClasses();
         DocumentDriver.reloadAll();
         if (!refused.isEmpty()) {
-            show("restart", "已替换 " + (defs.size() - refused.size()) + " 个类；需要重启游戏：" + String.join("、", refused.stream().distinct().limit(4).toList())
+            show("restart", (reloaded != null ? reloaded + "；" : "") + "已替换 " + (defs.size() - refused.size()) + " 个类；需要重启游戏：" + String.join("、", refused.stream().distinct().limit(4).toList())
                     + (refused.size() > 4 ? " 等" : "") + "（新增或删除了字段、方法）", null);
         } else {
-            show("done", (defs.isEmpty() ? "代码已更新" : "已热替换 " + defs.size() + " 个类") + (fresh > 0 ? "，新增 " + fresh + " 个类" : "") + "，页面已重新打开", null);
+            show("done", (reloaded != null ? reloaded + "，" : "") + (defs.isEmpty() ? "代码已更新" : "已热替换 " + defs.size() + " 个类")
+                    + (fresh > 0 ? "，新增 " + fresh + " 个类" : "") + "，页面已重新打开", null);
         }
     }
 
