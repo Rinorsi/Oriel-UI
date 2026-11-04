@@ -48,13 +48,12 @@ final class Stylesheet {
      * and reported to {@code log}; so are features only approximated ({@code @layer}, {@code position: sticky}).
      */
     static Stylesheet parse(String css, String url, Host host, Consumer<Diagnostic> log) {
-        Builder b = new Builder(url, host, log);
-        return new Stylesheet(url, b.rules(CssParser.parseRules(css), true));
+        return CssIssues.in(url, log, () -> new Stylesheet(url, new Builder(url, host, log).rules(CssParser.parseRules(css), true)));
     }
 
     /** Parses a declaration list (a {@code style} attribute) into longhand declarations. */
     static List<Decl> declarations(String css, String url, Host host, Consumer<Diagnostic> log) {
-        return new Builder(url, host, log).declarations(CssParser.parseComponentValues(css), false);
+        return CssIssues.in(url, log, () -> new Builder(url, host, log).declarations(CssParser.parseComponentValues(css), false));
     }
 
     private record Builder(String url, Host host, Consumer<Diagnostic> log) {
@@ -75,12 +74,12 @@ final class Stylesheet {
                     }
                     case "supports" -> {
                         Predicate<Void> condition = Conditions.parse(r.prelude(), this::supports);
-                        if (condition == null) warn(r.line(), "invalid-supports", "Invalid @supports condition", "the block is skipped");
+                        if (condition == null) warn(r.line(), r.column(), "invalid-supports", "Invalid @supports condition", "the block is skipped");
                         else if (r.block() != null && condition.test(null)) out.addAll(nested(r));
                     }
                     case "layer" -> {
                         if (r.block() != null) {
-                            note(r.line(), "layer-flattened", "@layer is flattened: layer order is not modelled",
+                            note(r.line(), r.column(), "layer-flattened", "@layer is flattened: layer order is not modelled",
                                     "its rules cascade in source order with the rest");
                             out.addAll(nested(r));
                         }
@@ -88,16 +87,16 @@ final class Stylesheet {
                     case "import" -> {
                         ImportRule imp = importRule(r);
                         if (imp == null || !importsAllowed) {
-                            warn(r.line(), "ignored-import", "Ignored @import",
+                            warn(r.line(), r.column(), "ignored-import", "Ignored @import",
                                     imp == null ? "write @import url(file.css);" : "@import must come before all other rules");
                         }
                         else out.add(imp);
                     }
                     case "keyframes", "-webkit-keyframes" -> keyframes(r, out);
                     case "charset" -> { }
-                    case "namespace", "font-face", "page", "property", "counter-style" -> note(r.line(),
+                    case "namespace", "font-face", "page", "property", "counter-style" -> note(r.line(), r.column(),
                             "ignored-at-rule", "@" + name + " is not supported and is ignored", "");
-                    default -> warn(r.line(), "unknown-at-rule", "Unknown at-rule @" + name,
+                    default -> warn(r.line(), r.column(), "unknown-at-rule", "Unknown at-rule @" + name,
                             "supported: @media, @supports, @import, @keyframes, @layer");
                 }
             }
@@ -113,7 +112,7 @@ final class Stylesheet {
             try {
                 selectors = SelectorParser.parse(r.prelude());
             } catch (IllegalArgumentException e) {
-                warn(r.line(), "invalid-selector", "Invalid selector '" + ComponentValue.text(r.prelude()) + "': "
+                warn(r.line(), r.column(), "invalid-selector", "Invalid selector '" + ComponentValue.text(r.prelude()) + "': "
                         + e.getMessage(), "the whole rule is skipped");
                 return;
             }
@@ -124,24 +123,27 @@ final class Stylesheet {
         /** Expands declarations, logging invalid ones; {@code !important} ones are dropped in keyframes. */
         List<Decl> declarations(List<ComponentValue> body, boolean keyframe) {
             List<Decl> out = new ArrayList<>();
-            List<CssParser.Declaration> parsed = CssParser.parseDeclarations(body, (text, line) -> warn(line,
-                    "not-a-declaration", "Skipped '" + Suggestions.clip(text) + "': not a declaration",
-                    text.contains("{") ? "CSS nesting is not supported: write the nested rule out at the top level"
-                            : "a declaration is name: value;"));
+            List<CssParser.Declaration> parsed = CssParser.parseDeclarations(body, new CssParser.Dropped() {
+                public void accept(String text, int line) { accept(text, line, 0); }
+                public void accept(String text, int line, int column) {
+                    warn(line, column, "not-a-declaration", "Skipped '" + Suggestions.clip(text) + "': not a declaration",
+                            text.contains("{") ? "CSS nesting is not supported: write the nested rule out at the top level" : "a declaration is name: value;");
+                }
+            });
             for (CssParser.Declaration d : parsed) {
                 if (keyframe && d.important()) {
-                    warn(d.line(), "ignored-important", "!important is ignored in keyframes", "");
+                    warn(d.line(), d.column(), "ignored-important", "!important is ignored in keyframes", "");
                     continue;
                 }
                 List<Decl> expanded = Decl.expand(d, url, host);
                 String value = ComponentValue.text(d.value());
                 if (expanded == null) {
-                    warn(d.line(), Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property",
+                    warn(d.line(), d.column(), Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property",
                             "Invalid declaration '" + d.name() + ": " + value + "'", Suggestions.forDeclaration(d.name(), d.value()));
                     continue;
                 }
                 if (d.name().equals("position") && value.trim().equalsIgnoreCase("sticky")) {
-                    warn(d.line(), "approximated", "position: sticky is treated as relative",
+                    warn(d.line(), d.column(), "approximated", "position: sticky is treated as relative",
                             "sticky offsets are not applied; use relative, or absolute in a positioned parent");
                 }
                 out.addAll(expanded);
@@ -163,13 +165,13 @@ final class Stylesheet {
         private void keyframes(CssParser.Rule r, List<Rule> out) {
             ComponentValue name = r.prelude().size() == 1 ? r.prelude().get(0) : null;
             if (r.block() == null || !(name instanceof Token t) || !(t.is(Type.IDENT) || t.is(Type.STRING))) {
-                warn(r.line(), "invalid-keyframes", "Invalid @keyframes", "write @keyframes name { from {...} to {...} }");
+                warn(r.line(), r.column(), "invalid-keyframes", "Invalid @keyframes", "write @keyframes name { from {...} to {...} }");
                 return;
             }
             List<Keyframe> frames = new ArrayList<>();
             for (CssParser.Rule frame : CssParser.parseRules(r.block().body(), false)) {
                 List<Float> offsets = frame.isAtRule() || frame.block() == null ? null : offsets(frame.prelude());
-                if (offsets == null) warn(frame.line(), "invalid-keyframe", "Invalid keyframe selector", "use from, to or percentages");
+                if (offsets == null) warn(frame.line(), frame.column(), "invalid-keyframe", "Invalid keyframe selector", "use from, to or percentages");
                 else frames.add(new Keyframe(offsets, declarations(frame.block().body(), true)));
             }
             out.add(new KeyframesRule(t.value, frames));
@@ -207,12 +209,14 @@ final class Stylesheet {
             return ignored -> result;
         }
 
-        private void warn(int line, String code, String message, String suggestion) {
-            log.accept(new Diagnostic(Severity.WARNING, code, url, line, message, suggestion));
+        private void warn(int line, String code, String message, String suggestion) { warn(line, 0, code, message, suggestion); }
+
+        private void warn(int line, int column, String code, String message, String suggestion) {
+            log.accept(new Diagnostic(Severity.WARNING, code, url, line, column, message, suggestion));
         }
 
-        private void note(int line, String code, String message, String suggestion) {
-            log.accept(new Diagnostic(Severity.INFO, code, url, line, message, suggestion));
+        private void note(int line, int column, String code, String message, String suggestion) {
+            log.accept(new Diagnostic(Severity.INFO, code, url, line, column, message, suggestion));
         }
     }
 }

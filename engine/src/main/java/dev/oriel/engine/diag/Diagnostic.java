@@ -6,8 +6,12 @@ package dev.oriel.engine.diag;
  * tools and tests), {@code source} is the page or stylesheet URL and {@code line} its 1-based line (0 when
  * unknown); {@code suggestion} says what to write instead, or is empty.
  */
-public record Diagnostic(Severity severity, String code, String source, int line, String message, String suggestion) {
+public record Diagnostic(Severity severity, String code, String source, int line, int column, String message, String suggestion) {
     public enum Severity { INFO, WARNING, ERROR }
+
+    public Diagnostic(Severity severity, String code, String source, int line, String message, String suggestion) {
+        this(severity, code, source, line, 0, message, suggestion);
+    }
 
     public Diagnostic {
         suggestion = suggestion == null ? "" : suggestion;
@@ -15,7 +19,7 @@ public record Diagnostic(Severity severity, String code, String source, int line
 
     /** {@code source:line: severity [code] message (suggestion)}, as logs and the previewer print it. */
     public String format() {
-        return source + (line > 0 ? ":" + line : "") + ": " + severity.name().toLowerCase(java.util.Locale.ROOT)
+        return source + (line > 0 ? ":" + line + (column > 0 ? ":" + column : "") : "") + ": " + severity.name().toLowerCase(java.util.Locale.ROOT)
                 + " [" + code + "] " + message + (suggestion.isEmpty() ? "" : " (" + suggestion + ")");
     }
 }

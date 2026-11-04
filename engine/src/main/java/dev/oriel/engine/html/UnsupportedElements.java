@@ -8,7 +8,9 @@ import dev.oriel.engine.dom.Element;
 public final class UnsupportedElements {
     private UnsupportedElements() {}
 
-    public static void check(Document document, Element element) {
+    public static void check(Document document, Element element) { check(document, element, 0, 0); }
+
+    public static void check(Document document, Element element, int line, int column) {
         String tag = element.tagName();
         if (element.replaced != null || tag.contains("-")) return;
         String suggestion = switch (tag) {
@@ -30,7 +32,7 @@ public final class UnsupportedElements {
             case "ruby", "rt", "rp" -> "use separate text elements in a CSS grid for pronunciation annotations";
             default -> null;
         };
-        if (suggestion != null) report(document, tag, suggestion);
+        if (suggestion != null) report(document, tag, suggestion, line, column);
     }
 
     static void foreignChild(Document document, String tag, String root) {
@@ -38,9 +40,11 @@ public final class UnsupportedElements {
         report(document, tag, "replace the <" + root + "> subtree with <img src=\"image.png\"> or HTML/CSS elements");
     }
 
-    private static void report(Document document, String tag, String suggestion) {
+    private static void report(Document document, String tag, String suggestion) { report(document, tag, suggestion, 0, 0); }
+
+    private static void report(Document document, String tag, String suggestion, int line, int column) {
         document.diagnostics().reportOnce("unsupported-element:" + tag, () -> new Diagnostic(
-                Diagnostic.Severity.WARNING, "unsupported-element", document.url(), 0,
+                Diagnostic.Severity.WARNING, "unsupported-element", document.url(), line, column,
                 "Element <" + tag + "> is not supported", suggestion));
     }
 }

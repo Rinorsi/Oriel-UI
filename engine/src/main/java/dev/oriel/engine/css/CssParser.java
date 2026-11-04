@@ -1,228 +1,27 @@
 package dev.oriel.engine.css;
 
-import dev.oriel.engine.Limits;
-import dev.oriel.engine.css.ComponentValue.Block;
-import dev.oriel.engine.css.ComponentValue.Func;
-import dev.oriel.engine.css.Token.Type;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
+import dev.oriel.engine.parse.ParserAudit;
 import java.util.List;
 
-/**
- * The CSS Syntax 3 parser (§5): turns tokens into component values, then into rules and declarations, with the
- * spec's error recovery (unclosed blocks close at EOF, a bad declaration is skipped up to the next {@code ;}, a rule
- * without a block is dropped). Interpreting preludes and values is left to {@link Stylesheet} and {@link Properties}.
- */
+/** CSS syntax entry points shared by stylesheets and the unchanged property-value parsers. */
 final class CssParser {
-    private CssParser() {}
-
-    /** A qualified rule (selector + block) or an at-rule; {@code block} is null for at-rules ending in {@code ;}. */
-    record Rule(String atKeyword, List<ComponentValue> prelude, Block block, int line) {
+    record Rule(String atKeyword, List<ComponentValue> prelude, ComponentValue.Block block, int line, int column) {
+        Rule(String atKeyword, List<ComponentValue> prelude, ComponentValue.Block block, int line) { this(atKeyword, prelude, block, line, 0); }
         boolean isAtRule() { return atKeyword != null; }
     }
-
-    /** A declaration; {@code value} has the {@code !important} flag and surrounding whitespace removed. */
-    record Declaration(String name, List<ComponentValue> value, boolean important, int line) {}
-
-    static List<ComponentValue> parseComponentValues(String source) {
-        return new TreeBuilder(Tokenizer.tokenize(source)).list(null);
+    record Declaration(String name, List<ComponentValue> value, boolean important, int line, int column) {
+        Declaration(String name, List<ComponentValue> value, boolean important, int line) { this(name, value, important, line, 0); }
     }
-
-    /** Parses a stylesheet's top-level rules. */
-    static List<Rule> parseRules(String source) {
-        return parseRules(parseComponentValues(source), true);
-    }
-
-    /** Parses a list of rules from component values (a stylesheet, or the block of {@code @media}). */
-    static List<Rule> parseRules(List<ComponentValue> values, boolean topLevel) {
-        List<Rule> rules = new ArrayList<>();
-        int i = 0;
-        while (i < values.size()) {
-            ComponentValue v = values.get(i);
-            if (v instanceof Token t && (t.is(Type.WHITESPACE) || (topLevel && (t.is(Type.CDO) || t.is(Type.CDC))))) {
-                i++;
-                continue;
-            }
-            String at = v instanceof Token t && t.is(Type.AT_KEYWORD) ? t.lower : null;
-            if (at != null) i++;
-            List<ComponentValue> prelude = new ArrayList<>();
-            Block block = null;
-            for (; i < values.size(); i++) {
-                ComponentValue p = values.get(i);
-                if (p instanceof Block b && b.open() == '{') {
-                    block = b;
-                    i++;
-                    break;
-                }
-                if (at != null && p instanceof Token t && t.is(Type.SEMICOLON)) {
-                    i++;
-                    break;
-                }
-                prelude.add(p);
-            }
-            if (block != null || at != null) rules.add(new Rule(at, trim(prelude), block, v.line()));
-        }
-        return rules;
-    }
-
-    static List<Declaration> parseDeclarations(String source) {
-        return parseDeclarations(parseComponentValues(source));
-    }
-
-    /** Parses a declaration list (a style rule's block or a {@code style} attribute). Nested at-rules are ignored. */
-    static List<Declaration> parseDeclarations(List<ComponentValue> values) {
-        return parseDeclarations(values, (text, line) -> {});
-    }
-
-    /** What {@link #parseDeclarations(List, Dropped)} skipped: an item that is not a declaration. */
-    @FunctionalInterface
-    interface Dropped {
+    @FunctionalInterface interface Dropped {
         void accept(String text, int line);
+        default void accept(String text, int line, int column) { accept(text, line); }
     }
-
-    /**
-     * {@link #parseDeclarations(List)}, telling {@code dropped} about every non-empty item that is not a
-     * declaration (a nested rule, a stray token), which CSS skips.
-     */
-    static List<Declaration> parseDeclarations(List<ComponentValue> values, Dropped dropped) {
-        List<Declaration> out = new ArrayList<>();
-        int i = 0;
-        while (i < values.size()) {
-            int end = i;
-            while (end < values.size() && !(values.get(end) instanceof Token t && t.is(Type.SEMICOLON))) end++;
-            List<ComponentValue> item = values.subList(i, end);
-            Declaration d = declaration(item);
-            if (d != null) {
-                out.add(d);
-            } else {
-                List<ComponentValue> trimmed = trim(item);
-                if (!trimmed.isEmpty()) dropped.accept(ComponentValue.text(trimmed), lineOf(trimmed));
-            }
-            i = end + 1;
-        }
-        return out;
-    }
-
-    private static int lineOf(List<ComponentValue> values) {
-        for (ComponentValue v : values) if (v instanceof Token t) return t.line();
-        return 0;
-    }
-
-    private static Declaration declaration(List<ComponentValue> values) {
-        List<ComponentValue> v = trim(values);
-        if (v.size() < 2 || !(v.get(0) instanceof Token name) || !name.is(Type.IDENT)) return null;
-        int colon = 1;
-        while (colon < v.size() && v.get(colon) instanceof Token t && t.is(Type.WHITESPACE)) colon++;
-        if (colon >= v.size() || !(v.get(colon) instanceof Token c) || !c.is(Type.COLON)) return null;
-        List<ComponentValue> value = new ArrayList<>(v.subList(colon + 1, v.size()));
-        boolean important = false;
-        int last = lastNonWhitespace(value);
-        if (last >= 0 && value.get(last) instanceof Token imp && imp.isIdent("important")) {
-            int bang = lastNonWhitespace(value.subList(0, last));
-            if (bang >= 0 && value.get(bang) instanceof Token b && b.isDelim('!')) {
-                important = true;
-                value = new ArrayList<>(value.subList(0, bang));
-            }
-        }
-        // Custom property names are case-sensitive; everything else is matched in lower case.
-        String n = name.value.startsWith("--") ? name.value : name.lower;
-        return new Declaration(n, trim(value), important, name.line());
-    }
-
-    private static int lastNonWhitespace(List<ComponentValue> values) {
-        for (int i = values.size() - 1; i >= 0; i--) {
-            if (!(values.get(i) instanceof Token t && t.is(Type.WHITESPACE))) return i;
-        }
-        return -1;
-    }
-
-    /** The values without leading and trailing whitespace tokens. */
-    static List<ComponentValue> trim(List<ComponentValue> values) {
-        int from = 0, to = values.size();
-        while (from < to && values.get(from) instanceof Token t && t.is(Type.WHITESPACE)) from++;
-        while (to > from && values.get(to - 1) instanceof Token t && t.is(Type.WHITESPACE)) to--;
-        return List.copyOf(values.subList(from, to));
-    }
-
-    /**
-     * Groups tokens into functions and blocks (§5.4.7–5.4.9). Functions and blocks nested deeper than
-     * {@link Limits#maxCssNesting} come out empty, their contents skipped, so no later stage
-     * (calc(), :is(), nested rules) recurses without bound.
-     */
-    private static final class TreeBuilder {
-        private final List<Token> tokens;
-        private final int maxNesting = Limits.current().maxCssNesting();
-        private int pos;
-        private int depth;
-
-        TreeBuilder(List<Token> tokens) {
-            this.tokens = tokens;
-        }
-
-        /** Consumes values up to the token of type {@code close} (consumed) or EOF. */
-        List<ComponentValue> list(Type close) {
-            List<ComponentValue> out = new ArrayList<>();
-            while (pos < tokens.size()) {
-                Token t = tokens.get(pos++);
-                if (t.type == close) return out;
-                out.add(value(t));
-            }
-            return out;
-        }
-
-        private ComponentValue value(Token t) {
-            return switch (t.type) {
-                case FUNCTION -> {
-                    List<ComponentValue> args = nested(Type.CLOSE_PAREN);
-                    yield new Func(t.lower, args, t.source(), t.start(), end(t), t.line());
-                }
-                case OPEN_PAREN -> block(t, '(', Type.CLOSE_PAREN);
-                case OPEN_SQUARE -> block(t, '[', Type.CLOSE_SQUARE);
-                case OPEN_CURLY -> block(t, '{', Type.CLOSE_CURLY);
-                default -> t;
-            };
-        }
-
-        private Block block(Token open, char c, Type close) {
-            List<ComponentValue> body = nested(close);
-            return new Block(c, body, open.source(), open.start(), end(open), open.line());
-        }
-
-        /** The contents of a function or block up to {@code close}; empty, and skipped, when nested too deep. */
-        private List<ComponentValue> nested(Type close) {
-            if (depth >= maxNesting) {
-                skip(close);
-                return List.of();
-            }
-            depth++;
-            try {
-                return list(close);
-            } finally {
-                depth--;
-            }
-        }
-
-        /** Skips to the token closing the current function or block, without recursing. */
-        private void skip(Type close) {
-            ArrayDeque<Type> closes = new ArrayDeque<>();
-            closes.push(close);
-            while (pos < tokens.size() && !closes.isEmpty()) {
-                Token t = tokens.get(pos++);
-                switch (t.type) {
-                    case FUNCTION, OPEN_PAREN -> closes.push(Type.CLOSE_PAREN);
-                    case OPEN_SQUARE -> closes.push(Type.CLOSE_SQUARE);
-                    case OPEN_CURLY -> closes.push(Type.CLOSE_CURLY);
-                    default -> {
-                        if (t.type == closes.peek()) closes.pop();
-                    }
-                }
-            }
-        }
-
-        /** End offset of a function or block just consumed: after its closing token, or the last token at EOF. */
-        private int end(Token open) {
-            return pos > 0 ? tokens.get(pos - 1).end() : open.end();
-        }
-    }
+    private CssParser() {}
+    static List<ComponentValue> parseComponentValues(String source) { ParserAudit.mode(); return CssSyntax.components(source); }
+    static List<Rule> parseRules(String source) { return parseRules(parseComponentValues(source), true); }
+    static List<Rule> parseRules(List<ComponentValue> values, boolean topLevel) { ParserAudit.mode(); return CssSyntax.rules(values, topLevel); }
+    static List<Declaration> parseDeclarations(String source) { return parseDeclarations(parseComponentValues(source)); }
+    static List<Declaration> parseDeclarations(List<ComponentValue> values) { return parseDeclarations(values, (text, line) -> {}); }
+    static List<Declaration> parseDeclarations(List<ComponentValue> values, Dropped dropped) { ParserAudit.mode(); return CssSyntax.declarations(values, dropped); }
+    static List<ComponentValue> trim(List<ComponentValue> values) { return CssSyntax.trim(values); }
 }

@@ -210,9 +210,12 @@ public final class Document extends Node {
         return null;
     }
 
-    public Element createElement(String tag) {
+    public Element createElement(String tag) { return createElement(tag, 0, 0); }
+
+    /** Creates a parsed element with its original markup position for capability diagnostics. */
+    public Element createElement(String tag, int line, int column) {
         Element element = new Element(this, tag);
-        if (!replacedElements.supports(element.tagName())) UnsupportedElements.check(this, element);
+        if (!replacedElements.supports(element.tagName())) UnsupportedElements.check(this, element, line, column);
         return element;
     }
 

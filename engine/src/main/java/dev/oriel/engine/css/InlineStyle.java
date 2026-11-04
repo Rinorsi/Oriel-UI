@@ -213,14 +213,22 @@ public final class InlineStyle {
     static List<Entry> parse(Element element, String css) {
         List<Entry> out = new ArrayList<>();
         Document doc = element.ownerDocument();
-        for (CssParser.Declaration d : CssParser.parseDeclarations(css)) {
+        List<CssParser.Declaration> parsed = CssIssues.in(doc.url(), doc.diagnostics()::report, () ->
+                CssParser.parseDeclarations(CssParser.parseComponentValues(css), new CssParser.Dropped() {
+                    public void accept(String text, int line) { accept(text, line, 0); }
+                    public void accept(String text, int line, int column) {
+                        doc.diagnostics().report(new Diagnostic(Severity.WARNING, "not-a-declaration", doc.url(), line, column,
+                                "Skipped inline declaration '" + Suggestions.clip(text) + "'", "a declaration is name: value;"));
+                    }
+                }));
+        for (CssParser.Declaration d : parsed) {
             String value = ComponentValue.text(d.value());
             Entry e = entry(doc, normalize(d.name()), value, d.value(), d.important());
             if (e != null) {
                 out.add(e);
             } else {
                 doc.diagnostics().report(new Diagnostic(Severity.WARNING,
-                        Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property", doc.url(), 0,
+                        Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property", doc.url(), d.line(), d.column(),
                         "Invalid declaration in a style attribute '" + d.name() + ": " + value + "'",
                         Suggestions.forDeclaration(d.name(), d.value())));
             }
