@@ -72,6 +72,11 @@ public final class RecordingCanvas implements Canvas {
      * tessellating them, as a backend that draws shadows itself would.
      */
     public boolean recordShadows;
+    /** Whether {@link #beginGroup} succeeds (groups and backdrops are recorded with no drawing of their own). */
+    public boolean groups;
+    /** {@link #backdropNeedsGroup}: backdrops only succeed inside a group, as in game. */
+    public boolean backdropsNeedGroups;
+    private int openGroups;
     /** Every {@link #crispShapes} hint, in order (not recorded in {@link #calls}). */
     public final List<Boolean> crispHints = new ArrayList<>();
 
@@ -215,6 +220,43 @@ public final class RecordingCanvas implements Canvas {
     @Override
     public float devicePixel() {
         return devicePixel;
+    }
+
+    // ---- Groups ----
+
+    @Override
+    public boolean beginGroup() {
+        return group("beginGroup");
+    }
+
+    @Override
+    public boolean beginPageGroup() {
+        return group("beginPageGroup");
+    }
+
+    private boolean group(String op) {
+        if (!groups) return false;
+        openGroups++;
+        record(op, new float[4], new float[0], 0, null, null, null, null, 0, false);
+        return true;
+    }
+
+    @Override
+    public void endGroup(float opacity, java.util.List<dev.oriel.engine.style.Filter> filters, dev.oriel.engine.style.BlendMode blend) {
+        openGroups--;
+        record("endGroup", new float[4], new float[] {opacity}, 0, null, null, null, null, 0, false);
+    }
+
+    @Override
+    public boolean backdropNeedsGroup() {
+        return backdropsNeedGroups;
+    }
+
+    @Override
+    public boolean beginBackdrop() {
+        if (!groups || backdropsNeedGroups && openGroups == 0) return false;
+        record("beginBackdrop", new float[4], new float[0], 0, null, null, null, null, 0, false);
+        return true;
     }
 
     // ---- Drawing ----

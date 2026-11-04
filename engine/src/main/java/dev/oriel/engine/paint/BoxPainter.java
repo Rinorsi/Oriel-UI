@@ -61,11 +61,20 @@ final class BoxPainter implements StackingOrder.Visitor {
         this.canvas = canvas;
         dp = Geometry.devicePixel(canvas);
         depth = 0;
+        rootGroup = pageGroup && canvas.backdropNeedsGroup() && canvas.beginPageGroup();
     }
 
     void end() {
+        if (rootGroup) canvas.endGroup(1, List.of(), BlendMode.NORMAL);
+        rootGroup = false;
         canvas = null;
     }
+
+    /**
+     * The page is painted as a group, so a backend that can only read back groups ({@link Canvas#backdropNeedsGroup})
+     * can draw its backdrops: set once a backdrop was met outside any group, from the next frame on.
+     */
+    private boolean pageGroup, rootGroup;
 
     private float snap(float v) {
         return Geometry.snap(v, dp);
@@ -93,7 +102,7 @@ final class BoxPainter implements StackingOrder.Visitor {
         }
         // The backdrop reads what is under the element, so it comes before the element's own group.
         if (!style.backdropFilter.isEmpty()) backdrop(box, style, bx, by);
-        boolean effects = style.hasGroupEffects();
+        boolean effects = style.hasLayerEffects();
         boolean group = effects && canvas.beginGroup();
         if (effects && !group) unsupported("filter, backdrop-filter, clip-path, mask and mix-blend-mode are not drawn: this canvas has no offscreen layers");
         String limits = group ? canvas.groupLimits(style.filter, style.mixBlendMode) : null;
@@ -119,6 +128,10 @@ final class BoxPainter implements StackingOrder.Visitor {
     /** {@code backdrop-filter}: what is under the border box, through the filters, inside its rounded shape. */
     private void backdrop(Box box, ComputedStyle s, float x, float y) {
         if (!canvas.beginBackdrop()) {
+            if (canvas.backdropNeedsGroup() && !rootGroup && !pageGroup) {
+                pageGroup = true; // drawn from the next frame on
+                return;
+            }
             unsupported("backdrop-filter is not drawn: this canvas cannot read back what it has drawn");
             return;
         }

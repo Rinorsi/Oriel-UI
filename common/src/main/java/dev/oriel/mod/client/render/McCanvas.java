@@ -87,7 +87,11 @@ public final class McCanvas implements Canvas {
      * An open group: the GUI it draws onto when it ends, its content and mask layers with their operators, and the
      * opacity it is drawn with (the canvas's when it began; inside, primitives are drawn at full opacity).
      */
-    private record Group(McGui under, Layers.Layer content, List<Layers.Layer> masks, List<MaskComposite> ops, float alpha) {}
+    private record Group(McGui under, List<LayerRenderState.Segment> content, boolean page, List<Layers.Layer> masks,
+                         List<MaskComposite> ops, float alpha) {}
+
+    /** The shape of the backdrop being drawn, between {@link #beginBackdrop} and {@link #endBackdrop}. */
+    private Layers.@Nullable Layer backdropShape;
 
     private final Deque<Group> groups = new ArrayDeque<>();
 
@@ -129,12 +133,53 @@ public final class McCanvas implements Canvas {
     /** Groups are drawn by {@link LayerRenderer} once the layer pipelines have compiled. */
     @Override
     public boolean beginGroup() {
+        return begin(false);
+    }
+
+    @Override
+    public boolean beginPageGroup() {
+        return begin(true);
+    }
+
+    private boolean begin(boolean page) {
         if (!Layers.available()) return false;
-        Group group = new Group(gui, Layers.layer(), new ArrayList<>(), new ArrayList<>(), alpha);
+        Layers.Layer content = Layers.layer();
+        Group group = new Group(gui, new ArrayList<>(List.of(new LayerRenderState.Draw(content))), page,
+                new ArrayList<>(), new ArrayList<>(), alpha);
         groups.push(group);
-        enter(group.content());
+        enter(content);
         alpha = 1;
         return true;
+    }
+
+    /**
+     * Backdrops are read from the innermost group (its backdrop root, Filter Effects 2 §3), so they need one: the
+     * painter makes the page a group when it meets a backdrop outside any.
+     */
+    @Override
+    public boolean backdropNeedsGroup() {
+        return Layers.available();
+    }
+
+    @Override
+    public boolean beginBackdrop() {
+        if (groups.isEmpty() || backdropShape != null) return false;
+        gui.end();
+        backdropShape = Layers.layer();
+        enter(backdropShape);
+        return true;
+    }
+
+    @Override
+    public void endBackdrop(List<Filter> filters) {
+        Group group = groups.peek();
+        if (group == null || backdropShape == null) return;
+        gui.end();
+        group.content().add(new LayerRenderState.Backdrop(backdropShape, filters, alpha));
+        backdropShape = null;
+        Layers.Layer next = Layers.layer();
+        group.content().add(new LayerRenderState.Draw(next));
+        enter(next);
     }
 
     @Override
@@ -167,7 +212,7 @@ public final class McCanvas implements Canvas {
         // The layer covers the clip: nothing outside it can show.
         int x0 = clips.left(), y0 = clips.top(), x1 = clips.right(), y1 = clips.bottom();
         if (x1 <= x0 || y1 <= y0) return;
-        gui.layer(new LayerRenderState(group.content(), filters, List.copyOf(group.masks()), List.copyOf(group.ops()),
+        gui.layer(new LayerRenderState(List.copyOf(group.content()), group.page(), filters, List.copyOf(group.masks()), List.copyOf(group.ops()),
                 opacity * alpha, blend, x0, y0, x1, y1, gui.scissor(),
                 net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState.getBounds(x0, y0, x1, y1, gui.scissor())));
     }

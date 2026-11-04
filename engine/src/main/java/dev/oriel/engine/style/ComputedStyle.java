@@ -476,8 +476,16 @@ public final class ComputedStyle implements Cloneable {
      * offscreen layer where the canvas has them.
      */
     public boolean hasGroupEffects() {
-        return !filter.isEmpty() || !backdropFilter.isEmpty() || clipPath != ClipShape.NONE || !maskImage.isEmpty()
-                || mixBlendMode != BlendMode.NORMAL || isolate;
+        return !backdropFilter.isEmpty() || hasLayerEffects();
+    }
+
+    /**
+     * {@link #hasGroupEffects} but a backdrop filter, which reads what is under the element (before it) and needs no
+     * layer of the element's own.
+     */
+    public boolean hasLayerEffects() {
+        return !filter.isEmpty() || clipPath != ClipShape.NONE || !maskImage.isEmpty() || mixBlendMode != BlendMode.NORMAL
+                || isolate;
     }
 
     /** Set by the style engine for children of flex and grid containers, where z-index applies without position. */

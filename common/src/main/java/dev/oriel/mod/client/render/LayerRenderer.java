@@ -48,7 +48,13 @@ public final class LayerRenderer extends PictureInPictureRenderer<LayerRenderSta
 
     private static void draw(LayerRenderState state, GuiRenderState out) {
         RenderTarget content = Layers.target();
-        Layers.draw(state.content(), content);
+        for (LayerRenderState.Segment segment : state.content()) {
+            switch (segment) {
+                case LayerRenderState.Draw d -> Layers.draw(d.layer(), content);
+                case LayerRenderState.Backdrop b -> Layers.backdrop(content, b, state.page(),
+                        new float[] {state.x0(), state.y0(), state.x1(), state.y1()});
+            }
+        }
         content = Layers.filter(content, state.filters(), new float[] {state.x0(), state.y0(), state.x1(), state.y1()});
         if (!state.masks().isEmpty()) {
             RenderTarget mask = Layers.target();

@@ -179,12 +179,43 @@ public final class Layers {
 
     /** Draws {@code from} over {@code into}, pixel for pixel, with {@code pipeline}'s blending. */
     static void blit(RenderTarget from, RenderTarget into, RenderPipeline pipeline) {
+        blit(from, into, pipeline, -1);
+    }
+
+    /** {@link #blit(RenderTarget, RenderTarget, RenderPipeline)} multiplied by {@code color} (premultiplied). */
+    static void blit(RenderTarget from, RenderTarget into, RenderPipeline pipeline, int color) {
         Layer l = layer();
         WindowRenderState window = window();
         int scale = Math.max(1, window.guiScale);
         l.state.addBlitToCurrentLayer(blit(pipeline, from, 0, 0, Math.ceilDiv(window.width, scale),
-                Math.ceilDiv(window.height, scale), -1, null));
+                Math.ceilDiv(window.height, scale), color, null));
         draw(l, into);
+    }
+
+    /**
+     * A {@code backdrop-filter} in a group (Filter Effects 2 §3): what {@code group} holds so far, over what is under
+     * the page for the {@code page} group (the frame so far: the world, or the panorama), through the filters within
+     * {@code area}, cut to the backdrop's shape, drawn into {@code group}.
+     */
+    static void backdrop(RenderTarget group, LayerRenderState.Backdrop backdrop, boolean page, float[] area) {
+        RenderTarget under = target();
+        if (page) blit(mainTarget(), under, OVER);
+        blit(group, under, OVER);
+        under = filter(under, backdrop.filters(), area);
+        RenderTarget shape = target();
+        draw(backdrop.shape(), shape);
+        blit(shape, under, DESTINATION_IN);
+        release(shape);
+        int a = Math.round(Math.clamp(backdrop.alpha(), 0, 1) * 255);
+        blit(under, group, OVER, a << 24 | a << 16 | a << 8 | a);
+        release(under);
+    }
+
+    private static RenderTarget mainTarget() {
+        //? if >=26.2 {
+        return Minecraft.getInstance().gameRenderer.mainRenderTarget();
+        //?} else
+        //return Minecraft.getInstance().getMainRenderTarget();
     }
 
     /**

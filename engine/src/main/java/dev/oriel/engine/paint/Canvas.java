@@ -161,9 +161,19 @@ public interface Canvas {
 
     /**
      * Starts a backdrop ({@code backdrop-filter}): what is drawn until {@link #endBackdrop} is a shape mask. False
-     * when the backend cannot read back what it has drawn.
+     * when the backend cannot read back what it has drawn, or (see {@link #backdropNeedsGroup}) not here.
      */
     default boolean beginBackdrop() { return false; }
+
+    /**
+     * Whether a backdrop can only be read inside a group: the backend can read back what a group has drawn, but not
+     * the target itself. The painter then paints the page as a group (the page's backdrop root) once it has met a
+     * backdrop outside any group, and the backend gives that group what is under the page as its backdrop.
+     */
+    default boolean backdropNeedsGroup() { return false; }
+
+    /** {@link #beginGroup} for the page itself (see {@link #backdropNeedsGroup}): its backdrop is what is under the page. */
+    default boolean beginPageGroup() { return beginGroup(); }
 
     /**
      * Ends the backdrop: what had been drawn under the shape is drawn again through {@code filters}, inside the shape
