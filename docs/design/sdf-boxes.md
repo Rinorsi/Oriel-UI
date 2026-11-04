@@ -35,7 +35,7 @@ The first version replaces three things on 26.3 and 26.2:
 
 These cover what pages actually use: `.mc-panel`, buttons, cards, glows. Elliptical corners, per-side border colors
 or widths, and dashed, dotted, groove, ridge and double borders keep the current code, which stays the reference
-behavior and the 1.21.1 path.
+behavior.
 
 Not in scope: gradients (they already clip to the rounded shape through `QuadBatch`; moving them is a later step) and
 **rounded `overflow: hidden` clipping**. The SDF cannot do clipping, because the clip has to apply to everything
@@ -141,9 +141,6 @@ matches the game to within the font and a sub-pixel of layout rounding. `SmoothS
 5. Previewer: antialiased overrides in `ImageCanvas`.
 6. A config switch (`render.sdf=true` in `oriel.properties`) to fall back to tessellation, kept until the shader has
    been seen on a range of GPUs and both backends (OpenGL and Vulkan, since 26.3 compiles GLSL to SPIR-V).
-
-1.21.1 stays on tessellation: its renderer is immediate-mode with a different shader system, and porting there is
-not worth the code until someone asks.
 
 ## As built (26.3)
 

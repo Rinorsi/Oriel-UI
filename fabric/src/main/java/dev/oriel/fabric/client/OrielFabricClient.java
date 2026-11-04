@@ -21,21 +21,12 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-//? if >=26 {
 import dev.oriel.mod.client.render.GuiSceneRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-//?} else {
-/*import net.minecraft.client.input.MouseButtonEvent;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.ResourceManager;
-*///?}
 
 /** Fabric client entrypoint (fabric.mod.json "client"): registration only; the logic lives in common. */
 public final class OrielFabricClient implements ClientModInitializer {
@@ -43,50 +34,27 @@ public final class OrielFabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         OrielClient.init(ClientPlayNetworking::send);
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) register(c);
-        //? if >=26 {
         //? if >=26.2 {
         PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer());
         //?} else
         //PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer(context.bufferSource()));
         HudElementRegistry.attachElementAfter(VanillaHudElements.TITLE_AND_SUBTITLE, Constants.id("hud"), OrielHud::extract);
-        //?} else
-        //HudRenderCallback.EVENT.register(OrielHud::extract); // 1.21.1 has no HUD layers: after the whole HUD
         // Interactive HUD overlays: drawn above every screen and given its pointer input first (per-screen events).
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
-            //? if >=26 {
             ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> OrielHud.extractAboveScreen(g, a));
             // The dev tour's cursor, over everything: after the screen's tooltips and the overlays above it.
             if (DevFlags.TOUR) ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> TourCursor.extractAboveScreen(g));
             ScreenMouseEvents.allowMouseClick(screen).register((s, e) -> !OrielHud.mouseClicked(e));
             ScreenMouseEvents.allowMouseRelease(screen).register((s, e) -> !OrielHud.mouseReleased(e));
             ScreenMouseEvents.allowMouseDrag(screen).register((s, e, dx, dy) -> !OrielHud.mouseDragged(e));
-            //?} else {
-            /*ScreenEvents.afterRender(screen).register((s, g, mouseX, mouseY, a) -> OrielHud.extractAboveScreen(g, a));
-            ScreenMouseEvents.allowMouseClick(screen).register((s, x, y, button) -> !OrielHud.mouseClicked(MouseButtonEvent.now(x, y, button)));
-            ScreenMouseEvents.allowMouseRelease(screen).register((s, x, y, button) -> !OrielHud.mouseReleased(MouseButtonEvent.now(x, y, button)));
-            *///?}
             ScreenMouseEvents.allowMouseScroll(screen).register((s, x, y, dx, dy) -> !OrielHud.mouseScrolled(x, y, dx, dy));
         });
         // After every mod's client entrypoint has had the chance to call OrielScreens.registerContainer.
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
             for (OrielScreens.ContainerBinding<?> b : OrielScreens.takeContainers()) registerMenuScreen(b);
         });
-        //? if >=26 {
         ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(Constants.id("documents"),
                 (ResourceManagerReloadListener) resources -> OrielClient.onResourceReload());
-        //?} else {
-        /*ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-            @Override
-            public Identifier getFabricId() {
-                return Constants.id("documents");
-            }
-
-            @Override
-            public void onResourceManagerReload(ResourceManager resources) {
-                OrielClient.onResourceReload();
-            }
-        });
-        *///?}
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, context) -> dispatcher.register(OrielClientCommands.create()));
         ClientTickEvents.END_CLIENT_TICK.register(client -> OrielClient.tick());
         if (DevFlags.AUTOPILOT) {
@@ -96,7 +64,6 @@ public final class OrielFabricClient implements ClientModInitializer {
                 ScreenEvents.remove(screen).register(s -> DevPointer.beforeScreenChange());
             });
         }
-        //? if >=26
         if (DevFlags.TOUR) HudElementRegistry.addLast(Constants.id("tour_cursor"), TourCursor::extractHud);
     }
 

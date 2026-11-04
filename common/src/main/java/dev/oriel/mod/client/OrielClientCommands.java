@@ -118,10 +118,7 @@ public final class OrielClientCommands {
 
     /** Runs after the chat screen that sent the command has closed (it would close a screen opened right away). */
     private static int later(Runnable action) {
-        //? if >=26 {
         Minecraft.getInstance().schedule(action);
-        //?} else
-        //Minecraft.getInstance().tell(action);
         return 1;
     }
 }

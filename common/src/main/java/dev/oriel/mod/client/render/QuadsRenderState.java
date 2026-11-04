@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -25,4 +24,3 @@ record QuadsRenderState(RenderPipeline pipeline, TextureSetup textureSetup, Matr
         for (int i = 0, n = colors.length; i < n; i++) consumer.addVertexWith2DPose(pose, xy[i * 2], xy[i * 2 + 1]).setColor(colors[i]);
     }
 }
-//?}

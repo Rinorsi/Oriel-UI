@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-// Applied to the Stonecutter version subprojects (:common:26.3, :neoforge:1.21.1...): the parent project is the
+// Applied to the Stonecutter version subprojects (:common:26.3, :neoforge:26.1...): the parent project is the
 // loader (or common), and the project's own name is the Minecraft version.
 def platform = project.parent.name
 // The published group (gradle.properties `group`).
@@ -98,11 +98,6 @@ ext.loaderAttributeOn = loaderAttributeOn
 loaderAttributeOn('apiElements', 'runtimeElements', 'sourcesElements')
 sourceSets.configureEach {
     loaderAttributeOn(it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName)
-}
-
-dependencies {
-    // 26.x ships JSpecify with Minecraft; older versions don't.
-    if (stonecutter.current.parsed < '26') compileOnly('org.jspecify:jspecify:1.0.0')
 }
 
 publishing {

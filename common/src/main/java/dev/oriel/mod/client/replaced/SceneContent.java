@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.replaced;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -201,4 +200,3 @@ public final class SceneContent extends dev.oriel.engine.scene.SceneContent impl
         return "scene " + Arrays.toString(model.bounds());
     }
 }
-//?}

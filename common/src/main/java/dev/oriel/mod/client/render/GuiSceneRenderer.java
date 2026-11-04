@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -83,4 +82,3 @@ public final class GuiSceneRenderer extends PictureInPictureRenderer<GuiSceneRen
         return scene == null ? null : new Picture(scene, state.scale());
     }
 }
-//?}

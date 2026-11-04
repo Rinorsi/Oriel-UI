@@ -1,4 +1,3 @@
-//? if >=26 {
 package dev.oriel.mod.client.replaced;
 
 import dev.oriel.engine.dom.Element;
@@ -68,4 +67,3 @@ final class PlayerHeadContent extends McReplaced {
         return ResolvableProfile.createResolved(Minecraft.getInstance().getGameProfile());
     }
 }
-//?}

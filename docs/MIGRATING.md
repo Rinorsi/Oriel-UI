@@ -10,9 +10,9 @@ Add Oriel's maven and depend on it (see [Setting up](api/setup.md) for every art
 ```groovy
 repositories { maven { url = "https://maven.maxleiter.com"; content { includeGroup("dev.oriel") } } }
 // common/
-dependencies { compileOnly("dev.oriel:oriel-common-26.3:0.9.0") }   // or oriel-common-1.21.1
+dependencies { compileOnly("dev.oriel:oriel-common-26.3:0.9.0") }   // or oriel-common-26.1.2
 // neoforge/ and fabric/
-dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.9.0") }   // or oriel-fabric-26.3, and the 1.21.1 ones
+dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.9.0") }   // or oriel-fabric-26.3, and the 26.1.2/26.2 ones
 ```
 
 If most of your UI moves to Oriel, make it a required dependency (`type="required"` in `neoforge.mods.toml`,

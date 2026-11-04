@@ -158,13 +158,8 @@ final class PageNarrator {
         Constants.LOG.debug("Oriel narrates{}: {}", interrupt ? " at once" : "", said);
         if (recording != null) recording.add(said);
         GameNarrator narrator = Minecraft.getInstance().getNarrator();
-        //? if >=26 {
         if (interrupt) narrator.saySystemNow(text);
         else narrator.saySystemQueued(text);
-        //?} else {
-        /*if (interrupt) narrator.sayNow(text);
-        else narrator.say(text);
-        *///?}
     }
 
     /** Starts recording what Oriel hands the narrator, if it was not already, and returns the list it records into. */

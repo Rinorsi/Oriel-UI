@@ -87,7 +87,7 @@ Oriel measures text exactly as vanilla does, so two of the font's habits show up
 On Minecraft 26.2 and 26.3, rounded corners, rounded borders and box-shadows are drawn by a shader, so curves have
 smooth edges at any GUI scale or rotation and blurs are a real Gaussian. Square corners stay pixel-exact either way.
 
-For hard pixel edges instead, the look of 1.21.1, set `shape-rendering: crispEdges` on an element. It is
+For hard pixel edges instead, set `shape-rendering: crispEdges` on an element. It is
 inherited, so `html { shape-rendering: crispEdges; }` covers a whole page. `auto` (the default) and
 `geometricPrecision` allow smooth shapes, and `optimizeSpeed` is the same as `crispEdges`. Players can also turn the
 shader off for everything with `client.shapeShader=false` ([Settings](security.md#settings)). The previewer draws
@@ -252,7 +252,7 @@ What renders: block models with faces between neighbors in a group culled, conne
 (structure files save fences, panes, walls and stairs connected; write the connections yourself on `<block>`), fluids,
 block entities (chests, beds, signs, banners) with their own renderers but at rest, and entities. Blocks are lit full
 bright by the inventory's light, so the world's time and dimension never show. Faces between two groups are drawn,
-so a group can move away without leaving holes. On 1.21.1 scenes draw nothing ([versions](../versions.md)). The
+so a group can move away without leaving holes. The
 previewer draws blocks from their models with simple shading, entities as silhouettes, and no block entities.
 
 ## Tooltips
@@ -290,7 +290,7 @@ along to NeoForge's tooltip events, as for any item tooltip.
 
 ## Entity render states
 
-Minecraft 26.3 only: 1.21.1 has no entity render states, and Oriel poses the entity itself there.
+适用于全部受支持的 Minecraft 26.x 目标。
 
 Oriel draws an entity from the render state its renderer makes. If your renderer adds things for the world (speech
 bubbles, labels, effects), register a function that makes a state for screens instead:

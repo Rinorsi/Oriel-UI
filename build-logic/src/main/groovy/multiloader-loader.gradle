@@ -69,8 +69,6 @@ processResources {
     from(configurations.commonResources)
     from(configurations.engineClasses)
     from(configurations.kitClasses)
-    // Test instances are data from 26.x on; before, GameTests are code (common's GameTests).
-    if (stonecutter.current.parsed < '26') exclude('data/*/test_instance/**')
 }
 
 tasks.named('javadoc', Javadoc).configure {
@@ -85,7 +83,7 @@ tasks.named('sourcesJar', Jar) {
 }
 
 // The client run's system properties and program arguments, which each loader's build script sets with its own run DSL.
-// `./gradlew :neoforge:26.3:runClient -Pautopilot` (or :fabric:1.21.1...) opens the Oriel demo screens, screenshots
+// `./gradlew :neoforge:26.3:runClient -Pautopilot` (or :fabric:26.1...) opens the Oriel demo screens, screenshots
 // them and quits; `-Pautopilot=scene` runs only the scene showcase's steps. `-Ptour [-PtourGo=<file>] [-PtourShots]`: the scripted showcase tour for demo videos, in a 1280x720
 // window (tools/record creates the go-file once it is recording); tourShots saves a screenshot at each beat, and
 // `-Ptour=scene,shop` plays only those beats (title, mobdex, turntable, shop, scene, end).

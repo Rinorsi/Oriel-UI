@@ -227,10 +227,7 @@ public final class OrielAutomation {
             // loaders' hooks ask OrielHud first).
             MouseButtonEvent event = new MouseButtonEvent(x, y, LEFT);
             if (!OrielHud.mouseDragged(event)) {
-                //? if >=26 {
                 screen.mouseDragged(event, x - px, y - py);
-                //?} else
-                //screen.mouseDragged(x, y, LEFT.button(), x - px, y - py);
             }
             px = x;
             py = y;
