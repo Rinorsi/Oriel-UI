@@ -102,6 +102,7 @@ public final class DevAutopilot {
     private static int standStates;
     /** The checks made so far ({@link #check}), how many of them failed, and the checks left out ({@link #skip}). */
     private static int checks, failures, skipped;
+    private static int smokePageErrors;
 
     private DevAutopilot() {}
 
@@ -167,6 +168,33 @@ public final class DevAutopilot {
         if (!PLAY) DevPointer.hold(); // after screens the step opened, before their first frame
     }
 
+    /** Small cross-version acceptance run: the home page and component catalog, then normal client shutdown. */
+    private static void smoke(Minecraft mc) {
+        Constants.LOG.info("Oriel smoke started");
+        for (String page : List.of("gallery", "catalog")) {
+            shoot(mc, "smoke_" + page, () -> OrielClientCommands.preset(page));
+            Path screenshot = mc.gameDirectory.toPath().resolve("screenshots/oriel_smoke_" + page + ".png");
+            until("smoke " + page + " screenshot saved", ticks -> Files.isRegularFile(screenshot));
+            steps.add(() -> {
+                Screen screen = McClient.screen();
+                DocumentDriver driver = screen == null ? null : DocumentDriver.of(screen);
+                Document doc = driver == null ? null : driver.document();
+                int errors = driver == null ? 1 : driver.pageErrorCount();
+                int warnings = doc == null ? 0 : doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.WARNING)
+                        - doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.ERROR);
+                smokePageErrors += errors;
+                Constants.LOG.info("Oriel smoke page {}: {} errors, {} warnings, screenshot {}",
+                        page, errors, warnings, screenshot.toAbsolutePath());
+                check(doc != null && doc.url().endsWith("/" + page + ".html"),
+                        "smoke {} opened", "smoke {} did not open its document", page);
+                check(errors == 0, "smoke {} has no page errors", "smoke {} has page errors", page);
+                check(Files.isRegularFile(screenshot), "smoke {} screenshot saved",
+                        "smoke {} screenshot is missing", page);
+            });
+        }
+        steps.add(() -> Constants.LOG.info("Oriel smoke finished: {} page errors", smokePageErrors));
+    }
+
     private static void plan(Minecraft mc) {
         OrielEntities.registerPortraitState(EntityTypes.ARMOR_STAND, (stand, partialTick) -> {
             if (!(mc.getEntityRenderDispatcher().getRenderer(stand).createRenderState(stand, partialTick)
@@ -186,6 +214,10 @@ public final class DevAutopilot {
             return;
         }
         guiScale(mc, 2);
+        if (ONLY.equals("smoke")) {
+            smoke(mc);
+            return;
+        }
         if (ONLY.equals("scene")) {
             scene(mc);
             return;

@@ -40,6 +40,9 @@ final class McHost implements Host {
     private final Set<String> reported = new HashSet<>();
     private @Nullable TokenBucket sounds;
     private double soundRate;
+    private int errors;
+
+    int errorCount() { return errors; }
 
     McHost(DocumentDriver driver) {
         this.driver = driver;
@@ -113,14 +116,20 @@ final class McHost implements Host {
             case DEBUG -> Constants.LOG.debug("[{}] {}", driver.name(), message);
             case INFO -> Constants.LOG.info("[{}] {}", driver.name(), message);
             case WARN -> Constants.LOG.warn("[{}] {}", driver.name(), message);
-            case ERROR -> Constants.LOG.error("[{}] {}", driver.name(), message);
+            case ERROR -> {
+                errors++;
+                Constants.LOG.error("[{}] {}", driver.name(), message);
+            }
         }
     }
 
     /** Script and resource errors: the page keeps working, so log each distinct message once. */
     @Override
     public void reportError(String message, Throwable error) {
-        if (reported.add(message)) Constants.LOG.error("[{}] {}", driver.name(), message, error);
+        if (reported.add(message)) {
+            errors++;
+            Constants.LOG.error("[{}] {}", driver.name(), message, error);
+        }
     }
 
     @Override

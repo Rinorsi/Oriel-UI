@@ -453,6 +453,13 @@ public final class DocumentDriver {
         return error == null && document != null && document.error() == null ? document : null;
     }
 
+    /** Errors seen by this page's host, including nonfatal script errors; an unavailable document counts as one. */
+    int pageErrorCount() {
+        Document doc = document();
+        return doc == null ? Math.max(1, host.errorCount())
+                : host.errorCount() + doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.ERROR);
+    }
+
     /** The element under a viewport point (hit testing mirrors paint), or null. */
     public @Nullable Element elementAt(double x, double y) {
         Document doc = document();

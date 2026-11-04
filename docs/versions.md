@@ -31,6 +31,31 @@ differences, which are `>=26.3` comments and the `blaze3d`/`renderpearl` rename 
 
 26.1 项目实际使用 Minecraft 26.1.2，是主要验收版本。26.1/26.2 使用 GLFW，26.3 使用 SDL；26.1 的渲染目标、纹理上传与世界创建接口通过 `>=26.2` 条件适配。开发期 tour 仍只在 26.3 启用。
 
+## 六目标冒烟
+
+在 Git Bash 中运行：
+
+```sh
+bash tools/smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/run-smoke
+```
+
+脚本先编译完整矩阵，再依次启动 Fabric、NeoForge 的 26.1/26.2/26.3 客户端；每个客户端限时 600 秒。
+`-Pautopilot=smoke` 进入世界后打开首页和组件目录，等待页面稳定并截图，记录页面错误与检查失败数，然后正常退出。
+运行目录为 `<根目录>/<loader>-<版本>`，截图为其下的 `screenshots/oriel_smoke_gallery.png` 和 `oriel_smoke_catalog.png`。
+
+根目录也可用 `ORIEL_RUN_DIR` 指定，未指定时使用相邻工作区的 `daily/<当天>/run-smoke`。
+根目录必须位于仓库外；日志在 `logs/`，完整结果及截图路径在 `summary.tsv`。缺少完成标记、截图未更新、
+页面错误、自动检查失败、超时或非零退出码都会使脚本失败，单个目标失败后仍继续检查剩余目标。
+
+默认离线构建。依赖未缓存时可加 `--online`；工作区已有 `PROXY_ARGS` 时会一起传给 Gradle，
+其他 Gradle 参数放在 `--` 后。脚本不安装软件，也不启动代理。
+
+脚本自身的结果判定可用假 Gradle 进程验证，不会启动游戏：
+
+```sh
+bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-script-test
+```
+
 ## Adding a Minecraft version
 
 1. Add the version to `minecraftVersions` in `settings.gradle`.

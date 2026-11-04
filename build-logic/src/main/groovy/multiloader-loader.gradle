@@ -94,7 +94,7 @@ if (project.hasProperty('autopilot') || project.hasProperty('tour')) {
     String only = project.findProperty('autopilot')?.toString()
     if (only && only != 'true') clientRunProperties['oriel.autopilot.only'] = only
     // The kit presets are judged at the GUI size most players see: 640x360 (1280x720 at GUI scale 2).
-    if (only == 'oriel' || only == 'play') clientRunArgs.addAll('--width', '1280', '--height', '720')
+    if (only == 'oriel' || only == 'play' || only == 'smoke') clientRunArgs.addAll('--width', '1280', '--height', '720')
     if (only == 'home' || only == 'reload' || only == 'text') clientRunArgs.addAll('--width', '1600', '--height', '900')
     // -Pautopilot=play: hands-on acceptance (see DevAutopilot); -Poriel_play_test screenshots it and quits.
     if (project.hasProperty('oriel_play_test')) clientRunProperties['oriel.play.test'] = 'true'
@@ -116,7 +116,11 @@ ext.clientRunArgs = clientRunArgs
 // reload starts looking for asset source trees (OrielResources), since the working directory is elsewhere.
 def configuredRunRoot = findProperty('oriel_run_dir') ?: System.getenv('ORIEL_RUN_DIR')
 def runRoot = configuredRunRoot ? file(configuredRunRoot) : rootProject.layout.buildDirectory.dir('runs').get().asFile
-ext.orielRunDir = { String run -> new File(runRoot, "${project.parent.name}-${project.name}/${run}") }
+ext.orielRunDir = { String run ->
+    // The smoke runner gives each target its own directory directly beneath the requested root.
+    String suffix = run == 'client' && findProperty('autopilot') == 'smoke' ? '' : "/${run}"
+    new File(runRoot, "${project.parent.name}-${project.name}${suffix}")
+}
 clientRunProperties['oriel.sourceRoot'] = project.projectDir.absolutePath
 // Java hot reload (DevReload): where to run Gradle, which project's classes to build, and the self-attach it needs.
 clientRunProperties['oriel.dev.root'] = rootProject.projectDir.absolutePath

@@ -22,6 +22,11 @@ public final class ReplacedElements {
         this.host = Map.copyOf(host.replacedElements());
     }
 
+    /** Whether a tag has a factory, before its element is attached and content can be created. */
+    public boolean supports(String tag) {
+        return ENGINE.containsKey(tag) || host.containsKey(tag);
+    }
+
     /** New content for {@code element}, or null when its tag is not a replaced element. */
     public ReplacedContent create(Element element) {
         Function<Element, ReplacedContent> factory = ENGINE.get(element.tagName());

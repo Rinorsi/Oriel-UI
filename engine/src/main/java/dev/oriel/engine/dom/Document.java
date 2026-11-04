@@ -209,7 +209,7 @@ public final class Document extends Node {
 
     public Element createElement(String tag) {
         Element element = new Element(this, tag);
-        UnsupportedElements.check(this, element);
+        if (!replacedElements.supports(element.tagName())) UnsupportedElements.check(this, element);
         return element;
     }
 

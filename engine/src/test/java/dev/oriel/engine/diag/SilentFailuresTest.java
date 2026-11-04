@@ -90,4 +90,17 @@ class SilentFailuresTest {
         page.doc.createElement("VIDEO");
         assertEquals(3, count(page, "unsupported-element"));
     }
+
+    @Test
+    void hostProvidedElementsAreNotReportedBeforeTheyAttach() {
+        TestHost host = new TestHost();
+        host.replaced.put("video", element -> new dev.oriel.engine.host.ReplacedContent() {
+            @Override public float intrinsicWidth() { return 20; }
+            @Override public float intrinsicHeight() { return 20; }
+            @Override public void paint(dev.oriel.engine.paint.Canvas canvas, float x, float y, float w, float h) {}
+        });
+        Page page = host.load("<video></video>");
+        assertEquals(0, count(page, "unsupported-element"));
+        assertNotNull(page.doc.querySelector("video").replaced);
+    }
 }
