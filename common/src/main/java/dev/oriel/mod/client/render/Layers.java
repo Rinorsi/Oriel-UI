@@ -4,11 +4,13 @@ package dev.oriel.mod.client.render;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 //? if >=26.2 {
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.pipeline.BlendFunction;
 import com.mojang.renderpearl.api.pipeline.ColorTargetState;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import net.minecraft.client.renderer.BindGroupLayouts;
 //?} else {
 /*import com.mojang.blaze3d.pipeline.BlendFunction;
@@ -16,6 +18,7 @@ import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 *///?}
 //? if >=26.3 {
 import com.mojang.renderpearl.api.pipeline.BlendFactor;
@@ -30,20 +33,27 @@ import com.mojang.blaze3d.platform.SourceFactor;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.renderpearl.api.textures.FilterMode;
 import dev.oriel.engine.style.BlendMode;
+import dev.oriel.engine.style.Filter;
 import dev.oriel.engine.style.MaskComposite;
 import dev.oriel.mod.Constants;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.state.WindowRenderState;
 import net.minecraft.client.renderer.state.gui.BlitRenderState;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
 import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2f;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -54,12 +64,15 @@ import java.util.function.Function;
  * with a GUI renderer of its own to draw it. The group goes into the frame's GUI as a picture ({@link LayerRenderState});
  * when the GUI renderer prepares its pictures, {@link LayerRenderer} draws the layer into a window-sized offscreen
  * {@link RenderTarget} (vanilla's GUI renderer draws into the main render target only, so it is swapped for the
- * offscreen one while it draws), combines its masks there, and blits the result into the frame. Everything about a
- * layer is a GUI render state drawn into a target, masks and compositing included, so the version-specific parts are
- * the targets, the swap and the pipelines below.
+ * offscreen one while it draws), runs its filters and combines its masks there, and blits the result into the frame.
+ * Everything about a layer is a GUI render state drawn into a target, filters and masks included, so the
+ * version-specific parts are the targets, the swap and the pipelines below.
  *
- * <p>Layers and targets are pooled and handed out again once a frame has been drawn: a frame's pictures are all
- * prepared before the frame's GUI is drawn, and the next frame's page is painted after it.
+ * <p>Layers are pooled and handed out again once a frame has been drawn: a frame's pictures are all prepared before
+ * the frame's GUI is drawn, and the next frame's page is painted after it. Targets are too, and the ones a group only
+ * needs on the way (filter steps, masks) are {@link #release released} as soon as they have been read, for the
+ * next group of the frame: the GPU runs the passes in the order they are recorded. Targets have no depth buffer
+ * (vanilla's GUI renderer draws without one when a target has none), to halve their memory.
  */
 public final class Layers {
     private Layers() {}
@@ -81,8 +94,9 @@ public final class Layers {
     }
 
     private static final List<Layer> layers = new ArrayList<>();
+    private static int layersUsed;
     private static final List<RenderTarget> targets = new ArrayList<>();
-    private static int layersUsed, targetsUsed;
+    private static final Deque<RenderTarget> free = new ArrayDeque<>();
     /** A layer was drawn since the pools were last handed out again. */
     private static boolean drawn;
     /** Beyond this many layers in a frame, the pools are handed out again anyway (pictures that were never drawn). */
@@ -94,7 +108,8 @@ public final class Layers {
     static void beginFrame() {
         if (drawn || layersUsed > MAX_LAYERS) {
             layersUsed = 0;
-            targetsUsed = 0;
+            free.clear();
+            free.addAll(targets);
             drawn = false;
         }
     }
@@ -105,27 +120,33 @@ public final class Layers {
         return layers.get(layersUsed++);
     }
 
-    /** A cleared window-sized target, free until the frame has been drawn. */
+    /** A cleared window-sized target, the caller's until it is {@link #release}d or the frame has been drawn. */
     static RenderTarget target() {
         WindowRenderState window = window();
-        if (targetsUsed == targets.size()) targets.add(newTarget(window.width, window.height));
-        RenderTarget t = targets.get(targetsUsed++);
-        if (t.width != window.width || t.height != window.height) t.resize(window.width, window.height);
-        //? if >=26.2 {
-        double far = 0.0; // 26.2 reversed depth
-        //?} else
-        //double far = 1.0;
-        RenderSystem.getDevice().createCommandEncoder().clearColorAndDepthTextures(t.getColorTexture(), GuiRenderer.CLEAR_COLOR, t.getDepthTexture(), far);
+        RenderTarget t = free.poll();
+        if (t == null) {
+            t = newTarget(window.width, window.height);
+            targets.add(t);
+        } else if (t.width != window.width || t.height != window.height) {
+            t.resize(window.width, window.height);
+        }
+        RenderSystem.getDevice().createCommandEncoder().clearColorTexture(t.getColorTexture(), GuiRenderer.CLEAR_COLOR);
         return t;
+    }
+
+    /** {@code t} has been read for the last time this frame: the next {@link #target} can have it. */
+    static void release(RenderTarget t) {
+        free.push(t);
     }
 
     /** Resources reloaded (the window can have changed): drop the pools, so they are made again as needed. */
     static void reload() {
         for (RenderTarget t : targets) t.destroyBuffers();
         targets.clear();
+        free.clear();
         for (Layer l : layers) l.renderer.close();
         layers.clear();
-        layersUsed = targetsUsed = 0;
+        layersUsed = 0;
         compiled = failed = false;
     }
 
@@ -171,14 +192,21 @@ public final class Layers {
      * {@code color} (premultiplied, as the target is).
      */
     static BlitRenderState blit(RenderPipeline pipeline, RenderTarget from, int x0, int y0, int x1, int y1, int color,
-                                net.minecraft.client.gui.navigation.@Nullable ScreenRectangle scissor) {
-        WindowRenderState window = window();
-        float scale = Math.max(1, window.guiScale), w = from.width, h = from.height;
-        // Targets are drawn with y up: the top of the screen is v = 1.
-        return new BlitRenderState(pipeline,
-                TextureSetup.singleTexture(from.getColorTextureView(), RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST)),
-                new Matrix3x2f(), x0, y0, x1, y1, x0 * scale / w, x1 * scale / w, 1 - y0 * scale / h, 1 - y1 * scale / h,
+                                @Nullable ScreenRectangle scissor) {
+        float[] uv = uv(from, x0, y0, x1, y1);
+        return new BlitRenderState(pipeline, texture(from), new Matrix3x2f(), x0, y0, x1, y1, uv[0], uv[2], uv[1], uv[3],
                 color, scissor, null);
+    }
+
+    /** Texture coordinates {u0, v0, u1, v1} of GUI rectangle (x0, y0)–(x1, y1) in a target (drawn with y up). */
+    private static float[] uv(RenderTarget t, float x0, float y0, float x1, float y1) {
+        float scale = Math.max(1, window().guiScale), w = t.width, h = t.height;
+        return new float[] {x0 * scale / w, 1 - y0 * scale / h, x1 * scale / w, 1 - y1 * scale / h};
+    }
+
+    /** A target's colour, sampled pixel for pixel; beyond its edges, its edge (blurs reach there). */
+    private static TextureSetup texture(RenderTarget t) {
+        return TextureSetup.singleTexture(t.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
     }
 
     static WindowRenderState window() {
@@ -190,32 +218,166 @@ public final class Layers {
 
     private static RenderTarget newTarget(int width, int height) {
         //? if >=26.3 {
-        return new TextureTarget("oriel layer", width, height, GpuFormat.RGBA8_UNORM, GpuFormat.D32_FLOAT);
+        return new TextureTarget("oriel layer", width, height, GpuFormat.RGBA8_UNORM, null);
         //?} else if >=26.2 {
-        /*return new TextureTarget("oriel layer", width, height, true, GpuFormat.RGBA8_UNORM);
+        /*return new TextureTarget("oriel layer", width, height, false, GpuFormat.RGBA8_UNORM);
         *///?} else
-        //return new TextureTarget("oriel layer", width, height, true);
+        //return new TextureTarget("oriel layer", width, height, false);
+    }
+
+    // ---- Filters ----
+
+    /**
+     * {@code from} through {@code filters} in order (Filter Effects 1), drawn within GUI rectangle {@code area}
+     * {x0, y0, x1, y1}, which grows by what blurs and shadows reach. Returns the target with the result, {@code from}
+     * itself when there are no filters; the others it used are released, {@code from} too when it is not returned.
+     */
+    static RenderTarget filter(RenderTarget from, List<Filter> filters, float[] area) {
+        for (Filter f : filters) {
+            RenderTarget out;
+            switch (f.kind()) {
+                case BLUR -> {
+                    if (f.amount() <= 0) continue;
+                    grow(area, 3 * f.amount());
+                    out = blur(from, area, f.amount());
+                }
+                case DROP_SHADOW -> {
+                    // The input's alpha, coloured, moved and blurred (sigma half the radius), under the input.
+                    float sigma = f.amount() / 2;
+                    grow(area, Math.max(Math.abs(f.x()), Math.abs(f.y())) + 3 * sigma);
+                    out = target();
+                    pass(from, out, TINT, area, f.x(), f.y(), premultiplied(f.color()), 0);
+                    if (sigma > 0) {
+                        RenderTarget tint = out;
+                        out = blur(tint, area, sigma);
+                        release(tint);
+                    }
+                    blit(from, out, OVER);
+                }
+                default -> {
+                    out = target();
+                    pass(from, out, COLOR_FILTERS.get(f.kind()), area, 0, 0, -1, f.amount());
+                }
+            }
+            release(from);
+            from = out;
+        }
+        return from;
+    }
+
+    /** {@code from} blurred by a Gaussian of {@code sigma} GUI px, in two passes (into a new target). */
+    private static RenderTarget blur(RenderTarget from, float[] area, float sigma) {
+        float deviceSigma = sigma * Math.max(1, window().guiScale);
+        RenderTarget across = target();
+        pass(from, across, BLUR_X, area, 0, 0, -1, deviceSigma);
+        RenderTarget out = target();
+        pass(across, out, BLUR_Y, area, 0, 0, -1, deviceSigma);
+        release(across);
+        return out;
+    }
+
+    /** Draws {@code from} into {@code into} through {@code pipeline} within {@code area}, sampling (dx, dy) GUI px back. */
+    private static void pass(RenderTarget from, RenderTarget into, RenderPipeline pipeline, float[] area, float dx, float dy,
+                             int color, float amount) {
+        float[] uv = uv(from, area[0] - dx, area[1] - dy, area[2] - dx, area[3] - dy);
+        int x0 = (int) Math.floor(area[0]), y0 = (int) Math.floor(area[1]);
+        ScreenRectangle bounds = new ScreenRectangle(x0, y0, Math.max(1, (int) Math.ceil(area[2]) - x0),
+                Math.max(1, (int) Math.ceil(area[3]) - y0));
+        Layer l = layer();
+        l.state.addGuiElement(new FilterQuad(pipeline, texture(from), area[0], area[1], area[2], area[3], uv[0], uv[1], uv[2],
+                uv[3], color, amount, bounds));
+        draw(l, into);
+    }
+
+    /** Grows {x0, y0, x1, y1} by {@code by} on every side, within the screen. */
+    private static void grow(float[] area, float by) {
+        WindowRenderState window = window();
+        int scale = Math.max(1, window.guiScale);
+        area[0] = Math.max(0, area[0] - by);
+        area[1] = Math.max(0, area[1] - by);
+        area[2] = Math.min(Math.ceilDiv(window.width, scale), area[2] + by);
+        area[3] = Math.min(Math.ceilDiv(window.height, scale), area[3] + by);
+    }
+
+    private static int premultiplied(int argb) {
+        float a = (argb >>> 24) / 255f;
+        return argb & 0xFF000000 | Math.round((argb >> 16 & 0xFF) * a) << 16 | Math.round((argb >> 8 & 0xFF) * a) << 8
+                | Math.round((argb & 0xFF) * a);
+    }
+
+    /**
+     * A quad for the filter pipelines: (x0, y0)–(x1, y1) in GUI px, sampling the source at (u0, v0)–(u1, v1), with
+     * {@code amount} (the filter's) in {@code LineWidth}.
+     */
+    private record FilterQuad(RenderPipeline pipeline, TextureSetup textureSetup, float x0, float y0, float x1, float y1,
+                              float u0, float v0, float u1, float v1, int color, float amount, ScreenRectangle bounds)
+            implements GuiElementRenderState {
+        @Override
+        public @Nullable ScreenRectangle scissorArea() {
+            return null;
+        }
+
+        @Override
+        public void buildVertices(VertexConsumer consumer) {
+            vertex(consumer, x0, y0, u0, v0);
+            vertex(consumer, x0, y1, u0, v1);
+            vertex(consumer, x1, y1, u1, v1);
+            vertex(consumer, x1, y0, u1, v0);
+        }
+
+        private void vertex(VertexConsumer consumer, float x, float y, float u, float v) {
+            consumer.addVertex(x, y, 0).setColor(color).setUv(u, v).setLineWidth(amount);
+        }
     }
 
     // ---- Pipelines ----
 
+    /** The filter passes' vertices: position, colour, texture coordinates and the filter's amount. */
+    //? if >=26.2 {
+    private static final VertexFormat FILTER_FORMAT = VertexFormat.builder(0)
+            .addAttribute("Position", GpuFormat.RGB32_FLOAT)
+            .addAttribute("Color", GpuFormat.RGBA8_UNORM)
+            .addAttribute("UV0", GpuFormat.RG32_FLOAT)
+            .addAttribute("LineWidth", GpuFormat.R32_FLOAT)
+            .build();
+    //?} else {
+    /*private static final VertexFormat FILTER_FORMAT = VertexFormat.builder()
+            .add("Position", VertexFormatElement.POSITION)
+            .add("Color", VertexFormatElement.COLOR)
+            .add("UV0", VertexFormatElement.UV0)
+            .add("LineWidth", VertexFormatElement.LINE_WIDTH)
+            .build();
+    *///?}
+
     /** Source-over of premultiplied colour: a layer drawn onto what is under it. */
-    static final RenderPipeline OVER = pipeline("layer_over", "ONE", "ONE_MINUS_SRC_ALPHA", "ONE", "ONE_MINUS_SRC_ALPHA");
+    static final RenderPipeline OVER = blend("layer_over", "ONE", "ONE_MINUS_SRC_ALPHA", "ONE", "ONE_MINUS_SRC_ALPHA");
     /** Keeps what is there where the source is opaque: a group's content cut by its mask. */
-    static final RenderPipeline DESTINATION_IN = pipeline("layer_destination_in", "ZERO", "SRC_ALPHA", "ZERO", "SRC_ALPHA");
+    static final RenderPipeline DESTINATION_IN = blend("layer_destination_in", "ZERO", "SRC_ALPHA", "ZERO", "SRC_ALPHA");
     /** {@code mask-composite: subtract}: the new mask where the ones before are not. */
-    static final RenderPipeline SUBTRACT = pipeline("layer_subtract", "ONE_MINUS_DST_ALPHA", "ZERO", "ONE_MINUS_DST_ALPHA", "ZERO");
+    static final RenderPipeline SUBTRACT = blend("layer_subtract", "ONE_MINUS_DST_ALPHA", "ZERO", "ONE_MINUS_DST_ALPHA", "ZERO");
     /** {@code mask-composite: intersect}. */
-    static final RenderPipeline INTERSECT = pipeline("layer_intersect", "DST_ALPHA", "ZERO", "DST_ALPHA", "ZERO");
+    static final RenderPipeline INTERSECT = blend("layer_intersect", "DST_ALPHA", "ZERO", "DST_ALPHA", "ZERO");
     /** {@code mask-composite: exclude}: where exactly one of them is. */
-    static final RenderPipeline EXCLUDE = pipeline("layer_exclude", "ONE_MINUS_DST_ALPHA", "ONE_MINUS_SRC_ALPHA",
+    static final RenderPipeline EXCLUDE = blend("layer_exclude", "ONE_MINUS_DST_ALPHA", "ONE_MINUS_SRC_ALPHA",
             "ONE_MINUS_DST_ALPHA", "ONE_MINUS_SRC_ALPHA");
     /** {@code mix-blend-mode: multiply} (exact over an opaque backdrop, as the GUI's is). */
-    static final RenderPipeline MULTIPLY = pipeline("layer_multiply", "DST_COLOR", "ONE_MINUS_SRC_ALPHA", "ONE", "ONE_MINUS_SRC_ALPHA");
+    static final RenderPipeline MULTIPLY = blend("layer_multiply", "DST_COLOR", "ONE_MINUS_SRC_ALPHA", "ONE", "ONE_MINUS_SRC_ALPHA");
     /** {@code mix-blend-mode: screen}. */
-    static final RenderPipeline SCREEN = pipeline("layer_screen", "ONE", "ONE_MINUS_SRC_COLOR", "ONE", "ONE_MINUS_SRC_ALPHA");
+    static final RenderPipeline SCREEN = blend("layer_screen", "ONE", "ONE_MINUS_SRC_COLOR", "ONE", "ONE_MINUS_SRC_ALPHA");
     /** {@code mix-blend-mode: plus-lighter}. */
-    static final RenderPipeline PLUS_LIGHTER = pipeline("layer_plus_lighter", "ONE", "ONE", "ONE", "ONE");
+    static final RenderPipeline PLUS_LIGHTER = blend("layer_plus_lighter", "ONE", "ONE", "ONE", "ONE");
+
+    /** A Gaussian blur along x, then along y; sigma in device px. */
+    static final RenderPipeline BLUR_X = filter("BLUR_X"), BLUR_Y = filter("BLUR_Y");
+    /** A drop shadow's colour where the source is opaque. */
+    static final RenderPipeline TINT = filter("TINT");
+    private static final Map<Filter.Kind, RenderPipeline> COLOR_FILTERS = new EnumMap<>(Filter.Kind.class);
+
+    static {
+        for (Filter.Kind kind : Filter.Kind.values()) {
+            if (kind != Filter.Kind.BLUR && kind != Filter.Kind.DROP_SHADOW) COLOR_FILTERS.put(kind, filter(kind.name()));
+        }
+    }
 
     private static boolean compiled, failed;
 
@@ -224,9 +386,12 @@ public final class Layers {
         if (renderers == null) return false;
         if (compiled || failed) return compiled;
         RuntimeException error = null;
+        List<RenderPipeline> all = new ArrayList<>(List.of(OVER, DESTINATION_IN, SUBTRACT, INTERSECT, EXCLUDE, MULTIPLY,
+                SCREEN, PLUS_LIGHTER, BLUR_X, BLUR_Y, TINT));
+        all.addAll(COLOR_FILTERS.values());
         try {
             compiled = true;
-            for (RenderPipeline p : List.of(OVER, DESTINATION_IN, SUBTRACT, INTERSECT, EXCLUDE, MULTIPLY, SCREEN, PLUS_LIGHTER)) {
+            for (RenderPipeline p : all) {
                 //? if >=26.3 {
                 compiled &= RenderSystem.getCompiledPipelineNullable(p) != null;
                 //?} else
@@ -238,7 +403,7 @@ public final class Layers {
         }
         if (!compiled) {
             failed = true;
-            Constants.LOG.warn("Oriel's layer shader is not available; filters, masks and blend modes are not drawn", error);
+            Constants.LOG.warn("Oriel's layer shaders are not available; filters, masks and blend modes are not drawn", error);
         }
         return compiled;
     }
@@ -264,8 +429,20 @@ public final class Layers {
         };
     }
 
-    private static RenderPipeline pipeline(String name, String srcColor, String dstColor, String srcAlpha, String dstAlpha) {
-        Identifier shader = Constants.id("core/layer");
+    /** A blit with blend factors (names shared by every version's factor enums). */
+    private static RenderPipeline blend(String name, String srcColor, String dstColor, String srcAlpha, String dstAlpha) {
+        return pipeline(name, "core/layer", null, false, srcColor, dstColor, srcAlpha, dstAlpha);
+    }
+
+    /** A filter pass: {@code define} picks the filter; it replaces what is under it. */
+    private static RenderPipeline filter(String define) {
+        return pipeline("layer_filter_" + define.toLowerCase(java.util.Locale.ROOT), "core/layer_filter", define, true,
+                "ONE", "ZERO", "ONE", "ZERO");
+    }
+
+    private static RenderPipeline pipeline(String name, String shaderPath, @Nullable String define, boolean amount,
+                                           String srcColor, String dstColor, String srcAlpha, String dstAlpha) {
+        Identifier shader = Constants.id(shaderPath);
         //? if >=26.2 {
         RenderPipeline.Builder builder = RenderPipeline.builder()
                 .withLocation(Constants.id("pipeline/" + name))
@@ -277,7 +454,7 @@ public final class Layers {
                 .withFragmentShader(shader)
                 .withColorTargetState(new ColorTargetState(new BlendFunction(BlendFactor.valueOf(srcColor),
                         BlendFactor.valueOf(dstColor), BlendFactor.valueOf(srcAlpha), BlendFactor.valueOf(dstAlpha))))
-                .withVertexBinding(0, DefaultVertexFormat.POSITION_TEX_COLOR)
+                .withVertexBinding(0, amount ? FILTER_FORMAT : DefaultVertexFormat.POSITION_TEX_COLOR)
                 .withPrimitiveTopology(PrimitiveTopology.QUADS)
                 .withCull(false);
         //?} else {
@@ -290,9 +467,10 @@ public final class Layers {
                 .withFragmentShader(shader)
                 .withColorTargetState(new ColorTargetState(new BlendFunction(SourceFactor.valueOf(srcColor),
                         DestFactor.valueOf(dstColor), SourceFactor.valueOf(srcAlpha), DestFactor.valueOf(dstAlpha))))
-                .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+                .withVertexFormat(amount ? FILTER_FORMAT : DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
                 .withCull(false);
         *///?}
+        if (define != null) builder.withShaderDefine(define);
         //? if <26.3
         //builder.withShaderDefine("ORIEL_26_2");
         return builder.build();

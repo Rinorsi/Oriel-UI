@@ -148,10 +148,9 @@ public final class McCanvas implements Canvas {
         enter(mask);
     }
 
-    /** Filters are not drawn yet; groups blend normally, or multiply, screen or add (plus-lighter). */
+    /** Groups blend normally, or multiply, screen or add (plus-lighter). */
     @Override
     public @Nullable String groupLimits(List<Filter> filters, BlendMode blend) {
-        if (!filters.isEmpty()) return "filter is not drawn in game yet";
         if (Layers.blend(blend) == null) return "mix-blend-mode " + blend.name().toLowerCase(java.util.Locale.ROOT).replace('_', '-')
                 + " is drawn as normal in game";
         return null;
@@ -168,7 +167,7 @@ public final class McCanvas implements Canvas {
         // The layer covers the clip: nothing outside it can show.
         int x0 = clips.left(), y0 = clips.top(), x1 = clips.right(), y1 = clips.bottom();
         if (x1 <= x0 || y1 <= y0) return;
-        gui.layer(new LayerRenderState(group.content(), List.copyOf(group.masks()), List.copyOf(group.ops()),
+        gui.layer(new LayerRenderState(group.content(), filters, List.copyOf(group.masks()), List.copyOf(group.ops()),
                 opacity * alpha, blend, x0, y0, x1, y1, gui.scissor(),
                 net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState.getBounds(x0, y0, x1, y1, gui.scissor())));
     }

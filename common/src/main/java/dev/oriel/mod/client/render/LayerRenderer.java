@@ -9,7 +9,8 @@ import net.minecraft.client.renderer.state.gui.GuiRenderState;
 
 /**
  * Draws {@link LayerRenderState}s, McCanvas's groups (see {@link Layers}): the content layer into an offscreen target,
- * its masks into another, combined there and cut into the content, then a blit of the result into the frame where the
+ * through its filters, its masks into another, combined there and cut into the content (CSS Masking 1: filter, then
+ * clip and mask, then opacity), then a blit of the result into the frame where the
  * group was painted. It replaces vanilla's picture drawing (a texture the size of the picture, drawn with a pose stack)
  * altogether. The loaders register it as {@link GuiSceneRenderer} is, and every layer's own GUI renderer has one, for
  * groups inside groups.
@@ -48,6 +49,7 @@ public final class LayerRenderer extends PictureInPictureRenderer<LayerRenderSta
     private static void draw(LayerRenderState state, GuiRenderState out) {
         RenderTarget content = Layers.target();
         Layers.draw(state.content(), content);
+        content = Layers.filter(content, state.filters(), new float[] {state.x0(), state.y0(), state.x1(), state.y1()});
         if (!state.masks().isEmpty()) {
             RenderTarget mask = Layers.target();
             Layers.draw(state.masks().getFirst(), mask);
@@ -55,8 +57,10 @@ public final class LayerRenderer extends PictureInPictureRenderer<LayerRenderSta
                 RenderTarget next = Layers.target();
                 Layers.draw(state.masks().get(i), next);
                 Layers.blit(next, mask, Layers.mask(state.ops().get(i)));
+                Layers.release(next);
             }
             Layers.blit(mask, content, Layers.DESTINATION_IN);
+            Layers.release(mask);
         }
         RenderPipeline pipeline = Layers.blend(state.blend());
         int a = Math.round(Math.clamp(state.opacity(), 0, 1) * 255);
