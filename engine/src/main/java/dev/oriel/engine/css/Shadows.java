@@ -15,7 +15,7 @@ final class Shadows {
         if (r.ident("none")) return List.of();
         List<Shadow> out = new ArrayList<>(1);
         do {
-            Shadow s = !box && r.ident("minecraft") ? Shadow.MINECRAFT : shadow(r, ctx, box);
+            Shadow s = !box && r.ident(dev.oriel.engine.host.ExtensionRegistry.compatibility().nativeShadowKeyword()) ? Shadow.MINECRAFT : shadow(r, ctx, box);
             if (s == null || out.size() >= Limits.current().maxListItems()) return null;
             out.add(s);
         } while (r.comma());
@@ -49,7 +49,7 @@ final class Shadows {
     static String serialize(List<Shadow> shadows, boolean box) {
         if (shadows.isEmpty()) return "none";
         return CssText.join(shadows, ", ", s -> {
-            if (s.isNative()) return "minecraft";
+            if (s.isNative()) return dev.oriel.engine.host.ExtensionRegistry.compatibility().nativeShadowKeyword();
             String text = CssColors.serialize(s.color()) + " " + CssText.px(s.offsetX()) + " " + CssText.px(s.offsetY())
                     + " " + CssText.px(s.blur());
             return box ? text + " " + CssText.px(s.spread()) + (s.inset() ? " inset" : "") : text;

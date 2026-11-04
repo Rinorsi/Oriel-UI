@@ -18,11 +18,11 @@ public interface FontMetrics {
 
     /** Height of the glyph box (Minecraft: 9 px at size 8). */
     default float glyphHeight(FontSpec font) {
-        return 9f * font.scale();
+        return ExtensionRegistry.compatibility().glyphHeightAtNativeSize() * font.scale();
     }
 
     /** Distance from the top of the glyph box to the alphabetic baseline (Minecraft: 7 px at size 8). */
     default float ascent(FontSpec font) {
-        return 7f * font.scale();
+        return ExtensionRegistry.compatibility().ascentAtNativeSize() * font.scale();
     }
 }

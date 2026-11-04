@@ -48,10 +48,7 @@ public final class CssColors {
                 + "slategray 708090 slategrey 708090 snow fffafa springgreen 00ff7f steelblue 4682b4 tan d2b48c "
                 + "teal 008080 thistle d8bfd8 tomato ff6347 turquoise 40e0d0 violet ee82ee wheat f5deb3 "
                 + "white ffffff whitesmoke f5f5f5 yellow ffff00 yellowgreen 9acd32 "
-                // Minecraft's chat formatting colours (ChatFormatting).
-                + "mc-black 000000 mc-dark-blue 0000aa mc-dark-green 00aa00 mc-dark-aqua 00aaaa mc-dark-red aa0000 "
-                + "mc-dark-purple aa00aa mc-gold ffaa00 mc-gray aaaaaa mc-dark-gray 555555 mc-blue 5555ff "
-                + "mc-green 55ff55 mc-aqua 55ffff mc-red ff5555 mc-light-purple ff55ff mc-yellow ffff55 mc-white ffffff";
+                + dev.oriel.engine.host.ExtensionRegistry.compatibility().namedColors();
         String[] parts = css.split(" ");
         for (int i = 0; i < parts.length; i += 2) NAMED.put(parts[i], 0xFF000000 | Integer.parseInt(parts[i + 1], 16));
         NAMED.put("transparent", Colors.TRANSPARENT);

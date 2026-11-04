@@ -9,7 +9,7 @@ import dev.oriel.engine.event.Event;
  * {@code element.click()} alike: checkboxes and radios, labels, details/summary, links and submit buttons.
  */
 final class Activation {
-    static final String CLICK_SOUND = "minecraft:ui.button.click";
+    static final String CLICK_SOUND = dev.oriel.engine.host.ExtensionRegistry.compatibility().clickSound();
 
     private Activation() {}
 
@@ -44,7 +44,7 @@ final class Activation {
     }
 
     static void playClick(Document doc) {
-        doc.host().playSound(CLICK_SOUND, 1f, 1f);
+        if (!CLICK_SOUND.isEmpty()) doc.host().playSound(CLICK_SOUND, 1f, 1f);
     }
 
     private static boolean hasBehaviour(Element e) {

@@ -14,7 +14,17 @@ import java.util.function.Function;
  */
 public final class ReplacedElements {
     private static final Map<String, Function<Element, ReplacedContent>> ENGINE =
-            Map.of("img", ImageContent::new, "sprite", ImageContent::new, "canvas", CanvasContent::new);
+            engineElements();
+
+    private static Map<String, Function<Element, ReplacedContent>> engineElements() {
+        Map<String, Function<Element, ReplacedContent>> elements = new java.util.HashMap<>(Map.of("img", ImageContent::new, "canvas", CanvasContent::new));
+        for (ElementContentProvider provider : dev.oriel.engine.host.ExtensionRegistry.providers(ElementContentProvider.class)) {
+            provider.elements().forEach((tag, factory) -> {
+                if (elements.putIfAbsent(tag, factory) != null) throw new IllegalStateException("Duplicate replaced element: " + tag);
+            });
+        }
+        return Map.copyOf(elements);
+    }
 
     private final Map<String, Function<Element, ReplacedContent>> host;
 
