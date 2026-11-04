@@ -1,5 +1,6 @@
 package dev.oriel.kit;
 
+import dev.oriel.kit.preset.CatalogPreset;
 import dev.oriel.kit.preset.EditorPreset;
 import dev.oriel.kit.preset.ForgePreset;
 import dev.oriel.kit.preset.GalleryPreset;
@@ -24,8 +25,9 @@ public final class OrielKit {
     public static final String SETTINGS = page("settings");
     public static final String POTIONS = page("potions");
     public static final String EDITOR = page("editor");
+    public static final String CATALOG = page("catalog");
     /** The presets, in gallery order. */
-    public static final List<String> PRESETS = List.of(INVENTORY, FORGE, MUSIC, SETTINGS, POTIONS, EDITOR);
+    public static final List<String> PRESETS = List.of(INVENTORY, FORGE, MUSIC, SETTINGS, POTIONS, EDITOR, CATALOG);
     /** The message channel pages send host commands on ({@code Host.send}); the value is the command. */
     public static final String CHANNEL = "oriel";
 
@@ -48,5 +50,6 @@ public final class OrielKit {
         PageControllers.register(SETTINGS, SettingsPreset::new);
         PageControllers.register(POTIONS, PotionHudPreset::new);
         PageControllers.register(EDITOR, EditorPreset::new);
+        PageControllers.register(CATALOG, CatalogPreset::new);
     }
 }

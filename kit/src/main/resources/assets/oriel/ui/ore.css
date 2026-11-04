@@ -315,7 +315,7 @@ input.ore-field::placeholder { color: var(--ore-text-faint); }
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 0 24px rgba(0, 0, 0, 0.5);
     animation: o-window-in 360ms var(--o-ease-out) both;
 }
-@keyframes o-window-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes o-window-in { from { opacity: 0; transform: scale(0.94); } 60% { opacity: 1; } }
 
 .o-titlebar {
     position: relative; flex: none;

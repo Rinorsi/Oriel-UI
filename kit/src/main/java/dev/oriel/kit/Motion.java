@@ -129,8 +129,9 @@ public final class Motion {
      */
     public static void zoomInto(Element from, Runnable then) {
         Document doc = from.ownerDocument();
-        Element window = Dom.query(doc, ".o-window");
-        Element app = Dom.query(doc, ".o-app");
+        Element window = doc.querySelector(".o-window");
+        if (window == null) window = doc.querySelector(".home");
+        Element app = doc.querySelector(".o-app");
         if (window == null || app == null) {
             then.run();
             return;
@@ -140,15 +141,23 @@ public final class Motion {
         Dom.Style st = new Dom.Style(ghost);
         st.px("left", f[0]).px("top", f[1]).px("width", f[2]).px("height", f[3]).apply();
         app.appendChild(ghost);
-        window.addClass("m-leaving");
+        Element leaving = window;
+        leaving.addClass("m-leaving");
         doc.scheduler().requestAnimationFrame(t -> st.px("left", w[0]).px("top", w[1]).px("width", w[2]).px("height", w[3]).apply());
         doc.scheduler().setTimeout(then, SLOW);
     }
 
-    /** Wires the declarative parts of the library: ripples, spotlights and staggered lists. */
+    /** Wires the declarative parts of the library: ripples, spotlights, staggered lists and counters. */
     public static void attach(Document doc) {
         ripples(doc);
         spotlights(doc);
+        for (Element e : doc.querySelectorAll("[data-count]")) {
+            try {
+                count(e, 0, Double.parseDouble(e.getAttribute("data-count")), 1200, "");
+            } catch (NumberFormatException ignored) {
+                // not a number: left as written
+            }
+        }
         List<Element> stagger = doc.querySelectorAll(".m-stagger");
         for (Element list : stagger) {
             int i = 0;

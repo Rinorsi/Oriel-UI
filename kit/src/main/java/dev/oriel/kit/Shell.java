@@ -8,7 +8,9 @@ import dev.oriel.kit.fx.Particles;
  * What every kit page shares, wired from markup so a page needs no code for it:
  * <ul>
  *   <li>the theme: {@code data-theme} on {@code <html>} ({@link #theme()}, kept across pages);</li>
- *   <li>{@code data-go="forge"}: opens that kit page (Enter / Space too);</li>
+ *   <li>{@code data-go="forge"}: opens that kit page (Enter / Space too); with {@code data-zoom} the element
+ *   grows into the page first ({@link Motion#zoomInto});</li>
+ *   <li>{@code data-count="2235"}: the number counts up when the page opens;</li>
  *   <li>{@code data-action="close" | "back" | "theme"}: closes the screen, returns to the gallery, flips the theme;</li>
  *   <li>{@code canvas[data-fx]}: particles ({@link Particles}).</li>
  * </ul>
@@ -42,7 +44,8 @@ public final class Shell {
         theme(doc, theme);
         for (Element e : doc.querySelectorAll("[data-go]")) {
             String page = e.getAttribute("data-go");
-            activate(e, () -> doc.navigate(OrielKit.page(page)));
+            Runnable go = () -> doc.navigate(OrielKit.page(page));
+            activate(e, e.hasAttribute("data-zoom") ? () -> Motion.zoomInto(e, go) : go);
         }
         for (Element e : doc.querySelectorAll("[data-action]")) {
             switch (e.getAttribute("data-action")) {

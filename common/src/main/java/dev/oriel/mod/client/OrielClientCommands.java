@@ -57,7 +57,7 @@ public final class OrielClientCommands {
     }
 
     /** The presets {@code /oriel demo} opens: a page each, and the potion HUD. */
-    public static final List<String> PRESETS = List.of("inventory", "forge", "music", "settings", "hud", "editor");
+    public static final List<String> PRESETS = List.of("inventory", "forge", "music", "settings", "hud", "editor", "catalog");
 
     /** Opens a preset page, or the gallery; {@code hud} toggles the potion HUD overlay. */
     public static void preset(String name) {

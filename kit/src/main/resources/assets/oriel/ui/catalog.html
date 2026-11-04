@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+<head>
+<title>优易库 · 组件与动效</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+/* The catalog: every component in every state, every effect and motion, live, with the markup to copy. A list on
+   the left picks a section; the section slides in on the right. Also the reference an AI reads before building a
+   screen (docs/zh/recipes.md points here). */
+.o-window { width: 628px; height: 348px; }
+.list { flex: none; width: 118px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
+    border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
+.list .item { position: relative; display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
+    -mc-tint: var(--o-text-faint); transition: background-color 120ms, color 120ms; }
+.list .item:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); }
+.list .item.on { background: var(--o-tile); color: var(--o-text); -mc-tint: var(--o-accent-strong); box-shadow: inset 0 1px 0 var(--o-tile-hi), 0 1px 0 var(--o-shade); }
+.list .item.on::before { content: ""; position: absolute; left: -4px; top: 3px; width: 2px; height: 14px; background: var(--o-accent-strong); box-shadow: 0 0 4px var(--o-accent); }
+.list .n { margin-left: auto; color: var(--o-text-faint); }
+
+.pane { position: relative; flex: 1; min-width: 0; overflow-y: auto; padding: 8px 10px; }
+.sec { display: none; flex-direction: column; gap: 8px; }
+.sec.on { display: flex; animation: m-slide-left var(--m-slow) var(--m-out) both; }
+.sec-head { display: flex; align-items: baseline; gap: 8px; }
+.sec-head .o-faint { line-height: 10px; }
+.row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.row .cap { width: 52px; color: var(--o-text-faint); flex: none; }
+.code { margin: 0; padding: 4px 6px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f; white-space: pre; line-height: 10px; overflow-x: auto; }
+[data-theme=light] .code { background: #2b2b2b; }
+.code .c { color: #8c8d90; }
+.swatch { width: 62px; height: 40px; display: flex; flex-direction: column; justify-content: flex-end; padding: 3px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.fxbox { position: relative; height: 44px; display: flex; align-items: flex-end; padding: 3px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--o-line-strong); color: var(--o-text-dim); }
+.model3d { width: 56px; height: 56px; }
+.spin { animation: turn 6s linear infinite; }
+@keyframes turn { from { -mc-yaw: 0deg; } to { -mc-yaw: 360deg; } }
+.depth { display: flex; gap: 6px; }
+.depth > div { flex: 1; height: 46px; display: flex; align-items: flex-end; padding: 4px; }
+.demo-target { width: 80px; height: 26px; display: flex; align-items: center; justify-content: center; }
+.acc { display: flex; flex-direction: column; }
+.acc .acc-head { display: flex; align-items: center; gap: 4px; padding: 3px 4px; cursor: pointer; }
+.acc .acc-body { height: 0; opacity: 0; overflow: hidden; }
+.acc .acc-body > div { padding: 4px 6px 6px; color: var(--o-text-dim); line-height: 10px; }
+.skel { display: flex; flex-direction: column; gap: 3px; width: 140px; }
+.skel .m-skeleton { height: 8px; }
+.stagger-box { display: flex; gap: 3px; }
+.stagger-box > span { width: 18px; height: 18px; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
+.tip-demo { position: relative; display: inline-block; padding: 3px 6px 4px; border: 2px solid transparent; border-image: url(../textures/ore/tooltip.png) 2 fill; color: #ffffff; }
+.tip-demo.rare { border-image-source: url(../textures/ore/tooltip_rare.png); }
+.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
+</style>
+</head>
+<body>
+<div class="o-app" id="app">
+  <div class="o-window">
+    <div class="o-titlebar">
+      <div class="ore-btn icon" data-action="back" tabindex="0"><img class="o-ico" src="../textures/icons/back.png"></div>
+      <img class="o-mark" src="../textures/icons/grid.png">
+      <h1>组件与动效</h1><span class="o-crumb" id="crumb">/ 按钮</span>
+      <div class="o-grow"></div>
+      <div class="ore-btn icon" data-action="theme" tabindex="0" title="切换亮/暗"><img class="o-ico" src="../textures/icons/sun.png"></div>
+      <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
+    </div>
+    <div class="o-body">
+      <div class="list" id="list"></div>
+      <div class="pane" id="pane">
+
+        <section class="sec" data-sec="buttons" data-title="按钮" data-icon="mouse">
+          <div class="sec-head"><span class="o-h1">按钮</span><span class="o-faint">Ore 斜角纹理，按下下沉 2px；加 m-ripple 有像素涟漪</span></div>
+          <div class="row"><span class="cap">变体</span>
+            <div class="ore-btn hero m-ripple" tabindex="0">主操作</div><div class="ore-btn primary m-ripple" tabindex="0">确认</div>
+            <div class="ore-btn secondary m-ripple" tabindex="0">次要</div><div class="ore-btn destructive m-ripple" tabindex="0">删除</div>
+            <div class="ore-btn m-ripple" tabindex="0">普通</div><div class="ore-btn disabled">禁用</div></div>
+          <div class="row"><span class="cap">带图标</span>
+            <div class="ore-btn hero m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/play.png">开始</div>
+            <div class="ore-btn m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/save.png">保存</div>
+            <div class="ore-btn icon m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/gear.png"></div>
+            <div class="ore-btn icon m-ripple" tabindex="0"><img class="o-ico" src="../textures/icons/trash.png"></div></div>
+          <div class="row"><span class="cap">大号</span><div class="ore-btn hero big m-ripple" tabindex="0">进入世界</div></div>
+<pre class="code">&lt;div class="ore-btn hero m-ripple" tabindex="0"&gt;
+  &lt;img class="o-ico" src="../textures/icons/play.png"&gt;开始&lt;/div&gt;
+<span class="c">变体：hero primary secondary destructive (无) disabled · 尺寸：icon big</span></pre>
+        </section>
+
+        <section class="sec" data-sec="inputs" data-title="输入" data-icon="keyboard">
+          <div class="sec-head"><span class="o-h1">输入</span><span class="o-faint">支持中文输入法：预编辑内联显示，候选窗跟随光标</span></div>
+          <div class="row"><span class="cap">文本框</span><input class="ore-field" placeholder="输入名字…" style="width: 140px"><input class="ore-field" value="史蒂夫" style="width: 100px"></div>
+          <div class="row"><span class="cap">下拉框</span><div class="ore-select" style="width: 120px"><div class="value">高品质</div></div></div>
+<pre class="code">&lt;input class="ore-field" placeholder="输入名字…"&gt;
+&lt;div class="ore-select"&gt;&lt;div class="value"&gt;高品质&lt;/div&gt;&lt;div class="menu"&gt;…&lt;/div&gt;&lt;/div&gt;</pre>
+        </section>
+
+        <section class="sec" data-sec="toggles" data-title="开关与进度" data-icon="sliders">
+          <div class="sec-head"><span class="o-h1">开关与进度</span></div>
+          <div class="row"><span class="cap">开关</span><span class="ore-toggle"></span><span class="ore-toggle on"></span></div>
+          <div class="row"><span class="cap">滑块</span><div class="ore-slider" style="max-width: 180px"><div class="track"></div><div class="fill" style="width: 60%"></div><div class="thumb" style="left: 60%"></div></div></div>
+          <div class="row"><span class="cap">进度槽</span>
+            <div class="ore-progress" style="width: 90px"><div class="fill" style="width: 70%"></div></div>
+            <div class="ore-progress gold" style="width: 90px"><div class="fill" style="width: 45%"></div></div>
+            <div class="ore-progress red" style="width: 90px"><div class="fill" style="width: 20%"></div></div></div>
+          <div class="row"><span class="cap">分段条</span><div class="o-meter" style="--value: 0.64; width: 180px"><i></i></div></div>
+<pre class="code">&lt;span class="ore-toggle on"&gt;&lt;/span&gt;
+&lt;div class="o-meter" style="--value: 0.64"&gt;&lt;i&gt;&lt;/i&gt;&lt;/div&gt;   <span class="c">控制器里改 --value 会平滑过渡</span></pre>
+        </section>
+
+        <section class="sec" data-sec="tabs" data-title="页签与分段" data-icon="list">
+          <div class="sec-head"><span class="o-h1">页签与分段</span><span class="o-faint">指示条用 m-indicator，Motion.indicator 让它滑动</span></div>
+          <div class="row"><div class="ore-tabs"><div class="ore-tab selected">视频</div><div class="ore-tab">声音</div><div class="ore-tab">控制</div></div></div>
+          <div class="row"><div class="o-seg" id="seg-demo"><span class="on"><img class="o-ico" src="../textures/icons/grid.png">全部</span><span><img class="o-ico" src="../textures/icons/sword.png">武器</span><span><img class="o-ico" src="../textures/icons/heart.png">食物</span></div></div>
+<pre class="code">&lt;div class="o-seg"&gt;&lt;span class="on"&gt;…&lt;/span&gt;&lt;span&gt;…&lt;/span&gt;&lt;/div&gt;</pre>
+        </section>
+
+        <section class="sec" data-sec="slots" data-title="物品格" data-icon="gem">
+          <div class="sec-head"><span class="o-h1">物品格</span><span class="o-faint">稀有度光圈、附魔光泽、拖放目标</span></div>
+          <div class="row"><span class="cap">状态</span>
+            <div class="ore-slot"></div>
+            <div class="ore-slot"><item id="minecraft:diamond" style="position: absolute; left: 0; top: 0; width: 16px; height: 16px"></item></div>
+            <div class="ore-slot target"><item id="minecraft:emerald" style="position: absolute; left: 0; top: 0; width: 16px; height: 16px"></item></div>
+            <div class="ore-slot fx-glint"><item id="minecraft:enchanted_book" style="position: absolute; left: 0; top: 0; width: 16px; height: 16px"></item></div></div>
+          <div class="row"><span class="cap">提示框</span><div class="tip-demo">钻石<br><span style="color: #c4c5c8">稀有矿物</span></div><div class="tip-demo rare"><span style="color: #c9a6ff">锋利 V 钻石剑</span></div></div>
+<pre class="code">&lt;div class="ore-slot fx-glint"&gt;&lt;item id="minecraft:enchanted_book"&gt;&lt;/item&gt;&lt;/div&gt;</pre>
+        </section>
+
+        <section class="sec" data-sec="chips" data-title="芯片与徽章" data-icon="star">
+          <div class="sec-head"><span class="o-h1">芯片与徽章</span></div>
+          <div class="row"><span class="cap">芯片</span><span class="o-chip"><img class="o-ico" src="../textures/icons/sparkle.png">粒子</span><span class="o-chip hot">可点</span><span class="o-chip on">选中</span></div>
+          <div class="row"><span class="cap">徽章</span><span class="o-badge">3</span><span class="o-badge red">9</span></div>
+          <div class="row"><span class="cap">按键</span><div class="o-hints"><span><span class="o-kbd">Tab</span>切换</span><span><span class="o-kbd">Ctrl</span><span class="o-kbd">Z</span>撤销</span></div></div>
+<pre class="code">&lt;span class="o-chip on"&gt;选中&lt;/span&gt; &lt;span class="o-badge red"&gt;9&lt;/span&gt; &lt;span class="o-kbd"&gt;Tab&lt;/span&gt;</pre>
+        </section>
+
+        <section class="sec" data-sec="type" data-title="字体与层级" data-icon="layers">
+          <div class="sec-head"><span class="o-h1">字体与层级</span><span class="o-faint">只有 8/16 两档；只有底/面/浮三层</span></div>
+          <div class="row"><span class="o-h1">标题 16px</span><span>正文 8px</span><span class="o-dim">次要</span><span class="o-faint">更弱</span><span class="o-accent">强调</span></div>
+          <div class="o-caps">小标题（o-caps）</div>
+          <div class="depth"><div class="o-well">凹陷 o-well</div><div class="o-tile">浮起 o-tile</div><div class="o-tile hot">可交互 hot</div><div class="o-tile sel">选中 sel</div></div>
+<pre class="code">o-h1 · o-dim · o-faint · o-accent · o-caps · o-divider
+o-well（装东西）· o-tile（浮起，块里不再放块）· .hot 可交互 · .sel 选中</pre>
+        </section>
+
+        <section class="sec" data-sec="rarity" data-title="稀有度与光效" data-icon="sparkle">
+          <div class="sec-head"><span class="o-h1">稀有度与光效</span><span class="o-faint">普通无光，史诗呼吸，传说渐变框 + 扫光</span></div>
+          <div class="row">
+            <div class="swatch o-tile r-common"><span class="o-tier">普通</span></div>
+            <div class="swatch o-tile r-uncommon"><span class="o-tier">优秀</span></div>
+            <div class="swatch o-tile r-rare fx-glow"><span class="o-tier">稀有</span></div>
+            <div class="swatch o-tile r-epic fx-breathe"><span class="o-tier">史诗</span></div>
+            <div class="swatch o-tile o-frame r-legendary fx-sweep"><span class="o-tier">传说</span></div>
+            <div class="swatch o-tile r-epic fx-glint"><span class="o-tier">附魔</span></div></div>
+<pre class="code">&lt;div class="o-tile r-epic fx-breathe"&gt;   <span class="c">史诗：呼吸</span>
+&lt;div class="o-tile o-frame r-legendary fx-sweep"&gt;   <span class="c">传说：渐变框 + 扫光</span>
+<span class="c">还有 fx-glint 附魔光泽 · fx-pool 光晕底 · fx-float 漂浮 · fx-pulse 闪烁</span></pre>
+        </section>
+
+        <section class="sec" data-sec="particles" data-title="粒子" data-icon="flame">
+          <div class="sec-head"><span class="o-h1">粒子</span><span class="o-faint">真像素、可复现；每屏 2–3 个常驻</span></div>
+          <div class="grid4">
+            <div class="fxbox"><canvas class="fx" data-fx="embers" data-rate="14"></canvas>embers</div>
+            <div class="fxbox" id="sparks-box"><canvas class="fx" id="sparks-demo"></canvas>sparks（点我）</div>
+            <div class="fxbox"><canvas class="fx" data-fx="glint" data-rate="8"></canvas>glint</div>
+            <div class="fxbox"><canvas class="fx" data-fx="stars" data-rate="6"></canvas>stars</div>
+            <div class="fxbox"><canvas class="fx" data-fx="notes" data-rate="3"></canvas>notes</div>
+            <div class="fxbox"><canvas class="fx" data-fx="bubbles" data-rate="6"></canvas>bubbles</div>
+            <div class="fxbox"><canvas class="fx" data-fx="dust" data-rate="8"></canvas>dust</div>
+            <div class="fxbox" id="hearts-box"><canvas class="fx" id="hearts-demo"></canvas>hearts（点我）</div></div>
+<pre class="code">&lt;canvas class="fx" data-fx="embers" data-rate="14" data-area="bottom"&gt;&lt;/canvas&gt;
+<span class="c">爆发：Shell.setup(doc).emitter("id").burst("sparks", x, y, 20)</span></pre>
+        </section>
+
+        <section class="sec" data-sec="motion" data-title="动效" data-icon="bolt">
+          <div class="sec-head"><span class="o-h1">动效</span><span class="o-faint">点按钮看效果；时长与曲线统一在 --m-* 里</span></div>
+          <div class="row"><span class="cap">反馈</span>
+            <div class="ore-btn m-ripple" data-demo="pop" tabindex="0">弹出</div><div class="ore-btn m-ripple" data-demo="error" tabindex="0">失败抖动</div>
+            <div class="ore-btn m-ripple" data-demo="success" tabindex="0">成功</div><div class="ore-btn m-ripple" data-demo="attention" tabindex="0">提醒</div>
+            <div class="demo-target o-tile" id="demo-target">目标</div></div>
+          <div class="row"><span class="cap">进场</span><div class="ore-btn m-ripple" data-demo="stagger" tabindex="0">依次进场</div>
+            <div class="stagger-box m-stagger" id="stagger"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+          <div class="row"><span class="cap">数字</span><div class="ore-btn m-ripple" data-demo="count" tabindex="0">计数</div><span class="o-h1" id="count-demo">0</span></div>
+          <div class="row"><span class="cap">展开</span>
+            <div class="acc o-well" style="width: 220px" id="acc"><div class="acc-head" id="acc-head"><img class="o-ico m-caret" src="../textures/icons/down.png">点击展开</div>
+              <div class="acc-body" id="acc-body"><div>高度从 0 平滑过渡到内容高度，箭头同时旋转；收起时反过来。</div></div></div></div>
+          <div class="row"><span class="cap">加载</span><div class="skel"><div class="m-skeleton"></div><div class="m-skeleton" style="width: 70%"></div><div class="m-skeleton" style="width: 85%"></div></div></div>
+          <div class="row"><span class="cap">弹层</span><div class="ore-btn m-ripple" data-demo="modal" tabindex="0">模态框</div><div class="ore-btn m-ripple" data-demo="toast" tabindex="0">提示</div></div>
+<pre class="code">Motion.play(el, "m-success", 520)   Motion.toggle(body, open)   Motion.count(el, 0, 2235, 1200, "")
+Motion.zoomInto(card, () -&gt; doc.navigate(...))   <span class="c">或在链接上写 data-go="forge" data-zoom</span></pre>
+        </section>
+
+        <section class="sec" data-sec="models" data-title="3D 模型" data-icon="cube">
+          <div class="sec-head"><span class="o-h1">3D 模型</span><span class="o-faint">方块、物品、实体、玩家；用 CSS 转动</span></div>
+          <div class="row">
+            <model class="model3d spin" block="minecraft:grass_block"></model>
+            <model class="model3d spin" block="minecraft:enchanting_table"></model>
+            <model class="model3d spin" item="minecraft:diamond_sword"></model>
+            <entity class="model3d" type="minecraft:fox" rotatable></entity>
+            <entity class="model3d" player follow-mouse></entity></div>
+<pre class="code">&lt;model block="minecraft:grass_block"&gt;&lt;/model&gt;   <span class="c">-mc-yaw / -mc-pitch / -mc-model-scale，可写进 @keyframes</span>
+&lt;entity type="minecraft:fox" rotatable&gt;&lt;/entity&gt;   &lt;entity player follow-mouse&gt;&lt;/entity&gt;
+&lt;scene structure="oriel:structures/cottage.nbt"&gt;&lt;block-group x="2..8" y="1" z="2..8"&gt;…</pre>
+        </section>
+      </div>
+    </div>
+    <div class="foot"><span id="count">11 节</span><div class="o-grow"></div><div class="o-hints"><span><span class="o-kbd">↑</span><span class="o-kbd">↓</span>切换</span></div></div>
+  </div>
+  <div class="m-modal" id="modal">
+    <div class="ore-panel" style="width: 200px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start">
+      <span class="o-h1">模态框</span><span class="o-dim">背景淡入，面板弹起。</span>
+      <div class="ore-btn primary m-ripple" id="modal-close" tabindex="0">知道了</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

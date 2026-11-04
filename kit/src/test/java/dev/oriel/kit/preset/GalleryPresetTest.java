@@ -22,6 +22,8 @@ class GalleryPresetTest {
     void tilesOpenTheirPages() {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
         click(doc, ".card[data-go=forge]", 0, Modifiers.NONE, clock);
+        assertTrue(doc.querySelector(".m-zoom") != null, "the tile grows into the page first");
+        frame(doc, clock, 400);
         assertEquals(List.of(OrielKit.FORGE), host.navigations);
         // The HUD tile asks the host first; this host declines, so the page opens instead.
         click(doc, ".card[data-page=potions]", 0, Modifiers.NONE, clock);
@@ -43,10 +45,17 @@ class GalleryPresetTest {
     }
 
     @Test
+    void countersCountUp() {
+        Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
+        for (int i = 0; i < 90; i++) frame(doc, clock, 16);
+        assertEquals("2235", doc.querySelector("[data-count='2235']").textContent());
+    }
+
+    @Test
     void particlesFillTheirCanvases() {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
         frame(doc, clock, 2000);
-        var canvas = doc.querySelector(".banner canvas[data-fx=stars]");
+        var canvas = doc.querySelector(".hero canvas[data-fx=stars]");
         assertTrue(Integer.parseInt(canvas.getAttribute("width")) > 100, "the canvas takes its box's width");
     }
 }

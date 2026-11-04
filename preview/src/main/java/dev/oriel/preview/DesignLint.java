@@ -47,7 +47,7 @@ final class DesignLint {
             if (r[0] + r[2] > vw + 0.5f || r[1] + r[3] > vh + 0.5f || r[0] < -0.5f || r[1] < -0.5f) {
                 if (!inScroller(e)) out.add("文字超出窗口: " + where + " 「" + clip(text) + "」");
             }
-            if (s.overflowX != Overflow.VISIBLE && s.textOverflow != TextOverflow.ELLIPSIS
+            if ((s.overflowX == Overflow.HIDDEN || s.overflowX == Overflow.CLIP) && s.textOverflow != TextOverflow.ELLIPSIS
                     && e.box.scrollWidth > e.box.paddingBoxWidth() + 1) {
                 out.add("文字被截断（加 text-overflow: ellipsis 或放宽）: " + where + " 「" + clip(text) + "」");
             }

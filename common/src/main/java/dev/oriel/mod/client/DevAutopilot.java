@@ -756,6 +756,23 @@ public final class DevAutopilot {
         hover(".card[data-go=forge]");
         pause(8);
         grab(mc, "preset_gallery_hover", 5);
+        onPage("the zoom into the forge", p -> p.click(".card.forge"));
+        pause(3);
+        grab(mc, "preset_gallery_zoom", 5);
+
+        shoot(mc, "preset_catalog", () -> OrielClientCommands.preset("catalog"));
+        onPage("the rarity section", p -> p.click("#list .item[data-sec=rarity]"));
+        pause(30);
+        grab(mc, "preset_catalog_rarity", 5);
+        onPage("the 3D section", p -> p.click("#list .item[data-sec=models]"));
+        pause(30);
+        grab(mc, "preset_catalog_models", 5);
+        onPage("the motion section", p -> {
+            p.click("#list .item[data-sec=motion]");
+            p.click("#acc-head");
+        });
+        pause(20);
+        grab(mc, "preset_catalog_motion", 5);
 
         shoot(mc, "preset_inventory", () -> OrielClientCommands.preset("inventory"));
         hover("[data-i='0']");
