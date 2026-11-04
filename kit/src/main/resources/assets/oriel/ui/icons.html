@@ -44,6 +44,14 @@
 .d-tags { display: flex; flex-wrap: wrap; gap: 2px; }
 .d-tags .o-chip { height: 11px; padding: 0 3px; }
 .tints { display: flex; gap: 2px; }
+/* Vanilla sprites and items keep their own colours: no tint, no tint swatches. */
+.tile.native, .tile.native:hover, .stage.native { -mc-tint: #ffffff; }
+.detail.native .tint-row { display: none; }
+.tile item { width: 16px; height: 16px; }
+.stage item.big { width: 64px; height: 64px; }
+.stage item.mid { width: 32px; height: 32px; }
+.stage item.small { width: 16px; height: 16px; }
+.stage.item img { display: none; }
 .tints span { width: 14px; height: 14px; cursor: pointer; background: var(--c); border: 1px solid rgba(0, 0, 0, 0.6); }
 .tints span.on { box-shadow: 0 0 0 1px var(--o-text); }
 .code { margin: 0; padding: 4px 5px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f; line-height: 10px; white-space: normal; word-break: break-all; }
@@ -92,8 +100,8 @@
         <span class="d-name" id="d-name"></span>
         <span class="d-id" id="d-id"></span>
         <div class="d-tags" id="d-tags"></div>
-        <span class="o-caps">着色</span>
-        <div class="tints" id="tints"></div>
+        <span class="o-caps tint-row">着色</span>
+        <div class="tints tint-row" id="tints"></div>
         <span class="o-caps">写法</span>
         <pre class="code" id="d-code"></pre>
       </div>
