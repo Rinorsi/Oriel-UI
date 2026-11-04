@@ -241,6 +241,43 @@ final class StackingOrder {
         return outlines;
     }
 
+    /** Receives a text run and the origin its block's walk paints it from (see {@link Visitor#textRun}). */
+    interface RunSink {
+        void run(Fragment.TextRun run, float x, float y);
+    }
+
+    /**
+     * The text painted as {@code box}'s content, its lines and those of its in-flow descendants (atomic inlines too),
+     * from (x, y): the foreground {@code background-clip: text} is cut to.
+     */
+    static void textRuns(Box box, float x, float y, RunSink sink) {
+        float cx = x - box.scrollLeft(), cy = y - box.scrollTop();
+        for (LineBox line : box.lines) {
+            for (Fragment f : line.fragments) {
+                if (f instanceof Fragment.TextRun run) {
+                    sink.run(run, cx, cy);
+                } else if (f instanceof Fragment.Atomic atomic && !isLayer(styleOf(atomic.box()))) {
+                    textRuns(atomic.box(), cx + atomic.box().x, cy + atomic.box().y, sink);
+                }
+            }
+        }
+        for (Box child : box.children) {
+            if (inFlow(child)) textRuns(child, cx + child.x, cy + child.y, sink);
+        }
+    }
+
+    /** The text runs inside inline fragment {@code fragment} of {@code block}'s lines, from (cx, cy). */
+    static void textRuns(Box block, Fragment.InlineBox fragment, float cx, float cy, RunSink sink) {
+        for (LineBox line : block.lines) {
+            int i = line.fragments.indexOf(fragment);
+            if (i < 0) continue;
+            for (int j = i + 1; j < fragment.end(); j++) {
+                if (line.fragments.get(j) instanceof Fragment.TextRun run) sink.run(run, cx, cy);
+            }
+            return;
+        }
+    }
+
     static boolean hasOutline(ComputedStyle s) {
         return s.outlineStyle.isVisible() && s.outlineWidth > 0 && !Colors.isTransparent(s.outlineColor);
     }

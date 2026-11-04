@@ -78,7 +78,7 @@ final class Geometry {
     /** Writes the {x, y, width, height} and radii of the border, padding or content box. */
     void area(BackgroundLayer.Box which, float[] rect, float[] outRadii) {
         float t = 0, r = 0, b = 0, l = 0;
-        if (which != BackgroundLayer.Box.BORDER_BOX) {
+        if (which != BackgroundLayer.Box.BORDER_BOX && which != BackgroundLayer.Box.TEXT) {
             t = border[0];
             r = border[1];
             b = border[2];

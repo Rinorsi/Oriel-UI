@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Group effects through the whole pipeline: a page laid out, painted by the engine and drawn by the previewer. */
 class GroupEffectsTest {
@@ -46,5 +47,14 @@ class GroupEffectsTest {
                 </div>""");
         assertEquals(0xFFFF0000, image.getRGB(1, 1));
         assertEquals(0xFF0000FF, image.getRGB(30, 30));
+    }
+    @Test
+    void backgroundClipTextPaintsOnlyTheGlyphs() throws IOException {
+        BufferedImage image = render("""
+                <div style="height: 40px; background: #ff0000; -webkit-background-clip: text; color: transparent">MMMM</div>""");
+        int red = 0;
+        for (int x = 0; x < 40; x++) for (int y = 0; y < 12; y++) if (image.getRGB(x, y) == 0xFFFF0000) red++;
+        assertTrue(red > 10, "the glyphs show the background: " + red);
+        assertEquals(0xFF0000FF, image.getRGB(20, 30), "below the line there is no text, so no background");
     }
 }

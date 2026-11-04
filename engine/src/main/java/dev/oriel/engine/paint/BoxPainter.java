@@ -214,7 +214,9 @@ final class BoxPainter implements StackingOrder.Visitor {
     @Override
     public void box(Box box, ComputedStyle s, float x, float y) {
         if (s.visibility != Visibility.VISIBLE || box.kind == Box.Kind.ANONYMOUS) return;
-        decorations(s, geometry.box(box, s, x, y, dp));
+        Geometry g = geometry.box(box, s, x, y, dp);
+        decorations(s, g);
+        if (Backgrounds.clipsToText(s)) textBackground(g, s, sink -> StackingOrder.textRuns(box, x, y, sink));
         Element element = box.element;
         if (element == null || box.kind == Box.Kind.PSEUDO) return;
         if (Controls.isControl(element.tagName())) {
@@ -229,14 +231,37 @@ final class BoxPainter implements StackingOrder.Visitor {
     @Override
     public void inlineBox(Box block, Fragment.InlineBox fragment, ComputedStyle s, float x, float y) {
         if (s.visibility != Visibility.VISIBLE) return;
-        decorations(s, geometry.fragment(fragment, s, x, y, dp));
+        Geometry g = geometry.fragment(fragment, s, x, y, dp);
+        decorations(s, g);
+        if (Backgrounds.clipsToText(s)) textBackground(g, s, sink -> StackingOrder.textRuns(block, fragment, x, y, sink));
+    }
+
+    /**
+     * {@code background-clip: text}: the layers clipped to the text, as a group masked by the glyphs of the text
+     * {@code runs} gives (the text itself is painted later, as usual, usually transparent). Without groups the
+     * layers are left out, so the text stays readable in its own colour.
+     */
+    private void textBackground(Geometry g, ComputedStyle s, java.util.function.Consumer<StackingOrder.RunSink> runs) {
+        if (!canvas.beginGroup()) {
+            unsupported("this canvas has no layers; background-clip: text is left out");
+            return;
+        }
+        backgrounds.paint(canvas, batch, g, s, dp, true);
+        batch.flush(canvas);
+        canvas.beginMask(MaskComposite.ADD);
+        runs.accept((run, rx, ry) -> {
+            ComputedStyle rs = StackingOrder.styleOf(run);
+            if (rs.visibility != Visibility.VISIBLE || run.text().isEmpty()) return;
+            TextPainter.glyphs(canvas, run.text(), run.spaced(), rx + run.x(), ry + run.y(), rs.font(), rs, Colors.WHITE, dp);
+        });
+        canvas.endGroup(1, List.of(), BlendMode.NORMAL);
     }
 
     /** Outer shadows, background, inset shadows and border (CSS paints the first shadow on top). */
     private void decorations(ComputedStyle s, Geometry g) {
         canvas.crispShapes(s.shapeRendering == ShapeRendering.CRISP_EDGES);
         paintShadows(g, s.boxShadow, false, BackgroundLayer.Box.BORDER_BOX);
-        backgrounds.paint(canvas, batch, g, s, dp);
+        backgrounds.paint(canvas, batch, g, s, dp, false);
         paintShadows(g, s.boxShadow, true, BackgroundLayer.Box.PADDING_BOX);
         // A border image replaces the border's own painting (CSS Backgrounds 3 §6), when its source can be drawn.
         if (borderImages.paint(canvas, g, s, dp)) return;

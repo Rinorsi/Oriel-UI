@@ -47,6 +47,14 @@ public final class TextPainter {
         if (!Colors.isTransparent(color)) line(canvas, text, spaced, x, y, font, color, decorations, nativeShadow, devicePixel);
     }
 
+    /** The glyphs (and decoration lines) alone, without shadows: the shape {@code background-clip: text} paints. */
+    static void glyphs(Canvas canvas, String text, SpacedText spaced, float x, float y, FontSpec font, ComputedStyle s,
+                       int color, float devicePixel) {
+        int decorations = (s.underline ? Canvas.UNDERLINE : 0) | (s.lineThrough ? Canvas.STRIKETHROUGH : 0)
+                | (s.obfuscated ? Canvas.OBFUSCATED : 0);
+        line(canvas, text, spaced, x, y, font, color, decorations, false, devicePixel);
+    }
+
     private static void line(Canvas canvas, String text, SpacedText spaced, float x, float y, FontSpec font, int argb,
                              int decorations, boolean shadow, float dp) {
         float ty = Geometry.snap(y, dp);

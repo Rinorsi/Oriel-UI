@@ -128,6 +128,7 @@ final class Properties {
         alias("word-wrap", "word-break");
         alias("-webkit-line-clamp", "line-clamp");
         alias("-webkit-backdrop-filter", "backdrop-filter");
+        alias("-webkit-background-clip", "background-clip");
         alias("-webkit-clip-path", "clip-path");
         alias("-webkit-mask-image", "mask-image");
         alias("-webkit-mask-composite", "mask-composite");
