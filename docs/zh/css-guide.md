@@ -1,7 +1,7 @@
 # CSS 参数与实际行为
 
 > 本页是 Oriel 的 CSS 参考，不是浏览器完整 CSS。属性注册与语法表来源于本项目既有探测清单，并对当前实现复核。
-> 当前主分支没有 CssReferenceTest；不要运行不存在的生成任务，也不要声称 CI 已自动守护本文。同步责任见 [维护约定](maintenance.md)。
+> 已有 `CssReferenceTest` 守护机器探测表 [css-reference.md](css-reference.md)，不覆盖本文全部语义合同。更新命令：`ORIEL_UPDATE_DOCS=1 ./gradlew :engine:test --tests '*CssReferenceTest'`。本文的行为、示例和限制仍须同步维护，见 [维护约定](maintenance.md)。
 > 下表“关键字/类型”是已列候选与常用写法，不以“接受一个字符串”证明对应绘制行为。先看下面的语义例外，再查参数。
 > 145 个单项属性与简写注册表已在此文档基准的引擎上临时探测核对；这是本轮检查，不是已安装的持续自动更新服务。
 
