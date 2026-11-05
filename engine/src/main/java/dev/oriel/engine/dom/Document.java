@@ -169,6 +169,10 @@ public final class Document extends Node {
     public void setController(PageControllers.Controller controller) { this.controller = controller; }
     public Scrolling scrolling() { return scrolling; }
     public StyleEngine styleEngine() { return styleEngine; }
+    /** Re-reads external CSS next frame, preserving nodes, controllers, scripts and input state. */
+    public void reloadStyles() {
+        run(styleEngine::reloadStyles);
+    }
     public LayoutEngine layoutEngine() { return layoutEngine; }
     public AnimationEngine animations() { return animationEngine; }
     public Painter painter() { return painter; }

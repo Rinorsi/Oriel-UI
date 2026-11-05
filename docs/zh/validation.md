@@ -143,7 +143,9 @@ stdio：node tools/mcp/oriel-preview.mjs，cwd 仓库根，可设 ORIEL_ROOT。�
 
 保存已读取 HTML/CSS/JSON 可重载；driver push/patch 与控制器 saveState/restoreState 有各自状态保留规则。Java 热替换受 VM 限制，增删字段/方法、改加载器元数据可能要重启；语言/字体/纹理需资源重载。不要承诺任意更改都免重启。
 
-当前文件观察器发现变化后调用 DocumentDriver.reloadAll，重新创建文档并尝试恢复控制器状态；不是“只替换CSS而保持原DOM不变”。纯CSS增量重载仍未实现，不能靠saveState/restoreState等同替代。恢复只涵盖控制器主动保存的状态，不自动保存任意JS闭包、临时事件或输入法组合状态。
+文件观察器每 200ms 轮询已读取文件（预览窗口使用自身轮询周期）。同一批变更全部是外部 `.css` 时，游戏与预览窗口仅清空链接及 `@import` 样式缓存，下一帧重算样式/布局，不重建 Document/DOM，不重跑脚本或控制器；焦点、输入、选区、滚动及事件监听保留。布局尺寸改变时滚动仍会按新范围夹取，CSS 动画/transition 按新样式重新计算。缺失或错误 CSS 继续给出引擎诊断。
+
+HTML（含内联 `<style>`）、脚本、JSON 或混合变更仍整页重建，并尝试控制器 `saveState/restoreState`；该分支仅恢复控制器主动保存的状态，不自动恢复任意 JS 闭包、临时事件或输入法组合。`/oriel reload`、F3+T、语言变化及 Java 热替换仍是整页重载。尚未读取/未观察到的文件不会触发此机制。`Document.reloadStyles()` 可由宿主显式请求同样的 CSS 缓存失效，在线程约定上与其他 Document 操作一致。
 
 | 症状 | 检查 |
 |---|---|

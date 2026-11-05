@@ -99,7 +99,7 @@ Build CI 在上传工件前运行下述发布包条目检查，并运行后端/�
 
 使用 `-Poriel_release` 构建玩家用 JAR，移除自动验收、演示巡游、Java 热重载和自附加 agent 的实现类。客户端先检查对应类资源是否存在，再启用开发入口；在缺少实现的正式包中，设置 `oriel.autopilot` 或 `oriel.tour` 也不会启用这些工具。资源存在性检查本身不会初始化开发类。
 
-这不是检查器的完全隔离：`DocumentDriver.inspector()` 仍暴露检查器类型，检查器类及 inspector.html 仍保留，不能把当前构建宣传成不含全部调试能力。此处不改动该公共 API 或界面。
+正式运行包同时排除 `DevInspector`、引擎 `inspect` 实现、Rhino `InspectorBindings` 及 `inspector.html` 等开发页面。宿主仅保留不引用开发实现类型的内部接缝；正式包即使设置 `client.inspector=true` 也不会启用 F12 检查器。普通开发构建仍支持该配置，开发环境默认启用。`tools/check-release.mjs` 将上述类与资源残留视为失败；此条目检查本身不等于实际客户端启动验收。
 
 所有版本子项目的 JAR（含源码包）携带根目录 LICENSE 和 NOTICE，沿用带模组名的文件名；正式加载器 JAR 还应保留 Rhino 的 LICENSE/NOTICE/SOURCE 与字体许可。源码包保留源码，不适用运行包的开发类排除规则。
 
@@ -107,6 +107,8 @@ Build CI 在上传工件前运行下述发布包条目检查，并运行后端/�
 ./gradlew --offline :fabric:26.1:jar :neoforge:26.1:jar -Poriel_release
 node tools/check-release.mjs path/to/release.jar
 ORIEL_TEST_TMP=/external/test-temp node --test tools/release-boundaries.test.mjs
+# 对实际正式包执行隔离类加载及脚本启动（classpath.txt 由 :common:26.3:checkPublicApi 生成）
+java tools/fixtures/ReleaseInspectorProbe.java path/to/release.jar common/versions/26.3/build/api-check/classpath.txt
 ```
 
 `JAVA_HOME` 应指向项目 JDK，临时目录必须已存在且位于仓库外。发布包检查命令用于每个待交付加载器 JAR，缺项目声明、Rhino 声明、字体许可，或发现已排除的开发类/测试夹具时返回非零。该检查只核对工件条目，不代替完整许可审查、任意字节码链接检查或真实游戏启动。回归测试另用真实 DevFlags 源码验证实现类存在/缺失、开发参数开启/关闭四种组合，确认可选热重载调用在缺类时不执行。

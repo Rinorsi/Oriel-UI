@@ -5,7 +5,6 @@ import dev.oriel.mod.client.DocumentDriver;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.FontMetrics;
-import dev.oriel.engine.inspect.Inspection;
 import dev.oriel.engine.host.Host;
 import dev.oriel.engine.host.PixelSurface;
 import dev.oriel.engine.host.ReplacedContent;
@@ -51,7 +50,7 @@ public final class McHost implements Host {
     }
 
     @Override
-    public @Nullable Inspection inspection() {
+    public @Nullable Object inspection() {
         return driver.inspection();
     }
 

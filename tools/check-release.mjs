@@ -16,7 +16,10 @@ export function auditEntries(entries) {
     failures.push('Missing font licenses');
   }
   for (const p of files) {
-    if (/^dev[/]oriel[/]mod[/]internal[/]client[/](DevAutopilot|DevTour|DevPointer|DevReload|DevAgent|TourCursor|TourPointer|CursorArt)(\$.*)?\.class$/.test(p)) {
+    if (/^dev[/]oriel[/]mod[/]internal[/]client[/](DevAutopilot|DevTour|DevPointer|DevReload|DevAgent|DevInspector|TourCursor|TourPointer|CursorArt)(\$.*)?\.class$/.test(p)
+        || p.startsWith('dev/oriel/engine/inspect/')
+        || /^dev[/]oriel[/]engine[/]script[/]InspectorBindings(\$.*)?\.class$/.test(p)
+        || p.startsWith('assets/oriel/oriel/dev/')) {
       failures.push('Development class in release: ' + p);
     }
     if (p.startsWith('taffy/') || p.includes('/test/resources/')) failures.push('Test fixture in release: ' + p);

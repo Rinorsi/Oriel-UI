@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * keeps working: only while picking does the pointer pick elements instead of using them. Dragging the panel's left
  * edge resizes it.
  */
-public final class DevInspector implements DocumentDriver.Owner {
+public final class DevInspector implements DocumentDriver.Owner, InspectorAccess {
     public static final String PAGE = "oriel:oriel/dev/inspector.html";
     /** The panel's width: two fifths of the screen, within these GUI px, until the player drags its edge. */
     private static final int MIN_WIDTH = 140, MAX_WIDTH = 280;

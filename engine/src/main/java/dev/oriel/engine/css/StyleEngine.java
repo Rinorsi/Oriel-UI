@@ -83,6 +83,14 @@ public final class StyleEngine {
         this.cascade = new Cascade(document.diagnostics()::report);
     }
 
+    /** Re-reads linked and imported sheets on the next restyle without changing the DOM. */
+    public void reloadStyles() {
+        loadedSheets.clear();
+        sources = null;
+        index = null;
+        document.invalidateStyle();
+    }
+
     /**
      * Recomputes styles for the whole document. For each element: sets {@code baseStyle}, calls
      * {@code document.animations().styleChanged(element, oldBase, newBase)} which sets {@code element.style},

@@ -17,7 +17,8 @@ import dev.oriel.shadow.rhino.ScriptableObject;
 final class InspectorBindings {
     private InspectorBindings() {}
 
-    static void install(RhinoScriptRuntime rt, Inspection inspection) {
+    static void install(RhinoScriptRuntime rt, Object target) {
+        Inspection inspection = (Inspection) target;
         ScriptableObject inspector = (ScriptableObject) rt.js.newObject();
         rt.global.defineProperty("inspector", inspector, ScriptableObject.DONTENUM | ScriptableObject.READONLY);
         new Members<>(rt, inspector, self -> inspection)

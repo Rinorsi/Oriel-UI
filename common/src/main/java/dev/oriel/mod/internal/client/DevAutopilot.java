@@ -423,7 +423,7 @@ public final class DevAutopilot {
         steps.add(() -> {
             Screen screen = McClient.screen();
             DocumentDriver driver = screen == null ? null : DocumentDriver.of(screen);
-            DevInspector inspector = driver == null ? null : driver.inspector();
+            DevInspector inspector = driver == null ? null : (DevInspector) driver.inspector();
             if (inspector == null) {
                 fail("no inspector to resize");
                 return;
@@ -444,7 +444,7 @@ public final class DevAutopilot {
     private static Optional<Inspection> inspection() {
         Screen screen = McClient.screen();
         DocumentDriver driver = screen == null ? null : DocumentDriver.of(screen);
-        return Optional.ofNullable(driver == null ? null : driver.inspector()).map(i -> i.inspection);
+        return Optional.ofNullable(driver == null ? null : driver.inspector()).map(i -> ((DevInspector) i).inspection);
     }
 
     /** How many block quads the open page's scene drew in its last frame. */

@@ -1,6 +1,6 @@
 package dev.oriel.mod.client;
 
-import dev.oriel.mod.internal.client.DevInspector;
+import dev.oriel.mod.internal.client.InspectorAccess;
 import dev.oriel.mod.internal.client.ErrorPanel;
 import dev.oriel.mod.internal.client.KeyNames;
 import dev.oriel.mod.internal.client.McClient;
@@ -22,7 +22,6 @@ import dev.oriel.engine.host.Urls;
 import dev.oriel.engine.dom.Viewport;
 import dev.oriel.engine.input.InputHandler;
 import dev.oriel.engine.input.Tooltip;
-import dev.oriel.engine.inspect.Inspection;
 import dev.oriel.engine.paint.HitResult;
 import dev.oriel.engine.style.Cursor;
 import dev.oriel.mod.internal.Constants;
@@ -138,9 +137,9 @@ public final class DocumentDriver {
     private int width, height;
     /** The inspected page's width: the screen's, less the inspector's panel while it is open. */
     private int pageWidth;
-    private @Nullable DevInspector inspector;
+    private @Nullable InspectorAccess inspector;
     /** For the inspector's own panel: the page it inspects. */
-    private @Nullable Inspection inspecting;
+    private @Nullable Object inspecting;
     private Cursor cursor = Cursor.AUTO;
     private boolean textInput, closeRequested, closedByServer;
     /** A child screen (link confirmation) is up and will return to this one: survive the owner's removal. */
@@ -202,6 +201,14 @@ public final class DocumentDriver {
     /** Reloads every loaded document: after a resource reload, {@code /oriel reload}, or a saved source file in dev. */
     public static void reloadAll() {
         for (DocumentDriver d : List.copyOf(LIVE)) d.reload();
+    }
+
+    /** File-save reload: CSS retains the document; other changes use the controller state handoff. */
+    @org.jetbrains.annotations.ApiStatus.Internal
+    public static void reloadChanged(java.util.Collection<java.nio.file.Path> changed) {
+        for (DocumentDriver d : List.copyOf(LIVE)) {
+            dev.oriel.engine.host.HotReload.apply(d.document, changed, d::reload);
+        }
     }
 
     /** The loaded drivers showing page {@code url} (queries and fragments ignored); never inline pages. */
@@ -581,7 +588,7 @@ public final class DocumentDriver {
             owner.closeDocument();
             return true;
         }
-        if (inspecting == null && owner.screen() != null && DevInspector.toggleKey(e) && DevInspector.enabled()) {
+        if (inspecting == null && owner.screen() != null && e.key() == com.mojang.blaze3d.platform.InputConstants.KEY_F12 && InspectorAccess.enabled()) {
             toggleInspector();
             return true;
         }
@@ -912,32 +919,32 @@ public final class DocumentDriver {
 
     // ---- Inspector ----
 
-    /** Opens or closes the element inspector over this page ({@link DevInspector}). */
+    /** Opens or closes the optional development inspector over this page. */
     @org.jetbrains.annotations.ApiStatus.Internal
     public void toggleInspector() {
         if (inspector != null) {
             inspector.close();
             inspector = null;
         } else {
-            inspector = new DevInspector(this);
+            inspector = InspectorAccess.open(this);
         }
         resize(width, height);
     }
 
     /** The inspector over this page, while it is open. */
     @org.jetbrains.annotations.ApiStatus.Internal
-    public @Nullable DevInspector inspector() {
+    public @Nullable InspectorAccess inspector() {
         return inspector;
     }
 
     /** Makes this the inspector's panel, inspecting another page. */
     @org.jetbrains.annotations.ApiStatus.Internal
-    public void inspecting(Inspection inspection) {
+    public void inspecting(Object inspection) {
         inspecting = inspection;
     }
 
     @org.jetbrains.annotations.ApiStatus.Internal
-    public @Nullable Inspection inspection() {
+    public @Nullable Object inspection() {
         return inspecting;
     }
 

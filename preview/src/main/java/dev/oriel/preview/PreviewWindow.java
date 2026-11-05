@@ -83,7 +83,11 @@ final class PreviewWindow {
         view.requestFocusInWindow();
         new Timer(16, e -> renderFrame()).start();
         new Timer(POLL_MS, e -> {
-            if (files.changed(host.loadedFiles())) reload();
+            var changed = files.changedPaths(host.loadedFiles());
+            if (!changed.isEmpty() && page != null) {
+                page.reloadChanged(changed);
+                pageLoaded();
+            }
         }).start();
     }
 

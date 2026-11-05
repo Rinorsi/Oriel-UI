@@ -158,7 +158,8 @@ clientRunProperties['jdk.attach.allowAttachSelf'] = 'true'
 // elsewhere only reaches them through DevFlags, which checks class resources before enabling a tool.
 if (project.hasProperty('oriel_release')) {
     tasks.named('jar', Jar) {
-        ['DevAutopilot', 'DevTour', 'DevPointer', 'DevReload', 'DevAgent', 'TourCursor', 'TourPointer', 'CursorArt'].each { exclude("dev/oriel/mod/internal/client/${it}*.class") }
-        exclude { it.path.startsWith('assets/oriel/oriel/dev/') && it.name != 'inspector.html' }
+        ['DevAutopilot', 'DevTour', 'DevPointer', 'DevReload', 'DevAgent', 'DevInspector', 'TourCursor', 'TourPointer', 'CursorArt'].each { exclude("dev/oriel/mod/internal/client/${it}*.class") }
+        exclude('dev/oriel/engine/inspect/**', 'dev/oriel/engine/script/InspectorBindings*.class')
+        exclude('assets/oriel/oriel/dev/**')
     }
 }
