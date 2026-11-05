@@ -1,5 +1,7 @@
 # Security
 
+> 本页保留 Oriel 专题细节。制作入口与当前能力合同见 [中文手册](../zh/index.md)；新增字段/行为必须同步中文参考。
+
 What players are protected from, what a page can still do, what mod and server authors must do, and every setting in `config/oriel.properties`. [All docs](../index.md)
 
 
@@ -127,6 +129,8 @@ What a client lets pages do:
 | Key | Default | Range | Meaning |
 |---|---|---|---|
 | `client.serverPages` | `allow` | `allow`, `ask`, `block` | Whether pages a server opens show. `ask` asks once per visit. |
+| `client.inventoryEffects` | `true` | `true`, `false` | 在原版生存/创造背包旁显示 Oriel 效果面板。 |
+| `client.hideVanillaInventoryEffects` | `true` | `true`, `false` | Oriel 面板显示时隐藏原版效果列表。 |
 | `client.maxInlineHtmlChars` | 200000 | 1 to 200000 | Largest inline page shown. |
 | `client.maxDataChars` | 100000 | 1 to 100000 | Largest data accepted from a server. |
 | `client.maxDataDepth` | 64 | 1 to 512 | Deepest nesting accepted in data from a server. |
@@ -144,7 +148,7 @@ What a client lets pages do:
 | `client.typingNotice` | `true` | `true`, `false` | The notice while typing into a server's page. |
 | `client.reducedMotion` | `false` | `true`, `false` | Pages see `prefers-reduced-motion: reduce`. |
 | `client.inspector` | `false` | `true`, `false` | F12 on a page's screen opens the element inspector. Always on in a development environment. |
-| `client.shapeShader` | `true` | `true`, `false` | Rounded boxes, borders and box-shadows drawn by a shader, with smooth edges and real blur (26.2 and 26.3). `false` draws them as flat quads. |
+| `client.shapeShader` | `true` | `true`, `false` | Rounded boxes, borders and box-shadows drawn by a shader, with smooth edges and real blur (supported 26.x targets). `false` draws them as flat quads. |
 
 The engine's caps on every page, a mod's or a server's. Each must be at least 1, and `heapLimitPercent` at most
 100 (100 turns the heap check off). They are fields of `dev.oriel.engine.Limits`, whose `describe` gives each

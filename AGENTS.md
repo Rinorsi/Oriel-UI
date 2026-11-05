@@ -66,15 +66,20 @@ D:\Minecraft\project\Mods\
 
 ## UI 工作流（AI 快速入口）
 
+**先读 `docs/zh/index.md`、`docs/zh/capabilities.md`、`docs/zh/ui-workflow.md`。页面开发的能力清单、参数与限制以这套文档为入口，不让新 agent 重新翻引擎整理清单。** 下列 kit 步骤是项目内 Java 控制器路线；库同时支持受限 JavaScript，范围见 `docs/zh/scripting.md`。
+
+**文档同步是完成条件：** 新增、删除、改名或修改能力、数据字段、默认值、限制、组件类、命令、API 行为时，必须在同一次变更按 `docs/zh/maintenance.md` 的映射同步参数表、示例与限制。合并其他分支后也必须核对最终代码和文档。只改实现不改手册，不算完成。没有的能力/自动门禁不能提前写成已支持；解析、预览、游戏、联机验证必须分开标明。
+
+制作流程只维护 `ui-workflow.md`；`making-a-page.md` 保留旧链接入口。AUI/Vellum 研究、实施计划与验收记录留在工作区，不能作为 Oriel 当前使用合同。所有文档修改仍须检查链接、字段覆盖及实际例子。
+
+并行会话仍在工作时，不停止共享 Gradle daemon、不切换或覆盖对方工作树；只清理本会话启动且确认已结束的进程。文档更新本身不要求启动游戏或全矩阵构建，按涉及内容运行适当核验。
+
 1. 规则：`docs/zh/design.md`（尺寸、层级、稀有度光效、粒子、图标、两种风格）、`docs/zh/motion.md`（动效）、`docs/zh/recipes.md`（布局套路，先挑一个再改）。流程：`docs/zh/making-a-page.md`。活目录：游戏里 `/oriel demo catalog`。
 2. 新页面：`node tools/new-page.mjs <名字> "<标题>"`（页面 + 控制器 + 测试 + 登记）。
 3. 页面只写 HTML/CSS（`kit/src/main/resources/assets/oriel/ui/`，样式库 `ore.css`）；交互在 Java 控制器（`kit/.../preset/*Preset.java`），共用件在 `kit/.../kit/`（`Shell`、`Dom`、`Flip`、`Slider`、`fx/Particles`）。
 4. 每次改完：`./gradlew :kit:test :preview:checkUi`。排查布局：预览器 `--snapshot out.png --frames 60 --boxes "<选择器>"`。MCP：`node tools/mcp/oriel-preview.mjs`（检查、截图、交互）。
 5. 进游戏验收：`./gradlew :fabric:26.1:runClient -Pautopilot=oriel`（自动打开每个界面并截图，1280×720）。截图、日志放工作区 `daily/<日期>/`。
 
-## 当前状态（2026-11-04 实测）
+## 能力与验证记录
 
-- 构建与运行：MC 26.1.2 / 26.2 / 26.3，Fabric 与 NeoForge 均可构建；Fabric 26.1 与 26.3 客户端实测通过。26.1 是主验收版本。
-- kit：首页（全屏拼贴 + 3D 场景）、背包、锻造台、音乐、设置、药水 HUD、组件编辑器、组件与动效目录、物品数据编辑器（`/oriel edit`，服务端校验后写回）；像素/平滑两种风格 × 亮/暗主题；75 个像素图标；8 种粒子；命名动效库；中文输入法预编辑与候选窗定位。
-- 本环境调用 Sonnet 子代理失败（模型不可用），2026-11-04 起未派子代理，全部由主会话完成。
-- 任务记录：`..\Oriel-UI-Workspace\planning\TASK-01-overnight.md`、`TASK-02.md` 与当天的 `daily\<日期>\reports\`。
+当前支持范围、默认值与限制查 `docs/zh/index.md`，不要从旧任务汇报推断支持。目标版本见 `docs/versions.md`；逐次构建/游戏/联机验证记录和未合入任务状态放工作区 `daily/<日期>/`。变更能力时同步手册的适用基准。

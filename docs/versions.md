@@ -94,3 +94,5 @@ Build 在 main 推送、PR 或手动触发时运行，不使用路径过滤；�
 发布插件保留 Maven、Modrinth、CurseForge 的配置入口，但地址/项目ID、凭据、产物许可和平台权限均需实际确认，
 不能把历史 maven.maxleiter.com 地址当成本项目已获发布授权的目的地，也不会因创建标签自动发布。
 同一JAR兼容多个MC版本时，可在对应版本表填写 `publish_minecraft_versions = "26.2, 26.2.1"`；支持声明仍须运行证据。
+
+本 fork 的接入及本地依赖获取见[接入指南](zh/integration.md)。Modrinth/CurseForge 发布需要已确认的项目 ID、令牌和明确发布授权。

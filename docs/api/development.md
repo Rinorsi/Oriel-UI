@@ -1,5 +1,7 @@
 # Development
 
+> 本页保留 Oriel 专题细节。制作入口与当前能力合同见 [中文手册](../zh/index.md)；新增字段/行为必须同步中文参考。
+
 Commands, hot reload, and driving pages from code for autopilots and tests. [All docs](../index.md)
 
 ## Commands and development

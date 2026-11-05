@@ -5,15 +5,7 @@ scroll state) to a Oriel page. Read the [Java API docs](index.md) first, then `d
 
 ## 1. Set up the dependency
 
-Add Oriel's maven and depend on it (see [Setting up](api/setup.md) for every artifact):
-
-```groovy
-repositories { maven { url = "https://maven.maxleiter.com"; content { includeGroup("dev.oriel") } } }
-// common/
-dependencies { compileOnly("dev.oriel:oriel-common-26.3:0.9.0") }   // or oriel-common-26.1.2
-// neoforge/ and fabric/
-dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.9.0") }   // or oriel-fabric-26.3, and the 26.1.2/26.2 ones
-```
+依赖已统一到 [本 fork 接入指南](zh/integration.md)，不要使用上游 Maven 获取本 fork。H5 制作和移植的完整步骤见 [制作流程](zh/ui-workflow.md)，下表保留原生 Screen 向 Oriel 迁移的对应关系。
 
 If most of your UI moves to Oriel, make it a required dependency (`type="required"` in `neoforge.mods.toml`,
 `"depends"` in `fabric.mod.json`) rather than keeping a vanilla fallback for every screen. Two UIs for one feature is the

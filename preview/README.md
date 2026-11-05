@@ -1,5 +1,7 @@
 # Oriel previewer
 
+> 中文参数、工作区输出位置、外部页面资源根、MCP 与验收范围见 [验收工具](../docs/zh/validation.md)。临时页要同时提供其引用的 Oriel assets；仅把 kit 放进 Java classpath 不等于加载资源包。截图/动作输出显式指定仓库外 daily，勿在仓库根按 Ctrl+S 留截图。
+
 Renders a Oriel page in a window without launching Minecraft. It uses the engine, Java2D, and Minecraft's own font
 glyphs and GUI sprites, which it reads from your Minecraft jar. It is also where the snapshot tests live.
 
@@ -45,7 +47,7 @@ On macOS the JDK checks for file changes every two seconds, so reloads can lag b
 way. It is handy for checking hover states, menus, typing and scrolling without clicking through them by hand.
 
 ```sh
-./gradlew :preview:run --args="ui/shop.html --actions shop-actions.txt --out build/shots"
+./gradlew :preview:run --args="ui/shop.html --actions shop-actions.txt --out ../Oriel-UI-Workspace/daily/<YYYY-MM-DD>/screenshots/preview"
 ```
 
 The file has one action per line; lines starting with `#` are comments. Frames run 16 ms apart from t = 0, as in a

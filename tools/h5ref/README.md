@@ -7,9 +7,10 @@
 Node 22.12+、Java 25。以下命令在 Git Bash 执行；依赖、npm 缓存、浏览器全部在仓库外，不改变系统环境变量。已验证的版本为 Puppeteer 25.16.0、pngjs 7.0.0、Chrome 156.0.8078.47。
 
 ```bash
-source D:/Minecraft/project/Mods/Oriel-UI-Workspace/daily/2026-11-04/scratch/env.sh
-mkdir -p D:/Minecraft/project/Mods/Oriel-UI-Workspace/tools/chrome
-cd D:/Minecraft/project/Mods/Oriel-UI-Workspace/tools/chrome
+export JAVA_HOME=<JDK 25 的安装目录>
+export PATH=$JAVA_HOME/bin:$PATH
+mkdir -p ../Oriel-UI-Workspace/tools/chrome
+cd ../Oriel-UI-Workspace/tools/chrome
 export PUPPETEER_CACHE_DIR="$PWD/cache"
 export npm_config_cache="$PWD/npm-cache"
 npm init -y
@@ -22,24 +23,27 @@ npx puppeteer browsers install chrome
 
 ## 运行
 
+先在仓库根运行 `DAY=$(bash ../Oriel-UI-Workspace/tools/new-day.sh)`。每次显式传 `--out` 指向当天目录。脚本的历史默认输出仍是固定日期目录，不会自动随今天变更；下方路径中的 `<今天日期>` 必须替换，不能照抄旧日志环境脚本。
+
 回到自己的源码仓库或 worktree 根目录：
 
 ```bash
-source D:/Minecraft/project/Mods/Oriel-UI-Workspace/daily/2026-11-04/scratch/env.sh
+export JAVA_HOME=<JDK 25 的安装目录>
+export PATH=$JAVA_HOME/bin:$PATH
 # 本环境已有的 Minecraft 资源；省略时预览器自行搜索，找不到会使用后备字体。
-export ORIEL_MC_JAR=C:/Users/XD/.gradle/caches/fabric-loom/26.3/minecraft-client.jar
+export ORIEL_MC_JAR=~/.gradle/caches/fabric-loom/26.3/minecraft-client.jar
 ./gradlew --offline :preview:installDist
 
 # 递归跑默认语料，包括 _dev。
-node tools/h5ref/compare.mjs
+node tools/h5ref/compare.mjs --out $DAY/screenshots/h5ref
 
 # 仅跑一页；另选输出目录可保留上一轮批量报告。
 node tools/h5ref/compare.mjs tools/h5ref/corpus/_dev/flex.html \
-  --out D:/Minecraft/project/Mods/Oriel-UI-Workspace/daily/2026-11-04/workers/h5ref/single
+  --out ../Oriel-UI-Workspace/daily/<今天日期>/screenshots/h5ref-single
 
 # 自定义语料、底色与浏览器。
 node tools/h5ref/compare.mjs --corpus path/to/corpus --background '#202830' \
-  --chromium D:/Minecraft/project/Mods/Oriel-UI-Workspace/tools/chrome/cache/chrome/win64-156.0.8078.47/chrome-win64/chrome.exe
+  --chromium ../Oriel-UI-Workspace/tools/chrome/cache/chrome/win64-156.0.8078.47/chrome-win64/chrome.exe
 ```
 
 参数：
@@ -81,7 +85,7 @@ Minecraft 字体与 Chrome 字体的字形、宽度、换行、抗锯齿不同�
 
 ## 开发样例与测试
 
-本分支的五个开发样例均放在 corpus/_dev/。其他分支维护的风格语料可通过 --corpus 直接读取，无需复制进本分支。
+语料中的五个开发样例均放在 corpus/_dev/。其他分支维护的风格语料可通过 --corpus 直接读取，无需复制进本分支。
 
 `blocks.html` 验证纯色、边框、圆角和线性渐变；`flex.html` 验证无文字 Flex 几何；`text.html` 展示已知文字差异。`_dev/scifi.html`、`_dev/silent.html` 从工作区原样复制，刻意保留不支持的 CSS、SVG 和不存在的资源，以观察诊断缺口，不能当作成功等价的基准。
 

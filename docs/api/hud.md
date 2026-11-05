@@ -1,5 +1,7 @@
 # HUD overlays
 
+> 本页保留 Oriel 专题细节。制作入口与当前能力合同见 [中文手册](../zh/index.md)；新增字段/行为必须同步中文参考。
+
 Pages drawn over the HUD, and overlays that take input over chosen screens. [All docs](../index.md)
 
 

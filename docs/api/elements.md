@@ -1,5 +1,7 @@
 # Minecraft elements
 
+> 本页保留 Oriel 专题细节。制作入口与当前能力合同见 [中文手册](../zh/index.md)；新增字段/行为必须同步中文参考。
+
 Items, slots, entities, models, scenes, player heads and sprites on a page, and how your entities are drawn in them. [All docs](../index.md)
 
 
@@ -13,7 +15,7 @@ and `object-fit`, and placed in their box by `object-position`.
 | `<entity>` | `type`, `player`, `id`, `rotatable`, `follow-mouse`, `walk`, `baby`, `variant`, `color`, `components`, `mainhand`, `offhand`, `head`, `chest`, `legs`, `feet`, `body`, `saddle` | A live entity: `type="minecraft:pig"` (a client-side copy), `player` (you), or `id` (a world entity). It stands on the bottom of its box, centered and fitted to the room it needs to turn, or with `-mc-entity-focus: eyes` its head and shoulders fill the box (below). CSS turns it (`-mc-yaw`, `-mc-pitch`, `-mc-model-scale`); `rotatable` lets the player drag it round; `follow-mouse` turns its head toward the pointer (`-mc-gaze-reach` and `-mc-gaze-limit` soften it, below); `walk` (or `walk="0.4"`, a speed) swings its legs. Created entities play their idle animations and take `baby`, `variant` and `color` (`variant="minecraft:black"` on a cat, `color="pink"` on a sheep: the `<type>/variant` and `<type>/color` components), `components` (SNBT of entity components, e.g. `{"minecraft:wolf/collar":"red"}`) and items by equipment slot (`mainhand="minecraft:iron_sword"`). 32×48 by default. |
 | `<model>` | `block` or `item`, `count`, `components`, `rotatable` | A block state (`block="minecraft:oak_stairs[facing=east]"`, as in `/setblock`) or an item (`item="minecraft:trident"`, with `count` and `components` as on `<item>`) in 3D, centered in its box, at the size an item fills its slot. At yaw and pitch 0 an item looks as in the inventory and a block is seen as most blocks are there (30° from above, turned 225°); CSS turns it as it does entities. Blocks without a model (fluids, air) draw nothing. 32×32 by default. |
 | `<scene>` | `structure`, `rotatable`, `notooltips` | A small world in a box: blocks from a structure file and `<block>` children, grouped by `<block-group>`s that show, fade and move with CSS, `<entity>` children standing in it, and `<scene-anchor>` HTML pinned to points in it. Seen as the inventory sees blocks, fitted to its box. Hovering a block shows its name and fires `blockhover`. 160×120 by default. See [Scenes](#scenes). |
-| `<player-head>` | `name`, `uuid` | A player's face with the hat layer. No attributes: your own face. 16×16 by default. |
+| `<player-head>` | `name`, `uuid` | A player's face with the hat layer. No attributes: your own face. 8×8 in the current UA stylesheet; set CSS for 16×16. |
 | `<sprite>` | `src` | A GUI-atlas sprite such as `minecraft:widget/button`, at its natural size. Nine-slice and tiled sprites keep their borders when resized. |
 | `<img>` | `src` | A texture (`ns:textures/....png`, or relative to the page), a sprite (`sprite:ns:path`) or a canvas (`canvas:<id>`, the `<canvas>` with that id). The natural size comes from the PNG, sprite or canvas. `sprite:` and `canvas:` URLs work in CSS `url()` too. |
 | `<canvas>` | `width`, `height` | A pixel surface for scripts, 300×150 by default (at most 2048 a side). `getContext('2d')` supports `fillStyle`/`strokeStyle` (CSS colors), `lineWidth`, `globalAlpha`, `save`/`restore`, `fillRect`, `strokeRect`, `clearRect`, `getImageData`/`putImageData`/`createImageData` and `drawImage` of another canvas; coordinates are whole pixels (no antialiasing), and there is no text, paths or transforms. Show it elsewhere with `canvas:<id>`. |
@@ -84,7 +86,7 @@ Oriel measures text exactly as vanilla does, so two of the font's habits show up
 
 ## Smooth or pixel-sharp shapes
 
-On Minecraft 26.2 and 26.3, rounded corners, rounded borders and box-shadows are drawn by a shader, so curves have
+On supported Minecraft 26.x targets, rounded corners, rounded borders and box-shadows are drawn by a shader, so curves have
 smooth edges at any GUI scale or rotation and blurs are a real Gaussian. Square corners stay pixel-exact either way.
 
 For hard pixel edges instead, set `shape-rendering: crispEdges` on an element. It is
