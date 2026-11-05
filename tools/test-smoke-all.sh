@@ -8,6 +8,18 @@ if command -v cygpath >/dev/null 2>&1; then root=$(cygpath -u "$root"); fi
 root=$(realpath -m -- "$root")
 case ${root,,}/ in "${repo,,}/"*) echo 'Test files must stay outside the repository.' >&2; exit 2 ;; esac
 mkdir -p -- "$root"
+report_failure() {
+  local status=$? log
+  if ((status != 0)); then
+    echo "Smoke accounting regression failed (exit $status); diagnostics:" >&2
+    for log in "$root"/*.log "$root"/run/logs/*.log; do
+      [[ -f $log ]] || continue
+      echo "--- $log" >&2
+      tail -n 30 -- "$log" >&2
+    done
+  fi
+}
+trap report_failure EXIT
 fake=$root/fake-gradle.sh
 cat >"$fake" <<'FAKE'
 #!/usr/bin/env bash
