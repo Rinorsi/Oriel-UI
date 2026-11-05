@@ -115,7 +115,9 @@ def prepareRhinoSources = tasks.register('prepareRhinoSources') {
             the Mozilla Public License 2.0 (LICENSE.txt); NOTICE.txt lists the other code it contains.
 
             Source: the upstream commit https://github.com/mozilla/rhino/tree/${upstreamCommit}
-            with the patches in rhino/patches of the Oriel UI source (a fork of https://github.com/MaxLeiter/vellum) applied in order.
+            with the patches in rhino/patches of https://github.com/Rinorsi/Oriel-UI applied in order.
+            Obtain the Oriel source matching the distributed version, including rhino/build.gradle and rhino/patches.
+            Oriel UI is a fork of https://github.com/MaxLeiter/vellum; that upstream is not the location of Oriel's current patches.
             """.stripIndent()
         // A repository of its own, so that git apply never looks at an enclosing one.
         git(dest, 'git init', ['init', '-q'])

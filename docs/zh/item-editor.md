@@ -78,6 +78,8 @@ id/count/defaultName/choices/components 不在可写字段内；发它们不会�
 
 ## 建议的 UI 状态模型
 
+服务端回归的证据等级：GameTest可调用真实save handler、编码/解码PatchPayload，再通过客户端语言目录解析key/args/count。它使用测试玩家和拦截的发送通道，不替代真实联网客户端或界面验收。取消不提交、槽位变化、旧快照、带参数及复数计数拒绝，应分别断言物品与回执；只有执行过的版本/加载器才能记录通过。
+
 保留 snapshot（服务端确认）、draft（工作副本）、dirtyFields（改动字段）、saving、error。输入只改 draft，预览读取 draft；保存仅提交 dirtyFields（名称/颜色例外成对提交）。成功接新 snapshot 并清 dirty；拒绝保留 draft。打开期间切换手持物/槽位，提示重新打开。
 
 必验：不提交取消、普通保存、拒绝后草稿保留、成功再读、改名和颜色组合、清空数组、glint 三态、未知组件保留、重复点击、物品被外部改变、玩家无权限、两个玩家隔离。预览器 fixture 只能验 UI，真实 ItemStack 与服务端验证必须联机。

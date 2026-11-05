@@ -5,6 +5,11 @@ the upstream commit pinned in `gradle.properties` (`rhino_commit`, the 1.9.1 rel
 `patches/` applied in order. The classes are relocated to `dev.oriel.shadow.rhino`, so they never clash with
 another mod's copy of Rhino.
 
+分发时必须提供与二进制版本匹配的修改后源码。JAR内的 META-INF/licenses/rhino/SOURCE.txt 指向
+https://github.com/Rinorsi/Oriel-UI 及 rhino/patches；Vellum上游不是当前补丁的下载地址。
+保留MPL-2.0原文、Rhino NOTICE及本目录构建/补丁，不以项目MIT声明覆盖Rhino。
+正式发布前确认对应版本源码/补丁在该地址可取得；本地构建通过不等于已经发布源码。
+
 `build.gradle` downloads the GitHub archive of the pinned commit once into the Gradle user home
 (`caches/oriel-rhino/`), checks it against `rhino_sha256`, applies the patches to the core module
 (`rhino/src/main`) and compiles it. It applies them again only when a patch changes. A patch that does not apply
