@@ -56,7 +56,7 @@ mkdir -p "$root/timeout-bin"
 cat >"$root/timeout-bin/timeout" <<'TIMEOUT'
 #!/usr/bin/env bash
 if [[ ${1:-} == --version ]]; then
-  printf 'timeout (GNU coreutils) regression fixture\n'
+  printf '%s\n' "${SMOKE_TIMEOUT_VERSION:-timeout (GNU coreutils) regression fixture}"
   for ((i=0; i<256; i++)); do printf '%1024s\n' ''; done
   exit 0
 fi
@@ -65,6 +65,16 @@ TIMEOUT
 chmod +x "$root/timeout-bin/timeout"
 SMOKE_REAL_TIMEOUT=$real_timeout SMOKE_CASE=success PATH="$root/timeout-bin:$PATH" \
   bash "$repo/tools/smoke-all.sh" "$root/run" >"$root/timeout-version.log" 2>&1
+SMOKE_REAL_TIMEOUT=$real_timeout SMOKE_CASE=success SMOKE_TIMEOUT_VERSION='compatible timeout fixture' \
+  PATH="$root/timeout-bin:$PATH" bash "$repo/tools/smoke-all.sh" "$root/run" >"$root/timeout-compatible.log" 2>&1
+mkdir -p "$root/broken-timeout-bin"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$root/broken-timeout-bin/timeout"
+chmod +x "$root/broken-timeout-bin/timeout"
+if PATH="$root/broken-timeout-bin:$PATH" bash "$repo/tools/smoke-all.sh" "$root/broken-timeout-run" >"$root/timeout-broken.log" 2>&1; then
+  echo 'FAIL: a timeout that discards child status was accepted' >&2; exit 1
+fi
+grep -q 'preserves child exit codes' "$root/timeout-broken.log"
+[[ ! -e $root/broken-timeout-run/logs/compile.log ]]
 SMOKE_CASE=success bash "$repo/tools/smoke-all.sh" "$root/run" >"$root/success.log" 2>&1
 [[ $(wc -l <"$root/run/summary.tsv") == 7 ]]
 for scenario in stale incomplete compile; do
@@ -91,4 +101,4 @@ if PATH="$root/guard-bin:$PATH" bash "$repo/tools/smoke-all.sh" "$inside" >"$roo
   echo 'FAIL: an in-repository root was accepted' >&2; exit 1
 fi
 grep -q 'The run root must be outside the repository' "$root/guard.log"
-echo 'PASS: success, stale screenshots, missing completion, per-target compilation failure, repository guard'
+echo 'PASS: timeout contracts, success, stale screenshots, missing completion, per-target compilation failure, repository guard'
