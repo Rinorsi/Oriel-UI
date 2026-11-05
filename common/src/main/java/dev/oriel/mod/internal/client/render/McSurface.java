@@ -16,6 +16,8 @@ import net.minecraft.resources.Identifier;
  */
 public final class McSurface implements PixelSurface {
     private static int nextId;
+    /** The canvas textures alive now: registered at run time, so no resource pack knows them. */
+    private static final java.util.Set<Identifier> LIVE = new java.util.HashSet<>();
 
     private final Identifier id = Constants.id("canvas/" + nextId++);
     private final NativeImage pixels;
@@ -27,6 +29,12 @@ public final class McSurface implements PixelSurface {
         pixels = new NativeImage(width, height, true);
         texture = new DynamicTexture(() -> "Oriel " + id, pixels); // uploads the cleared image
         Minecraft.getInstance().getTextureManager().register(id, texture);
+        LIVE.add(id);
+    }
+
+    /** Whether {@code texture} is a live canvas's pixels (drawn as is, not looked up in the resource packs). */
+    public static boolean isCanvas(Identifier texture) {
+        return LIVE.contains(texture);
     }
 
     @Override
@@ -81,6 +89,7 @@ public final class McSurface implements PixelSurface {
     /** Releases the texture, which frees the image too. */
     @Override
     public void dispose() {
+        LIVE.remove(id);
         Minecraft.getInstance().getTextureManager().release(id);
     }
 
