@@ -30,6 +30,27 @@ test('native dependency trust covers Linux as well as Windows', () => {
   assert.deepEqual(linuxTrustGaps(windowsOnly), ['lwjgl-3.4.1-natives-linux.jar']);
 });
 
+test('generated Minecraft exceptions are exact coordinates with canonical content pins', () => {
+  const pins = JSON.parse(fs.readFileSync(path.join(root, 'gradle/generated-minecraft.json'), 'utf8'));
+  assert.equal(pins.schemaVersion, 1);
+  assert.equal(pins.algorithm, 'ORIEL-CANONICAL-JAR-1');
+  assert.deepEqual(pins.entries.map(p => p.version).sort(), ['26.1.2', '26.2', '26.3']);
+  const xml = fs.readFileSync(path.join(root, 'gradle/verification-metadata.xml'), 'utf8');
+  const trusts = xml.split('<trusted-artifacts>')[1].split('</trusted-artifacts>')[0].split('<trust ').slice(1);
+  assert.equal(trusts.length, pins.entries.length);
+  const attr = (text, name) => text.match(new RegExp(name + "=['\"]([^'\"]+)['\"]"))[1];
+  for (const trust of trusts) {
+    assert.equal(attr(trust, 'regex'), 'false');
+    const pin = pins.entries.find(p => ['group', 'name', 'version', 'file'].every(k => p[k] === attr(trust, k)));
+    assert.ok(pin, 'No wildcard or unrelated artifact may bypass raw archive verification');
+    assert.equal(pin.group, 'net.minecraft');
+    assert.match(pin.name, /^minecraft-merged-[0-9a-f]{10}$/);
+    assert.equal(pin.file, pin.name + '-' + pin.version + '.jar');
+    assert.match(pin.canonicalSha256, /^[0-9a-f]{64}$/);
+    assert.match(pin.sourceArchiveSha256, /^[0-9a-f]{64}$/);
+  }
+});
+
 test('engine, kit and preview have no game, graphics or loader imports', () => {
   const failures = [];
   for (const module of ['engine','kit','preview']) for (const file of walk(path.join(root,module,'src')).filter(f=>f.endsWith('.java'))) {

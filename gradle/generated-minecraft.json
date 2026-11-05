@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "ORIEL-CANONICAL-JAR-1",
+  "origin": "Derived from local Windows archives matching the previously reviewed verification-metadata SHA-256; not an independent upstream source attestation",
+  "entries": [
+    {
+      "group": "net.minecraft",
+      "name": "minecraft-merged-8b294941ad",
+      "version": "26.3",
+      "file": "minecraft-merged-8b294941ad-26.3.jar",
+      "canonicalSha256": "7ed655547a32b4b9942a911c76e4924645bf7e88fc21101172654539d4b9647d",
+      "sourceArchiveSha256": "f9b319da6abc6e16e87a0ab0a5b82b8ea43a819e1072bbe83bdc9b7897ec2571"
+    },
+    {
+      "group": "net.minecraft",
+      "name": "minecraft-merged-8d1c1ee7bb",
+      "version": "26.1.2",
+      "file": "minecraft-merged-8d1c1ee7bb-26.1.2.jar",
+      "canonicalSha256": "35e55c1a774faa30fc990617d723fb9d0b1e3a2330dc9b18f236451850e174b9",
+      "sourceArchiveSha256": "c30e1d8a89939cfe49dd621b9b76e32c0fa6940b859acb62160b91bbd831ecb7"
+    },
+    {
+      "group": "net.minecraft",
+      "name": "minecraft-merged-d537fada8a",
+      "version": "26.2",
+      "file": "minecraft-merged-d537fada8a-26.2.jar",
+      "canonicalSha256": "0e2d0f218349c703853188014c7ee6778a7206d1c14d424aefbf4d9bbf0f0f04",
+      "sourceArchiveSha256": "b00781cd00db960d39f3fe56dd2bba087a0cccb23b178edbb6cbfc94b0c8b72e"
+    }
+  ]
+}

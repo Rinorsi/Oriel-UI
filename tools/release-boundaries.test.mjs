@@ -9,6 +9,17 @@ import {auditEntries} from './check-release.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const licenses = ['LICENSE_Oriel UI', 'NOTICE_Oriel UI', ...['LICENSE.txt', 'NOTICE.txt', 'SOURCE.txt'].map(n => 'META-INF/licenses/rhino/' + n), 'META-INF/licenses/fonts/font.txt'];
 
+test('canonical JAR checks ignore packaging metadata and reject changed entry bytes', () => {
+  assert.ok(process.env.ORIEL_TEST_TMP, 'Set ORIEL_TEST_TMP to an external test directory');
+  const dir = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'canonical-jar-'));
+  const bin = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin') : '';
+  const java = name => bin ? path.join(bin, name) : name;
+  execFileSync(java('javac'), ['-Xlint:all', '-Werror', '-d', dir,
+    path.join(root, 'build-logic/src/main/java/dev/oriel/buildlogic/CanonicalJarDigest.java'),
+    path.join(root, 'tools/fixtures/CanonicalProbe.java')]);
+  assert.equal(execFileSync(java('java'), ['-cp', dir, 'CanonicalProbe', dir], {encoding:'utf8'}).trim(), 'PASS');
+});
+
 test('release inventory rejects missing notices, dev classes and test fixtures', () => {
   assert.deepEqual(auditEntries(licenses), []);
   for (const entry of licenses) assert.ok(auditEntries(licenses.filter(p => p !== entry)).length, entry);

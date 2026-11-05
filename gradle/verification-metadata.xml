@@ -3,6 +3,11 @@
   <configuration>
     <verify-metadata>false</verify-metadata>
     <verify-signatures>false</verify-signatures>
+    <trusted-artifacts>
+      <trust group='net.minecraft' name='minecraft-merged-8b294941ad' version='26.3' file='minecraft-merged-8b294941ad-26.3.jar' regex='false' reason='Loom local output; entry bytes verified by verifyMinecraftContent' />
+      <trust group='net.minecraft' name='minecraft-merged-8d1c1ee7bb' version='26.1.2' file='minecraft-merged-8d1c1ee7bb-26.1.2.jar' regex='false' reason='Loom local output; entry bytes verified by verifyMinecraftContent' />
+      <trust group='net.minecraft' name='minecraft-merged-d537fada8a' version='26.2' file='minecraft-merged-d537fada8a-26.2.jar' regex='false' reason='Loom local output; entry bytes verified by verifyMinecraftContent' />
+    </trusted-artifacts>
   </configuration>
   <components>
     <component group='at.yawk.lz4' name='lz4-java' version='1.10.1'>
@@ -1303,21 +1308,6 @@
     <component group='net.jodah' name='typetools' version='0.6.3'>
       <artifact name='typetools-0.6.3.jar'>
         <sha256 value='408300867804be05d1083cc0287dd3a21295a9e76090e288013ba5a4182dc96d' origin='Offline resolved cache; review required' />
-      </artifact>
-    </component>
-    <component group='net.minecraft' name='minecraft-merged-8b294941ad' version='26.3'>
-      <artifact name='minecraft-merged-8b294941ad-26.3.jar'>
-        <sha256 value='f9b319da6abc6e16e87a0ab0a5b82b8ea43a819e1072bbe83bdc9b7897ec2571' origin='Offline resolved cache; review required' />
-      </artifact>
-    </component>
-    <component group='net.minecraft' name='minecraft-merged-8d1c1ee7bb' version='26.1.2'>
-      <artifact name='minecraft-merged-8d1c1ee7bb-26.1.2.jar'>
-        <sha256 value='c30e1d8a89939cfe49dd621b9b76e32c0fa6940b859acb62160b91bbd831ecb7' origin='Offline resolved cache; review required' />
-      </artifact>
-    </component>
-    <component group='net.minecraft' name='minecraft-merged-d537fada8a' version='26.2'>
-      <artifact name='minecraft-merged-d537fada8a-26.2.jar'>
-        <sha256 value='b00781cd00db960d39f3fe56dd2bba087a0cccb23b178edbb6cbfc94b0c8b72e' origin='Offline resolved cache; review required' />
       </artifact>
     </component>
     <component group='net.minecraftforge' name='mergetool' version='1.1.7'>

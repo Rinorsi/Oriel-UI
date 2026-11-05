@@ -77,12 +77,14 @@ tasks.register('verifyDependencyGraph') {
 // Loom's global write mode requests uncached optional-platform descriptors even on an offline Windows build.
 def verificationFile = layout.projectDirectory.file('gradle/verification-metadata.xml').asFile
 def dependencyCache = new File(gradle.gradleUserHomeDir, 'caches/modules-2/files-2.1')
+def generatedMinecraftPins = new groovy.json.JsonSlurper().parse(file('gradle/generated-minecraft.json')).entries
 tasks.register('writeDependencyVerification') {
     group = 'verification'
     description = 'Refresh SHA-256 trust from the resolved offline cache; review the XML diff before committing.'
     doLast {
         def artifacts = new TreeMap<String, Map>()
         def trust = { String group, String module, String version, String name, String hash, String origin ->
+            if (generatedMinecraftPins.any { it.group == group && it.name == module && it.version == version && it.file == name }) return
             def key = group + ':' + module + ':' + version
             def component = artifacts.computeIfAbsent(key) { [group:group, name:module, version:version, files:new TreeMap<String, Map>()] }
             component.files.computeIfAbsent(name) { new TreeMap<String, String>() }.putIfAbsent(hash, origin)
@@ -132,6 +134,12 @@ tasks.register('writeDependencyVerification') {
             configuration {
                 'verify-metadata'('false')
                 'verify-signatures'('false')
+                'trusted-artifacts' {
+                    generatedMinecraftPins.each { pin ->
+                        xml.trust(group:pin.group, name:pin.name, version:pin.version, file:pin.file, regex:'false',
+                                reason:'Loom local output; entry bytes verified by verifyMinecraftContent')
+                    }
+                }
             }
             xml.components {
                 artifacts.values().each { entry ->
