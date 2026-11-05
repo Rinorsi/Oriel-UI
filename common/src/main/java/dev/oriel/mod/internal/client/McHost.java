@@ -3,6 +3,7 @@ package dev.oriel.mod.internal.client;
 import dev.oriel.mod.client.DocumentDriver;
 
 import dev.oriel.engine.dom.Document;
+import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.host.FontMetrics;
 import dev.oriel.engine.host.Host;
@@ -72,7 +73,8 @@ public final class McHost implements Host {
     /** A page a server opened can't read the player's files: it could send them back with oriel.send. */
     private boolean readable(String url) {
         if (!driver.serverSession() || !OrielPages.isFolderUrl(url)) return true;
-        if (reported.add("folder " + url)) Constants.LOG.warn("Oriel: a server's page tried to read {}, which is in a folder on this computer; refused", url);
+        if (reported.add("folder " + url)) diagnostic(new Diagnostic(Diagnostic.Severity.ERROR, "server-folder-access",
+                url, 0, "A server page cannot read a folder on this computer.", "Use a resource-pack page instead."));
         return false;
     }
 

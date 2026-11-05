@@ -32,6 +32,8 @@ client can send anything.
 - A mod can serve a namespace from a folder players edit ([Pages players edit](pages.md#pages-players-edit)). Those
   pages read only files inside that folder, `..` and symbolic links pointing out of it included. Pages a server opens
   can't read them, and a server can't open them.
+  This also applies after navigation or reload in a server session. Refused text/binary reads return null and
+  emit an ERROR Diagnostic (server-folder-access, refused URL, line 0 when unknown).
 - A canvas can only draw other canvases, so `getImageData` can't read the pixels of a texture, a skin or the screen.
   There is no `toDataURL`.
 - Shift+Escape always closes a Oriel screen, and the page never sees the key. Escape pressed three times within 1.5

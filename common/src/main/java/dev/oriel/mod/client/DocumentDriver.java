@@ -301,7 +301,7 @@ public final class DocumentDriver {
         error = null;
         lastJson = lastText = null; // translations may have changed
         if (html == null) OrielScreens.pageLoading(url, this);
-        String source = html != null ? html : OrielResources.loadText(url);
+        String source = html != null ? html : host.loadText(url);
         if (source == null) {
             Constants.LOG.error("Oriel: page not found: {}", url);
             fail("Page not found: " + url, null);

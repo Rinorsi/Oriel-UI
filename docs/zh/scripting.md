@@ -149,4 +149,10 @@ Canvas 2D 只提供 fillStyle/strokeStyle/lineWidth/globalAlpha、save/restore�
 
 ## 限额和错误
 
+JSON.parse(input, reviver) 将 input 转成字符串一次，对同一份文本检查 maxDepth（默认 512）并解析；reviver 仍是可选回调。超过深度时拒绝解析并抛 SyntaxError，同时记录 ERROR 级 Diagnostic（code=script-json-depth，含脚本来源/行号），即使脚本捕获异常也保留诊断。例如 JSON.parse('['.repeat(513) + '0' + ']'.repeat(513)) 在默认配置下被拒绝。此检查限制输入文本深度，不限制 reviver 自行构造的对象；回调仍受脚本预算约束。
+
+服务器推送的内联页与资源页使用同一脚本沙箱，数据推送按 JSON 解析，不作为代码执行。没有 Java 类、反射、Runtime/ProcessBuilder、Java 线程或 Worker/SharedWorker 接口；Promise、微任务及动态生成代码共用当前 entry 的预算，不会取得新线程或更高权限。引擎回归不等同于真实服务器联机验收，宿主资源与导航授权边界见 [安全与配置](../api/security.md)。
+
+服务端会话不能读取客户端注册的 folder 命名空间，包括通过 oriel.open/location 导航或重载读取页面，以及加载脚本、样式等文本/二进制资源；拒绝时资源读取返回 null，并记录 ERROR 级 server-folder-access Diagnostic（来源为被拒绝 URL，行号未知为 0）。本地客户端页面仍可读取自己注册的目录。
+
 宿主限制消息频率、大小、脚本 CPU/内存、节点、Canvas、计时器。默认消息上限 8192 字符，脚本单次预算 1000ms/5000万指令，加载期 10000ms；这些是保护上限，不是页面性能预算。全部配置键和默认/范围见 [安全与配置](../api/security.md#settings)。异常报告脚本来源/行号；页面未崩溃不表示业务请求成功。

@@ -68,7 +68,7 @@ final class RhinoScriptRuntime implements ScriptRuntime {
         this.document = document;
         this.limits = document.limits();
         global = cx.initSafeStandardObjects();
-        Builtins.install(global, limits);
+        Builtins.install(global, document);
         js = new Js(this);
         events = new EventBindings(this);
         dom = new DomBindings(this);

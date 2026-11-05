@@ -1,6 +1,9 @@
 package dev.oriel.engine.script;
 
 import dev.oriel.engine.Limits;
+import dev.oriel.engine.diag.Diagnostic;
+import dev.oriel.engine.dom.Document;
+import dev.oriel.shadow.rhino.EcmaError;
 import dev.oriel.shadow.rhino.BaseFunction;
 import dev.oriel.shadow.rhino.Callable;
 import dev.oriel.shadow.rhino.Context;
@@ -65,18 +68,20 @@ final class Builtins {
             "BigUint64Array"};
 
     private final Scriptable scope;
+    private final Document document;
     private final Limits limits;
     /** Wrappers by original, so a built-in reachable under two names ({@code values}, {@code @@iterator}) maps to one. */
     private final Map<Object, Object> wrapped = new IdentityHashMap<>();
 
-    private Builtins(Scriptable scope, Limits limits) {
+    private Builtins(Scriptable scope, Document document) {
         this.scope = scope;
-        this.limits = limits;
+        this.document = document;
+        this.limits = document.limits();
     }
 
     /** Installs the caps in a fresh global scope. */
-    static void install(ScriptableObject global, Limits limits) {
-        new Builtins(global, limits).install(global);
+    static void install(ScriptableObject global, Document document) {
+        new Builtins(global, document).install(global);
     }
 
     private void install(ScriptableObject global) {
@@ -376,8 +381,12 @@ final class Builtins {
         }
         if (ScriptableObject.getProperty(json, "parse") instanceof Function parse) {
             object.defineProperty("parse", new LambdaFunction(scope, "parse", 2, (cx, s, thisObj, args) -> {
-                checkNesting(ScriptRuntime.toString(args.length > 0 ? args[0] : Undefined.instance));
-                return parse.call(cx, s, thisObj, args);
+                // Coercion can execute page code. Validate and parse the same immutable text.
+                String text = ScriptRuntime.toString(args.length > 0 ? args[0] : Undefined.instance);
+                checkNesting(text);
+                Object[] checked = args.length > 0 ? args.clone() : new Object[1];
+                checked[0] = text;
+                return parse.call(cx, s, thisObj, checked);
             }), object.getAttributes("parse"));
         }
     }
@@ -437,7 +446,11 @@ final class Builtins {
                 string = true;
             } else if (c == '[' || c == '{') {
                 if (++depth > limits.maxDepth()) {
-                    throw ScriptRuntime.constructError("SyntaxError", "JSON nested deeper than " + limits.maxDepth());
+                    EcmaError error = ScriptRuntime.constructError("SyntaxError", "JSON nested deeper than " + limits.maxDepth());
+                    document.diagnostics().report(new Diagnostic(Diagnostic.Severity.ERROR, "script-json-depth",
+                            error.sourceName() == null ? document.url() : error.sourceName(), error.lineNumber(),
+                            error.getMessage(), "Keep JSON nesting within maxDepth."));
+                    throw error;
                 }
             } else if (c == ']' || c == '}') {
                 depth--;

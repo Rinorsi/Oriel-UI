@@ -410,6 +410,21 @@ field. While the field has focus, text that only a modifier changes is left as t
 
 ## Limits
 
+JSON.parse(input, reviver) converts input to text once, validates maxDepth (512 by default), and parses that same text.
+An over-deep input throws SyntaxError and records an ERROR Diagnostic with code script-json-depth and the script
+source/line, even when caught. The optional reviver is unchanged; objects it constructs are subject to the entry
+budget rather than the input text depth check. For example, JSON.parse('['.repeat(513) + '0' + ']'.repeat(513))
+is rejected with the default limits.
+
+Inline and resource-backed server pages use the same sandbox; pushed JSON data is not evaluated as code.
+Java reflection, Runtime/ProcessBuilder, Java threads and Worker/SharedWorker are unavailable. Generated code,
+Promise jobs and microtasks share the current entry budget. Engine tests do not replace multiplayer verification
+of the host's resource and navigation authorization; see [Security](api/security.md).
+
+Server-session folder reads are denied through navigation, reload and text/binary resource loading too.
+The host returns null and emits an ERROR server-folder-access Diagnostic with the refused URL (line 0 when
+unknown). Local client pages retain access to their registered folders.
+
 Scripts are sandboxed because pages can come from servers. The numbers below are the defaults; players and server
 owners can change them in `config/oriel.properties` ([Settings](api/security.md#settings)).
 
