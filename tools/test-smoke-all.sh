@@ -50,6 +50,21 @@ echo 'Oriel smoke finished: 0 page errors'
 echo 'Oriel autopilot finished: 4 checks, 0 failed'
 FAKE
 export ORIEL_GRADLE=$fake
+# A version producer must not be rejected merely because grep exits early under pipefail.
+real_timeout=$(command -v timeout)
+mkdir -p "$root/timeout-bin"
+cat >"$root/timeout-bin/timeout" <<'TIMEOUT'
+#!/usr/bin/env bash
+if [[ ${1:-} == --version ]]; then
+  printf 'timeout (GNU coreutils) regression fixture\n'
+  for ((i=0; i<256; i++)); do printf '%1024s\n' ''; done
+  exit 0
+fi
+exec "$SMOKE_REAL_TIMEOUT" "$@"
+TIMEOUT
+chmod +x "$root/timeout-bin/timeout"
+SMOKE_REAL_TIMEOUT=$real_timeout SMOKE_CASE=success PATH="$root/timeout-bin:$PATH" \
+  bash "$repo/tools/smoke-all.sh" "$root/run" >"$root/timeout-version.log" 2>&1
 SMOKE_CASE=success bash "$repo/tools/smoke-all.sh" "$root/run" >"$root/success.log" 2>&1
 [[ $(wc -l <"$root/run/summary.tsv") == 7 ]]
 for scenario in stale incomplete compile; do

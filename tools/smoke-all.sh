@@ -32,7 +32,9 @@ if command -v cygpath >/dev/null 2>&1; then export ORIEL_RUN_DIR=$(cygpath -m "$
 # A path override also lets the script's regression test use a fake Gradle process.
 gradle=${ORIEL_GRADLE:-$repo/gradlew}
 if [[ ! -f $gradle ]]; then echo "Gradle wrapper not found: $gradle" >&2; exit 2; fi
-if ! timeout --version 2>/dev/null | grep -q 'GNU coreutils'; then
+# Drain the version output: grep -q can close the pipe early and turn a valid
+# producer's SIGPIPE into a false capability failure under pipefail.
+if ! timeout_version=$(timeout --version 2>/dev/null) || [[ $timeout_version != *'GNU coreutils'* ]]; then
   echo 'GNU timeout is required; run this script in Git Bash.' >&2
   exit 2
 fi
