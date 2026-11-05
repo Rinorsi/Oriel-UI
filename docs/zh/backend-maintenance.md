@@ -16,7 +16,11 @@
 
 **尚存插件弃用**：Loom 1.18.2 的 CompileConfiguration.getLockFile 调用执行期注入的 Project，嵌套模板构建中会触发 Gradle 10 禁用警告。因此全套 --warning-mode fail 当前仍会失败，不能称已完全兼容 Gradle 10。仓库没有绕过插件或隐藏该警告。上游相关记录：[Loom #1582](https://github.com/FabricMC/fabric-loom/issues/1582)（已关闭，旧版本的执行期Project访问报告；调用点不同，不代表本问题已修复）。2026-11-05检索getLockFile未找到精确匹配的issue；没有擅自发帖。升级 Loom 后用上述命令复查；普通 --warning-mode all 用于保留完整追踪。
 
+2026-11-06 核对官方发布元数据及稳定版 [Loom 1.19.3 源码](https://maven.fabricmc.net/net/fabricmc/fabric-loom/1.19.3/fabric-loom-1.19.3-sources.jar)：CompileConfiguration.getLockFile 第359、361、365行仍读取 getProject()。未找到解决此调用点的可用稳定版本，因此保持1.18.2，没有采用预发布插件。
+
 ## JDK 25 编译警告
+
+2026-11-06 核对 [JOML Central 元数据](https://repo.maven.apache.org/maven2/org/joml/joml/maven-metadata.xml)，最新仍为1.10.9；#398仍开放并指向未发布的1.10.10里程碑，因此保留下述窄例外和复现开关。
 
 engine、kit、preview、mc-extension 以及 common/两个加载器开启 -Xlint:all 和 -Werror，测试源码也受检查。预览 Swing 控件及服务端异常类补齐 serialVersionUID，过时的物品附魔访问改为数据组件，重复悬空 Javadoc 已整理。
 
@@ -29,6 +33,8 @@ engine、kit、preview、mc-extension 以及 common/两个加载器开启 -Xlint
 ```
 
 没有启用 Error Prone 编译器。当前缓存只有 error_prone_annotations，没有可离线验证的 error_prone_core/Gradle 集成。compileOnly 的注解包用于让 javac 读懂 Gson/Guava 发布的类型注解，不是 Error Prone 插件，也不会打进运行时。
+
+Error Prone 后续接入以[官方安装说明](https://errorprone.info/docs/installation)为准：在 fork 的 javac JVM 上为 jdk.compiler/com.sun.tools.javac.{api,file,main,model,parser,processing,tree,util} 分别设置 --add-exports=…=ALL-UNNAMED，并为 code、comp 设置 --add-opens=…=ALL-UNNAMED；不能只作为普通源码编译选项。还需 core、完整传递依赖、-Xplugin:ErrorProne 与编译策略配置，或已验证的 Gradle 集成。2026-11-06 本机缓存仍无 error_prone_core，故未启用、未进行 JDK25 Error Prone 运行验证；普通 javac 严格编译通过不能替代该验证。
 
 ## 依赖 SHA-256 校验
 
@@ -45,6 +51,20 @@ gradle/verification-metadata.xml 固定实际构建、测试运行及 NeoForm �
 Gradle 自带的全量 --write-verification-metadata 模式会让本环境的 Loom 请求缓存缺少的可选平台描述，故刷新任务只解析实际构建图。XML 验证 JAR/ZIP 等工件内容，verify-metadata=false：不承诺 POM/module 描述或发布者签名验证。新增平台、依赖或工具版本时，缺少条目会明确失败；先核对该平台的确切工件，再增补清单。当前26.1.2、26.2、26.3的Linux x64原生工件按Mojang HTTPS版本清单核对大小与SHA-1后计算SHA-256，来源在对应条目中注明；其余首次校验值仍可能来自本机缓存。这不是发布者签名或全部依赖来源认证。
 
 Rhino 源码归档另由 gradle.properties 固定的 rhino_sha256 检查；Minecraft/NeoForm 的专用下载由相应插件的清单机制管理，不能把它们误称为都由 Gradle 模块 XML 覆盖。
+
+### 官方来源交叉核对（按需联网）
+
+威胁模型：固定 SHA-256 防止固定之后的工件替换，但首次值若来自已污染缓存，仍可能固定错误内容。POM/module 能改变依赖图；发布者账号、官方仓库、TLS/本机代理或本地清单被攻破也超出内容哈希的保证。verify-metadata=false、verify-signatures=false 保持原状；下述工具不认证描述文件、签名或发布者身份。
+
+只读命令从硬编码的 Maven Central 官方 HTTPS 地址下载指定坐标在 XML 中列出的每个工件，计算 SHA-256，与已提交值比较。它不读取 Gradle 缓存、不写 XML、不回退到镜像；来源不可达、坐标未固定、工件缺失或哈希不匹配均退出1。成功输出含时间、URL及哈希的JSON，应重定向到仓库外。需要 Node 与 curl，每个工件最多60秒、64MiB，不跟随重定向。
+
+```bash
+# 本机使用既有开发代理，其他环境可省略 ORIEL_VERIFY_PROXY。
+ORIEL_VERIFY_PROXY=http://127.0.0.1:18080 node tools/verify-central.mjs org.joml:joml:1.10.9 com.google.errorprone:error_prone_annotations:2.48.0 com.google.code.gson:gson:2.14.0 > /external/central-source-check.json
+node --test tools/verify-central.test.mjs
+```
+
+这独立于本机依赖缓存，仍信任 HTTPS、代理和官方仓库；无法证明首次下载时的来源或抵抗官方仓库本身被攻破。仅覆盖显式选择且 Central 存在的工件，不代表全部依赖认证；Fabric/NeoForge 专用仓库和 POM/module/签名仍需单独审查。它是显式联网审计，不加入正常离线构建；夹具回归进入 CI，CI 不自动重新建立信任。
 
 ### Loom本地生成的Minecraft合并包
 

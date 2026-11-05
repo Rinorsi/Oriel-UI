@@ -37,7 +37,7 @@ jobs:
           node-version: 24
 
       - name: Check backend and release boundaries
-        run: node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs
+        run: node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs tools/verify-central.test.mjs
 
       - name: Check smoke result accounting without launching Minecraft
         run: bash tools/test-smoke-all.sh "$RUNNER_TEMP/oriel-smoke-tests"
