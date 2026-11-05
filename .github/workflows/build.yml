@@ -14,11 +14,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      ORIEL_RUN_DIR: ${{ runner.temp }}/oriel-runs
-      ORIEL_TEST_TMP: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v5
+
+      - name: Set external run and test directories
+        shell: bash
+        run: |
+          echo "ORIEL_RUN_DIR=$RUNNER_TEMP/oriel-runs" >> "$GITHUB_ENV"
+          echo "ORIEL_TEST_TMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       # All supported game targets and the API signature inspector use Java 25.
       - uses: actions/setup-java@v5
