@@ -6,6 +6,30 @@ import {fileURLToPath} from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const walk = dir => fs.readdirSync(dir, {withFileTypes:true}).flatMap(e => e.isDirectory() ? walk(path.join(dir,e.name)) : [path.join(dir,e.name)]);
 
+function linuxTrustGaps(xml) {
+  const missing = [];
+  for (const part of xml.split('<component ').slice(1)) {
+    const component = part.split('</component>')[0];
+    const opening = component.split('>')[0];
+    if (!/group=['"]org[.]lwjgl['"]/.test(opening)
+        && !(/group=['"]com[.]mojang['"]/.test(opening) && /name=['"]jtracy['"]/.test(opening))) continue;
+    const names = component.split('<artifact ').slice(1).map(a => a.match(/name=['"]([^'"]+)['"]/)[1]);
+    for (const name of names.filter(n => n.endsWith('-natives-windows.jar'))) {
+      const linux = name.replace('-natives-windows.jar', '-natives-linux.jar');
+      if (!names.includes(linux)) missing.push(linux);
+    }
+  }
+  return missing;
+}
+
+test('native dependency trust covers Linux as well as Windows', () => {
+  const xml = fs.readFileSync(path.join(root, 'gradle/verification-metadata.xml'), 'utf8');
+  assert.ok(xml.includes('-natives-windows.jar'), 'The platform coverage check must not be vacuous');
+  assert.deepEqual(linuxTrustGaps(xml), [], 'A local refresh must not drop the CI platform classifiers');
+  const windowsOnly = "<component group='org.lwjgl' name='lwjgl' version='3.4.1'><artifact name='lwjgl-3.4.1-natives-windows.jar'></artifact></component>";
+  assert.deepEqual(linuxTrustGaps(windowsOnly), ['lwjgl-3.4.1-natives-linux.jar']);
+});
+
 test('engine, kit and preview have no game, graphics or loader imports', () => {
   const failures = [];
   for (const module of ['engine','kit','preview']) for (const file of walk(path.join(root,module,'src')).filter(f=>f.endsWith('.java'))) {

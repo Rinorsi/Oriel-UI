@@ -82,16 +82,34 @@ tasks.register('writeDependencyVerification') {
     description = 'Refresh SHA-256 trust from the resolved offline cache; review the XML diff before committing.'
     doLast {
         def artifacts = new TreeMap<String, Map>()
-        def add = { String group, String module, String version, File file ->
+        def trust = { String group, String module, String version, String name, String hash, String origin ->
             def key = group + ':' + module + ':' + version
-            def component = artifacts.computeIfAbsent(key) { [group:group, name:module, version:version, files:new TreeMap<String, Set>()] }
+            def component = artifacts.computeIfAbsent(key) { [group:group, name:module, version:version, files:new TreeMap<String, Map>()] }
+            component.files.computeIfAbsent(name) { new TreeMap<String, String>() }.putIfAbsent(hash, origin)
+        }
+        // A Windows refresh must retain reviewed Linux classifiers (and vice versa).
+        // This is additive trust refresh; remove obsolete trust entries explicitly in a reviewed diff.
+        if (verificationFile.exists()) {
+            def previous = new groovy.xml.XmlParser(false, false).parse(verificationFile)
+            previous.components.component.each { component ->
+                component.artifact.each { artifact ->
+                    artifact.sha256.each { checksum ->
+                        trust(component.attribute('group').toString(), component.attribute('name').toString(),
+                                component.attribute('version').toString(), artifact.attribute('name').toString(),
+                                checksum.attribute('value').toString(),
+                                checksum.attribute('origin')?.toString() ?: 'Previously reviewed verification entry')
+                    }
+                }
+            }
+        }
+        def add = { String group, String module, String version, File file ->
             def digest = java.security.MessageDigest.getInstance('SHA-256')
             file.withInputStream { input ->
                 byte[] buffer = new byte[65536]
                 int n
                 while ((n = input.read(buffer)) > 0) digest.update(buffer, 0, n)
             }
-            component.files.computeIfAbsent(file.name) { new TreeSet<String>() }.add(digest.digest().encodeHex().toString())
+            trust(group, module, version, file.name, digest.digest().encodeHex().toString(), 'Offline resolved cache; review required')
         }
         verificationClasspaths.each { provider ->
             provider.get().incoming.artifacts.artifacts.each { artifact ->
@@ -120,7 +138,7 @@ tasks.register('writeDependencyVerification') {
                     component(group:entry.group, name:entry.name, version:entry.version) {
                         entry.files.each { name, hashes ->
                             artifact(name:name) {
-                                hashes.each { hash -> sha256(value:hash, origin:'Offline resolved cache; review required') }
+                                hashes.each { hash, origin -> sha256(value:hash, origin:origin) }
                             }
                         }
                     }

@@ -171,6 +171,9 @@
       </artifact>
     </component>
     <component group='com.mojang' name='jtracy' version='1.0.37'>
+      <artifact name='jtracy-1.0.37-natives-linux.jar'>
+        <sha256 value='4b22779ea24eecd3e3cf6eb06030ca85b833dd8b7a169bf3b88afd6c1676cc68' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='jtracy-1.0.37-natives-windows.jar'>
         <sha256 value='219c2aab0f1453901df8cd39886659dc5159a9c1139264c14f06baebf49b9730' origin='Offline resolved cache; review required' />
       </artifact>
@@ -179,6 +182,9 @@
       </artifact>
     </component>
     <component group='com.mojang' name='jtracy' version='1.14.38'>
+      <artifact name='jtracy-1.14.38-natives-linux.jar'>
+        <sha256 value='6c64f455ebaa5f663136102b75fca635078d79efe284aa0aa3c60fa31ce48203' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='jtracy-1.14.38-natives-windows.jar'>
         <sha256 value='ea4b4ba6eac3c4dcc88e517f05f6a62ebba64c88604f36fcd7fbeed5433260db' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1850,6 +1856,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-freetype' version='3.4.1'>
+      <artifact name='lwjgl-freetype-3.4.1-natives-linux.jar'>
+        <sha256 value='b839414c52a97548e5358727494145e5b61a6fc2e76741646b3117da02751c5a' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-freetype-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='dfd620b415a537eb452e8a16825cbd41ece2b5496794114305a8ddb1efb94dbb' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1864,6 +1873,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-freetype' version='3.4.3'>
+      <artifact name='lwjgl-freetype-3.4.3-natives-linux.jar'>
+        <sha256 value='cbc702aa1d9c8fece6fe46a4e606c7c164eb7f0f7ca79f668dd95544db53fb2c' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-freetype-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='42dbd9db7b6878cd3df0cbe23d5751694bf3d2869760d16fef4cf8ea4f60ab59' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1875,6 +1887,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-glfw' version='3.4.1'>
+      <artifact name='lwjgl-glfw-3.4.1-natives-linux.jar'>
+        <sha256 value='d73bb4d13d636ac7e5af1a9ba1067320ba7b529d46a08da86e5f6e96d7f5b4cb' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-glfw-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='a4ba37d3ed241371c8e83f71acbea81d690e0784b22086d98486ec02363250a6' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1889,6 +1904,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-jemalloc' version='3.4.1'>
+      <artifact name='lwjgl-jemalloc-3.4.1-natives-linux.jar'>
+        <sha256 value='47beb71c1d1c2dfc90c2c044671a6f63069eb274f77ea6cbe7967f53acf827bc' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-jemalloc-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='9da797a1957442e37b1eeba503a099a47c859cab17e0b3d222cfb03d0d3bfce9' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1903,6 +1921,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-jemalloc' version='3.4.3'>
+      <artifact name='lwjgl-jemalloc-3.4.3-natives-linux.jar'>
+        <sha256 value='1c7fc271f132e3d606d3044b2520fcb663481e55e5783c6ef4272e3bae73a7d9' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-jemalloc-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='1af53e5b207ea91188b7c6914a614b86aa0ad9f38af02ecf9dfde7257c201537' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1914,6 +1935,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-openal' version='3.4.1'>
+      <artifact name='lwjgl-openal-3.4.1-natives-linux.jar'>
+        <sha256 value='c3be36ffda26c46b77bfa359586424a95d7620be11427897c7a454abb16c0994' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-openal-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='738145e659b5cd6353d7caa99f53af190ec430e0343db723e91204d3e3fef63e' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1928,6 +1952,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-openal' version='3.4.3'>
+      <artifact name='lwjgl-openal-3.4.3-natives-linux.jar'>
+        <sha256 value='433cbf19b16b177dd12897ef24c37117d9ffff48736b6c81616efc72ad4691f9' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-openal-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='726e3d8ab9ec0cfcaaef3aefae64e0f30ddb8f1ad73231418a17f42be52bfb74' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1939,6 +1966,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-opengl' version='3.4.1'>
+      <artifact name='lwjgl-opengl-3.4.1-natives-linux.jar'>
+        <sha256 value='2eaca4892129653ca265625f640544ba10389d4d310cad036c41ef168be5c2b8' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-opengl-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='976d4a24cceebfcf84ec3ba06ba2ab23aa077e4cd25f0aedb74d3b1828534b41' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1953,6 +1983,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-opengl' version='3.4.3'>
+      <artifact name='lwjgl-opengl-3.4.3-natives-linux.jar'>
+        <sha256 value='4056e81c1174201f63e980f76b9955746c0f13d712e4d30ee02c38ae6bccd4ce' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-opengl-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='4f2772de7fdf469b3efbaeb8daae3429da46f6b67db33290b101ceb683d19aac' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1964,6 +1997,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-sdl' version='3.4.3'>
+      <artifact name='lwjgl-sdl-3.4.3-natives-linux.jar'>
+        <sha256 value='e1880683a4af33299e9a1b8d7ec1799bed8fb709064ea08dcc2a15cd1101c0b3' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-sdl-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='3bae382b9b84e773a63a66994535bc6362ed7e45d2843d45d24aa8751851d8b4' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1975,6 +2011,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-shaderc' version='3.4.1'>
+      <artifact name='lwjgl-shaderc-3.4.1-natives-linux.jar'>
+        <sha256 value='207a09044daa8bb6fed7ff8057411b22d8cc86f3e86939b03428b573e621e21c' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-shaderc-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='1ced6adc0187334b0eaace8e7afde299c8fef2ee7721e4427a92f6a06676f002' origin='Offline resolved cache; review required' />
       </artifact>
@@ -1989,6 +2028,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-shaderc' version='3.4.3'>
+      <artifact name='lwjgl-shaderc-3.4.3-natives-linux.jar'>
+        <sha256 value='0dced6d3362cbcd68d8ac9a07f2ce045c604a9abce371e1f66c77cfb837f7fd7' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-shaderc-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='2413e18fa5a76be7a3ec43318cdb8652113a4e3b686a36490c0d73f349646522' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2000,6 +2042,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-spvc' version='3.4.1'>
+      <artifact name='lwjgl-spvc-3.4.1-natives-linux.jar'>
+        <sha256 value='2d7a220d7ca6f12a9df2c7f86d5136d017e4268621a9c4471e32f86b5d9f2f3c' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-spvc-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='c33f9780b1cf1b2c0df34df7d1c311d8b495ed364dcc5dc6a9bbbc5f124ed703' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2014,6 +2059,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-spvc' version='3.4.3'>
+      <artifact name='lwjgl-spvc-3.4.3-natives-linux.jar'>
+        <sha256 value='8898165a90911bfd6be0aa1168449d9092f1747f6b7a16c2270d8265981725b3' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-spvc-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='414a69c51f97310f15583731efb5a42b5d9997202c6e5b9b763122ac137a0dda' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2025,6 +2073,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-stb' version='3.4.1'>
+      <artifact name='lwjgl-stb-3.4.1-natives-linux.jar'>
+        <sha256 value='3da990015c5f504cec78f269a5aacf365a64f7d510a2908f3fd9cb749535b10a' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-stb-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='7e67e1d44580a212f59b46d9160e3a6671826d4ea612eb706a32a090a926a122' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2039,6 +2090,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-stb' version='3.4.3'>
+      <artifact name='lwjgl-stb-3.4.3-natives-linux.jar'>
+        <sha256 value='5c66a2f11b18062b62ef9c6433f753720f7bdad44b18ab4078a0a6404a64a720' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-stb-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='6e95a7e96b4d6d338f716a69c485bf107c1ce4cf3db0cb3b26bbc5ebc10298c7' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2050,6 +2104,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-tinyfd' version='3.4.1'>
+      <artifact name='lwjgl-tinyfd-3.4.1-natives-linux.jar'>
+        <sha256 value='2b92312a7f340ac6bb4f432e4f79be9ea046b3cbd93cdb3e4f12a0a4537f0d0f' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-tinyfd-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='8a08098521d0e3db27eb936f9d1352b48e795caf629f458d83cc7fa9a5528749' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2064,6 +2121,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-vma' version='3.4.1'>
+      <artifact name='lwjgl-vma-3.4.1-natives-linux.jar'>
+        <sha256 value='4f83a80bc03ad749aa4c9ad7d39d136753e7e862624e7e0ee4ab7b914848815f' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-vma-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='7e4ea965c20c9a31bdcbd1f9d8089ddaf7e23ff9b16fb62e436e26fdea055200' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2078,6 +2138,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl-vma' version='3.4.3'>
+      <artifact name='lwjgl-vma-3.4.3-natives-linux.jar'>
+        <sha256 value='f8690711c842de5aa15759459b8294fd682e452441b063bd7f902710db801804' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-vma-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='d2251122274c9b962fc08aa1b5633e9ee4dd4c84316171e72a41b550732fd19f' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2099,6 +2162,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl' version='3.4.1'>
+      <artifact name='lwjgl-3.4.1-natives-linux.jar'>
+        <sha256 value='5dfee41aba83762229b27f969e0b567d68bc9cedda1edcaf82b91dc99fe34677' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-3.4.1-natives-windows-arm64.jar'>
         <sha256 value='87cbeacc58dc4a77d7f6eb9929424a34cf34c3e09e4ad8344cdc4e9898366a40' origin='Offline resolved cache; review required' />
       </artifact>
@@ -2116,6 +2182,9 @@
       </artifact>
     </component>
     <component group='org.lwjgl' name='lwjgl' version='3.4.3'>
+      <artifact name='lwjgl-3.4.3-natives-linux.jar'>
+        <sha256 value='d719e545a6db4ea87eb64d55630ba628755572bb5b56d51a1548347b5354cadb' origin='Mojang HTTPS version manifest SHA-1 checked; SHA-256 computed' />
+      </artifact>
       <artifact name='lwjgl-3.4.3-natives-windows-arm64.jar'>
         <sha256 value='f04a803b8516b97e61eac1a66bb74bba483a684713d5462ee5f107dd63443d4f' origin='Offline resolved cache; review required' />
       </artifact>

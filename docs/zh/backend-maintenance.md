@@ -32,7 +32,7 @@ engine、kit、preview、mc-extension 以及 common/两个加载器开启 -Xlint
 
 ## 依赖 SHA-256 校验
 
-gradle/verification-metadata.xml 由当前离线缓存中的实际构建、测试运行及 NeoForm 工具图生成。正常构建使用 Gradle 默认 strict 验证模式；没有全局关闭验证，也不信任整组通配依赖。
+gradle/verification-metadata.xml 固定实际构建、测试运行及 NeoForm 工具图的工件，并保留已经核对的其他平台分类工件。正常构建使用 Gradle 默认 strict 验证模式；没有全局关闭验证，也不信任整组通配依赖。Windows 上成功不代表 Linux 原生工件已经进入清单。
 
 唯一刷新命令：
 
@@ -40,9 +40,9 @@ gradle/verification-metadata.xml 由当前离线缓存中的实际构建、测�
 ./gradlew --offline --no-configuration-cache --dependency-verification off writeDependencyVerification
 ```
 
-刷新是明确的信任更新：检查 XML diff、确认依赖变化来源，再提交。该命令只读取已解析的缓存文件并写 SHA-256，不下载或修改共享缓存。两个仅在 settings 中加载的插件也被显式固定；升级它们时同时更新任务中的版本。
+刷新是明确的信任更新：检查 XML diff、确认依赖变化来源，再提交。该命令读取已解析的缓存和现有 XML，保留既有 SHA-256 及来源说明，再增补当前图的工件；不下载或修改共享缓存。在 Windows 刷新时不能删除已核对的 Linux 分类工件。废弃版本或旧哈希不会自动清除，须明确核对后从 XML 删除，不能把增量刷新当作依赖裁剪。两个仅在 settings 中加载的插件也被显式固定；升级它们时同时更新任务中的版本。
 
-Gradle 自带的全量 --write-verification-metadata 模式会让本环境的 Loom 请求缓存缺少的可选平台描述，故刷新任务只解析实际构建图。XML 验证 JAR/ZIP 等工件内容，verify-metadata=false：不承诺 POM/module 描述或发布者签名验证。新增平台、依赖或工具版本时，缺少缓存会明确失败；先取得并核对所需缓存，再刷新。首次校验值来自本机缓存，不是独立的上游真实性证明。
+Gradle 自带的全量 --write-verification-metadata 模式会让本环境的 Loom 请求缓存缺少的可选平台描述，故刷新任务只解析实际构建图。XML 验证 JAR/ZIP 等工件内容，verify-metadata=false：不承诺 POM/module 描述或发布者签名验证。新增平台、依赖或工具版本时，缺少条目会明确失败；先核对该平台的确切工件，再增补清单。当前26.1.2、26.2、26.3的Linux x64原生工件按Mojang HTTPS版本清单核对大小与SHA-1后计算SHA-256，来源在对应条目中注明；其余首次校验值仍可能来自本机缓存。这不是发布者签名或全部依赖来源认证。
 
 Rhino 源码归档另由 gradle.properties 固定的 rhino_sha256 检查；Minecraft/NeoForm 的专用下载由相应插件的清单机制管理，不能把它们误称为都由 Gradle 模块 XML 覆盖。
 
