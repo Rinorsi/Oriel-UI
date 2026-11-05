@@ -59,6 +59,21 @@
 
 Java：`new Slider(doc, doc.getElementById("power"), 10).onInput(v -> ...).onCommit(v -> ...)`。值范围 0–1，steps=10 表示十个间隔，0 连续；set(v) 钳到范围并更新视觉，**不调用回调**。实际数值由业务换算。onInput 用于即时预览，onCommit 用于松手/键盘操作后的提交。
 
+## 状态效果面板
+
+药水 HUD 的完整面板（`PotionHudPreset`），也嵌在原版背包旁和 kit 背包的"效果"页签里。效果按增益、减益、中性分组，每组可以显示成两种样子：
+
+| 样子 | 内容 | 什么时候 |
+|---|---|---|
+| 行 | 图标、名称和等级、剩余时间；背景色条随剩余时间缩短，最后 10 秒闪烁 | 组内效果不超过阈值时 |
+| 图标块（`.group.folded .strip .chip`） | 18×18 图标；变暗遮罩随时间增长；等级大于 1 时右下角显示数字（像物品堆叠数）；快到期时闪烁 | 组内效果超过阈值时，或位置太窄时（`InventoryEffectsPreset.NARROW`，100px） |
+
+- 行和图标块悬停都会弹出同一张信息卡（`.o-efftip`）：名称、等级、类别、作用说明、剩余/总时长和效果 id。信息卡放在面板旁边，不挡在指针下面。
+- 点组标题可以在行和图标块之间切换；玩家的选择会保留，不会被新增或到期的效果改回去。
+- 嵌入：`new PotionHudPreset().mountPanel(doc, where, compactOver)`。`where` 是可以滚动的容器；`compactOver` 是阈值：原版背包旁用 `PotionHudPreset.COMPACT_OVER`（4），有足够高度的页签传 0（始终显示行，玩家仍可手动切换）。
+- 滚动提示：面板会给 `where` 的父元素加 `more-above` / `more-below` 类，表示上方或下方还有内容被遮住。页面用它在对应边缘画渐隐（见 `inventory_effects.html`）。
+- 原版背包旁的面板由 `InventoryEffects` 放置：在背包右侧（放不下时放左侧），高度不超过背包本身（创造模式物品栏包括下排页签），超出部分在面板内滚动。配置项见 [安全与配置](../api/security.md) 的 `client.inventoryEffects`。
+
 ## Shell 的 data-* 合同
 
 控制器每次 attach 调用一次 Shell.setup(doc)，返回 Particles。它设置共享主题/字体/图标/窗口模式，接 Widgets/Notice/粒子等；重复 setup 可能重复监听，不要每次刷新再调用。

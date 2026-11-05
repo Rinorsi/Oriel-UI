@@ -5,27 +5,27 @@
   "entries": [
     {
       "group": "net.minecraft",
-      "name": "minecraft-merged-8b294941ad",
+      "name": "minecraft-merged-a10ad2e75b",
       "version": "26.3",
-      "file": "minecraft-merged-8b294941ad-26.3.jar",
-      "canonicalSha256": "7ed655547a32b4b9942a911c76e4924645bf7e88fc21101172654539d4b9647d",
-      "sourceArchiveSha256": "f9b319da6abc6e16e87a0ab0a5b82b8ea43a819e1072bbe83bdc9b7897ec2571"
+      "file": "minecraft-merged-a10ad2e75b-26.3.jar",
+      "canonicalSha256": "edda244583a6a7c5889f10521160005d2cda5b82ec13e7cd97cfa986d038066d",
+      "sourceArchiveSha256": "4c268f02cd548f4fa8d588bc3d64add9317ed035fe63edc2e7b5445e4918636d"
     },
     {
       "group": "net.minecraft",
-      "name": "minecraft-merged-8d1c1ee7bb",
+      "name": "minecraft-merged-6846b5dc51",
       "version": "26.1.2",
-      "file": "minecraft-merged-8d1c1ee7bb-26.1.2.jar",
-      "canonicalSha256": "35e55c1a774faa30fc990617d723fb9d0b1e3a2330dc9b18f236451850e174b9",
-      "sourceArchiveSha256": "c30e1d8a89939cfe49dd621b9b76e32c0fa6940b859acb62160b91bbd831ecb7"
+      "file": "minecraft-merged-6846b5dc51-26.1.2.jar",
+      "canonicalSha256": "1c5f6b18db92f358f9da3c9dec2756afe24fa14e7ca23831005f04fcb2104469",
+      "sourceArchiveSha256": "8699a97b2d2888ad395aa184c1f153d5e62e529ccffd5dcab7f5f3e6e146ddff"
     },
     {
       "group": "net.minecraft",
-      "name": "minecraft-merged-d537fada8a",
+      "name": "minecraft-merged-097f862bbd",
       "version": "26.2",
-      "file": "minecraft-merged-d537fada8a-26.2.jar",
-      "canonicalSha256": "0e2d0f218349c703853188014c7ee6778a7206d1c14d424aefbf4d9bbf0f0f04",
-      "sourceArchiveSha256": "b00781cd00db960d39f3fe56dd2bba087a0cccb23b178edbb6cbfc94b0c8b72e"
+      "file": "minecraft-merged-097f862bbd-26.2.jar",
+      "canonicalSha256": "6b3350346ca4b7203b5d08b64826390e8c36d9ca40d4b66fbb41dcc23ab1e34b",
+      "sourceArchiveSha256": "c9d1b7c724504d8b0fe7687aa7622fd45c481f0be65718c244ad4e8d85305f59"
     }
   ]
 }

@@ -32,6 +32,8 @@ public final class InventoryEffects {
     public static final Identifier PANEL = Constants.id("inventory_effects");
     /** Between the inventory and the panel and the screen edge; the widest the panel gets; the narrowest it shows at. */
     private static final int GAP = 4, WIDTH = 140, MIN_WIDTH = 30;
+    /** How far the creative inventory's lower row of tabs reaches below its image. */
+    private static final int CREATIVE_TABS = 28;
     private static @Nullable JsonObject placed;
 
     private InventoryEffects() {}
@@ -75,11 +77,14 @@ public final class InventoryEffects {
         int room = onRight ? rightRoom : leftRoom;
         if (room < MIN_WIDTH) return null;
         int width = Math.min(WIDTH, room), y = Math.max(GAP, screen.topPos);
+        // As tall as the inventory beside it (the creative one with its lower row of tabs), never past the window: the
+        // panel reads as part of the inventory, and scrolls inside rather than running down the screen.
+        int bottom = screen.topPos + screen.imageHeight + (screen instanceof CreativeModeInventoryScreen ? CREATIVE_TABS : 0);
         JsonObject place = new JsonObject();
         place.addProperty("x", onRight ? right : leftEdge - GAP - width);
         place.addProperty("y", y);
         place.addProperty("width", width);
-        place.addProperty("height", Math.max(32, screen.height - y - GAP));
+        place.addProperty("height", Math.max(32, Math.min(bottom, screen.height - GAP) - y));
         return place;
     }
 

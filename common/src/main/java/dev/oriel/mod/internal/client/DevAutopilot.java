@@ -269,6 +269,16 @@ public final class DevAutopilot {
             forgeStation(mc);
             return;
         }
+        if (ONLY.equals("particles")) {
+            // The catalog's particle demos ({@code -Pautopilot=particles}): their canvases must show particles in game.
+            shoot(mc, "particles_catalog", () -> OrielClientCommands.preset("catalog"));
+            onPage("the particles section", p -> p.click("#list .item[data-sec=particles]"));
+            pause(60);
+            grab(mc, "particles_section", 5);
+            pause(40);
+            grab(mc, "particles_section_later", 5);
+            return;
+        }
         if (PLAY) {
             play(mc);
             return;
@@ -1127,8 +1137,8 @@ public final class DevAutopilot {
     }
 
     /**
-     * Every lasting effect at once ({@code -Pautopilot=allfx}): the inventory's panel folded, a row's card on hover,
-     * a group unfolded, the panel scrolled, and the potion HUD.
+     * Every lasting effect at once ({@code -Pautopilot=allfx}): the inventory's panel within the window, a chip's card
+     * on hover, a group switched to rows and a row's card, the panel scrolled, the creative inventory, and the potion HUD.
      */
     private static void everyEffect(Minecraft mc) {
         steps.add(() -> {
@@ -1141,27 +1151,54 @@ public final class DevAutopilot {
         steps.add(() -> McClient.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
         pause(30);
         grab(mc, "allfx_inventory", 5);
-        steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.hover(".o-effects .eff")).orElse(false),
-                "hovered an effect row", "could not hover an effect row"));
-        // The panel may still be sliding in, and its countdowns relayout it every second: aim again until the card shows.
-        until("the hovered row's card shows", ticks -> OrielAutomation.hud(InventoryEffects.PANEL).map(p -> {
-            if (ticks % 10 == 0) p.hover(".o-effects .eff");
-            return p.exists(".o-efftip.on");
-        }).orElse(false), 40, "the hovered row's card did not show", true);
-        steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.exists(".o-efftip.on")).orElse(false),
-                "a hovered row shows its card", "a hovered row shows no card"));
-        grab(mc, "allfx_tooltip", 5);
-        steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.click(".o-effects .more")).orElse(false),
-                "unfolded a group", "could not unfold a group"));
+        fitsTheScreen(mc, "survival");
+        // With every effect each group is past the chip limit: a chip's card, then a group as rows and a row's card.
+        hoverUntilCard(".o-effects .chip", "a hovered chip");
+        grab(mc, "allfx_chip_card", 5);
+        steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.click(".o-effects .group.beneficial .head")).orElse(false),
+                "switched a group to rows", "could not switch a group to rows"));
         pause(15);
-        grab(mc, "allfx_expanded", 5);
-        steps.add(() -> OrielAutomation.hud(InventoryEffects.PANEL).ifPresent(p -> p.wheel(".o-effects", -4)));
+        hoverUntilCard(".o-effects .group.beneficial .eff", "a hovered row");
+        grab(mc, "allfx_rows", 5);
+        steps.add(() -> OrielAutomation.hud(InventoryEffects.PANEL).ifPresent(p -> p.wheel(".o-effects", -8)));
         pause(15);
         grab(mc, "allfx_scrolled", 5);
+        // The creative inventory is shorter and has tabs above and below: the panel stays within it.
+        steps.add(() -> {
+            McClient.setScreen(null);
+            command(mc, "gamemode creative");
+        });
+        pause(10);
+        steps.add(() -> McClient.setScreen(new net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen(
+                mc.player, mc.player.connection.enabledFeatures(), mc.options.operatorItemsTab().get())));
+        pause(30);
+        grab(mc, "allfx_creative", 5);
+        fitsTheScreen(mc, "creative");
+        steps.add(() -> command(mc, "gamemode survival"));
         steps.add(() -> McClient.setScreen(null));
         steps.add(() -> OrielHud.show(OrielClient.POTION_HUD));
         pause(40);
         grab(mc, "allfx_hud", 5);
+    }
+
+    /** Points at the first {@code selector} until the effect card shows (the panel may still slide in), then checks it. */
+    private static void hoverUntilCard(String selector, String what) {
+        until(what + "'s card shows", ticks -> OrielAutomation.hud(InventoryEffects.PANEL).map(p -> {
+            if (ticks % 10 == 1) p.hover(selector);
+            return p.exists(".o-efftip.on");
+        }).orElse(false), 40, what + "'s card did not show", true);
+        steps.add(() -> check(OrielAutomation.hud(InventoryEffects.PANEL).map(p -> p.exists(".o-efftip.on")).orElse(false),
+                what + " shows its card", what + " shows no card"));
+    }
+
+    /** The inventory's effects panel ends inside the window (it scrolls rather than running off the bottom). */
+    private static void fitsTheScreen(Minecraft mc, String inventory) {
+        steps.add(() -> {
+            float[] r = OrielAutomation.hud(InventoryEffects.PANEL).flatMap(p -> p.rect("#side")).orElse(null);
+            int h = mc.getWindow().getGuiScaledHeight();
+            check(r != null && r[1] + r[3] <= h, "the " + inventory + " effects panel ends inside the window",
+                    "the " + inventory + " effects panel " + (r == null ? "is missing" : "ends at " + (r[1] + r[3]) + " of " + h));
+        });
     }
 
     /**

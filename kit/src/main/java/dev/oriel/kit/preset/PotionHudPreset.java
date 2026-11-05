@@ -23,8 +23,10 @@ import java.util.Map;
  *   cooldown, with the level and time; a new effect is announced by a card that slides out under the bar and then
  *   folds away into its tile; the handle (or H) unfolds the full panel;</li>
  *   <li>the full panel ({@link #mountPanel}), also embedded in the inventory: effects grouped into beneficial,
- *   harmful and neutral, each with a countdown and a draining bar. A group shows three rows and an "N more" chip
- *   that expands it; its header folds it to a strip of icons.</li>
+ *   harmful and neutral, each with a countdown and a draining bar. On the HUD a group shows three rows and an
+ *   "N more" chip that expands it; beside the inventory a group of more than {@link #COMPACT_OVER} effects shows as a
+ *   grid of icon chips instead. Either way the header switches between rows and chips, and every row and chip shows
+ *   the effect's card on hover.</li>
  * </ul>
  * Effects blink in their last ten seconds and fade out when they end. In game ({@link GameEffects} has a provider)
  * they are the player's own, as the game reports them; elsewhere (the previewer, tests) fixtures keep arriving from
@@ -32,8 +34,8 @@ import java.util.Map;
  */
 public final class PotionHudPreset implements PageControllers.Controller {
     static final int SHOWN = 3, BAR_TILES = 5;
-    /** Rows a group shows beside the inventory before the rest fold under "N more effects". */
-    static final int PANEL_SHOWN = 4;
+    /** Beside the inventory, a group of more effects than this starts as a grid of icon chips instead of rows. */
+    static final int COMPACT_OVER = 4;
     static final double ARRIVAL_SECONDS = 9, FRESH_SECONDS = 4, ANNOUNCE_SECONDS = 2.6;
 
     enum Kind { BENEFICIAL, HARMFUL, NEUTRAL }
@@ -57,8 +59,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
         double total;
         /** The whole seconds the game last reported (game effects), which the countdown does not pass. */
         int reported = -1;
-        Element row, time, tile, tileTime;
-        Dom.Style bar, drain;
+        Element row, time, tile, tileTime, chip;
+        Dom.Style bar, drain, chipDrain;
         int shownSeconds = -1;
         /** Until when (page seconds) it shows even past a group's row limit: arrivals stay in view a moment. */
         double freshUntil;
@@ -106,6 +108,14 @@ public final class PotionHudPreset implements PageControllers.Controller {
     final Map<Kind, List<Running>> groups = new LinkedHashMap<>();
     private final Map<Kind, Element> groupElements = new LinkedHashMap<>();
     private final Map<Kind, Boolean> expanded = new LinkedHashMap<>();
+    /** The player's own choice of rows or chips for a group (by its header); absent while the panel decides. */
+    private final Map<Kind, Boolean> chosen = new LinkedHashMap<>();
+    /** Groups of more effects than this show as chips unless the player chose; 0 leaves that to the player. */
+    private int compactOver;
+    /** Every group shows as chips (a narrow place), whatever was chosen. */
+    private boolean allCompact;
+    /** The panel's scrolling box, whose parent learns whether more is above or below the view. */
+    private Element scroller;
     private final Deque<Effect> queue = new ArrayDeque<>();
     private Document doc;
     private Element toast, tiles, more, hud;
@@ -138,15 +148,44 @@ public final class PotionHudPreset implements PageControllers.Controller {
     }
 
     /**
-     * The full panel alone, inside {@code where} of another page (the inventory's effects column); {@code folded}
-     * starts every group folded to its strip of icons. A group shows {@link #PANEL_SHOWN} rows and folds the rest
-     * under its "more"; the place scrolls when they overflow it.
+     * The full panel alone, inside {@code where} of another page, which scrolls: a group shows all its rows, or, with
+     * more than {@code compactOver} effects, a grid of icon chips ({@link #COMPACT_OVER} beside a vanilla inventory;
+     * 0 where there is room for every row). The header switches a group either way. {@code where}'s parent gets
+     * {@code more-above} / {@code more-below} while the view hides some of the panel, for a hint at that edge.
      */
-    public void mountPanel(Document document, Element where, boolean folded) {
+    public void mountPanel(Document document, Element where, int compactOver) {
         doc = document;
-        shown = PANEL_SHOWN;
+        shown = Integer.MAX_VALUE;
+        this.compactOver = compactOver;
+        scroller = where;
+        where.addEventListener("scroll", e -> {
+            hideTip();
+            edges();
+        });
         start(where);
-        if (folded) for (Element g : groupElements.values()) g.addClass("folded");
+    }
+
+    /** Shows every group as chips ({@code true}, for a narrow place) or as the panel decides again. */
+    public void compactAll(boolean compact) {
+        if (allCompact == compact) return;
+        allCompact = compact;
+        for (Kind k : Kind.values()) if (groupElements.containsKey(k)) refresh(k);
+    }
+
+    /** Whether a group shows chips now: a narrow place, else the player's choice, else its size. */
+    private boolean compact(Kind k) {
+        if (allCompact) return true;
+        Boolean choice = chosen.get(k);
+        if (choice != null) return choice;
+        return compactOver > 0 && groups.get(k).size() > compactOver;
+    }
+
+    /** Marks the scroller's parent with what the view leaves out above and below. */
+    private void edges() {
+        if (scroller == null || scroller.parentElement() == null) return;
+        float top = scroller.scrollTop(), hidden = scroller.scrollHeight() - scroller.clientHeight();
+        scroller.parentElement().toggleClass("more-above", top > 0.5f);
+        scroller.parentElement().toggleClass("more-below", hidden - top > 0.5f);
     }
 
     private void start(Element panel) {
@@ -165,7 +204,8 @@ public final class PotionHudPreset implements PageControllers.Controller {
             panel.appendChild(g);
             groupElements.put(k, g);
             Dom.onClick(Dom.query(g, ".head"), e -> {
-                g.toggleClass("folded");
+                hideTip();
+                chosen.put(k, !g.hasClass("folded"));
                 refresh(k);
             });
             Dom.onClick(Dom.query(g, ".more"), e -> {
@@ -212,6 +252,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
             announce(e);
         }
         if (tipFor != null) updateTip();
+        edges();
         if (toast != null && now > toastUntil && toast.hasClass("on")) {
             toast.removeClass("on");
             toast.addClass("folding");
@@ -231,10 +272,12 @@ public final class PotionHudPreset implements PageControllers.Controller {
                         Dom.text(r.tileTime, shortClock(secs));
                         r.tile.toggleClass("low", secs <= 10 && secs > 0);
                     }
+                    r.chip.toggleClass("low", secs <= 10 && secs > 0);
                 }
                 double fraction = Double.isInfinite(r.total) ? 1 : r.total <= 0 ? 0 : Math.min(1, left / r.total);
                 r.bar.set("width", Math.round(1000 * fraction) / 10.0 + "%").apply();
                 if (r.drain != null) r.drain.set("height", Math.round(1000 * (1 - fraction)) / 10.0 + "%").apply();
+                r.chipDrain.set("height", Math.round(1000 * (1 - fraction)) / 10.0 + "%").apply();
                 if (game == null && left <= 0 && !r.leaving) leave(k, r);
             }
         }
@@ -257,6 +300,18 @@ public final class PotionHudPreset implements PageControllers.Controller {
         r.row = row;
         r.time = Dom.query(row, ".time");
         r.bar = new Dom.Style(Dom.query(row, ".remain"));
+        // The same effect as an icon chip, for a group shown compact: the level as a number in the corner (as an item
+        // stack's count), the rest on hover.
+        Element chip = Dom.html(doc, "<div class=\"chip\"><img><i class=\"drain\"></i><b class=\"lv\"></b></div>");
+        Dom.query(chip, "img").setAttribute("src", icon(e));
+        Dom.text(Dom.query(chip, ".lv"), Integer.toString(e.level()));
+        chip.toggleClass("leveled", e.level() > 1);
+        Dom.onMouse(chip, "mouseenter", ev -> showTip(r, chip));
+        Dom.onMouse(chip, "mouseleave", ev -> {
+            if (tipFor == r) hideTip();
+        });
+        r.chip = chip;
+        r.chipDrain = new Dom.Style(Dom.query(chip, ".drain"));
         if (tiles != null) {
             Element tile = Dom.html(doc, "<div class=\"tile " + GROUP_CLASSES[e.kind().ordinal()] + "\"><img>"
                     + "<i class=\"drain\"></i><b class=\"lv\"></b><span class=\"t\"></span></div>");
@@ -270,9 +325,11 @@ public final class PotionHudPreset implements PageControllers.Controller {
         }
         if (fresh) {
             row.addClass("fresh");
+            chip.addClass("fresh");
             if (r.tile != null) r.tile.addClass("fresh");
             doc.scheduler().setTimeout(() -> {
                 row.removeClass("fresh");
+                chip.removeClass("fresh");
                 if (r.tile != null) r.tile.removeClass("fresh");
             }, 1600);
             doc.scheduler().setTimeout(() -> refresh(e.kind()), FRESH_SECONDS * 1000 + 50);
@@ -346,6 +403,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
     private void leave(Kind k, Running r) {
         r.leaving = true;
         r.row.addClass("gone");
+        r.chip.addClass("gone");
         if (r.tile != null) r.tile.addClass("gone");
         doc.scheduler().setTimeout(() -> remove(k, r), 620);
     }
@@ -354,6 +412,7 @@ public final class PotionHudPreset implements PageControllers.Controller {
         if (tipFor == r) hideTip();
         groups.get(k).remove(r);
         r.row.remove();
+        r.chip.remove();
         if (r.tile != null) r.tile.remove();
         refresh(k);
     }
@@ -386,14 +445,16 @@ public final class PotionHudPreset implements PageControllers.Controller {
             if (i < limit || now < r.freshUntil) want.add(r.row);
         }
         place(list, want);
-        strip.removeAllChildren();
-        for (Running r : effects) {
-            Element img = Dom.el(doc, "img", null, null);
-            img.setAttribute("src", icon(r.effect));
-            strip.appendChild(img);
+        List<Element> chips = new ArrayList<>();
+        for (Running r : effects) chips.add(r.chip);
+        place(strip, chips);
+        boolean compact = compact(k);
+        if (g.hasClass("folded") != compact) {
+            if (tipFor != null && groups.get(k).contains(tipFor)) hideTip();
+            g.toggleClass("folded", compact);
         }
         int hidden = effects.size() - want.size();
-        more.setAttribute("style", hidden == 0 && !expanded.get(k) ? "display: none" : "");
+        more.setAttribute("style", compact || hidden == 0 && !expanded.get(k) ? "display: none" : "");
         Dom.text(more, expanded.get(k) ? Lang.t(doc, "oriel.ui.potions.collapse") : Lang.plural(doc, "oriel.ui.potions.more", hidden));
         Dom.text(Dom.query(g, ".n"), Integer.toString(effects.size()));
         g.toggleClass("empty", effects.isEmpty());
@@ -429,7 +490,12 @@ public final class PotionHudPreset implements PageControllers.Controller {
      * level, its kind, what it does, and the time left of its whole duration, kept up to date while it shows.
      */
     private void showTip(Running r) {
-        if (tip == null || r.row == null) return;
+        showTip(r, r.row);
+    }
+
+    /** The card of {@code r}, level with {@code at} (its row or its chip). */
+    private void showTip(Running r, Element at) {
+        if (tip == null || at == null) return;
         tipFor = r;
         Effect e = r.effect;
         tip.setAttribute("class", "o-efftip on " + GROUP_CLASSES[e.kind().ordinal()]);
@@ -445,9 +511,9 @@ public final class PotionHudPreset implements PageControllers.Controller {
         desc.toggleClass("none", e.description() == null);
         Dom.text(Dom.query(tip, ".id"), e.id().contains(":") ? e.id() : "minecraft:" + e.id());
         updateTip();
-        // Beside the panel the row is in, level with the row, kept inside the window.
-        Element panel = r.row.closest(".o-effects");
-        float[] row = r.row.getBoundingClientRect(), box = (panel != null ? panel : r.row).getBoundingClientRect();
+        // Beside the panel the row or chip is in, level with it, kept inside the window.
+        Element panel = at.closest(".o-effects");
+        float[] row = at.getBoundingClientRect(), box = (panel != null ? panel : at).getBoundingClientRect();
         float width = 138, height = 74, vw = doc.viewportWidth(), vh = doc.viewportHeight();
         float x = box[0] + box[2] + 6 + width <= vw ? box[0] + box[2] + 6 : Math.max(2, box[0] - 6 - width);
         float y = Math.max(2, Math.min(row[1] - 4, vh - height - 2));

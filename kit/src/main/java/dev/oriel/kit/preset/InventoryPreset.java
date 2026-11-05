@@ -105,7 +105,7 @@ public final class InventoryPreset implements PageControllers.Controller {
         Dom.onClick(Dom.byId(doc, "back"), e -> Shell.back(doc));
         for (Element tab : doc.querySelectorAll("[data-cat]")) Shell.activate(tab, () -> category(tab));
         Element effects = doc.getElementById("effects");
-        if (effects != null) new PotionHudPreset().mountPanel(doc, effects, false);
+        if (effects != null) new PotionHudPreset().mountPanel(doc, effects, 0);
         // The info column's tabs: the item under the pointer, or the status effects with the column's full height.
         for (Element tab : doc.querySelectorAll("#info-tabs [data-pane]")) {
             Shell.activate(tab, () -> {

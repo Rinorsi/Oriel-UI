@@ -40,6 +40,7 @@ mutable field net/minecraft/client/renderer/GameRenderer mainRenderTarget Lcom/m
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen leftPos I
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen topPos I
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageWidth I
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageHeight I
 accessible field net/minecraft/client/gui/screens/inventory/AbstractRecipeBookScreen recipeBookComponent Lnet/minecraft/client/gui/screens/recipebook/RecipeBookComponent;
 accessible field net/minecraft/client/gui/screens/inventory/InventoryScreen effects Lnet/minecraft/client/gui/screens/inventory/EffectsInInventory;
 mutable field net/minecraft/client/gui/screens/inventory/InventoryScreen effects Lnet/minecraft/client/gui/screens/inventory/EffectsInInventory;

@@ -76,6 +76,34 @@ class PotionHudPresetTest {
     }
 
     @Test
+    void besideTheInventoryABigGroupIsChipsThatShowTheirCard() {
+        Document doc = host.open(OrielKit.INVENTORY_EFFECTS, new InventoryEffectsPreset(), 640, 360);
+        double[] clock = {0};
+        for (int i = 0; i < 30; i++) frame(doc, clock, 16);
+        Element beneficial = doc.querySelector(".group.beneficial"), harmful = doc.querySelector(".group.harmful");
+        assertTrue(beneficial.hasClass("folded"), "more than " + PotionHudPreset.COMPACT_OVER + " effects start as chips");
+        assertFalse(harmful.hasClass("folded"), "a small group keeps its rows");
+        assertEquals(beneficial.querySelectorAll(".chip").size(), Integer.parseInt(beneficial.querySelector(".head .n").textContent()));
+        assertTrue(doc.getElementById("side").hasClass("more-below"), "a cut-off panel says there is more below");
+
+        // Hovering a chip shows that effect's card, as a row does.
+        Element chip = beneficial.querySelector(".chip");
+        float[] c = KitHost.centre(doc, ".group.beneficial .chip");
+        doc.input().mouseMove(c[0], c[1], Modifiers.NONE);
+        frame(doc, clock, 16);
+        Element tip = doc.querySelector(".o-efftip");
+        assertTrue(tip.hasClass("on"), "the chip's card shows");
+        assertEquals(chip.querySelector("img").getAttribute("src"), tip.querySelector("img").getAttribute("src"));
+        assertFalse(tip.querySelector(".left").textContent().isBlank(), "with its time left");
+
+        // The header switches the group to rows, and the choice holds when the group changes.
+        click(doc, ".group.beneficial .head", 0, Modifiers.NONE, clock);
+        assertFalse(beneficial.hasClass("folded"));
+        for (int i = 0; i < 700; i++) frame(doc, clock, 16); // arrivals and departures refresh the groups
+        assertFalse(beneficial.hasClass("folded"), "the player's choice stays");
+    }
+
+    @Test
     void theInventoryCarriesTheFullPanelInItsOwnTab() {
         Document doc = host.open(OrielKit.INVENTORY, new InventoryPreset(), 640, 360);
         var groups = doc.querySelectorAll("#effects .group");

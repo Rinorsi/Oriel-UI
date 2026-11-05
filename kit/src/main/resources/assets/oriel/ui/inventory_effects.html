@@ -6,8 +6,9 @@
   <style>
     /*
      * The player's effects beside vanilla's survival and creative inventories, in place of vanilla's list
-     * (InventoryEffects in the mod places it: x, y, width and the height it may take). The rows are the potion HUD's
-     * full panel, grouped into beneficial, harmful and neutral; a narrow place folds the groups to strips of icons.
+     * (InventoryEffects in the mod places it: x, y, width and the height it may take, no taller than the inventory).
+     * The panel is the potion HUD's, grouped into beneficial, harmful and neutral; a group of more than four effects,
+     * or every group in a narrow place, shows as icon chips, each with the effect's card on hover. It scrolls inside.
      */
     body { margin: 0; background: transparent; }
     .side {
@@ -25,6 +26,12 @@
     }
     .side .o-effects { flex: 0 1 auto; min-height: 0; padding: 3px; overflow-y: auto; }
     .side.narrow .title span { display: none; }
+    /* What the view leaves out (the controller marks it): a shade at that edge, so a cut-off list reads as scrollable. */
+    .side::before, .side::after { content: ""; position: absolute; left: 0; right: 0; height: 12px; pointer-events: none; opacity: 0;
+      transition: opacity 160ms; }
+    .side::before { top: 16px; background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0)); }
+    .side::after { bottom: 0; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.6)); }
+    .side.more-above::before, .side.more-below::after { opacity: 1; }
   </style>
 </head>
 <body>

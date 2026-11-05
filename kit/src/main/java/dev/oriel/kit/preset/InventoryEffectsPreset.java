@@ -10,8 +10,9 @@ import dev.oriel.kit.Shell;
 
 /**
  * The player's effects beside a vanilla inventory: the potion HUD's full panel ({@link PotionHudPreset#mountPanel}) in
- * a window of its own, where its host puts it. The host sends {@value #PLACE} (x, y, width, height in GUI px); below
- * {@link #NARROW} px wide the groups fold to strips of icons and the title to its icon.
+ * a window of its own, where its host puts it. The host sends {@value #PLACE} (x, y, width, and the height it may take,
+ * in GUI px); the panel scrolls inside that. Below {@link #NARROW} px wide every group shows as icon chips and the title
+ * as its icon.
  */
 public final class InventoryEffectsPreset implements PageControllers.Controller {
     /** The data key of the panel's place. */
@@ -26,7 +27,7 @@ public final class InventoryEffectsPreset implements PageControllers.Controller 
         Shell.setup(doc);
         side = Dom.byId(doc, "side");
         effects = new PotionHudPreset();
-        effects.mountPanel(doc, Dom.byId(doc, "panel"), false);
+        effects.mountPanel(doc, Dom.byId(doc, "panel"), PotionHudPreset.COMPACT_OVER);
         if (doc.initialData() != null) place(JsonParser.parseString(doc.initialData()).getAsJsonObject().getAsJsonObject(PLACE));
         doc.addDataListener((key, json) -> {
             if (json == null) return;
@@ -43,6 +44,6 @@ public final class InventoryEffectsPreset implements PageControllers.Controller 
                 .set("width", width + "px").set("max-height", place.get("height").getAsInt() + "px").apply();
         boolean narrow = width < NARROW;
         side.toggleClass("narrow", narrow);
-        for (Element group : side.querySelectorAll(".group")) group.toggleClass("folded", narrow);
+        effects.compactAll(narrow);
     }
 }
