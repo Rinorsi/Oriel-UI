@@ -7,6 +7,7 @@
 - 接入：[依赖与资源](zh/integration.md)、[Java API](zh/java-api.md)、[服务端/容器](zh/server.md)。
 - 验收：[预览、动作、MCP 与游戏](zh/validation.md)。
 - 维护：[文档同步合同](zh/maintenance.md)、[架构](zh/architecture.md)。
+- 素材：[逐文件来源与许可](asset-provenance.md)。
 
 ## 细节补充
 
