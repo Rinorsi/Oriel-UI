@@ -62,3 +62,5 @@ or the slots changed, so it can read from the menu, synced `ContainerData`, or c
 instead.)
 
 Try it: `/oriel demo chest` opens a chest whose screen is `assets/oriel/oriel/demo/chest.html`.
+
+该样例及 `ForgeMenu.open(player)` 现在默认固定到脚下非空气方块，最大距离 8 格，并检查拥有者、存活、关闭状态和方块存续。自定义固定位置使用 `ForgeMenu.Workstation`；两参数 `ForgeMenu` 构造器保留便携模式。参数、失败和授权合同见 [服务端菜单](../zh/server.md#锻造菜单的接入合同)。

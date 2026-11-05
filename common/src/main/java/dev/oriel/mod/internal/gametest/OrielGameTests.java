@@ -231,6 +231,7 @@ public final class OrielGameTests {
     private static void chest(GameTestHelper h) {
         ServerPlayer player = player(h);
         try {
+            h.getLevel().setBlockAndUpdate(player.blockPosition().below(), net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
             OrielDemos.openChest(player);
             h.assertValueEqual(player.containerMenu.getType(), OrielDemos.CHEST, "the demo chest has its own menu type");
             h.assertValueEqual(player.containerMenu.slots.size(), 27 + 36, "chest and player inventory slots");

@@ -86,6 +86,8 @@ NONE 不接鼠标；WHEN_CHAT_OPEN 在聊天界面可点；WHEN_CURSOR_FREE 在�
 
 频率/大小/线程/失败、容器数据见 [服务端](server.md)。收到 JSON 或 channel 名不代表已经授权。
 
+`ForgeMenu.open(player)` 默认固定到脚下非空气方块、最大距离 8 格；`open(player, new ForgeMenu.Workstation(level, pos, block, maxDistance))` 可配置固定工作站。只在服务器线程调用，业务方先授权；位置、方块存续、维度、距离及拥有者状态约束见 [锻造菜单合同](server.md#锻造菜单的接入合同)。两参数构造器仍是便携模式，固定工作站用三参数构造器传非 null 工作站。
+
 ## 项目内 Java 页面控制器
 
 `dev.oriel.engine.host.PageControllers.register(url,Supplier<Controller>)` 为每次加载创建新 controller。Controller.attach(Document) 必须实现；saveState() 默认 null；restoreState(Object) 默认不做事。可复用最小例子见 [制作流程](ui-workflow.md)。这些接口可用于项目内开发，但不在下游稳定承诺中。

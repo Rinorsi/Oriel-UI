@@ -7,8 +7,10 @@ import dev.oriel.mod.internal.net.OpenPayload;
 import dev.oriel.mod.internal.net.OrielNetwork;
 import dev.oriel.mod.internal.registry.OrielRegistry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,6 +24,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -50,6 +54,25 @@ public final class ForgeMenu extends AbstractContainerMenu {
             new Recipe("oriel:repair_diamond_sword", Items.DIAMOND_SWORD, Items.DIAMOND));
 
     private final Player owner;
+    private final Workstation workstation;
+
+    /** Immutable server-owned anchor; distance is measured from the block center in blocks. */
+    public record Workstation(ServerLevel level, BlockPos position, Block block, double maxDistance) {
+        public Workstation {
+            java.util.Objects.requireNonNull(level, "level");
+            position = java.util.Objects.requireNonNull(position, "position").immutable();
+            java.util.Objects.requireNonNull(block, "block");
+            if (block.defaultBlockState().isAir() || !Double.isFinite(maxDistance) || maxDistance <= 0
+                    || !Double.isFinite(maxDistance * maxDistance))
+                throw new IllegalArgumentException("Workstation requires a non-air block and a finite positive distance");
+        }
+
+        public boolean stillValid(Player player) {
+            return player.level() == level && level.getChunkSource().hasChunk(position.getX() >> 4, position.getZ() >> 4)
+                    && level.getBlockState(position).is(block)
+                    && player.distanceToSqr(Vec3.atCenterOf(position)) <= maxDistance * maxDistance;
+        }
+    }
     private final SimpleContainer storage = new SimpleContainer(3);
     // progress, duration, selected recipe (index + 1; zero means none), state
     private final ContainerData data = new SimpleContainerData(4);
@@ -58,8 +81,14 @@ public final class ForgeMenu extends AbstractContainerMenu {
     private long lastWorkTick = Long.MIN_VALUE;
 
     public ForgeMenu(int id, Inventory inventory) {
+        this(id, inventory, null);
+    }
+
+    /** A null anchor explicitly selects the portable menu used by the client factory. */
+    public ForgeMenu(int id, Inventory inventory, Workstation workstation) {
         super(TYPE, id);
         owner = inventory.player;
+        this.workstation = workstation;
         addSlot(new Slot(storage, INPUT, 0, 0) {
             @Override public boolean mayPlace(ItemStack stack) {
                 return RECIPES.stream().anyMatch(r -> stack.is(r.input()));
@@ -84,19 +113,37 @@ public final class ForgeMenu extends AbstractContainerMenu {
 
     /** Opens the server menu; the consuming client must register its screen for TYPE. */
     public static boolean open(ServerPlayer player) {
+        BlockPos position = player.blockPosition().below();
+        Block block = player.level().getBlockState(position).getBlock();
+        if (block.defaultBlockState().isAir()) {
+            player.sendSystemMessage(Component.literal("Oriel forge requires a non-air workstation block below the player."));
+            return false;
+        }
+        return open(player, new Workstation(player.level(), position, block, 8));
+    }
+
+    /** Opens a fixed workstation. The caller remains responsible for business authorization. */
+    public static boolean open(ServerPlayer player, Workstation workstation) {
+        java.util.Objects.requireNonNull(workstation, "workstation");
+        if (!workstation.stillValid(player)) {
+            player.sendSystemMessage(Component.literal("Oriel workstation is missing or out of reach."));
+            return false;
+        }
         if (!OrielNetwork.canReceive(player, OpenPayload.TYPE)) {
             player.sendSystemMessage(Component.literal("Oriel is required on the client to use this forge."));
             return false;
         }
-        return player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new ForgeMenu(id, inventory),
+        return player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new ForgeMenu(id, inventory, workstation),
                 Component.literal("Oriel Forge"))).isPresent();
     }
 
-    @Override public boolean stillValid(Player player) { return !closed && player == owner && player.isAlive(); }
+    @Override public boolean stillValid(Player player) {
+        return !closed && player == owner && player.isAlive() && (workstation == null || workstation.stillValid(player));
+    }
 
     /** Vanilla calls broadcastChanges once per server player tick; no extra loader tick or client timer is needed. */
     @Override public void broadcastChanges() {
-        if (owner instanceof ServerPlayer && !closed && lastWorkTick != owner.level().getGameTime()) {
+        if (owner instanceof ServerPlayer && stillValid(owner) && lastWorkTick != owner.level().getGameTime()) {
             lastWorkTick = owner.level().getGameTime();
             advance();
         }
@@ -169,8 +216,9 @@ public final class ForgeMenu extends AbstractContainerMenu {
     }
 
     @Override public void removed(Player player) {
+        if (player != owner || closed) return;
         super.removed(player);
-        if (!closed && owner instanceof ServerPlayer) clearContainer(player, storage);
+        if (owner instanceof ServerPlayer) clearContainer(player, storage);
         closed = true;
     }
 }

@@ -47,6 +47,78 @@ public final class ServerFeaturesGameTests {
         GameTests.add("unsupported_client", ServerFeaturesGameTests::unsupported);
         GameTests.add("player_isolation", ServerFeaturesGameTests::isolation);
         GameTests.add("forge_menu", ServerFeaturesGameTests::forge);
+        ItemEditorComponentsGameTests.init();
+        GameTests.add("forge_workstation", ServerFeaturesGameTests::workstation);
+    }
+
+    private static void workstation(GameTestHelper h) {
+        OrielGameTests.withPlayers(h, (p, packet) -> {}, (a, b) -> {
+            var pos = a.blockPosition().below();
+            var block = net.minecraft.world.level.block.Blocks.SMITHING_TABLE;
+            var previousBlock = h.getLevel().getBlockState(pos);
+            h.getLevel().setBlockAndUpdate(pos, block.defaultBlockState());
+            var station = new ForgeMenu.Workstation(h.getLevel(), pos, block, 4);
+            ForgeMenu first = new ForgeMenu(10, a.getInventory(), station);
+            ForgeMenu second = new ForgeMenu(11, b.getInventory(), station);
+            try {
+                h.assertTrue(first.stillValid(a), "owner next to live workstation is valid");
+                h.assertFalse(first.stillValid(b), "another player cannot use this menu");
+                first.removed(b);
+                h.assertTrue(first.stillValid(a), "another player cannot close this menu");
+                var otherLevel = h.getLevel().getServer().getLevel(net.minecraft.world.level.Level.NETHER);
+                if (otherLevel != null)
+                    h.assertFalse(new ForgeMenu.Workstation(otherLevel, pos, block, 4).stillValid(a), "another dimension is invalid");
+                for (double distance : new double[] {0, -1, Double.NaN, Double.POSITIVE_INFINITY}) {
+                    h.assertTrue(OrielGameTests.throwsOn(() -> new ForgeMenu.Workstation(h.getLevel(), pos, block, distance),
+                            IllegalArgumentException.class), "invalid configured distance rejected");
+                }
+                first.getSlot(ForgeMenu.INPUT).set(sword());
+                first.getSlot(ForgeMenu.MATERIAL).set(new ItemStack(Items.IRON_INGOT, 2));
+                second.getSlot(ForgeMenu.MATERIAL).set(new ItemStack(Items.DIAMOND, 3));
+                first.broadcastChanges();
+                h.assertValueEqual(second.pageData().get("progress").getAsInt(), 0, "progress belongs to one player");
+                h.assertValueEqual(second.getSlot(ForgeMenu.MATERIAL).getItem().getCount(), 3, "inventory belongs to one player");
+                a.setPos(pos.getX() + 20, pos.getY() + 1, pos.getZ());
+                h.assertFalse(first.stillValid(a), "walking away invalidates station");
+                h.assertTrue(first.quickMoveStack(a, ForgeMenu.INPUT).isEmpty(), "invalid menu cannot transfer items");
+                a.setPos(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+                h.getLevel().setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+                h.assertFalse(first.stillValid(a), "removed workstation invalidates menu");
+                h.getLevel().setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
+                h.assertFalse(first.stillValid(a), "replacement must have the expected block type");
+                h.getLevel().setBlockAndUpdate(pos, block.defaultBlockState());
+                h.assertTrue(first.stillValid(a), "same block type is valid again");
+                a.setHealth(0);
+                h.assertFalse(first.stillValid(a), "dead owner cannot use the menu");
+                a.setHealth(a.getMaxHealth());
+                first.removed(a);
+                h.assertFalse(first.stillValid(a), "closed menu stays invalid");
+                h.assertTrue(second.stillValid(b), "closing one player leaves another menu alive");
+                h.assertValueEqual(second.getSlot(ForgeMenu.MATERIAL).getItem().getCount(), 3, "close cannot drain another player");
+                dev.oriel.mod.internal.server.OrielDemos.openChest(a, station);
+                dev.oriel.mod.internal.server.OrielDemos.openChest(b, station);
+                var chestA = a.containerMenu;
+                var chestB = b.containerMenu;
+                h.assertFalse(chestA.stillValid(b), "sample chest checks its owner");
+                chestA.getSlot(0).set(ItemStack.EMPTY);
+                h.assertFalse(chestB.getSlot(0).getItem().isEmpty(), "sample chests have separate inventories");
+                a.setPos(pos.getX() + 20, pos.getY() + 1, pos.getZ());
+                h.assertFalse(chestA.stillValid(a), "sample chest checks configured distance");
+                a.setPos(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+                h.getLevel().setBlockAndUpdate(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState());
+                h.assertFalse(chestA.stillValid(a), "sample chest checks block survival");
+                a.closeContainer();
+                b.closeContainer();
+                h.assertFalse(chestA.stillValid(a), "closed sample chest stays invalid");
+            } finally {
+                first.removed(a);
+                second.removed(b);
+                a.closeContainer();
+                b.closeContainer();
+                h.getLevel().setBlockAndUpdate(pos, previousBlock);
+            }
+        });
+        h.succeed();
     }
 
     private static void unsupported(GameTestHelper h) {
