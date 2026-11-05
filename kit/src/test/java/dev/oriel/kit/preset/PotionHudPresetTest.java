@@ -150,6 +150,59 @@ class PotionHudPresetTest {
         }
     }
 
+    /** U05: at every window size, effects expiring one by one keep the panel in the window and the card with its effect. */
+    @Test
+    void besideTheInventoryExpiringEffectsKeepThePanelAndTheCardConsistent() {
+        String[] ids = {"speed", "haste", "strength", "regeneration", "resistance", "jump_boost", "night_vision", "fire_resistance",
+                "water_breathing", "absorption", "luck", "slow_falling", "wither", "poison", "hunger", "weakness"};
+        int cardsChecked = 0;
+        for (int[] size : new int[][] {{640, 360}, {854, 480}, {427, 240}, {320, 200}, {1280, 720}}) {
+            List<GameEffects.Entry> live = new java.util.ArrayList<>();
+            for (int i = 0; i < ids.length; i++) {
+                GameEffects.Kind kind = i >= 12 ? GameEffects.Kind.HARMFUL : GameEffects.Kind.BENEFICIAL;
+                live.add(new GameEffects.Entry("minecraft:" + ids[i], ids[i], 1 + i % 3, kind, 600 - i, "minecraft:textures/mob_effect/" + ids[i] + ".png",
+                        false, true, true, "Does something for a while."));
+            }
+            GameEffects.Snapshot[] game = {new GameEffects.Snapshot(List.copyOf(live))};
+            GameEffects.provide(() -> game[0]);
+            Document doc = host.open(OrielKit.INVENTORY_EFFECTS, new InventoryEffectsPreset(), size[0], size[1]);
+            double[] clock = {0};
+            for (int i = 0; i < 30; i++) frame(doc, clock, 16);
+            Element side = doc.getElementById("side");
+            String at = size[0] + "x" + size[1];
+            while (!live.isEmpty()) {
+                float[] s = side.getBoundingClientRect();
+                assertTrue(s[1] >= 0 && s[1] + s[3] <= doc.viewportHeight() + 0.5f, "the panel is inside the window (" + at + ", " + live.size() + " left): " + java.util.Arrays.toString(s));
+                int shown = doc.querySelectorAll(".o-effects .group").stream().mapToInt(g -> Integer.parseInt(g.querySelector(".head .n").textContent())).sum();
+                assertEquals(live.size(), shown, "every live effect is counted (" + at + ")");
+                // Hover the first effect, then let exactly that one expire.
+                Element target = doc.querySelector(".o-effects .chip, .o-effects .row");
+                if (target != null) {
+                    float[] r = target.getBoundingClientRect();
+                    if (r[2] > 0 && r[0] >= 0 && r[1] >= 0 && r[1] < doc.viewportHeight()) {
+                        doc.input().mouseMove(r[0] + r[2] / 2, r[1] + r[3] / 2, Modifiers.NONE);
+                        frame(doc, clock, 16);
+                    }
+                }
+                Element tip = doc.querySelector(".o-efftip");
+                String hoveredName = tip.hasClass("on") ? tip.querySelector("b").textContent() : null;
+                if (hoveredName != null) {
+                    live.removeIf(e -> e.name().equals(hoveredName));
+                } else {
+                    live.removeFirst();
+                }
+                game[0] = new GameEffects.Snapshot(List.copyOf(live));
+                for (int i = 0; i < 60; i++) frame(doc, clock, 16); // the departure fade (0.6 s) and the refresh
+                if (hoveredName != null) {
+                    cardsChecked++;
+                    assertFalse(tip.hasClass("on") && hoveredName.equals(tip.querySelector("b").textContent()),
+                            "the card of an effect that ended is gone (" + at + ", " + hoveredName + ")");
+                }
+            }
+        }
+        assertTrue(cardsChecked >= 20, "cards of expiring effects were actually checked: " + cardsChecked);
+    }
+
     @AfterEach
     void fixturesAgain() {
         GameEffects.useFixtures();
