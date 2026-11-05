@@ -39,6 +39,7 @@ public class Element extends Node {
             Set.of("checkbox", "radio", "range", "submit", "reset", "button", "image", "hidden", "color", "file");
 
     private final String tagName;
+    private final int sourceLine, sourceColumn;
     private final LinkedHashMap<String, String> attributes = new LinkedHashMap<>();
     private Set<String> classCache;
     private String inputType;
@@ -89,9 +90,19 @@ public class Element extends Node {
     private float scrollTargetLeft = Float.NaN, scrollTargetTop = Float.NaN;
 
     Element(Document ownerDocument, String tagName) {
+        this(ownerDocument, tagName, 0, 0);
+    }
+
+    Element(Document ownerDocument, String tagName, int line, int column) {
         super(ownerDocument);
         this.tagName = tagName.toLowerCase(Locale.ROOT);
+        sourceLine = line;
+        sourceColumn = column;
     }
+
+    /** Original opening-tag position, or zero for programmatically created nodes; retained by clones. */
+    public int sourceLine() { return sourceLine; }
+    public int sourceColumn() { return sourceColumn; }
 
     @Override
     public String nodeName() { return tagName.toUpperCase(Locale.ROOT); }
@@ -345,7 +356,7 @@ public class Element extends Node {
     /** Copies the attributes, the live value and checkedness of controls, and a script's "already started" flag. */
     @Override
     Node cloneShallow() {
-        Element copy = new Element(ownerDocument, tagName);
+        Element copy = new Element(ownerDocument, tagName, sourceLine, sourceColumn);
         copy.attributes.putAll(attributes);
         for (String name : attributes.keySet()) countInlineHandler(ownerDocument, name, 1);
         copy.value = value;

@@ -2,6 +2,8 @@
 
 [入口](index.md) · [Java API](java-api.md) · [完整脚本细节](../SCRIPTING.md)
 
+Java 路线另有 [ViewModel 声明式绑定](bindings.md)：o-text、o-for/o-key、o-if、o-class:*、o-attr:*、o-on:*。它只读取 Java 模型的点分路径，必须显式 Bindings.attach；不执行 JS，不与下文 v-* 模板互换。完整参数、生命周期、错误和无头最小例子以该合同为准。
+
 页面 JS 在打过补丁的 Rhino 中运行。没有浏览器进程；Vue 风格模板是 Oriel 自己的模板绑定，不是 Vue 运行时。kit 预设用 Java 控制器，是项目组织方式，**不表示库不支持脚本**。
 
 ## 生命周期与线程

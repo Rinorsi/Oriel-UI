@@ -214,7 +214,7 @@ public final class Document extends Node {
 
     /** Creates a parsed element with its original markup position for capability diagnostics. */
     public Element createElement(String tag, int line, int column) {
-        Element element = new Element(this, tag);
+        Element element = new Element(this, tag, line, column);
         if (!replacedElements.supports(element.tagName())) UnsupportedElements.check(this, element, line, column);
         return element;
     }

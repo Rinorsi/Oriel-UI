@@ -2,6 +2,8 @@
 
 > 本页保留 Oriel 专题细节。制作入口与当前能力合同见 [中文手册](zh/index.md)；新增字段/行为必须同步中文参考。
 
+For Java controllers, [ViewModel bindings](zh/bindings.md) document the separate, opt-in o-text/o-for/o-key/o-if/o-class:*/o-attr:*/o-on:* contract. These accept dotted Java model paths, require Bindings.attach, and do not evaluate JavaScript or replace the v-* template runtime.
+
 Oriel pages can carry JavaScript: `<script>` elements (inline or `src`), inline handlers (`onclick="..."`), and
 Vue-style templates that bind HTML to data without writing any script at all. This guide covers what scripts can
 use, how templates work, and where Oriel differs from a browser.

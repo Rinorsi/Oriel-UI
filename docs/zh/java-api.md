@@ -2,6 +2,8 @@
 
 [入口](index.md) · [接入依赖](integration.md) · [服务端](server.md) · [页面接口补充](../api/pages.md)
 
+kit 新增 `dev.oriel.kit.bind.ViewModel` / `Bindings.attach(Document, ViewModel)` / `Bindings.close()`，供 Java 控制器按路径驱动 o-* 指令。参数、线程、自动 unload 清理、更新失败语义与可运行示例见 [Java 声明式绑定](bindings.md)。
+
 以下按页面作者需要列出接口。client 包只能在客户端加载并在渲染线程操作；server 接口在服务器线程调用。0.x 不保证任意升级二进制兼容，固定并验证依赖版本。`public` 不等于稳定 SDK；内部平台、渲染器、网络包、演示处理器不要作为下游依赖。
 
 ## OrielScreens 与 Screen
