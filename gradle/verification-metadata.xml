@@ -4,9 +4,9 @@
     <verify-metadata>false</verify-metadata>
     <verify-signatures>false</verify-signatures>
     <trusted-artifacts>
-      <trust group='net.minecraft' name='minecraft-merged-a10ad2e75b' version='26.3' file='minecraft-merged-a10ad2e75b-26.3.jar' regex='false' reason='Loom local output; entry bytes verified by verifyMinecraftContent' />
-      <trust group='net.minecraft' name='minecraft-merged-6846b5dc51' version='26.1.2' file='minecraft-merged-6846b5dc51-26.1.2.jar' regex='false' reason='Loom local output; entry bytes verified by verifyMinecraftContent' />
-      <trust group='net.minecraft' name='minecraft-merged-097f862bbd' version='26.2' file='minecraft-merged-097f862bbd-26.2.jar' regex='false' reason='Loom local output; entry bytes verified by verifyMinecraftContent' />
+      <trust group='net[.]minecraft' name='minecraft-merged-[0-9a-f]{10}' version='26[.]3' file='minecraft-merged-[0-9a-f]{10}-26[.]3[.]jar' regex='true' reason='Local access-widened Loom output; origin checked by verifyMinecraftContent' />
+      <trust group='net[.]minecraft' name='minecraft-merged-[0-9a-f]{10}' version='26[.]1[.]2' file='minecraft-merged-[0-9a-f]{10}-26[.]1[.]2[.]jar' regex='true' reason='Local access-widened Loom output; origin checked by verifyMinecraftContent' />
+      <trust group='net[.]minecraft' name='minecraft-merged-[0-9a-f]{10}' version='26[.]2' file='minecraft-merged-[0-9a-f]{10}-26[.]2[.]jar' regex='true' reason='Local access-widened Loom output; origin checked by verifyMinecraftContent' />
     </trusted-artifacts>
   </configuration>
   <components>

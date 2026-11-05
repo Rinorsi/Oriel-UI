@@ -9,6 +9,17 @@ import {auditEntries} from './check-release.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const licenses = ['LICENSE_Oriel UI', 'NOTICE_Oriel UI', ...['LICENSE.txt', 'NOTICE.txt', 'SOURCE.txt'].map(n => 'META-INF/licenses/rhino/' + n), 'META-INF/licenses/fonts/font.txt'];
 
+test('local Loom exclusions accept access-widened outputs and reject downloaded lookalikes', () => {
+  assert.ok(process.env.ORIEL_TEST_TMP, 'Set ORIEL_TEST_TMP to an external test directory');
+  const dir = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'loom-origin-'));
+  const bin = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin') : '';
+  const java = name => bin ? path.join(bin, name) : name;
+  execFileSync(java('javac'), ['-Xlint:all', '-Werror', '-d', dir,
+    path.join(root, 'build-logic/src/main/java/dev/oriel/buildlogic/GeneratedMinecraftArtifact.java'),
+    path.join(root, 'tools/fixtures/GeneratedMinecraftProbe.java')]);
+  assert.equal(execFileSync(java('java'), ['-cp', dir, 'GeneratedMinecraftProbe', dir], {encoding:'utf8'}).trim(), 'PASS');
+});
+
 test('canonical JAR checks ignore packaging metadata and reject changed entry bytes', () => {
   assert.ok(process.env.ORIEL_TEST_TMP, 'Set ORIEL_TEST_TMP to an external test directory');
   const dir = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'canonical-jar-'));

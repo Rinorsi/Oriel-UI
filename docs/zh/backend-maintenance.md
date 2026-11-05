@@ -40,7 +40,7 @@ gradle/verification-metadata.xml 固定实际构建、测试运行及 NeoForm �
 ./gradlew --offline --no-configuration-cache --dependency-verification off writeDependencyVerification
 ```
 
-刷新是明确的信任更新：检查 XML diff、确认依赖变化来源，再提交。该命令读取已解析的缓存和现有 XML，保留外部工件既有 SHA-256 及来源说明，再增补当前图的工件；不下载或修改共享缓存。在 Windows 刷新时不能删除已核对的 Linux 分类工件。废弃版本或旧哈希不会自动清除，须明确核对后从 XML 删除，不能把增量刷新当作依赖裁剪。下述三个本地生成工件改用独立内容门禁，不保留不可移植的整包哈希。两个仅在 settings 中加载的插件也被显式固定；升级它们时同时更新任务中的版本。
+刷新是明确的信任更新：检查 XML diff、确认依赖变化来源，再提交。该命令读取已解析的缓存和现有 XML，保留外部工件既有 SHA-256 及来源说明，再增补当前图的工件；不下载或修改共享缓存。在 Windows 刷新时不能删除已核对的 Linux 分类工件。废弃版本或旧哈希不会自动清除，须明确核对后从 XML 删除，不能把增量刷新当作依赖裁剪。下述三个版本的本地生成工件排除内容哈希校验，另检查本地来源与文件形态。两个仅在 settings 中加载的插件也被显式固定；升级它们时同时更新任务中的版本。
 
 Gradle 自带的全量 --write-verification-metadata 模式会让本环境的 Loom 请求缓存缺少的可选平台描述，故刷新任务只解析实际构建图。XML 验证 JAR/ZIP 等工件内容，verify-metadata=false：不承诺 POM/module 描述或发布者签名验证。新增平台、依赖或工具版本时，缺少条目会明确失败；先核对该平台的确切工件，再增补清单。当前26.1.2、26.2、26.3的Linux x64原生工件按Mojang HTTPS版本清单核对大小与SHA-1后计算SHA-256，来源在对应条目中注明；其余首次校验值仍可能来自本机缓存。这不是发布者签名或全部依赖来源认证。
 
@@ -48,17 +48,26 @@ Rhino 源码归档另由 gradle.properties 固定的 rhino_sha256 检查；Minec
 
 ### Loom本地生成的Minecraft合并包
 
-Loom 1.18.2并行写入合并JAR；ZIP顺序、压缩与时间信息不能作为跨机器内容相同的依据。`gradle/generated-minecraft.json`只列出当前三个确切模块、版本和文件名；XML的三个非正则例外仅让这些本地产物避开整包哈希，其他下载工件继续strict验证，没有信任整个net.minecraft组。
+Loom 1.18.2 的合并包已应用访问扩展；修改一行访问扩展会同时改变生成模块的十位哈希和 class 字节。它是本地构建结果，不能作为固定依赖内容。`gradle/generated-minecraft.json` 使用 schemaVersion=2、policy=`exclude-local-loom-output`，仅列出当前三个确切 Minecraft 版本与 `minecraft-merged-[0-9a-f]{10}` 模块/文件正则；不再固定 canonicalSha256 或 sourceArchiveSha256。XML 使用相同的受限正则例外，其他下载工件的 SHA-256 条目保持 strict 校验，没有信任整个 net.minecraft 组。
 
-Fabric每个版本的`verifyMinecraftContent`在Java编译前运行，根`:check`也依赖它。算法`ORIEL-CANONICAL-JAR-1`将非目录条目按完整路径排序，再把UTF-8路径长度、路径、内容长度和实际字节送入SHA-256，拒绝重复路径和长度异常。仅改变ZIP元数据、压缩或顺序不影响结果，class或资源字节改变仍失败；新版本或Loom模块名变化没有自动放行。
+保留 Fabric 每个版本的 `verifyMinecraftContent` 任务名，Java 编译与根 `:check` 仍依赖它。任务要求恰好一个生成 JAR，实际路径必须位于当前工作树 `.gradle/loom-cache/minecraftMaven` 内，并匹配该版本的文件正则及父目录；使用真实路径检查，下载缓存中的同名文件也会拒绝。它检查来源与版本，不再承诺生成字节完整性。失败信息包含 Minecraft 版本、文件、期望/实际及清单更新方式；新增版本或 Loom 命名变化仍需审查。
 
-最初三个内容基线取自整包SHA-256已匹配原XML的本地工件，原整包哈希作为来源记录保留在JSON中；这没有提升原缓存的上游信任级别。Loom原始下载按Mojang版本清单的SHA-1核对，构建插件自身仍由原工件SHA校验；本地构建过程或首次缓存来源的完整性不等于发布者签名认证。
+访问扩展修改不需要更新任何校验清单。Loom 原始下载按 Mojang 版本清单的 SHA-1 核对，构建插件自身仍由原工件 SHA 校验；本地构建过程或首次缓存来源的完整性不等于发布者签名认证。此排除不覆盖下载依赖、未知模块形态或其他 Minecraft 版本。
 
 ```bash
 ./gradlew --offline :fabric:26.1:verifyMinecraftContent :fabric:26.2:verifyMinecraftContent :fabric:26.3:verifyMinecraftContent
 ```
 
-有意升级输入或合并工具时，先审查输入、工具和条目内容差异，再更新JSON的模块/版本/文件与内容哈希；`writeDependencyVerification`不会重写这些内容基线。不要把失败输出的actual值直接粘贴为新expected。归档哈希更改须有对应的内容审查和跨平台运行结果。
+有意升级 Minecraft 或 Loom 时，先审查输入及命名变化，再修改 JSON 的版本/文件规则，使用上面的 `writeDependencyVerification` 命令同步 XML 并审查 diff，保留外部下载依赖已有 SHA-256。不要直接复制未知依赖的实际哈希为期望值，也不要扩大为整个组的信任。
+
+永久回归测试复现“注释一条真实访问扩展规则后，三个 Fabric 构建门禁应通过”，测试后恢复原文件，不启动游戏。需在没有其他进程修改本工作树时运行：
+
+```bash
+ORIEL_TEST_TMP=/external/existing-test-temp ORIEL_TEST_GW=/absolute/workspace/tools/gw.sh ORIEL_TEST_LOOM=1 \
+  node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs
+```
+
+普通 Node 回归不设置 `ORIEL_TEST_LOOM` 时跳过真实 Gradle 构建，仍检查例外范围、本地来源拒绝及诊断字段。
 
 ```bash
 ./gradlew --offline verifyDependencyGraph :check

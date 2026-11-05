@@ -84,7 +84,7 @@ tasks.register('writeDependencyVerification') {
     doLast {
         def artifacts = new TreeMap<String, Map>()
         def trust = { String group, String module, String version, String name, String hash, String origin ->
-            if (generatedMinecraftPins.any { it.group == group && it.name == module && it.version == version && it.file == name }) return
+            if (generatedMinecraftPins.any { it.group == group && (module ==~ it.name) && it.version == version && (name ==~ it.file) }) return
             def key = group + ':' + module + ':' + version
             def component = artifacts.computeIfAbsent(key) { [group:group, name:module, version:version, files:new TreeMap<String, Map>()] }
             component.files.computeIfAbsent(name) { new TreeMap<String, String>() }.putIfAbsent(hash, origin)
@@ -136,8 +136,8 @@ tasks.register('writeDependencyVerification') {
                 'verify-signatures'('false')
                 'trusted-artifacts' {
                     generatedMinecraftPins.each { pin ->
-                        xml.trust(group:pin.group, name:pin.name, version:pin.version, file:pin.file, regex:'false',
-                                reason:'Loom local output; entry bytes verified by verifyMinecraftContent')
+                        xml.trust(group:pin.group.replace('.', '[.]'), name:pin.name, version:pin.version.replace('.', '[.]'), file:pin.file, regex:'true',
+                                reason:'Local access-widened Loom output; origin checked by verifyMinecraftContent')
                     }
                 }
             }

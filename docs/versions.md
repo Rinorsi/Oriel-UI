@@ -79,11 +79,11 @@ bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-
 5. Add the version to the table at the top of this file, list anything that works differently on it, and add a line
    to `CHANGELOG.md` under the next version.
 
-新增 Minecraft 版本或升级 Loom 后，还须审查生成包的内容基线：`gradle/generated-minecraft.json` 按确切模块、版本和文件名固定内容哈希，
-`verifyMinecraftContent` 在 Fabric 编译及根 `:check` 前核对排序后的条目名字和字节。缺少基线或内容变化会拒绝构建。
-先从可信输入核对新增或变化的条目，再记录内容基线及来源整包哈希，审查对应的依赖校验配置；不要把失败日志的 actual 直接设为 expected，
-也不要用整个 `net.minecraft` 组的信任例外绕过检查。外部依赖哈希与 Linux 等平台分类器须保留；普通依赖刷新不会自动更新内容基线。
-具体算法、刷新命令与信任限制见 [后端维护](zh/backend-maintenance.md)。
+新增 Minecraft 版本或升级 Loom 后，还须审查 `gradle/generated-minecraft.json` 中本地生成包的排除范围：确切版本与受限模块/文件正则。
+`verifyMinecraftContent` 在 Fabric 编译及根 `:check` 前检查当前工作树的 Loom 本地来源、文件形态及版本，不再固定已应用访问扩展的生成字节。
+访问扩展修改无需更新清单；有意升级时先核对输入与命名规则，再更新 JSON，并运行 `writeDependencyVerification` 同步和审查 XML。
+失败信息会列出版本、文件、期望/实际与更新步骤；不要用整个 `net.minecraft` 组的信任例外绕过检查。外部下载依赖 SHA-256 与 Linux 等平台分类器须保留。
+刷新命令、真实访问扩展回归命令与信任限制见 [后端维护](zh/backend-maintenance.md)。
 
 提交时保持共享源码为26.3。当前仓库仅配置 `.github/workflows/build.yml`，没有 release.yml 或自动标签发布流程。
 Build 在 main 推送、PR 或手动触发时运行，不使用路径过滤；执行全版本构建、根检查、NeoForge26.1服务端GameTest及下游模板编译，
