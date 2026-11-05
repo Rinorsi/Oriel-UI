@@ -2,6 +2,7 @@
 // MUST NOT depend on Minecraft or any loader. Compiled once, here; the loaders copy its classes into their own output
 // (see multiloader-loader.gradle), as they do Rhino's.
 plugins {
+    id 'oriel-errorprone'
     id 'java-library'
     id 'oriel-java'
     id 'maven-publish'

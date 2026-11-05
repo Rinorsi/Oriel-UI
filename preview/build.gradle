@@ -2,6 +2,7 @@
 // the user's Minecraft client jar), reloads on save, and has an inspector. Also the snapshot-test harness.
 // A development tool: never shipped in the mod, so it may use the full toolchain release.
 plugins {
+    id 'oriel-errorprone'
     id 'application'
     id 'oriel-java'
 }

@@ -53,7 +53,7 @@ def verificationClasspaths = []
 allprojects { candidate ->
     verificationClasspaths.add(candidate.buildscript.configurations.named('classpath'))
     candidate.configurations.configureEach { configuration ->
-        if (configuration.canBeResolved && (configuration.name.startsWith('neoForm') || configuration.name == 'neoForgeConfigOnly'))
+        if (configuration.canBeResolved && (configuration.name.startsWith('neoForm') || configuration.name == 'neoForgeConfigOnly' || configuration.name == 'errorprone'))
             verificationClasspaths.add(candidate.configurations.named(configuration.name))
     }
     candidate.plugins.withId('java') {
