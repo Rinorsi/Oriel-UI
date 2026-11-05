@@ -62,6 +62,32 @@ public final class BundleFixtures {
         }
     }
 
+    /** Wraps an unchanged release and a separately compiled consumer; ranges stay release-specific. */
+    static void real(String loader, Path library, Path output, String id, String version, Path classes) throws IOException {
+        Map<String, byte[]> parent = new TreeMap<>();
+        parent.put("META-INF/jars/oriel.jar", Files.readAllBytes(library));
+        try (var files = Files.walk(classes)) {
+            for (Path file : files.filter(Files::isRegularFile).toList())
+                parent.put(classes.relativize(file).toString().replace('\\', '/'), Files.readAllBytes(file));
+        }
+        String range = version.equals("0.9.0") ? ">=0.9.0 <0.10.0" : ">=0.10.0 <0.11.0";
+        if (loader.equals("fabric")) {
+            parent.put("fabric.mod.json", ("{\"schemaVersion\":1,\"id\":" + q(id)
+                    + ",\"version\":\"1.0.0\",\"jars\":[{\"file\":\"META-INF/jars/oriel.jar\"}],\"depends\":{\"oriel\":"
+                    + q(range) + "}}").getBytes(StandardCharsets.UTF_8));
+        } else {
+            String interval = version.equals("0.9.0") ? "[0.9.0,0.10.0)" : "[0.10.0,0.11.0)";
+            parent.put("META-INF/neoforge.mods.toml", ("modLoader=\"lowcodefml\"" + NL + "loaderVersion=\"[1,)\"" + NL
+                    + "license=\"MIT\"" + NL + "[[mods]]" + NL + "modId=" + q(id) + NL + "version=\"1.0.0\"" + NL
+                    + "[[dependencies." + id + "]]" + NL + "modId=\"oriel\"" + NL + "type=\"required\"" + NL
+                    + "versionRange=" + q(interval) + NL).getBytes(StandardCharsets.UTF_8));
+            parent.put("META-INF/jarjar/metadata.json", ("{\"jars\":[{\"identifier\":{\"group\":\"dev.oriel\",\"artifact\":\"oriel\"},"
+                    + "\"version\":{\"range\":" + q(interval) + ",\"artifactVersion\":" + q(version)
+                    + "},\"path\":\"META-INF/jars/oriel.jar\"}]}").getBytes(StandardCharsets.UTF_8));
+        }
+        Files.write(output, zip(parent));
+    }
+
     private static byte[] zip(Map<String, byte[]> entries) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (ZipOutputStream zip = new ZipOutputStream(bytes)) {
