@@ -148,14 +148,19 @@ public final class OrielResources {
             } catch (InterruptedException e) {
                 return;
             }
-            if (stamps.changed(FILES_READ)) Minecraft.getInstance().execute(OrielResources::reload);
+            Set<Path> changed = stamps.changedPaths(FILES_READ);
+            if (!changed.isEmpty()) Minecraft.getInstance().execute(() -> reload(changed));
         }
     }
 
     /** Files changed: folder images are read again, and every open page reloads. */
-    private static void reload() {
+    private static void reload(Set<Path> changed) {
+        if (dev.oriel.engine.host.HotReload.cssOnly(changed)) {
+            DocumentDriver.reloadChanged(changed);
+            return;
+        }
         FolderTextures.clear();
         McImages.clearCaches();
-        DocumentDriver.reloadAll();
+        DocumentDriver.reloadChanged(changed);
     }
 }

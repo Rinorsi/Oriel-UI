@@ -8,6 +8,8 @@ kit 新增 `dev.oriel.kit.bind.ViewModel` / `Bindings.attach(Document, ViewModel
 
 ## OrielScreens 与 Screen
 
+`Document.reloadStyles()` 在文档线程调用，返回 `void`：使链接和 `@import` CSS 缓存失效，下一帧重算样式与必要布局；不重建节点、不重新执行脚本或控制器。滚动会按新布局范围夹取。HTML/脚本变更仍用完整页面重载，状态边界见 [验收工具](validation.md#游戏与热重载)。开发检查器属于内部可选工具，正式运行包不含其实现或页面。
+
 包 `dev.oriel.mod.client`。参数 data 为 Gson JsonElement，可空。
 
 | 方法 | 返回/用途 |

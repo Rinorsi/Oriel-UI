@@ -5,6 +5,10 @@ plugins {
     id 'maven-publish'
 }
 
+if (project.hasProperty('oriel_release')) {
+    tasks.named('jar', Jar) { exclude('dev/oriel/engine/script/InspectorBindings*.class') }
+}
+
 dependencies {
     api(project(':engine'))
     implementation(project(path: ':rhino', configuration: 'relocated'))

@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Notices edits to the files pages were loaded from, for hosts that reload pages on save (the previewer, a
@@ -22,16 +24,21 @@ public final class FileStamps {
      * first time are only remembered.
      */
     public boolean changed(Collection<Path> files) {
+        return !changedPaths(files).isEmpty();
+    }
+
+    /** Changed paths since the last poll, including deletion and recreation. */
+    public Set<Path> changedPaths(Collection<Path> files) {
         Map<Path, Long> now = new HashMap<>();
-        boolean changed = false;
+        Set<Path> changed = new HashSet<>();
         for (Path file : files) {
             long stamp = stamp(file);
             Long before = stamps.get(file);
-            changed |= before != null && before != stamp;
+            if (before != null && before != stamp) changed.add(file);
             now.put(file, stamp);
         }
         stamps = now;
-        return changed;
+        return Set.copyOf(changed);
     }
 
     /** The modification time, or -1 for a missing file. */

@@ -10,6 +10,8 @@ public final class DevFlags {
     public static final boolean AUTOPILOT = available("DevAutopilot") && Boolean.getBoolean("oriel.autopilot");
     /** Hot reload is optional: release jars omit its implementation. */
     public static final boolean RELOAD_AVAILABLE = available("DevReload");
+    /** Release jars do not contain the inspector implementation or page. */
+    public static final boolean INSPECTOR_AVAILABLE = available("DevInspector");
     /** The scripted tour and its drawn cursor, on 26.3. */
     //? if >=26.3 {
     public static final boolean TOUR = available("DevTour") && Boolean.getBoolean("oriel.tour");

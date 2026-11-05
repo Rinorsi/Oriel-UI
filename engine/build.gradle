@@ -7,6 +7,10 @@ plugins {
     id 'maven-publish'
 }
 
+if (project.hasProperty('oriel_release')) {
+    tasks.named('jar', Jar) { exclude('dev/oriel/engine/inspect/**') }
+}
+
 // Ported from wip/main-checkout-20261105: generated documentation is a real verification input.
 tasks.named('test') {
     inputs.file(rootProject.file('docs/zh/css-reference.md')).withPropertyName('cssReference')

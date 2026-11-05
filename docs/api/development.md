@@ -26,9 +26,9 @@ Commands, hot reload, and driving pages from code for autopilots and tests. [All
 
 ## Inspector
 
-F12 on a page's screen opens the element inspector, docked on the right. It's on in a development environment;
-elsewhere `client.inspector=true` turns it on. The page is laid out in what's left of the screen and keeps working
-while you inspect it.
+纯 CSS 文件保存保留 DOM、控制器、脚本和输入状态；其他文件保存仍重建页面并恢复控制器主动保存的状态。完整边界见 [中文热重载合同](../zh/validation.md#游戏与热重载)。
+
+开发环境中 F12 打开右侧元素检查器；普通开发构建在其他环境可用 `client.inspector=true` 开启。`-Poriel_release` 正式运行包不包含检查器实现与页面，该开关不启用它。检查时原页面在剩余空间继续运行。
 
 - The tree lists the page's elements. Click a row to select it, click its arrow to open or close it, and hover a row
   to highlight the element in the page (margin orange, border yellow, padding green, content blue).
@@ -37,7 +37,7 @@ while you inspect it.
 - For the selected element you get its ancestors (click one to select it), its box, its attributes, inline style and
   text, and its computed values that differ from the initial ones, with a filter. Edit a field and press Enter, or
   click away, to change the page. A new attribute takes a name and a value. Delete element removes it.
-- Edits change the live page only, not your files, and a reload (or saving a file it was read from) starts over.
+- 检查器编辑仅影响当前页，不写入文件。HTML/脚本变更及手动重载重建页面；纯 CSS 文件保存只刷新样式，保留当前 DOM 编辑。
 - Drag the panel's left edge to make it wider or narrower (the width sticks until the game closes), and the bar
   between the tree and the details to share the height between them.
 - Escape or F12 closes the inspector. While one of its fields has focus, keys type into the field instead.

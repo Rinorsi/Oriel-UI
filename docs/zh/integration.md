@@ -148,7 +148,7 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 | `/oriel demo chest` | 真实箱子菜单配页面槽位（服务端，需要管理员权限） |
 | `/oriel demo live` | 服务端会话示例（每秒推送玩家状态） |
 
-配置文件 `config/oriel.properties`，所有键、默认值与范围见 [docs/api/security.md](../api/security.md#settings)。常用的：`client.serverPages`（`allow` / `ask` / `block`，是否显示服务器发来的页面）、`client.reducedMotion`、`client.shapeShader`、`client.inspector`（F12 元素检查器）。
+配置文件 `config/oriel.properties`，所有键、默认值与范围见 [docs/api/security.md](../api/security.md#settings)。常用的：`client.serverPages`（`allow` / `ask` / `block`，是否显示服务器发来的页面）、`client.reducedMotion`、`client.shapeShader`、`client.inspector`（仅含开发工具的构建启用 F12 元素检查器，`-Poriel_release` 正式包忽略此开关）。
 
 ## 9. 开发你自己的页面：最短路径
 

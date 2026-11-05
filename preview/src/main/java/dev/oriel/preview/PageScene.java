@@ -87,6 +87,10 @@ final class PageScene implements Scene {
         }
     }
 
+    void reloadChanged(java.util.Collection<java.nio.file.Path> changed) {
+        dev.oriel.engine.host.HotReload.apply(document, changed, this::reload);
+    }
+
     @Override
     public void frame(double nowMs, float width, float height, float scale) {
         if (!host.language().equals(language)) reload();

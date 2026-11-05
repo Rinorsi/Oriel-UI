@@ -4,7 +4,6 @@ import dev.oriel.engine.Limits;
 import dev.oriel.engine.diag.Diagnostic;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
-import dev.oriel.engine.inspect.Inspection;
 import dev.oriel.engine.script.ScriptRuntime;
 import dev.oriel.engine.style.Cursor;
 
@@ -138,7 +137,7 @@ public interface Host {
      * The page this document inspects, for an inspector page: its scripts get an {@code inspector} global reading and
      * editing that page. Null (the default) for every other document.
      */
-    default Inspection inspection() { return null; }
+    default Object inspection() { return null; }
 
     enum LogLevel { DEBUG, INFO, WARN, ERROR }
 }
