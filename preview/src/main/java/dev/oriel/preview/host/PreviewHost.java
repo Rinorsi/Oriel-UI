@@ -182,6 +182,10 @@ public final class PreviewHost implements Host {
         return diagnosticLines;
     }
 
+    /** Structured diagnostics for the MCP workflow; no parsing of formatted log lines. */
+    public List<Diagnostic> diagnosticRecords() { return List.copyOf(diagnosticRecords); }
+    public List<String> runtimeErrors() { return List.copyOf(runtimeErrors); }
+
     /** Quiet: diagnostics and info logs are kept, not printed ({@code --check} prints its own report). */
     public void quiet(boolean on) {
         quiet = on;
@@ -189,6 +193,8 @@ public final class PreviewHost implements Host {
 
     private final java.util.Set<String> missing = new java.util.LinkedHashSet<>();
     private final List<String> diagnosticLines = new java.util.ArrayList<>();
+    private final List<Diagnostic> diagnosticRecords = new java.util.ArrayList<>();
+    private final List<String> runtimeErrors = new java.util.ArrayList<>();
     private boolean quiet;
 
     @Override
@@ -231,6 +237,7 @@ public final class PreviewHost implements Host {
 
     @Override
     public void diagnostic(Diagnostic d) {
+        diagnosticRecords.add(d);
         diagnosticLines.add(d.format());
         if (!quiet) System.err.println("[diagnostic] " + d.format());
         if (d.severity() != Diagnostic.Severity.INFO) problems++;
@@ -248,6 +255,7 @@ public final class PreviewHost implements Host {
 
     @Override
     public void reportError(String message, Throwable error) {
+        runtimeErrors.add(message + ": " + error);
         log(LogLevel.ERROR, message);
         error.printStackTrace(System.out);
     }

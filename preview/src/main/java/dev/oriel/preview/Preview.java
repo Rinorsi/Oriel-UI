@@ -22,7 +22,7 @@ public final class Preview {
             Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N] [--boxes selector]] [--narrate] [--strict]
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
-                   preview --check <dir or page.html> [--strict] [--lang language]   (errors, missing images, CSS)
+                   preview --check <dir or page.html> [--strict] [--lang language] [--report result.json]
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
             --lang <language> selects a language such as zh_cn (default) or en_us; --check also accepts it.
@@ -181,9 +181,11 @@ public final class Preview {
         if (args.length < 2 || args[1].startsWith("--")) throw new IllegalArgumentException("--check needs a target");
         String language = "zh_cn";
         boolean strict = false;
+        Path report = null;
         for (int i = 2; i < args.length; i++) {
             switch (args[i]) {
                 case "--strict" -> strict = true;
+                case "--report" -> report = Path.of(Options.value(args, ++i, "--report"));
                 case "--lang" -> {
                     language = Options.value(args, ++i, "--lang");
                     if (language.startsWith("--")) throw new IllegalArgumentException("--lang needs a language");
@@ -191,7 +193,7 @@ public final class Preview {
                 default -> throw new IllegalArgumentException("Unknown check option: " + args[i]);
             }
         }
-        return Check.run(java.nio.file.Path.of(args[1]), language, strict);
+        return Check.run(java.nio.file.Path.of(args[1]), language, strict, report);
     }
 
     /** With {@code --strict}, a run that otherwise passed fails with 3 when the page had warnings or errors. */

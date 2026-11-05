@@ -221,6 +221,10 @@ public final class DevAutopilot {
             return;
         }
         guiScale(mc, 2);
+        if (ONLY.equals("mcp")) {
+            mcpPage(mc);
+            return;
+        }
         if (ONLY.equals("smoke")) {
             smoke(mc);
             return;
@@ -1381,6 +1385,77 @@ public final class DevAutopilot {
      * Runs {@code open}, waits for the open page to settle (at least {@link #SETTLE} ticks), and saves a screenshot
      * named {@code oriel_<name>.png}.
      */
+    private static void mcpPage(Minecraft mc) {
+        final JsonObject task;
+        try {
+            Path file = Path.of(System.getProperty("oriel.mcp.task", ""));
+            if (!Files.isRegularFile(file) || Files.size(file) > 131072) throw new IOException("Invalid MCP task file");
+            task = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        } catch (IOException | RuntimeException error) {
+            fail("cannot read MCP task", error);
+            return;
+        }
+        String url = task.get("pageUrl").getAsString();
+        int initialFailures = failures;
+        steps.add(() -> OrielScreens.open(url, task.get("data")));
+        settle("MCP initial page", SETTLE);
+        for (JsonElement value : task.getAsJsonArray("actions")) {
+            String action = value.getAsString();
+            int space = action.indexOf(' ');
+            String verb = space < 0 ? action : action.substring(0, space);
+            String argument = space < 0 ? "" : action.substring(space + 1);
+            if (verb.equals("wait")) {
+                int frames = Integer.parseInt(argument);
+                if (frames < 0 || frames > 600) throw new IllegalArgumentException("Invalid wait");
+                steps.add(() -> wait = Math.max(1, (int) Math.ceil(frames * 16.0 / 50.0)));
+                continue;
+            }
+            onPage("MCP " + verb, page -> {
+                boolean ok;
+                switch (verb) {
+                    case "click" -> ok = page.click(argument);
+                    case "move" -> ok = page.hover(argument);
+                    case "key" -> ok = page.key(argument);
+                    case "type" -> { page.type(argument); ok = true; }
+                    case "wheel" -> {
+                        int split = argument.lastIndexOf(' ');
+                        ok = split > 0 && page.wheel(argument.substring(0, split), Double.parseDouble(argument.substring(split + 1)) / 24.0);
+                    }
+                    default -> throw new IllegalArgumentException("Unsupported MCP action: " + verb);
+                }
+                check(ok, "MCP action {} succeeded", "MCP action {} failed", action);
+            });
+        }
+        settle("MCP final page", SETTLE);
+        leave();
+        grab(mc, "mcp_page", 5);
+        Path screenshot = mc.gameDirectory.toPath().resolve("screenshots/oriel_mcp_page.png");
+        until("MCP screenshot saved", ticks -> Files.isRegularFile(screenshot));
+        steps.add(() -> {
+            DocumentDriver driver = McClient.screen() == null ? null : DocumentDriver.of(McClient.screen());
+            Document doc = driver == null ? null : driver.document();
+            int errors = driver == null ? 1 : driver.pageErrorCount();
+            int diagnostics = doc == null ? 0 : doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.WARNING);
+            JsonObject receipt = new JsonObject();
+            receipt.add("jobId", task.get("jobId"));
+            receipt.add("hash", task.get("hash"));
+            receipt.addProperty("pageUrl", doc == null ? "" : doc.url());
+            receipt.addProperty("minecraft", net.minecraft.SharedConstants.getCurrentVersion().name());
+            receipt.addProperty("screenshot", screenshot.toAbsolutePath().toString());
+            receipt.addProperty("errors", errors);
+            receipt.addProperty("diagnostics", diagnostics);
+            receipt.addProperty("actionFailures", failures - initialFailures);
+            receipt.addProperty("passed", doc != null && doc.url().equals(url) && errors == 0 && diagnostics == 0
+                    && failures == initialFailures && Files.isRegularFile(screenshot));
+            if (doc != null) receipt.add("diagnosticDetails", new com.google.gson.Gson().toJsonTree(doc.diagnostics().all()));
+            try {
+                Path output = Path.of(task.get("receiptFile").getAsString());
+                Files.createDirectories(output.toAbsolutePath().getParent());
+                Files.writeString(output, new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(receipt));
+            } catch (IOException error) { fail("cannot write MCP receipt", error); }
+        });
+    }
+
     private static void shoot(Minecraft mc, String name, Runnable open) {
         steps.add(open);
         settle(name, SETTLE);

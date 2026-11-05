@@ -1,123 +1,106 @@
 #!/usr/bin/env node
-// Oriel preview MCP server (stdio, no dependencies): lets an AI agent check, render and poke Oriel pages headless
-// through the previewer, without a game. Register it with an MCP client, e.g.
-//   { "command": "node", "args": ["tools/mcp/oriel-preview.mjs"], "cwd": "<repository root>" }
-// Tools:
-//   oriel_pages     list the kit pages and the icon names
-//   oriel_check     the page checker (errors, missing images, CSS diagnostics) on a page or a directory
-//   oriel_snapshot  render a page (optionally after actions: click / key / type / wait / move) and return the PNG,
-//                   plus element boxes for a selector
-// It runs preview/build/install/preview (built on first use with ./gradlew :preview:installDist).
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+// Oriel UI workflow MCP. stdout is exclusively newline-delimited JSON-RPC.
+import fs from 'node:fs';
+import path from 'node:path';
 import { createInterface } from 'node:readline';
+import { ROOT, STATE, KIT, initState, requireThat, WorkflowError, preview, id } from './lib/core.mjs';
+import { instructions, topics, rules, prompt } from './lib/rules.mjs';
+import { registerProject, projectStatus, freeze, validateActions } from './lib/projects.mjs';
+import { checkProject, snapshotRevision } from './lib/checks.mjs';
+import { webPreview, review } from './lib/web.mjs';
+import { integrate, gamePreview } from './lib/integration.mjs';
 
-const ROOT = resolve(process.env.ORIEL_ROOT || process.cwd());
-const UI = join(ROOT, 'kit/src/main/resources/assets/oriel/ui');
-const ICONS = join(ROOT, 'kit/src/main/resources/assets/oriel/textures/icons');
-const LIB = join(ROOT, 'preview/build/install/preview/lib');
-const JAVA = process.env.JAVA_HOME ? join(process.env.JAVA_HOME, 'bin', 'java') : 'java';
-
-function ensureBuilt() {
-  if (existsSync(LIB)) return null;
-  const gradlew = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
-  const r = spawnSync(gradlew, [':preview:installDist', '-q'], { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' });
-  return r.status === 0 ? null : `building the previewer failed:\n${r.stdout}\n${r.stderr}`;
+initState();
+const string = { type: 'string' }, number = { type: 'integer' }, object = { type: 'object' };
+const schema = (properties = {}, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
+const tool = (name, description, properties, required, run, readOnly = false) => ({ name, description, inputSchema: schema(properties, required), annotations: { readOnlyHint: readOnly, destructiveHint: false, openWorldHint: false }, run });
+function result(value, isError = false) { return { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }], structuredContent: value, ...(isError ? { isError: true } : {}) }; }
+const pagePath = value => !value ? path.join(KIT, 'assets/oriel/ui') : value.includes('/') || value.includes('\\') ? path.resolve(ROOT, value) : path.join(KIT, 'assets/oriel/ui', value.endsWith('.html') ? value : value + '.html');
+async function imageResult(receipt) {
+  const response = result(receipt, !receipt.passed);
+  if (receipt.image && fs.existsSync(receipt.image)) response.content.push({ type: 'image', mimeType: 'image/png', data: fs.readFileSync(receipt.image).toString('base64') });
+  return response;
 }
-
-function preview(args) {
-  const failed = ensureBuilt();
-  if (failed) return { status: 1, out: failed };
-  const r = spawnSync(JAVA, ['-Djava.awt.headless=true', '-cp', join(LIB, '*'), 'dev.oriel.preview.Preview', ...args],
-    { cwd: ROOT, encoding: 'utf8', timeout: 120000 });
-  return { status: r.status, out: `${r.stdout || ''}${r.stderr || ''}`.replace(/^Minecraft assets:.*\n/m, '') };
-}
-
-const page = (p) => (p.includes('/') || p.includes('\\') ? p : join(UI, p.endsWith('.html') ? p : `${p}.html`));
-
 const TOOLS = [
-  {
-    name: 'oriel_pages',
-    description: 'Lists the Oriel kit UI pages (kit/src/main/resources/assets/oriel/ui) and the 16x16 icon names usable as ../textures/icons/<name>.png.',
-    inputSchema: { type: 'object', properties: {} },
-    run: () => text(`pages: ${readdirSync(UI).filter((f) => f.endsWith('.html')).join(', ')}\nicons: ${readdirSync(ICONS).map((f) => f.replace('.png', '')).join(', ')}`),
-  },
-  {
-    name: 'oriel_check',
-    description: 'Checks a page (name like "forge", or a path) or a directory: loads each page with its Java controller at 640x360 and 427x240 and reports engine/controller errors, missing images and CSS the engine did not take. Run after every edit.',
-    inputSchema: { type: 'object', properties: { target: { type: 'string', description: 'page name, page path or directory; default: all kit pages' } } },
-    run: ({ target }) => {
-      const r = preview(['--check', target ? page(target) : UI]);
-      return text(r.out.trim() + (r.status === 0 ? '' : `\n(exit ${r.status})`));
-    },
-  },
-  {
-    name: 'oriel_snapshot',
-    description: 'Renders a page headless and returns a PNG. Optional actions run first, one per line: "wait 30" (frames), "click <selector|x y>", "move <selector>", "key Enter", "type text", "wheel <selector> 40". Optional boxes prints the GUI-px box of every element matching a selector, to debug layout. 3D models and entities show as placeholders; the game is the final judge.',
-    inputSchema: {
-      type: 'object',
-      required: ['page'],
-      properties: {
-        page: { type: 'string', description: 'page name like "inventory" or a path' },
-        width: { type: 'number', description: 'GUI width, default 640' },
-        height: { type: 'number', description: 'GUI height, default 360' },
-        frames: { type: 'number', description: 'frames to run before the shot (no actions), default 60' },
-        actions: { type: 'array', items: { type: 'string' } },
-        boxes: { type: 'string', description: 'CSS selector whose element boxes to print' },
-      },
-    },
-    run: ({ page: p, width = 640, height = 360, frames = 60, actions, boxes }) => {
-      const dir = mkdtempSync(join(tmpdir(), 'oriel-mcp-'));
-      const shot = join(dir, 'shot.png');
-      const args = [page(p), '--scale', '2', '--size', `${width}x${height}`, '--snapshot', shot];
-      if (actions?.length) {
-        const file = join(dir, 'actions.txt');
-        writeFileSync(file, actions.join('\n') + '\n');
-        args.push('--actions', file, '--out', dir);
-      } else {
-        args.push('--frames', String(frames));
-      }
-      if (boxes) args.push('--boxes', boxes);
-      const r = preview(args);
-      const content = [{ type: 'text', text: r.out.trim() || 'rendered' }];
-      if (existsSync(shot)) content.push({ type: 'image', mimeType: 'image/png', data: readFileSync(shot).toString('base64') });
-      return { content, isError: r.status !== 0 };
-    },
-  },
+  tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
+  tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {
+    projectId: string, title: string, sourceRoot: string, namespace: string, entry: string, profile: object,
+    fixture: object, scenes: { type: 'array', items: object }, behavior: { ...string, enum: ['javascript', 'java'] }, businessContract: string, knownDifferences: { type: 'array', items: string },
+  }, ['projectId', 'sourceRoot', 'namespace'], args => registerProject(args)),
+  tool('oriel_status', '查看项目当前阶段、陈旧验收、检查/接入/游戏回执和下一步。', { projectId: string }, ['projectId'], args => projectStatus(args.projectId), true),
+  tool('oriel_web_preview', '启动/查询/停止本机可交互网页预览。独立回环服务提供固定快照和模拟桥接；不会写入游戏。', { action: { ...string, enum: ['start', 'status', 'stop'] }, projectId: string, sessionId: string }, [], args => webPreview(args)),
+  tool('oriel_check', '项目模式：结构/资源检查+真实引擎严格诊断+双尺寸场景，返回位置与修复建议。兼容旧 target 检查。', { projectId: string, target: string, strict: { type: 'boolean' } }, [], async args => {
+    if (args.projectId) { const check = await checkProject(args); return result(check, !check.passed); }
+    const r = await preview(['--check', pagePath(args.target), ...(args.strict ? ['--strict'] : [])]);
+    return result({ passed: r.code === 0, exitCode: r.code, output: r.output, note: '旧 target 模式不产生可批准的项目验收。' }, r.code !== 0);
+  }),
+  tool('oriel_snapshot', '真实 Oriel 引擎截图。可执行已声明场景/动作并查看元素盒子。原生 3D 为占位，不能代替游戏验证。', {
+    projectId: string, page: string, scene: string, width: number, height: number, frames: number, actions: { type: 'array', items: string }, boxes: string,
+  }, [], async args => {
+    if (args.projectId) return imageResult(await snapshotRevision(await freeze(args.projectId), args));
+    requireThat(args.page, 'PAGE_REQUIRED', '必须提供 projectId 或 page。');
+    validateActions(args.actions || []);
+    const width = args.width || 640, height = args.height || 360, frames = args.frames || 60;
+    requireThat(width > 0 && width <= 1920 && height > 0 && height <= 1080 && frames > 0 && frames <= 600, 'INVALID_SIZE', '尺寸或帧数超出范围。');
+    const directory = path.join(STATE, 'jobs', id('snapshot')); fs.mkdirSync(directory);
+    const image = path.join(directory, 'page.png');
+    const command = [pagePath(args.page), '--scale', '2', '--size', width + 'x' + height, '--snapshot', image];
+    if (args.actions?.length) { const actionsFile = path.join(directory, 'actions.txt'); fs.writeFileSync(actionsFile, args.actions.join('\n')); command.push('--actions', actionsFile, '--out', directory); }
+    else command.push('--frames', String(frames));
+    if (args.boxes) command.push('--boxes', args.boxes);
+    const r = await preview(command); return imageResult({ passed: r.code === 0 && fs.existsSync(image), image: fs.existsSync(image) ? image : null, exitCode: r.code, output: r.output });
+  }),
+  tool('oriel_review', 'prepare 创建经过检查的固定版本验收页；status 查询用户决定。禁止 Agent 代点批准；没有批准设置接口。', { action: { ...string, enum: ['prepare', 'status'] }, projectId: string, reviewId: string }, [], args => review(args)),
+  tool('oriel_integrate', '仅接入用户本人批准的当前版本。plan 返回写入清单；apply 检查文件冲突并安装，失败恢复本次写入。', { action: { ...string, enum: ['plan', 'apply'] }, reviewId: string, planId: string, target: { ...string, enum: ['oriel-dev'] } }, [], args => integrate(args)),
+  tool('oriel_game_preview', '仅在验收并接入后启动独立游戏预览任务。status 查询截图、精确版本及诊断；cancel 仅取消本工具任务。', { action: { ...string, enum: ['start', 'status', 'cancel'] }, projectId: string, jobId: string, scene: string }, [], args => gamePreview(args)),
+  tool('oriel_pages', '列出本库 kit 页面及已有像素图标，制作前优先复用。', {}, [], () => ({
+    pages: fs.readdirSync(path.join(KIT, 'assets/oriel/ui')).filter(f => f.endsWith('.html')),
+    icons: fs.readdirSync(path.join(KIT, 'assets/oriel/textures/icons')).filter(f => f.endsWith('.png')).map(f => f.slice(0, -4)),
+  }), true),
 ];
-
-const text = (t) => ({ content: [{ type: 'text', text: t }] });
-const send = (msg) => process.stdout.write(JSON.stringify(msg) + '\n');
-
-createInterface({ input: process.stdin }).on('line', (line) => {
+function validate(args, spec) {
+  requireThat(args && typeof args === 'object' && !Array.isArray(args), 'INVALID_ARGS', '参数必须是对象。');
+  for (const key of spec.required || []) requireThat(key in args, 'INVALID_ARGS', '缺少参数：' + key);
+  for (const [key, value] of Object.entries(args)) {
+    const field = spec.properties[key]; requireThat(field, 'INVALID_ARGS', '未知参数：' + key);
+    const matches = field.type === 'array' ? Array.isArray(value) : field.type === 'integer' ? Number.isInteger(value) : field.type === 'object' ? value && typeof value === 'object' && !Array.isArray(value) : typeof value === field.type;
+    requireThat(matches && (!field.enum || field.enum.includes(value)), 'INVALID_ARGS', '参数类型或取值错误：' + key);
+  }
+}
+let queue = Promise.resolve();
+async function handle(message) {
+  const { method, params = {} } = message;
+  if (method === 'initialize') return { protocolVersion: ['2024-11-05', '2025-03-26', '2025-06-18'].includes(params.protocolVersion) ? params.protocolVersion : '2025-06-18',
+    capabilities: { tools: {}, resources: {}, prompts: {} }, serverInfo: { name: 'oriel-ui-workflow', version: '2.0.0' }, instructions: instructions() };
+  if (method === 'ping') return {};
+  if (method === 'tools/list') return { tools: TOOLS.map(({ run, ...metadata }) => metadata) };
+  if (method === 'resources/list') return { resources: Object.entries(topics).map(([name, file]) => ({ uri: 'oriel://rules/' + name, name, description: '当前能力合同：' + file, mimeType: 'text/markdown' })) };
+  if (method === 'resources/read') {
+    requireThat(typeof params.uri === 'string' && params.uri.startsWith('oriel://rules/'), 'UNKNOWN_RESOURCE', '未知资源 URI。');
+    const rule = rules({ topic: params.uri.slice('oriel://rules/'.length) });
+    return { contents: [{ uri: params.uri, mimeType: 'text/markdown', text: rule.text }] };
+  }
+  if (method === 'prompts/list') return { prompts: ['workflow', 'revise', 'integrate'].map(name => ({ name, description: { workflow: '从网页制作到用户验收及游戏接入', revise: '修改已制作页面并重新验收', integrate: '把已批准版本接入游戏' }[name] })) };
+  if (method === 'prompts/get') return { description: 'Oriel 标准工作流', messages: [{ role: 'user', content: { type: 'text', text: prompt(params.name) } }] };
+  if (method === 'tools/call') {
+    const selected = TOOLS.find(t => t.name === params.name);
+    if (!selected) throw new WorkflowError('UNKNOWN_TOOL', '未知工具：' + params.name);
+    const invoke = async () => {
+      try { validate(params.arguments || {}, selected.inputSchema); const value = await selected.run(params.arguments || {}); return value?.content ? value : result(value); }
+      catch (error) { return result({ code: error.code || 'INTERNAL_ERROR', message: error.message, details: error.details || {} }, true); }
+    };
+    const pending = queue.then(invoke); queue = pending.catch(() => {}); return pending;
+  }
+  throw new WorkflowError('METHOD_NOT_FOUND', '不支持的 MCP 方法：' + method);
+}
+const send = value => process.stdout.write(JSON.stringify(value) + '\n');
+const lines = createInterface({ input: process.stdin });
+lines.on('line', async line => {
   if (!line.trim()) return;
-  let msg;
-  try {
-    msg = JSON.parse(line);
-  } catch {
-    return send({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } });
-  }
-  const { id, method, params } = msg;
-  if (id === undefined) return; // notifications (initialized, cancelled)
-  try {
-    if (method === 'initialize') {
-      return send({ jsonrpc: '2.0', id, result: {
-        protocolVersion: params?.protocolVersion || '2025-06-18',
-        capabilities: { tools: {} },
-        serverInfo: { name: 'oriel-preview', version: '1.0.0' },
-      } });
-    }
-    if (method === 'ping') return send({ jsonrpc: '2.0', id, result: {} });
-    if (method === 'tools/list') return send({ jsonrpc: '2.0', id, result: { tools: TOOLS.map(({ run, ...t }) => t) } });
-    if (method === 'tools/call') {
-      const tool = TOOLS.find((t) => t.name === params?.name);
-      if (!tool) return send({ jsonrpc: '2.0', id, error: { code: -32602, message: `unknown tool ${params?.name}` } });
-      return send({ jsonrpc: '2.0', id, result: tool.run(params.arguments || {}) });
-    }
-    send({ jsonrpc: '2.0', id, error: { code: -32601, message: `unknown method ${method}` } });
-  } catch (e) {
-    send({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: String(e?.stack || e) }], isError: true } });
-  }
+  let message;
+  try { requireThat(line.length <= 1_000_000, 'MESSAGE_TOO_LARGE', '消息过大。'); message = JSON.parse(line); }
+  catch { send({ jsonrpc: '2.0', id: null, error: { code: -32700, message: '无效 JSON 消息。' } }); return; }
+  if (message.id === undefined) return;
+  try { send({ jsonrpc: '2.0', id: message.id, result: await handle(message) }); }
+  catch (error) { send({ jsonrpc: '2.0', id: message.id, error: { code: error.code === 'METHOD_NOT_FOUND' ? -32601 : -32602, message: error.message } }); }
 });

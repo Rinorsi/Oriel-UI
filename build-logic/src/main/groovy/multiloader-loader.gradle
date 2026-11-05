@@ -117,7 +117,11 @@ if (project.hasProperty('autopilot') || project.hasProperty('tour')) {
     String only = project.findProperty('autopilot')?.toString()
     if (only && only != 'true') clientRunProperties['oriel.autopilot.only'] = only
     // The kit presets are judged at the GUI size most players see: 640x360 (1280x720 at GUI scale 2).
-    if (only == 'oriel' || only == 'play' || only == 'smoke') clientRunArgs.addAll('--width', '1280', '--height', '720')
+    if (only == 'oriel' || only == 'play' || only == 'smoke' || only == 'mcp') clientRunArgs.addAll('--width', '1280', '--height', '720')
+    if (only == 'mcp') {
+        if (!project.hasProperty('orielMcpTask')) throw new GradleException('MCP preview requires -PorielMcpTask=<task.json>')
+        clientRunProperties['oriel.mcp.task'] = project.property('orielMcpTask').toString()
+    }
     if (only == 'home' || only == 'reload' || only == 'text') clientRunArgs.addAll('--width', '1600', '--height', '900')
     // -Pautopilot=play: hands-on acceptance (see DevAutopilot); -Poriel_play_test screenshots it and quits.
     if (project.hasProperty('oriel_play_test')) clientRunProperties['oriel.play.test'] = 'true'

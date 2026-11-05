@@ -112,7 +112,11 @@ node tools/h5ref/compare.mjs "$DAY/scratch/ui/static-state.html" \
 
 ## MCP（agent 使用）
 
-stdio：`node tools/mcp/oriel-preview.mjs`，cwd 仓库根，可设 ORIEL_ROOT。仅当安装目录不存在时自动构建；代码改过先 installDist，避免旧 JAR。该工具用系统临时目录；启动该进程时将 TMP/TEMP 指向 daily/scratch（仅该进程），保持工作区隔离。
+完整项目工作流和新增工具参数见 [MCP 手册](mcp.md)。项目模式使用 oriel_project 登记后调用 oriel_check(projectId)，强制严格诊断与双尺寸场景；结果包含结构化问题和截图。通过后创建用户验收页，取得有效批准才能接入游戏。下表为兼容的基础预览工具。
+
+CLI 的 --check 支持 --report <工作区路径.json>，输出逐页、逐视口的原始诊断（severity/code/source/line/column/message/suggestion）、运行错误、缺图、设计提示和截断计数；原文本输出与退出码保留。
+
+stdio：node tools/mcp/oriel-preview.mjs，cwd 仓库根，可设 ORIEL_ROOT。工具在首次使用或预览源码发生变化时构建 installDist；状态与产物写入 ORIEL_MCP_STATE（默认工作区 daily/当天/scratch/mcp-workflow），不再使用系统临时目录。网页服务及游戏作业有独立生命周期和停止入口，详见 MCP 手册。
 
 | 工具 | 输入 | 输出 |
 |---|---|---|

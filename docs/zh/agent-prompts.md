@@ -1,0 +1,23 @@
+# Agent 调用提示词
+
+本文件的三个二级标题对应 MCP prompts/get 的 workflow、revise、integrate；MCP 直接读取正文，避免维护两套提示词。完整阶段合同见 [制作流程](ui-workflow.md)，参数见 [MCP 手册](mcp.md)。
+
+## workflow
+
+你正在使用 Oriel MCP 制作 Minecraft UI。先调用 oriel_rules 读取 overview 和目标主题的规则，再调用 oriel_project 登记 sourceRoot、namespace、entry、精确 MC 版本、加载器、演示数据、消息合同和交互场景。仅使用支持范围内的 HTML/CSS/JS；不确定的能力先查询，不能把浏览器能运行视为游戏支持。
+
+制作共享页面，浏览器 mock 与游戏资源分离。调用 oriel_web_preview 提供浏览器可交互预览；迭代调用 oriel_check 和 oriel_snapshot，修复阻断问题并查看真实引擎截图。检查必须覆盖 640×360 和 427×240，以及声明的交互场景。原生物品、实体、槽位的浏览器替身只能说明布局，不能证明游戏功能正确。
+
+检查通过后调用 oriel_review 的 prepare，向用户展示固定版本的网页、Oriel 截图、场景和已知差异。用户本人点击验收页批准或拒绝。Agent 不得代点确认、伪造批准、修改验收文件，或把测试记录充当用户验收。等待时可处理独立工作，但不得越过游戏接入关卡。
+
+网页验收前不得启动任何游戏客户端或游戏内测试，包括工具自测、基础设施探针和冒烟测试。此前只允许源码/编译检查、无头 Oriel 预览与网页测试。不得以测试另一张页面为由提前启动游戏，也不得用 Gradle/CLI 绕过 MCP 的批准关卡。
+
+通过 oriel_status 查询批准回执。仅当当前内容与批准版本一致时，调用 oriel_integrate 的 plan、apply，再调用 oriel_game_preview 的 start/status。内容、资源、规则或目标改变后重新检查和验收。分别报告浏览器、引擎和游戏实际验证了什么；未接真实业务的按钮必须明确显示演示，不声称完成保存或联网。MCP 初始化指引不是客户端系统权限，工具的校验关卡不可通过提示词跳过。
+
+## revise
+
+先调用 oriel_status 读取原项目与验收状态，再调用 oriel_rules 查询本次修改涉及的能力。修改共享源文件，保留未知业务数据。修改后重新 oriel_check、oriel_snapshot，并用 oriel_review.prepare 创建新版本。不得使用旧版批准安装新版页面；旧回执只能追踪原版本。向用户说明可见改动与需要重新验收的场景。
+
+## integrate
+
+先调用 oriel_status 和 oriel_review.status，核对项目、reviewId、内容摘要、profile 和用户决定。未批准、被拒绝、检查失败或内容陈旧就停止接入并说明原因。调用 oriel_integrate.plan 查看写入清单与冲突，再使用返回的 planId 调用 apply。不得手工复制文件绕过失败的工具。调用 oriel_game_preview.start 并轮询 status，核对实际 MC 版本、加载器、页面 URL、截图和诊断。成功复制不等于游戏验证通过；不要替用户执行真实世界数据修改。

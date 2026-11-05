@@ -1,0 +1,12 @@
+<!doctype html><html><head><title>MCP workflow probe</title><style>
+body { margin:0; padding:16px; background:#202820; color:#ffffff; font-size:8px; }
+h1 { font-size:16px; margin-bottom:8px; }
+button { padding:6px 12px; background:#4b782f; color:#ffffff; border:1px solid #a8ca8f; }
+</style></head><body><h1>MCP workflow probe</h1><p>Development infrastructure test. No world data is modified.</p><button id="counter">Count: 0</button><p id="result">ready</p><script>
+var count = 0;
+document.getElementById('counter').addEventListener('click', function () {
+  count++;
+  document.getElementById('counter').textContent = 'Count: ' + count;
+  document.getElementById('result').textContent = 'clicked';
+});
+</script></body></html>

@@ -152,6 +152,8 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 
 ## 9. 开发你自己的页面：最短路径
 
+通过 Agent 制作的新页面优先使用 [MCP 主工作流](ui-workflow.md)：网页预览、引擎检查、用户批准固定版本后再接入。首版自动接入适配器 oriel-dev 写入本库共同资源目录并提供游戏打开/验证入口；外部工程需明确适配器，不承诺自动生成服务器业务、容器菜单或权限处理。手动接入仍可按本页 API 完成。
+
 1. 在本仓库的 kit 里加页面，用脚手架：`node tools/new-page.mjs bestiary "怪物图鉴"`；你自己的模组把页面放进自己的 `assets/<命名空间>/oriel/`（见第 3 节）。
 2. 对着 [CSS 支持参考](css-reference.md) 写样式，不确定的先查表；写了不支持的东西会得到诊断，不会悄悄失效。
 3. 无头检查：`./gradlew :preview:checkUi`，或让 AI 通过 MCP（`node tools/mcp/oriel-preview.mjs`）调用 `oriel_check`、`oriel_snapshot`。

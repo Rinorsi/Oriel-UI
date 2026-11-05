@@ -17,6 +17,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /** {@code --check}: a clean page passes; a missing image fails; a CSS slip is listed. */
 class CheckTest {
     @Test
+    void writesStructuredDiagnosticsAtBothViewports(@TempDir Path dir) throws Exception {
+        Path page = dir.resolve("page.html"), report = dir.resolve("report.json");
+        Files.writeString(page, "<style>p { colour: red; }</style><p>hello</p>");
+        assertEquals(3, Preview.check(new String[]{"--check", page.toString(), "--strict", "--report", report.toString()}));
+        var results = com.google.gson.JsonParser.parseString(Files.readString(report)).getAsJsonArray();
+        assertEquals(2, results.size());
+        assertEquals(640, results.get(0).getAsJsonObject().get("width").getAsInt());
+        assertEquals(427, results.get(1).getAsJsonObject().get("width").getAsInt());
+        var diagnostic = results.get(0).getAsJsonObject().getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+        assertTrue(diagnostic.has("source"));
+        assertTrue(diagnostic.has("code"));
+        assertTrue(diagnostic.has("line"));
+        assertTrue(diagnostic.has("suggestion"));
+    }
+
+    @Test
     void strictCheckingRejectsWarningsButDefaultRemainsCompatible(@TempDir Path dir) throws Exception {
         Path page = dir.resolve("warning.html");
         Files.writeString(page, "<html><head><style>p { colour: red; }</style></head><body><p>x</p></body></html>");
