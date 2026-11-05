@@ -79,6 +79,12 @@ bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-
 5. Add the version to the table at the top of this file, list anything that works differently on it, and add a line
    to `CHANGELOG.md` under the next version.
 
+新增 Minecraft 版本或升级 Loom 后，还须审查生成包的内容基线：`gradle/generated-minecraft.json` 按确切模块、版本和文件名固定内容哈希，
+`verifyMinecraftContent` 在 Fabric 编译及根 `:check` 前核对排序后的条目名字和字节。缺少基线或内容变化会拒绝构建。
+先从可信输入核对新增或变化的条目，再记录内容基线及来源整包哈希，审查对应的依赖校验配置；不要把失败日志的 actual 直接设为 expected，
+也不要用整个 `net.minecraft` 组的信任例外绕过检查。外部依赖哈希与 Linux 等平台分类器须保留；普通依赖刷新不会自动更新内容基线。
+具体算法、刷新命令与信任限制见 [后端维护](zh/backend-maintenance.md)。
+
 提交时保持共享源码为26.3。当前仓库仅配置 `.github/workflows/build.yml`，没有 release.yml 或自动标签发布流程。
 Build 在 main 推送、PR 或手动触发时运行，不使用路径过滤；执行全版本构建、根检查、NeoForge26.1服务端GameTest及下游模板编译，
 并用Node24运行后端/发布边界回归与无游戏的冒烟结果计数测试。运行和测试临时目录放在 runner.temp。
