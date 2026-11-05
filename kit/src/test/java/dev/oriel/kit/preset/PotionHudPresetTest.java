@@ -117,6 +117,39 @@ class PotionHudPresetTest {
         assertTrue(doc.getElementById("effects").getBoundingClientRect()[3] > 200, "the panel takes the column's height");
     }
 
+    /** U04: the card is placed by its measured size, so a long description near the window's edge never runs off it. */
+    @Test
+    void theCardStaysInsideTheWindowForEveryEffectAtEveryPosition() {
+        // Long descriptions, as translated game text can be: the card grows to several lines.
+        String longText = "Greatly increases the speed at which the player walks, sprints and swims, and widens the field of view while it lasts.";
+        List<GameEffects.Entry> all = new java.util.ArrayList<>();
+        String[] ids = {"speed", "haste", "strength", "regeneration", "resistance", "jump_boost", "night_vision", "fire_resistance", "water_breathing", "absorption", "luck", "slow_falling"};
+        for (String id : ids) all.add(new GameEffects.Entry("minecraft:" + id, id, 2, GameEffects.Kind.BENEFICIAL, 600, "minecraft:textures/mob_effect/" + id + ".png", false, true, true, longText));
+        GameEffects.provide(() -> new GameEffects.Snapshot(all));
+        for (int[] size : new int[][] {{640, 360}, {427, 240}, {320, 200}}) {
+            Document doc = host.open(OrielKit.INVENTORY_EFFECTS, new InventoryEffectsPreset(), size[0], size[1]);
+            double[] clock = {0};
+            for (int i = 0; i < 30; i++) frame(doc, clock, 16);
+            float vw = doc.viewportWidth(), vh = doc.viewportHeight();
+            int hovered = 0;
+            for (Element target : doc.querySelectorAll(".o-effects .chip, .o-effects .row")) {
+                float[] r = target.getBoundingClientRect();
+                float cx = r[0] + r[2] / 2, cy = r[1] + r[3] / 2;
+                if (r[2] <= 0 || cx < 0 || cx > vw || cy < 0 || cy > vh) continue; // scrolled out of the panel or window
+                doc.input().mouseMove(cx, cy, Modifiers.NONE);
+                frame(doc, clock, 16);
+                Element tip = doc.querySelector(".o-efftip");
+                if (!tip.hasClass("on")) continue;
+                float[] t = tip.getBoundingClientRect();
+                hovered++;
+                String where = size[0] + "x" + size[1] + " " + tip.querySelector("b").textContent() + " card " + java.util.Arrays.toString(t);
+                assertTrue(t[0] >= 0 && t[1] >= 0, "inside the window's top left: " + where);
+                assertTrue(t[0] + t[2] <= vw + 0.5f && t[1] + t[3] <= vh + 0.5f, "inside the window's bottom right: " + where);
+            }
+            assertTrue(hovered > 3, "cards were shown at " + size[0] + "x" + size[1] + ": " + hovered);
+        }
+    }
+
     @AfterEach
     void fixturesAgain() {
         GameEffects.useFixtures();

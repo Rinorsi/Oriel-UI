@@ -511,11 +511,16 @@ public final class PotionHudPreset implements PageControllers.Controller {
         desc.toggleClass("none", e.description() == null);
         Dom.text(Dom.query(tip, ".id"), e.id().contains(":") ? e.id() : "minecraft:" + e.id());
         updateTip();
-        // Beside the panel the row or chip is in, level with it, kept inside the window.
+        // Beside the panel the row or chip is in, level with it, kept inside the window. The card is measured, not
+        // assumed: a long (translated) description wraps to more lines and makes it taller.
         Element panel = at.closest(".o-effects");
         float[] row = at.getBoundingClientRect(), box = (panel != null ? panel : at).getBoundingClientRect();
-        float width = 138, height = 74, vw = doc.viewportWidth(), vh = doc.viewportHeight();
-        float x = box[0] + box[2] + 6 + width <= vw ? box[0] + box[2] + 6 : Math.max(2, box[0] - 6 - width);
+        float vw = doc.viewportWidth(), vh = doc.viewportHeight();
+        float width = 138, height = 74;
+        new Dom.Style(tip).set("left", "0px").set("top", "0px").apply();
+        float[] size = tip.getBoundingClientRect();
+        if (size[2] > 0 && size[3] > 0) { width = size[2]; height = size[3]; }
+        float x = box[0] + box[2] + 6 + width <= vw ? box[0] + box[2] + 6 : Math.max(2, Math.min(box[0] - 6 - width, vw - width - 2));
         float y = Math.max(2, Math.min(row[1] - 4, vh - height - 2));
         new Dom.Style(tip).set("left", x + "px").set("top", y + "px").apply();
     }
