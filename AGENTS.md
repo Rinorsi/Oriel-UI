@@ -11,7 +11,7 @@
 ## 目录约定（非常重要）
 
 ```
-D:\Minecraft\project\Mods\
+<任意目录>\Mods\   （当前电脑：C:\Storage\Minecraft\project\Mods\）
 ├─ Oriel-UI\             ← 本仓库：只放源码、构建配置、测试、README/LICENSE/NOTICE/AGENTS.md
 └─ Oriel-UI-Workspace\   ← 仓库外的工作区（不进 git）
    ├─ planning\          决策(00)、架构(01)、路线图(02)、Ore UI 参考(03)、设计图、任务说明书
@@ -59,12 +59,17 @@ D:\Minecraft\project\Mods\
 
 | 项 | 值 |
 |---|---|
-| JDK | Temurin 25.0.5+8，`C:\Users\XD\.jdks\jdk-25.0.5+8`（`JAVA_HOME` 已设；若子进程读不到，显式导出该路径） |
-| Gradle | 9.8.2，`C:\Users\XD\.tools\gradle-9.8.2`；项目内用 `gradlew` |
-| 其他 | Git 2.55、Node 24（仅开发期可能用到）、Windows、无管理员权限 |
+| JDK | Temurin 25.0.5+8，位于 `%USERPROFILE%\.jdks\jdk-25.0.5+8`（当前电脑用户目录为 `XINDONG`）。`JAVA_HOME` 可能为空：构建前 `source ../Oriel-UI-Workspace/tools/env.sh`，或用工作区 `启动.bat` / `tools/gw.sh`，它们会自动找 JDK 25 |
+| Gradle | 只用项目自带的 `gradlew`（wrapper 当前 9.7.1），不依赖本机安装的 Gradle |
+| 网络 | 本机 DNS 会把 maven.neoforged.net、libraries.minecraft.net 等解析错，Gradle 直连会超时。**构建请用 `bash ../Oriel-UI-Workspace/tools/gw.sh <任务>` 或工作区 `启动.bat`**：自动开本地代理 `tools/dev-proxy.mjs`（127.0.0.1:18080）并重试。不要用阿里云 / BMCLAPI 镜像构建 NeoForge（依赖校验会因多出无哈希记录的文件而失败）。详见工作区 AGENTS.md「本机网络与启动」 |
+| 其他 | Git 2.56、Node 24（开发期用到，如代理、MCP、预览脚本）、Windows、无管理员权限 |
 | 注意 | Git Bash 下路径含空格要加引号；没有 `python` 时用 node 或 bash 代替 |
 
 ## UI 工作流（AI 快速入口）
+
+**用户网页验收前不得启动任何游戏客户端或游戏内测试，包括工具探针、冒烟测试和其他示例页；仅运行编译、无头预览及网页测试。不得通过 Gradle/CLI 绕过这一顺序。**
+
+**默认先网页验收，再通过 MCP 接入游戏。** 读取 docs/zh/agent-prompts.md 和 docs/zh/mcp.md，调用 oriel_rules → oriel_project → oriel_web_preview → oriel_check/oriel_snapshot → oriel_review.prepare。用户本人批准固定版本后，才调用 oriel_integrate.plan/apply → oriel_game_preview。Agent 禁止代点批准或修改验收记录；规则、资源、数据或目标变化须重新检查和验收。旧三工具仍兼容，但只有项目模式产生有效验收。完整流程统一在 ui-workflow.md。
 
 **先读 `docs/zh/index.md`、`docs/zh/capabilities.md`、`docs/zh/ui-workflow.md`。页面开发的能力清单、参数与限制以这套文档为入口，不让新 agent 重新翻引擎整理清单。** 下列 kit 步骤是项目内 Java 控制器路线；库同时支持受限 JavaScript，范围见 `docs/zh/scripting.md`。
 
