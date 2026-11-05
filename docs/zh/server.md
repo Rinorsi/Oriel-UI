@@ -123,6 +123,8 @@ OrielContainerScreen 自动给页面提供 title、inventory 和 slots 数组（
 
 公共类型：ForgeMenu.TYPE，注册 ID oriel:forge。入口：/oriel-forge（管理员权限），或者在服务端调用 ForgeMenu.open(player)。它先检查客户端是否支持 Oriel 通道；不支持时返回 false，发送普通聊天提示，不发送自定义菜单打开包。
 
+该样例菜单没有绑定方块或世界坐标；`stillValid` 只检查菜单未关闭、调用者是拥有者且拥有者存活，不提供方块距离校验。命令权限由命令入口检查，直接调用 `ForgeMenu.open(player)` 的业务方自行负责授权。若用于固定位置的工作站，业务方还须实现对应的位置、距离和方块存续约束，不能把本样例当成已有完整工作站校验。
+
 主会话需要在客户端入口、MenuScreens 注册事件之前接入以下代码，并自行提供对应页面：
 
 ```java
@@ -182,4 +184,4 @@ GameTest 包含 unsupported_client、player_isolation、forge_menu、protocol_co
 
 `--missing-client` 再启动关闭全部 Oriel 通道注册的真实连接，验证缺少客户端通道时同样断开；测试驱动仍在客户端中，因此该测试不等同于完全卸载模组。两种拒绝都核对客户端和服务端日志中的中英双语内容。提示来自 `assets/oriel/lang/en_us.json` 与 `zh_cn.json`，由服务器解析后发送，未安装库的客户端也能看懂。NeoForge 保持固定可选传输注册标识，应用协议是否兼容由版本能力门禁决定；版本不匹配时不发送页面数据。
 
-手动复现多人隔离：开启专用测试服务器，让两个装库客户端分别用 A/B 身份进入；控制台针对 A 调用自己的 OrielServer.open 命令（或启用 -PserverProbe 后执行 oriel-probe start OrielProbeA OrielProbeB），确认 B 仍在原屏幕。A 发送消息后服务端仅处理 A 的状态。若改用真实未装库的客户端，连接成功后调用 OrielServer.open，调用方必须收到 CLIENT_UNSUPPORTED；不能把客户端被加载器的注册表兼容检查拒绝登录误记为打开失败回调通过。
+手动复现多人隔离：开启专用测试服务器，让两个装库客户端分别用 A/B 身份进入；控制台针对 A 调用自己的 OrielServer.open 命令（或启用 -PserverProbe 后执行 oriel-probe start OrielProbeA OrielProbeB），确认 B 仍在原屏幕。A 发送消息后服务端仅处理 A 的状态。真实未装库或协议不匹配客户端应在加入阶段被拒绝，不能要求它先进入服务器再调用 OrielServer.open。`CLIENT_UNSUPPORTED` 的防御性返回值与迟注册失败回调由 `unsupported_client` GameTest 的无协商 mock 验证；该 mock 不证明缺库客户端可进入正式服务器，也不能将连接阶段拒绝冒算为打开失败回调已触发。
