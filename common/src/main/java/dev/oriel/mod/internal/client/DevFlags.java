@@ -7,12 +7,19 @@ package dev.oriel.mod.internal.client;
  */
 public final class DevFlags {
     /** {@code -Poriel.autopilot} (set by {@code -Pautopilot} on dev runs). */
-    public static final boolean AUTOPILOT = Boolean.getBoolean("oriel.autopilot");
+    public static final boolean AUTOPILOT = available("DevAutopilot") && Boolean.getBoolean("oriel.autopilot");
+    /** Hot reload is optional: release jars omit its implementation. */
+    public static final boolean RELOAD_AVAILABLE = available("DevReload");
     /** The scripted tour and its drawn cursor, on 26.3. */
     //? if >=26.3 {
-    public static final boolean TOUR = Boolean.getBoolean("oriel.tour");
+    public static final boolean TOUR = available("DevTour") && Boolean.getBoolean("oriel.tour");
     //?} else
     //public static final boolean TOUR = false;
 
     private DevFlags() {}
+
+    // Inspect the resource without resolving or initializing an optional development class.
+    private static boolean available(String name) {
+        return DevFlags.class.getResource(name + ".class") != null;
+    }
 }

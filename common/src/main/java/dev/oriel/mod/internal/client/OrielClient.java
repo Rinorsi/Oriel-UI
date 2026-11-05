@@ -57,7 +57,7 @@ public final class OrielClient {
         OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
         OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
         OrielKit.register();
-        DevReload.init();
+        if (DevFlags.RELOAD_AVAILABLE) DevReload.init();
         // Pickers list every registered item (vanilla and modded) by the name the game shows in its language.
         GameRegistry.provide(() -> {
             List<GameRegistry.Entry> all = new ArrayList<>();

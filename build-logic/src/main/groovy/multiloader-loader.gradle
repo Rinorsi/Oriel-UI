@@ -151,7 +151,7 @@ clientRunProperties['oriel.dev.project'] = project.path
 clientRunProperties['jdk.attach.allowAttachSelf'] = 'true'
 
 // -Poriel_release builds the jar players get: the dev autopilot and scripted tour (classes and pages) stay out. Code
-// elsewhere only reaches them through DevFlags, which is false outside dev runs.
+// elsewhere only reaches them through DevFlags, which checks class resources before enabling a tool.
 if (project.hasProperty('oriel_release')) {
     tasks.named('jar', Jar) {
         ['DevAutopilot', 'DevTour', 'DevPointer', 'DevReload', 'DevAgent', 'TourCursor', 'TourPointer', 'CursorArt'].each { exclude("dev/oriel/mod/internal/client/${it}*.class") }

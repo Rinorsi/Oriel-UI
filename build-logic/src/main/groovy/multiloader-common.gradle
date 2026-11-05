@@ -27,7 +27,7 @@ repositories { mavenCentral() }
 dependencies { compileOnly('com.google.errorprone:error_prone_annotations:2.48.0') }
 
 tasks.withType(Jar).configureEach {
-    from(rootProject.file('LICENSE')) {
+    from(rootProject.files('LICENSE', 'NOTICE')) {
         rename { "${it}_${mod_name}" }
     }
 }
