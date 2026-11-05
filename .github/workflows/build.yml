@@ -45,6 +45,11 @@ jobs:
       # Full matrix, explicit root API/template/boundary gates, and both loaders' server tests.
       - run: ./gradlew build :check :neoforge:26.1:runGameTestServer --stacktrace
 
+      - name: Check all kit pages strictly in both languages
+        run: |
+          ./gradlew :preview:checkUi -PuiStrict --stacktrace
+          ./gradlew :preview:checkUi -PuiStrict -Plang=en_us --stacktrace
+
       # The example mods in template/, against this Oriel rather than the released one, so an API change can't
       # break them unnoticed.
       - name: Compile downstream templates

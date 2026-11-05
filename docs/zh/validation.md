@@ -28,6 +28,8 @@ cp -R kit/src/main/resources/assets/oriel "$DAY/scratch/ui/assets/"
 
 ```bash
 ./gradlew :kit:test :preview:checkUi
+./gradlew :preview:checkUi -PuiStrict
+./gradlew :preview:checkUi -PuiStrict -Plang=en_us
 ./gradlew :preview:checkUi -Pui=kit/src/main/resources/assets/oriel/ui/gallery.html
 ./gradlew :preview:checkUi -Pui=kit/src/main/resources/assets/oriel/ui/gallery.html -PuiStrict
 java -cp "preview/build/install/preview/lib/*" dev.oriel.preview.Preview \
@@ -39,6 +41,8 @@ java -cp "preview/build/install/preview/lib/*" dev.oriel.preview.Preview \
 checkUi 查加载、控制器异常、资源、CSS 诊断和部分设计问题。外部页需显式指定路径，默认 kit 扫描不等于包括下游页面。框正确不代表文字/遮挡/交互正确，必须看截图。
 
 默认checkUi/CLI的 --check 将CSS与设计警告列为WARN但仍可返回0，页面异常或缺图返回1；不是所有警告都会阻止构建。需要警告阻断时用 -PuiStrict，或CLI的 --check TARGET --strict；此时仅警告返回3，页面错误仍返回1。--lang可与--strict组合。空目录返回2。此选项只改变检查退出码，不改页面样式或渲染。
+
+CI 对全部 kit 页面分别执行默认语言（zh_cn）和 en_us 的严格检查；任一语言出现警告即阻止构建。Gradle 会把预览器的非零退出码报告为任务失败，具体退出码见任务日志。此门禁不替代截图、游戏或联机验收。
 
 | Preview 参数 | 默认/作用 |
 |---|---|

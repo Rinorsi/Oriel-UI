@@ -60,9 +60,10 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xlint:all', '-Werror']
 }
 
-// `./gradlew :preview:checkUi [-Pui=<dir or page>] [-Plang=en_us]`: loads every kit page (or the given ones) headless with its
+// `./gradlew :preview:checkUi [-Pui=<dir or page>] [-Plang=en_us] [-PuiStrict]`: loads every kit page (or the given ones) headless with its
 // controller at 640x360 and 427x240, and fails on an engine or controller error or a missing image; CSS the engine
-// did not take as written is listed. The gate to run after editing a page.
+// did not take as written is listed. -PuiStrict makes warnings fail with exit 3 (page errors remain exit 1).
+// Without it, warnings remain nonfatal. CI checks both the default language and en_us strictly.
 tasks.register('checkUi', JavaExec) {
     group = 'verification'
     description = 'Checks every UI page for errors, missing images and CSS diagnostics'
