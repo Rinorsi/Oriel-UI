@@ -74,7 +74,10 @@ loom {
 
 // The GameTest run that fabricApi.configureTests adds lives outside the repository too.
 loom.runs.configureEach { run ->
-    if (run.name.toLowerCase(Locale.ROOT).contains('gametest')) run.runDirectory.set(orielRunDir(run.name))
+    if (run.name.toLowerCase(Locale.ROOT).contains('gametest')) {
+        run.runDirectory.set(orielRunDir(run.name))
+        run.property('oriel.componentCodecFixtures', 'true')
+    }
 }
 
 // The mcgradleconventions loader attribute (multiloader-common.gradle) on Loom's configurations too.

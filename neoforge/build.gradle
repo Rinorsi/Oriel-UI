@@ -22,6 +22,7 @@ neoForge {
         }
         gameTestServer {
             type = 'gameTestServer'
+            systemProperty('oriel.componentCodecFixtures', 'true')
             gameDirectory = this.mkdir(orielRunDir('gametest'))
         }
         server {

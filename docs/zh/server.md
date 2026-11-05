@@ -121,9 +121,27 @@ OrielContainerScreen 自动给页面提供 title、inventory 和 slots 数组（
 
 本轮只实现服务端和数据，不注册新 Screen、不改 kit 的 forge 页面。主会话完成页面及客户端注册前，/oriel-forge 只有服务端菜单入口，尚不是完整可用的玩家界面。
 
-公共类型：ForgeMenu.TYPE，注册 ID oriel:forge。入口：/oriel-forge（管理员权限），或者在服务端调用 ForgeMenu.open(player)。它先检查客户端是否支持 Oriel 通道；不支持时返回 false，发送普通聊天提示，不发送自定义菜单打开包。
+公共类型：ForgeMenu.TYPE，注册 ID oriel:forge。入口：/oriel-forge（管理员权限），或者在服务端调用 ForgeMenu.open(player)。通过工作站位置和客户端 Oriel 通道校验后才打开菜单；不支持的客户端返回 false 并收到普通聊天说明，不发送自定义菜单打开包。
 
-该样例菜单没有绑定方块或世界坐标；`stillValid` 只检查菜单未关闭、调用者是拥有者且拥有者存活，不提供方块距离校验。命令权限由命令入口检查，直接调用 `ForgeMenu.open(player)` 的业务方自行负责授权。若用于固定位置的工作站，业务方还须实现对应的位置、距离和方块存续约束，不能把本样例当成已有完整工作站校验。
+`ForgeMenu.open(player)` 将打开时玩家脚下的方块固定为工作站，默认最大距离为 8 格；脚下为空气时拒绝并给聊天说明。距离从玩家位置到方块中心计算，要求仍在同一个 `ServerLevel`、区块已加载、方块类型仍匹配。破坏后放回同类型方块可再次满足校验，不跟踪方块实体身份或方块状态属性。
+
+业务可用 `new ForgeMenu.Workstation(level, position, block, maxDistance)` 配置固定坐标、预期方块类型和距离，再调用 `ForgeMenu.open(player, workstation)`；位置无效或超距时返回 false 并给聊天说明。服务端线程调用。`stillValid` 同时保持未关闭、拥有者身份和存活校验；无效时停止加工并拒绝快捷转移，原版服务端 tick 负责关闭菜单与返还物品。
+
+| Workstation 参数 | 类型与限制 |
+|---|---|
+| level | 非 null 的 ServerLevel，固定维度 |
+| position | 非 null 的 BlockPos，构造时复制为不可变坐标 |
+| block | 非 null 的 Block，预期类型不得是空气 |
+| maxDistance | double，单位格，必须正数且数值及其平方均有限；显式构造无默认值，默认 open 使用 8 |
+
+空参数抛 NullPointerException；不合规方块或距离抛 IllegalArgumentException。
+
+兼容构造器 `new ForgeMenu(id, inventory)` 保留不绑定坐标的便携模式（也供客户端工厂使用）；固定工作站服务端应使用三参数构造器传入非 null 的 `Workstation`。命令权限由命令入口检查，直接调用 `open` 的业务方自行负责授权。`/oriel demo chest` 样例同样固定到脚下方块、默认 8 格，并检查拥有者、存活和关闭状态；它的物品是每次打开独立生成的演示样本，不是持久化容器。
+
+```java
+var station = new ForgeMenu.Workstation(player.level(), pos, Blocks.SMITHING_TABLE, 6);
+ForgeMenu.open(player, station); // Call only after your own authorization.
+```
 
 主会话需要在客户端入口、MenuScreens 注册事件之前接入以下代码，并自行提供对应页面：
 

@@ -173,7 +173,14 @@ public final class ItemEditor {
         for (TypedDataComponent<?> c : stack.getComponents()) {
             Identifier key = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(c.type());
             if (key == null) continue;
-            var encoded = c.encodeValue(ops).result();
+            Optional<JsonElement> encoded;
+            try {
+                encoded = c.encodeValue(ops).result();
+            } catch (RuntimeException failure) {
+                // An extension codec must not turn a preserved, read-only component into a failed save.
+                Constants.LOG.warn("Oriel: cannot encode read-only item component {}", key, failure);
+                encoded = Optional.empty();
+            }
             if (encoded.isEmpty()) unencodable.add(key.toString());
             all.add(key.toString(), encoded.orElse(new com.google.gson.JsonPrimitive("oriel.server.item_editor.unencodable")));
         }
@@ -253,6 +260,9 @@ public final class ItemEditor {
             if (damage < 0 || damage >= next.getMaxDamage()) throw new Rejected("oriel.server.item_editor.damage", next.getMaxDamage() - 1);
             next.setDamageValue(damage);
         }
+        if ((changed(before, edit, "maxDamage") || changed(before, edit, "damage"))
+                && next.isDamageableItem() && next.getDamageValue() >= next.getMaxDamage())
+            throw new Rejected("oriel.server.item_editor.damage", next.getMaxDamage() - 1);
         if (changed(before, edit, "unbreakable")) {
             if (edit.get("unbreakable").getAsBoolean()) next.set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
             else next.remove(DataComponents.UNBREAKABLE);

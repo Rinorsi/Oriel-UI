@@ -2,6 +2,7 @@ package dev.oriel.mod.internal.server;
 
 import dev.oriel.mod.server.OrielServer;
 import dev.oriel.mod.server.OrielSession;
+import dev.oriel.mod.server.ForgeMenu;
 
 import com.google.gson.JsonObject;
 import dev.oriel.mod.internal.registry.OrielRegistry;
@@ -40,11 +41,40 @@ public final class OrielDemos {
 
     /** Opens a chest of sample items. */
     public static void openChest(ServerPlayer player) {
+        var position = player.blockPosition().below();
+        var block = player.level().getBlockState(position).getBlock();
+        if (block.defaultBlockState().isAir()) {
+            player.sendSystemMessage(Component.literal("Oriel demo chest requires a workstation block below the player."));
+            return;
+        }
+        openChest(player, new ForgeMenu.Workstation(player.level(), position, block, 8));
+    }
+
+    /** The same fixed-anchor policy as the repair forge; each open owns its sample inventory. */
+    public static void openChest(ServerPlayer player, ForgeMenu.Workstation workstation) {
+        java.util.Objects.requireNonNull(workstation, "workstation");
+        if (!workstation.stillValid(player)) {
+            player.sendSystemMessage(Component.literal("Oriel workstation is missing or out of reach."));
+            return;
+        }
         SimpleContainer chest = new SimpleContainer(27);
         ItemStack[] samples = {new ItemStack(Items.DIAMOND_SWORD), new ItemStack(Items.GOLDEN_APPLE, 3), new ItemStack(Items.OAK_LOG, 64),
                 new ItemStack(Items.ENDER_PEARL, 16), new ItemStack(Items.BOOK), new ItemStack(Items.TORCH, 32), new ItemStack(Items.ELYTRA)};
         for (ItemStack s : samples) chest.addItem(s);
-        player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new ChestMenu(CHEST, id, inventory, chest, 3),
+        player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new ChestMenu(CHEST, id, inventory, chest, 3) {
+            private boolean closed;
+            @Override public boolean stillValid(net.minecraft.world.entity.player.Player p) {
+                return !closed && p == player && p.isAlive() && workstation.stillValid(p) && super.stillValid(p);
+            }
+            @Override public ItemStack quickMoveStack(net.minecraft.world.entity.player.Player p, int index) {
+                return stillValid(p) ? super.quickMoveStack(p, index) : ItemStack.EMPTY;
+            }
+            @Override public void removed(net.minecraft.world.entity.player.Player p) {
+                if (p != player) return;
+                if (!closed) super.removed(p);
+                closed = true;
+            }
+        },
                 Component.translatable("oriel.demo.chest")));
     }
 
