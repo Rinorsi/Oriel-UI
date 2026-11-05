@@ -29,6 +29,7 @@ cp -R kit/src/main/resources/assets/oriel "$DAY/scratch/ui/assets/"
 ```bash
 ./gradlew :kit:test :preview:checkUi
 ./gradlew :preview:checkUi -Pui=kit/src/main/resources/assets/oriel/ui/gallery.html
+./gradlew :preview:checkUi -Pui=kit/src/main/resources/assets/oriel/ui/gallery.html -PuiStrict
 java -cp "preview/build/install/preview/lib/*" dev.oriel.preview.Preview \
   kit/src/main/resources/assets/oriel/ui/gallery.html \
   --size 640x360 --scale 2 --frames 60 \
@@ -36,6 +37,8 @@ java -cp "preview/build/install/preview/lib/*" dev.oriel.preview.Preview \
 ```
 
 checkUi 查加载、控制器异常、资源、CSS 诊断和部分设计问题。外部页需显式指定路径，默认 kit 扫描不等于包括下游页面。框正确不代表文字/遮挡/交互正确，必须看截图。
+
+默认checkUi/CLI的 --check 将CSS与设计警告列为WARN但仍可返回0，页面异常或缺图返回1；不是所有警告都会阻止构建。需要警告阻断时用 -PuiStrict，或CLI的 --check TARGET --strict；此时仅警告返回3，页面错误仍返回1。--lang可与--strict组合。空目录返回2。此选项只改变检查退出码，不改页面样式或渲染。
 
 | Preview 参数 | 默认/作用 |
 |---|---|
@@ -115,6 +118,12 @@ stdio：`node tools/mcp/oriel-preview.mjs`，cwd 仓库根，可设 ORIEL_ROOT�
 
 这不是游戏控制/网络测试工具。实际多人数据仍须联机验。
 
+## 自动化分层与覆盖边界
+
+预览器的 actions 是无头文档动作脚本，MCP snapshot 通过同一路径执行。游戏内 OrielAutomation 则把选择器动作送入 Minecraft 原生输入处理器；DevAutopilot 负责编排世界、菜单、页面和退出。两者不是同一套脚本解释器，不能把预览器 actions 文件直接交给游戏运行，也没有已实现的 Java ViewModel o-text/o-for/o-if/o-class/o-attr/o-on 声明式绑定合同。现有 Java Controller 与 JS 模板按各自手册接线。
+
+页面局部逻辑可先用预览器动作验证；容器、权限、网络、真实IME及GPU行为必须走游戏或服务器验收。新增游戏业务的验收步骤需明确注册，脚手架生成页面不等于自动覆盖游戏行为。tools/test-smoke-all.sh 只测试冒烟结果计数，假进程退出码不证明游戏通过。
+
 ## 游戏与热重载
 
 ```bash
@@ -125,6 +134,8 @@ stdio：`node tools/mcp/oriel-preview.mjs`，cwd 仓库根，可设 ORIEL_ROOT�
 启动前确认运行目录按工作区构建约定指向 daily，不新建仓库内 run。kit 巡检可用 -Pautopilot=oriel，但不会自动覆盖下游新业务。
 
 保存已读取 HTML/CSS/JSON 可重载；driver push/patch 与控制器 saveState/restoreState 有各自状态保留规则。Java 热替换受 VM 限制，增删字段/方法、改加载器元数据可能要重启；语言/字体/纹理需资源重载。不要承诺任意更改都免重启。
+
+当前文件观察器发现变化后调用 DocumentDriver.reloadAll，重新创建文档并尝试恢复控制器状态；不是“只替换CSS而保持原DOM不变”。纯CSS增量重载仍未实现，不能靠saveState/restoreState等同替代。恢复只涵盖控制器主动保存的状态，不自动保存任意JS闭包、临时事件或输入法组合状态。
 
 | 症状 | 检查 |
 |---|---|

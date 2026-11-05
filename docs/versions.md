@@ -79,7 +79,12 @@ bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-
 5. Add the version to the table at the top of this file, list anything that works differently on it, and add a line
    to `CHANGELOG.md` under the next version.
 
-Commit with the sources on 26.3. Publishing needs nothing more. CI and the release workflow build every version in
-`settings.gradle`. A release publishes each version's artifacts to maven.maxleiter.com, uploads its jars to Modrinth
-and CurseForge tagged with its Minecraft version, and lists them in the GitHub release. If one jar also runs on other
-Minecraft versions, list them all in that version's table as `publish_minecraft_versions = "26.2, 26.2.1"`.
+提交时保持共享源码为26.3。当前仓库仅配置 `.github/workflows/build.yml`，没有 release.yml 或自动标签发布流程。
+Build 在 main 推送、PR 或手动触发时运行，不使用路径过滤；执行全版本构建、根检查、NeoForge26.1服务端GameTest及下游模板编译，
+并用Node24运行后端/发布边界回归与无游戏的冒烟结果计数测试。运行和测试临时目录放在 runner.temp。
+上传前再以 `-Poriel_release` 构建六个加载器/版本JAR并检查开发类排除及许可条目。源码JAR仍保留源码。
+配置存在不代表远端运行已通过，须查看对应提交的GitHub Actions回执。
+
+发布插件保留 Maven、Modrinth、CurseForge 的配置入口，但地址/项目ID、凭据、产物许可和平台权限均需实际确认，
+不能把历史 maven.maxleiter.com 地址当成本项目已获发布授权的目的地，也不会因创建标签自动发布。
+同一JAR兼容多个MC版本时，可在对应版本表填写 `publish_minecraft_versions = "26.2, 26.2.1"`；支持声明仍须运行证据。

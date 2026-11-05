@@ -14,6 +14,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      ORIEL_RUN_DIR: ${{ runner.temp }}/oriel-runs
+      ORIEL_TEST_TMP: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v5
 
@@ -26,6 +29,16 @@ jobs:
       # Caches Gradle, the Minecraft artifacts and the pinned Rhino source archive (in the Gradle user home).
       - uses: gradle/actions/setup-gradle@v5
 
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Check backend and release boundaries
+        run: node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs
+
+      - name: Check smoke result accounting without launching Minecraft
+        run: bash tools/test-smoke-all.sh "$RUNNER_TEMP/oriel-smoke-tests"
+
       # Full matrix, explicit root API/template/boundary gates, and both loaders' server tests.
       - run: ./gradlew build :check :neoforge:26.1:runGameTestServer --stacktrace
 
@@ -33,6 +46,29 @@ jobs:
       # break them unnoticed.
       - name: Compile downstream templates
         run: ./gradlew templateCompile --stacktrace
+
+      # Rebuild runtime jars with development implementations excluded before uploading artifacts.
+      - name: Build and check release jars for all supported targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          tasks=()
+          for loader in fabric neoforge; do
+            for version in 26.1 26.2 26.3; do
+              tasks+=(":$loader:$version:jar")
+            done
+          done
+          ./gradlew "${tasks[@]}" -Poriel_release --stacktrace
+          for loader in fabric neoforge; do
+            for version in 26.1 26.2 26.3; do
+              mapfile -t jars < <(find "$loader/versions/$version/build/libs" -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar')
+              if (( ${#jars[@]} != 1 )); then
+                echo "Expected one runtime jar for $loader:$version, got ${#jars[@]}" >&2
+                exit 1
+              fi
+              node tools/check-release.mjs "${jars[0]}"
+            done
+          done
 
       - if: failure()
         uses: actions/upload-artifact@v5

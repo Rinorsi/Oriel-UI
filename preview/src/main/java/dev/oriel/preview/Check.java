@@ -31,6 +31,10 @@ final class Check {
     }
 
     static int run(Path target, String language) throws IOException {
+        return run(target, language, false);
+    }
+
+    static int run(Path target, String language, boolean strict) throws IOException {
         List<Path> pages = new ArrayList<>();
         if (Files.isDirectory(target)) {
             try (Stream<Path> walk = Files.walk(target)) {
@@ -77,7 +81,7 @@ final class Check {
             for (String p : problems) System.out.println("     " + p);
         }
         System.out.println(pages.size() + " page(s): " + (pages.size() - failed - warned) + " ok, " + warned + " with warnings, " + failed + " failed");
-        return failed > 0 ? 1 : 0;
+        return failed > 0 ? 1 : strict && warned > 0 ? 3 : 0;
     }
 
     private static String firstLine(Throwable t) {

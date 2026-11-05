@@ -72,4 +72,5 @@ tasks.register('checkUi', JavaExec) {
     systemProperty('java.awt.headless', 'true')
     args('--check', project.findProperty('ui') ?: 'kit/src/main/resources/assets/oriel/ui')
     if (project.hasProperty('lang')) args('--lang', project.property('lang'))
+    if (project.hasProperty('uiStrict')) args('--strict')
 }

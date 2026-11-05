@@ -6,8 +6,8 @@ plugins {
 }
 
 // Uploads this loader and Minecraft version's jar to Modrinth and CurseForge: `./gradlew publishMods` from the root
-// makes six uploads to each site, one per jar (two loaders, three Minecraft versions). The release workflow
-// (.github/workflows/release.yml) runs it for a v* tag. `-PpublishDryRun` (or PUBLISH_DRY_RUN=true) does everything
+// makes six uploads to each site, one per jar (two loaders, three Minecraft versions). No release/tag workflow
+// is currently committed; publishing requires an explicitly authorized invocation. `-PpublishDryRun` (or PUBLISH_DRY_RUN=true) does everything
 // but upload: the files and what would be sent go to build/publishMods/ and the log.
 //
 // Project ids are modrinth_id and curseforge_id in gradle.properties. The tokens are only ever read from the

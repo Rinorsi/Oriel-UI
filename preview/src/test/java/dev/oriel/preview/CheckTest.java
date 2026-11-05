@@ -12,9 +12,31 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** {@code --check}: a clean page passes; a missing image fails; a CSS slip is listed. */
 class CheckTest {
+    @Test
+    void strictCheckingRejectsWarningsButDefaultRemainsCompatible(@TempDir Path dir) throws Exception {
+        Path page = dir.resolve("warning.html");
+        Files.writeString(page, "<html><head><style>p { colour: red; }</style></head><body><p>x</p></body></html>");
+        assertEquals(0, Check.run(page));
+        assertEquals(3, Preview.check(new String[]{"--check", page.toString(), "--strict", "--lang", "en_us"}));
+        assertEquals(3, Preview.check(new String[]{"--check", page.toString(), "--lang", "zh_cn", "--strict"}));
+        Files.writeString(page, "<html><body><p>x</p></body></html>");
+        assertEquals(0, Check.run(page, "zh_cn", true));
+        Files.writeString(page, "<html><body><img src='missing.png'></body></html>");
+        assertEquals(1, Check.run(page, "zh_cn", true));
+    }
+
+    @Test
+    void checkingRejectsMissingOrUnknownArguments() {
+        assertThrows(IllegalArgumentException.class, () -> Preview.check(new String[]{"--check"}));
+        assertThrows(IllegalArgumentException.class, () -> Preview.check(new String[]{"--check", "page.html", "--lang"}));
+        assertThrows(IllegalArgumentException.class, () -> Preview.check(new String[]{"--check", "page.html", "--lang", "--strict"}));
+        assertThrows(IllegalArgumentException.class, () -> Preview.check(new String[]{"--check", "page.html", "--mystery"}));
+    }
+
     @Test
     void reportsMissingImagesAndCss(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("good.html"), "<html><body><div style=\"color: red\">ok</div></body></html>");

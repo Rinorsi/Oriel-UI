@@ -22,7 +22,7 @@ public final class Preview {
             Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N] [--boxes selector]] [--narrate] [--strict]
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
-                   preview --check <dir or page.html>   (every page at 640x360 and 427x240: errors, missing images, CSS)
+                   preview --check <dir or page.html> [--strict] [--lang language]   (errors, missing images, CSS)
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
             --lang <language> selects a language such as zh_cn (default) or en_us; --check also accepts it.
@@ -112,9 +112,14 @@ public final class Preview {
     public static void main(String[] args) throws IOException {
         // The Ore presets' Java controllers attach to their pages as they load.
         OrielKit.register();
-        if ((args.length == 2 || args.length == 4 && args[2].equals("--lang")) && args[0].equals("--check")) {
+        if (args.length > 0 && args[0].equals("--check")) {
             System.setProperty("java.awt.headless", "true");
-            System.exit(Check.run(java.nio.file.Path.of(args[1]), args.length == 4 ? args[3] : "zh_cn"));
+            try {
+                System.exit(check(args));
+            } catch (IllegalArgumentException e) {
+                System.err.println(e.getMessage() + "\n" + USAGE);
+                System.exit(2);
+            }
             return;
         }
         Options options;
@@ -170,6 +175,23 @@ public final class Preview {
             return 2;
         }
         return scene.error() == null ? 0 : 1;
+    }
+
+    static int check(String[] args) throws IOException {
+        if (args.length < 2 || args[1].startsWith("--")) throw new IllegalArgumentException("--check needs a target");
+        String language = "zh_cn";
+        boolean strict = false;
+        for (int i = 2; i < args.length; i++) {
+            switch (args[i]) {
+                case "--strict" -> strict = true;
+                case "--lang" -> {
+                    language = Options.value(args, ++i, "--lang");
+                    if (language.startsWith("--")) throw new IllegalArgumentException("--lang needs a language");
+                }
+                default -> throw new IllegalArgumentException("Unknown check option: " + args[i]);
+            }
+        }
+        return Check.run(java.nio.file.Path.of(args[1]), language, strict);
     }
 
     /** With {@code --strict}, a run that otherwise passed fails with 3 when the page had warnings or errors. */
