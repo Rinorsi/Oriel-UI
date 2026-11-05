@@ -27,7 +27,7 @@ Taffy layout test fixtures (https://github.com/DioxusLabs/taffy), MIT.
   Taffy; their license is in that directory. They are test data only and are not
   shipped in any jar.
 
-Bundled fonts (kit/src/main/resources/assets/oriel/font/), SIL Open Font License 1.1.
+Bundled fonts (kit/src/main/resources/assets/oriel/font/), OFL-1.1 and component notices.
   Each licence is in kit/src/main/resources/META-INF/licenses/fonts/ and ships in the jar. All but
   Smiley Sans are subsets (GB2312 symbols and level-1 hanzi, Latin, punctuation,
   and the characters the kit's pages use), made by a fontTools script; the fonts
@@ -36,7 +36,9 @@ Bundled fonts (kit/src/main/resources/assets/oriel/font/), SIL Open Font License
     https://github.com/TakWolf/fusion-pixel-font, release 2026.10.25), OFL-1.1;
     it includes glyphs from Ark Pixel Font, Cubic 11, Galmuri, Boutique Bitmap
     7x7 (OFL-1.1), Misaki (free licence) and Miseki Bitmap (OFL-1.1).
-  - Cubic 11 (ACh-K, https://github.com/ACh-K/Cubic-11, v1.500), OFL-1.1.
+  - Cubic 11 (ACh-K, https://github.com/ACh-K/Cubic-11, v1.500). The bundled
+    cubic-11-OFL.txt includes Cubic 11's permission and component font terms;
+    retain the entire text, not only its OFL section.
   - Noto Sans SC (Google, https://github.com/google/fonts, ofl/notosanssc),
     instanced at weight 400, OFL-1.1 (Reserved Font Name "Source", not used).
   - LXGW WenKai Regular (LXGW, https://github.com/lxgw/LxgwWenKai, v1.530),
@@ -48,3 +50,14 @@ Bundled fonts (kit/src/main/resources/assets/oriel/font/), SIL Open Font License
     OFL-1.1.
   - Ma Shan Zheng (https://github.com/googlefonts/mashanzheng, via google/fonts),
     OFL-1.1.
+
+Asset provenance
+----------------
+
+The per-file source and license inventory is docs/asset-provenance.json; its
+scope and verification commands are described in docs/asset-provenance.md.
+Generated icon and Ore texture bytes have been matched to workspace generators,
+but the generators' publication/license records and other image source records
+remain incomplete. Entries marked needs-user-confirmation require confirmation
+before external distribution; this notice does not grant missing permissions.
+Keep the upstream MIT, font component and Rhino MPL notices independently.

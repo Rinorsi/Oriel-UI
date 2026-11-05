@@ -23,11 +23,13 @@ C 和 D 的原理与完整例子见 [服务端篇](server.md)。
 
 在本仓库里 `./gradlew build`，每个目标的 jar 在 `<加载器>/versions/<MC 版本>/build/libs/oriel-<加载器>-<MC 版本>-<版本>.jar`。把它放进测试环境的 `mods/`，开发时让你的工程依赖这个 jar。
 
-模组 id 固定为 `oriel`。在你的 `neoforge.mods.toml` / `fabric.mod.json` 里声明为**必需依赖**；想把库打进自己的 jar，用 Jar-in-Jar（NeoForge 的 `jarJar`、Fabric 的 `include`）。多个模组都带了本库时，加载器只加载最新的一份。
+模组 id 固定为 `oriel`。在你的 `neoforge.mods.toml` / `fabric.mod.json` 里声明为**必需依赖**；想把库打进自己的 jar，用 Jar-in-Jar（NeoForge 的 `jarJar`、Fabric 的 `include`）。多个模组都带了本库时，加载器须先满足全部消费者的版本约束，再选择一份可用版本；约束无交集应拒绝加载，不能保证总是选最新版。
 
 支持的组合：Minecraft 26.1.2 / 26.2 / 26.3，Fabric 与 NeoForge，Java 25。
 
 0.10 系列推荐依赖范围：Fabric `>=0.10.0 <0.11.0`，NeoForge `[0.10.0,0.11.0)`。1.0 之前不兼容的公共 API 变更提升 minor 版本。必需外部依赖是推荐路径，Jar-in-Jar 仅为可选便利。仓库 `./gradlew templateCompile` 会将当前产物发布到 build/template-maven 并编译两个模板，不使用上游 Vellum Maven。
+
+0.9 消费者应声明 `>=0.9.0 <0.10.0` / `[0.9.0,0.10.0)`；与上述 0.10 范围无交集。把两版嵌入不同父模组，不会自动修复公共 API 的二进制差异。跨 minor 版本须迁移消费者并分别验证；只改版本元数据的夹具、共同 DOM 子集的无头通过，都不能证明游戏内或全部 API 兼容。实际发行 JAR 的无头消费者探针用法见 [验证工具](../../tools/compat/README.md)。
 
 可选依赖（你的模组没有本库也能运行时）：先判断本库是否加载（`ModList.get().isLoaded("oriel")` / `FabricLoader.getInstance().isModLoaded("oriel")`），再使用 `dev.oriel` 的类；把用到本库的代码放进单独的类，没装时它不会被加载。
 

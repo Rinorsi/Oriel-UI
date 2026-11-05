@@ -34,7 +34,7 @@
 
 ## 文档分工
 
-工程专题：[自研解析器](parsers.md)、[国际化](i18n.md)、[后端构建与维护](backend-maintenance.md)、[安装与公共 API 稳定性](../api/setup.md)。
+工程专题：[自研解析器](parsers.md)、[国际化](i18n.md)、[后端构建与维护](backend-maintenance.md)、[安装与公共 API 稳定性](../api/setup.md)、[素材来源与许可](../asset-provenance.md)。
 
 `docs/zh/` 是中文制作与能力入口；`docs/api/` 和 `docs/SCRIPTING.md` 保留细节补充或兼容链接，索引明确指出其用途。`preview/README.md` 与 `tools/h5ref/README.md` 负责各工具本身。`docs/versions.md`、`docs/MC_26_3_GUI_API.md`、`docs/design/` 面向引擎维护，设计提案不代表已实现。
 

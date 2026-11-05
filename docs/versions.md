@@ -58,6 +58,13 @@ bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-
 
 ## Adding a Minecraft version
 
+先在仓库外的隔离副本干跑，不直接扩展发布支持范围：
+
+- 从 Mojang 官方版本清单取得确切版本 ID 和元数据 SHA-1，并核对 Java 要求；快照 ID 与未来正式版号不能混用。下载输入与日志放工作区 daily。
+- 分别确认该 ID 对应的 Fabric API、Loader、NeoForge、NeoForm 及插件实际可用。任一加载器或映射未发布就记录阻塞，不借用相邻版本或只改 Minecraft 范围来宣称支持。可以只准备元数据，不必提前下载或启动游戏。
+- 同步检查下文配置之外的固定版本列表：`tools/smoke-all.sh`、`.github/workflows/build.yml` 的正式包构建/核查循环、`tools/backend-boundaries.test.mjs` 的目标与生成包断言，以及下游 `template/*/gradle.properties` 的示例基准。新增版本不应漏出 CI、许可检查或依赖来源校验。
+- 将“元数据预备 / Gradle 配置 / 编译 / 无头测试 / 网页批准 / 游戏 / 联机”分开记录；缺依赖时在预备阶段停止，不能将干跑称为完成兼容。
+
 1. Add the version to `minecraftVersions` in `settings.gradle`.
 2. Add a `["<version>"]` table to `stonecutter.properties.toml` with the same keys as the others. NeoForge and
    NeoForm versions are on [projects.neoforged.net](https://projects.neoforged.net/neoforged/neoforge), Fabric's on
@@ -72,8 +79,8 @@ bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-
    client at startup. Typical breakage between neighboring 26.x versions: package moves (`blaze3d` to `renderpearl`),
    private input handlers that need widening, and changed signatures in tooltip and model submission code;
    26.2 is a worked example (the `>=26.3` comments and the `renderpearl` rename in `stonecutter.gradle`).
-4. `./gradlew build` builds and tests every version on both loaders, including the GameTests. Then look at the
-   demos in the game: `./gradlew :neoforge:<version>:runClient -Pautopilot` and the same for `:fabric:<version>`.
+4. 先运行编译与无头检查，按 [UI 工作流](zh/ui-workflow.md) 取得用户对固定版本的网页批准后，才运行游戏测试与客户端。根 `build` 可能包含 GameTest，不可在批准前作为快捷步骤。批准后再运行 `./gradlew build` 及
+   `./gradlew :neoforge:<version>:runClient -Pautopilot`，Fabric 同样验证。
    On macOS, copy `options.txt` (with `enableVsync:false`) and `config/fml.toml` (with `earlyWindowControl = false`)
    from a working external run directory into the new version's run directory first. Set `ORIEL_RUN_DIR` to a workspace directory outside the repository.
 5. Add the version to the table at the top of this file, list anything that works differently on it, and add a line
