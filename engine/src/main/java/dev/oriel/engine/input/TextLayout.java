@@ -11,8 +11,8 @@ import java.util.List;
 
 /**
  * The visual lines of a text control's value, measured like any text ({@link TextMeasure}: the host's advances plus
- * letter- and word-spacing): one unwrapped line for inputs, paragraphs soft-wrapped at spaces (or anywhere, for words
- * longer than the width) for textareas. Offsets are model offsets into the value; for masked (password) text each
+ * letter- and word-spacing): one unwrapped line for inputs, paragraphs soft-wrapped at spaces or CJK opportunities
+ * for textareas. Unbreakable runs may overflow, as they do in normal paragraphs. Offsets are model offsets into the value; for masked (password) text each
  * code point is drawn as a bullet.
  */
 final class TextLayout {
@@ -31,6 +31,7 @@ final class TextLayout {
     }
 
     private final String text;
+    private final Graphemes graphemes = new Graphemes();
     private final boolean masked;
     private final float wrapWidth, letterSpacing, wordSpacing;
     private final FontSpec font;
@@ -90,7 +91,7 @@ final class TextLayout {
         Line l = lines.get(Math.max(0, Math.min(lines.size() - 1, line)));
         int last = caretEnd(l);
         for (int o = l.start; o < last; o = next(o)) {
-            int n = next(o);
+            int n = Math.min(last, next(o));
             if (x < (l.xs[o - l.start] + l.xs[n - l.start]) / 2) return o;
         }
         return last;
@@ -105,12 +106,12 @@ final class TextLayout {
     }
 
     private int next(int offset) {
-        return offset < text.length() && Character.isHighSurrogate(text.charAt(offset)) ? offset + 2 : offset + 1;
+        return graphemes.next(text, offset);
     }
 
     /**
-     * Greedy wrapping of the paragraph {@code [start, end)}: break after spaces or at CJK opportunities, or mid-word
-     * when a word overflows.
+     * Greedy wrapping of the paragraph {@code [start, end)}: break after spaces or at CJK opportunities. Unbreakable words
+     * and punctuation runs overflow rather than violating kinsoku or splitting a grapheme.
      */
     private void wrap(int start, int end, TextMeasure measure, ComputedStyle s) {
         float[] pos = new float[end - start + 1];
@@ -126,11 +127,11 @@ final class TextLayout {
         int lineStart = start, breakAt = -1;
         for (int i = start; i < end; ) {
             int cp = text.codePointAt(i);
-            int n = Character.charCount(cp);
+            int n = Math.min(end, next(i)) - i;
             boolean space = Character.isWhitespace(cp);
-            // Spaces may hang past the edge; anything else that overflows a non-empty line moves to the next one.
-            if (!space && i > lineStart && pos[i + n - start] - pos[lineStart - start] > wrapWidth) {
-                int at = breakAt > lineStart ? breakAt : i;
+            // Spaces may hang past the edge. Wrap only at a legal opportunity, as paragraphs do.
+            if (!space && breakAt > lineStart && pos[i + n - start] - pos[lineStart - start] > wrapWidth) {
+                int at = breakAt;
                 addLine(lineStart, at, pos, start, true, measure, s);
                 lineStart = at;
                 breakAt = -1;

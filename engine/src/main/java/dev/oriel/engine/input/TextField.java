@@ -8,6 +8,7 @@ import dev.oriel.engine.host.Host;
 import dev.oriel.engine.layout.Box;
 import dev.oriel.engine.layout.TextMeasure;
 import dev.oriel.engine.paint.Affine;
+import dev.oriel.engine.paint.Coordinates;
 import dev.oriel.engine.style.ComputedStyle;
 
 import java.util.Locale;
@@ -123,7 +124,7 @@ final class TextField {
      */
     void extend() {
         Box box = element.box;
-        TextLayout l = layout();
+        TextLayout l = preedit != null ? composedLayout() : layout();
         if (box == null) return;
         if (multiline) {
             box.scrollHeight = Math.max(box.paddingBoxHeight(),
@@ -179,15 +180,21 @@ final class TextField {
      */
     void preedit(String text, int caret, int focusStart, int focusEnd) {
         if (text == null || text.isEmpty()) {
+            if (preedit == null) return;
             preedit = null;
             composedLayout = null;
+            extend();
+            scrollToCaret();
             return;
         }
+        if (preedit == null) editor.select(editor.anchor(), editor.caret());
         preedit = text;
         preeditCaret = Math.max(0, Math.min(text.length(), caret));
         preeditFocusStart = Math.max(0, Math.min(text.length(), focusStart));
         preeditFocusEnd = Math.max(preeditFocusStart, Math.min(text.length(), focusEnd));
         caretOn = true;
+        extend();
+        scrollToCaret();
     }
 
     String preedit() {
@@ -224,10 +231,13 @@ final class TextField {
      */
     float[] caretRect() {
         if (element.box == null) return null;
-        float[] r = element.getBoundingClientRect();
+        Affine m = Coordinates.toViewport(element.box, new Affine(), new Affine());
         TextLayout l = preedit != null ? composedLayout() : layout();
         int caret = preedit != null ? composeAt() + preeditCaret : editor.caret();
-        return new float[] {r[0] + textX() + l.x(caret), r[1] + glyphY(l.lineOf(caret)), glyphHeight()};
+        float x = textX() + l.x(caret), y = glyphY(l.lineOf(caret));
+        float x1 = m.mapX(x, y), y1 = m.mapY(x, y);
+        float x2 = m.mapX(x, y + glyphHeight()), y2 = m.mapY(x, y + glyphHeight());
+        return new float[] {Math.min(x1, x2), Math.min(y1, y2), Math.abs(y2 - y1)};
     }
 
     // ---- Focus and time ----
@@ -261,6 +271,10 @@ final class TextField {
 
     /** The default action of a keydown while focused. Consumes every key except Escape. */
     boolean keyDown(String key, Modifiers mods) {
+        if (preedit != null) {
+            if (key.equals("Escape")) preedit(null, 0, 0, 0);
+            return true; // Composition editing belongs to the host input method.
+        }
         if (key.equals("Escape")) return false;
         if (mods.shortcut() && shortcut(key.toLowerCase(Locale.ROOT), mods.shift())) return true;
         boolean extend = mods.shift();
@@ -295,6 +309,7 @@ final class TextField {
 
     /** Typed text (already composed). */
     void type(String text) {
+        preedit(null, 0, 0, 0);
         perform(editor.planInsert(text, "insertText"));
     }
 
@@ -445,8 +460,8 @@ final class TextField {
     void scrollToCaret() {
         Box box = element.box;
         if (box == null) return;
-        TextLayout l = layout();
-        int caret = editor.caret();
+        TextLayout l = preedit != null ? composedLayout() : layout();
+        int caret = preedit != null ? composeAt() + preeditCaret : editor.caret();
         float left = element.scrollLeft(), top = element.scrollTop();
         if (multiline) {
             float h = lineHeight(), lineTop = l.lineOf(caret) * h;

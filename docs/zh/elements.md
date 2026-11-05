@@ -46,6 +46,16 @@ Java 控制器可显式启用 o-text/o-for/o-key/o-if/o-class:*/o-attr:*/o-on:* 
 
 value/checked 是运行时状态，HTML 属性主要是初始值。不要靠 CSS disabled 类代替业务权限或服务端校验。原生 disabled 与自绘组件样式禁用要分清。
 
+### 文本编辑、中文断行与输入法
+
+文本控件的光标、选区偏移仍为 UTF-16 索引；左右移动、Backspace、Delete 和鼠标命中按扩展字素边界处理（含组合重音、肤色 emoji、ZWJ 家庭与旗帜），落在字素内部的选区端点向前吸附。maxlength 仍以 UTF-16 单位计数。
+
+textarea 在空白与中文允许的边界换行；相同字体、字距、内容宽度和保留空白条件下，中文及中英混排与普通 p 的正常断行一致。避头尾的连续标点和无断点的长单词允许溢出，不强行拆开；p 默认折叠空白，textarea 保留空白与硬换行，因此两者的空白处理不等价。文本控件尚不按 word-break / overflow-wrap 切换断行策略。
+
+预编辑由宿主通过 InputHandler.preedit(text, caret, focusStart, focusEnd) 提供；三个偏移均为预编辑字符串中的 UTF-16 索引，null/空字符串取消显示，已提交字符通过 charTyped 输入。预编辑不改变 value；组合中编辑按键留给宿主输入法，Escape 取消预编辑，失焦取消且保留已提交值和选区。一次组合开始会分隔撤销组。预编辑会滚动到组合光标；textCaretRect() 返回 {x,y,height}（视口 GUI px），计入滚动与 CSS 变换，实际窗口/GUI 缩放由 MC 宿主换算。
+
+以上为引擎回归验证范围。真实中文输入法的候选窗、系统取消/提交事件顺序与 GUI 缩放仍需 Windows 上按 Fabric/NeoForge × 26.1/26.2/26.3 六目标人工验收；自动输入中文不能替代实机。
+
 ## 物品、槽位、图片
 
 | 元素 | 参数 | 默认/约束 |
