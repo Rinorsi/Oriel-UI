@@ -8,7 +8,7 @@ import java.util.function.IntPredicate;
 /**
  * The text model of a text control: the value, the caret and selection, and undo history. It knows nothing about the
  * DOM or fonts, so single-line inputs and textareas share it and it is unit-tested on its own. Offsets are UTF-16
- * indices and never split a surrogate pair.
+ * indices snapped to extended grapheme boundaries.
  *
  * <p>Edits are two-phase so the caller can fire a cancelable {@code beforeinput} in between: a {@code plan*} method
  * describes an edit without applying it (null when there is nothing to do), and {@link #apply} performs it.
@@ -30,6 +30,7 @@ public final class TextEditor {
 
     private final boolean multiline;
     private String text = "";
+    private final Graphemes graphemes = new Graphemes();
     private int anchor, caret;
     private int maxLength = -1;
     private IntPredicate allowed = cp -> true;
@@ -88,7 +89,7 @@ public final class TextEditor {
     }
 
     /**
-     * Left/Right: one code point or one word. Without {@code extend} a selection collapses to its start or end
+     * Left/Right: one grapheme or one word. Without {@code extend} a selection collapses to its start or end
      * instead of moving.
      */
     public void moveHorizontally(boolean forward, boolean word, boolean extend) {
@@ -100,14 +101,14 @@ public final class TextEditor {
         moveTo(target, extend);
     }
 
-    /** The offset one code point before {@code offset}. */
+    /** The offset one grapheme before {@code offset}. */
     public int previous(int offset) {
-        return offset <= 0 ? 0 : text.offsetByCodePoints(offset, -1);
+        return graphemes.previous(text, offset);
     }
 
-    /** The offset one code point after {@code offset}. */
+    /** The offset one grapheme after {@code offset}. */
     public int next(int offset) {
-        return offset >= text.length() ? text.length() : text.offsetByCodePoints(offset, 1);
+        return graphemes.next(text, offset);
     }
 
     /** Start of the word at or before {@code offset}, skipping separators first (Ctrl/Alt+Left). */
@@ -176,7 +177,7 @@ public final class TextEditor {
     }
 
     /**
-     * Plans Backspace ({@code forward} false) or Delete, by code point or by word. A selection is deleted as a whole.
+     * Plans Backspace ({@code forward} false) or Delete, by grapheme or by word. A selection is deleted as a whole.
      * Returns null when there is nothing to delete.
      */
     public Edit planDelete(boolean forward, boolean word) {
@@ -248,12 +249,9 @@ public final class TextEditor {
         return sb.toString();
     }
 
-    /** Clamps into the text and moves off the low half of a surrogate pair. */
+    /** Clamps into the text and snaps back to an extended grapheme boundary. */
     private int snap(int offset) {
-        int o = Math.max(0, Math.min(text.length(), offset));
-        boolean insidePair = o > 0 && o < text.length()
-                && Character.isLowSurrogate(text.charAt(o)) && Character.isHighSurrogate(text.charAt(o - 1));
-        return insidePair ? o - 1 : o;
+        return graphemes.floor(text, offset);
     }
 
     private static boolean isWordChar(int cp) {
