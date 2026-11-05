@@ -32,9 +32,38 @@ engine、kit、preview、mc-extension 以及 common/两个加载器开启 -Xlint
 ./gradlew --offline :common:26.3:compileJava --rerun-tasks -PstrictExternalClassfiles
 ```
 
-没有启用 Error Prone 编译器。当前缓存只有 error_prone_annotations，没有可离线验证的 error_prone_core/Gradle 集成。compileOnly 的注解包用于让 javac 读懂 Gson/Guava 发布的类型注解，不是 Error Prone 插件，也不会打进运行时。
+### Error Prone（JDK 25）
 
-Error Prone 后续接入以[官方安装说明](https://errorprone.info/docs/installation)为准：在 fork 的 javac JVM 上为 jdk.compiler/com.sun.tools.javac.{api,file,main,model,parser,processing,tree,util} 分别设置 --add-exports=…=ALL-UNNAMED，并为 code、comp 设置 --add-opens=…=ALL-UNNAMED；不能只作为普通源码编译选项。还需 core、完整传递依赖、-Xplugin:ErrorProne 与编译策略配置，或已验证的 Gradle 集成。2026-11-06 本机缓存仍无 error_prone_core，故未启用、未进行 JDK25 Error Prone 运行验证；普通 javac 严格编译通过不能替代该验证。
+engine、kit、preview 及 common/Fabric/NeoForge 三个版本的 main compileJava 启用 Error Prone 2.48.0。独立 errorprone 配置仅经 annotationProcessorPath 加载，不进入运行包、发布依赖或测试编译。Rhino、build-logic、mc-extension、script-rhino 未启用。Stonecutter 的 build/generated/stonecutter 存放自有源码版本转换结果，仍受检；仅排除 generated/sources/annotationProcessor 和 generated-sources/annotations 下的工具生成源码。
+
+配置入口：build-logic/src/main/groovy/oriel-errorprone.gradle、gradle/errorprone.json。官方 core 的 with-dependencies 工件因许可证边界不含 Checker Framework，须另加上游 POM 指定的 io.github.eisop:dataflow-errorprone:3.41.0-eisop1，否则数据流规则抛 NoClassDefFoundError。这两项都是编译工具，不打入运行包。新增 SHA-256 先与 Central 官方 HTTPS 工件及 .jar.sha256 交叉核对，再经 tools/verify-central.mjs 验证后记入 XML，没有放宽外部依赖验证。
+
+按[官方安装说明](https://errorprone.info/docs/installation)，main 编译 fork 的 javac JVM 设置 jdk.compiler/com.sun.tools.javac.{api,file,main,model,parser,processing,tree,util} 的8个 --add-exports，以及 code、comp 的2个 --add-opens，目标均为 ALL-UNNAMED；不能作为普通源码编译参数。编译参数另含 -XDcompilePolicy=simple、--should-stop=ifError=FLOW 和 -Xplugin:ErrorProne。JDK25 编译器负例覆盖错误拒绝、正确代码通过、生成代码排除、Stonecutter 自有源码不排除。
+
+正常构建保留现有 javac -Xlint:all/-Werror 和 JOML 窄例外。Error Prone 使用白名单，不把全部上游警告升级为错误。以下12条为 ERROR：
+
+- ArrayEquals、ArrayHashCode：数组错误的值比较或哈希。
+- CollectionIncompatibleType、EqualsIncompatibleType：不相容类型比较或集合查询。
+- InvalidPatternSyntax：常量正则表达式语法错误。
+- SelfAssignment、SelfComparison：自赋值或自比较。
+- StringBuilderInitWithChar：误把字符数值当作初始容量。
+- MisusedWeekYear：周所属年与日历年的格式混用。
+- NullTernary：三目表达式的空值拆箱。
+- Finally：finally 控制流覆盖原结果。
+- DeadException：构造异常却未抛出或使用。
+
+其他规则默认关闭；首轮出现的规则在 JSON 的 disabled 中逐项显式 OFF 并写明理由。OperatorPrecedence、AssignmentExpression、MissingOverride、BadImport 主要涉及风格；IdentityHashMapUsage、ReferenceEquality 涉及 DOM、缓存、连接的身份语义；EnumOrdinal、ArrayRecordComponent 涉及内部索引和数据载体约定，不机械改写。ClassInitializationDeadlock、FutureReturnValueIgnored、StringCaseLocaleUsage、FloatCast 等留待复现审查，不称误报或已修复。H03 不改变运行行为和页面外观。完整取舍以 JSON 为准，扩充规则前做警告扫描与针对性复现。
+
+显式调查模式把 Error Prone 默认错误降为 warning，临时去掉 main 编译的 javac -Werror，最多输出10000条警告；只用于人工统计，不替代正常门禁验收：
+
+```bash
+./gradlew --offline compileJava -PerrorProneSurvey
+./gradlew --offline compileJava :engine:test :kit:test :preview:test checkBackendBoundaries
+# 使用 errorprone 配置解析出的两个精确 JAR；Windows classpath 用分号，其他系统用冒号。
+JAVA_HOME=/path/to/jdk25 ORIEL_TEST_TMP=/external/test-temp ORIEL_ERRORPRONE_CLASSPATH="/path/to/core-with-dependencies.jar:/path/to/dataflow-errorprone.jar" node --test tools/errorprone.test.mjs
+```
+
+未设置 ORIEL_ERRORPRONE_CLASSPATH 时，Node 编译器探针明确跳过，避免普通 Node 测试猜测本机缓存布局；完整接入验收必须显式设置并确认未跳过。verifyDependencyGraph、writeDependencyVerification 同时覆盖独立 errorprone 配置。升级时重做官方工件/哈希核对、负例、六目标编译及引擎/kit/预览测试；普通 javac 成功不能替代分析器运行证据。
 
 ## 依赖 SHA-256 校验
 

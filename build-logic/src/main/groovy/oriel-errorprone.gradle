@@ -1,0 +1,35 @@
+// Compiler-only analysis for our main sources; never inherited by runtime or test classpaths.
+plugins { id 'java' }
+def policy = new groovy.json.JsonSlurper().parse(rootProject.file('gradle/errorprone.json'))
+def survey = providers.gradleProperty('errorProneSurvey').isPresent()
+
+configurations {
+    errorprone {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    // The official shaded distribution excludes Checker Framework for license compatibility.
+    errorprone("com.google.errorprone:error_prone_core:${policy.version}:with-dependencies") { transitive = false }
+    errorprone("io.github.eisop:dataflow-errorprone:${policy.dataflowVersion}") { transitive = false }
+}
+
+tasks.named('compileJava', JavaCompile) {
+    options.fork = true
+    options.forkOptions.jvmArgs += policy.exports.collect {
+        '--add-exports=jdk.compiler/com.sun.tools.javac.' + it + '=ALL-UNNAMED'
+    } + policy.opens.collect {
+        '--add-opens=jdk.compiler/com.sun.tools.javac.' + it + '=ALL-UNNAMED'
+    }
+    options.annotationProcessorPath = sourceSets.main.annotationProcessorPath + configurations.errorprone
+    def checks = survey ? ['-XepAllErrorsAsWarnings'] : ['-XepDisableAllChecks'] +
+            policy.errors.collect { '-Xep:' + it + ':ERROR' } + policy.disabled.keySet().collect { '-Xep:' + it + ':OFF' }
+    options.compilerArgs += ['-XDcompilePolicy=simple', '--should-stop=ifError=FLOW',
+            '-Xplugin:ErrorProne ' + (checks + ['-XepDisableWarningsInGeneratedCode',
+                    '-XepExcludedPaths:' + policy.excludedPaths]).join(' ')]
+    if (survey) options.compilerArgs += ['-Xmaxwarns', '10000']
+    // Only the explicit survey demotes diagnostics. Normal builds retain the existing javac -Werror.
+    if (survey) doFirst { options.compilerArgs.removeAll { it == '-Werror' } }
+}

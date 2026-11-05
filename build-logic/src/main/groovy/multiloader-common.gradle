@@ -1,4 +1,5 @@
 plugins {
+    id 'oriel-errorprone'
     id 'java-library'
     id 'maven-publish'
 }

@@ -1,6 +1,7 @@
 // The Ore theme (stylesheet and textures) and the preset screens: pages under assets/oriel/ui and their Java
 // controllers. Pure Java on top of the engine, like it: no Minecraft classes, so the previewer and tests run them.
 plugins {
+    id 'oriel-errorprone'
     id 'java-library'
     id 'oriel-java'
 }

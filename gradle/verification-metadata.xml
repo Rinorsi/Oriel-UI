@@ -2290,5 +2290,15 @@
         <sha256 value='ad68a86cfd0255a2bc0525ce11ec49640caea7e34ff91eb89c3193dcccd77f05' origin='Offline resolved cache; review required' />
       </artifact>
     </component>
+    <component group='com.google.errorprone' name='error_prone_core' version='2.48.0'>
+      <artifact name='error_prone_core-2.48.0-with-dependencies.jar'>
+        <sha256 value='0cbceb5d17bf0e0f16bae277f79ea23f2bfd03b11252d66f6fcaa63afdf502c0' origin='Maven Central official HTTPS artifact and .jar.sha256; tools/verify-central.mjs 2026-11-06'/>
+      </artifact>
+    </component>
+    <component group='io.github.eisop' name='dataflow-errorprone' version='3.41.0-eisop1'>
+      <artifact name='dataflow-errorprone-3.41.0-eisop1.jar'>
+        <sha256 value='10434fba4e53f55fa9c76904cde414b918932548c9dfc4e2d634ac05ff7a7d10' origin='Maven Central official HTTPS artifact and .jar.sha256; tools/verify-central.mjs 2026-11-06'/>
+      </artifact>
+    </component>
   </components>
 </verification-metadata>
