@@ -49,6 +49,8 @@
 
 ## 开发
 
+参与维护、反馈问题与提交前验证见 [贡献指南](CONTRIBUTING.md)。
+
 ```bash
 node tools/new-page.mjs <名字> "<标题>"      # 新页面：HTML + 控制器 + 测试 + 登记
 ./gradlew :kit:test :preview:checkUi          # 测试 + 全部页面无头检查
