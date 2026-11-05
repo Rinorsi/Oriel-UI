@@ -31,6 +31,7 @@ Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟�
 | CSS transition / keyframes、2D transform | 浏览器时钟 | 引擎时钟，可脚本逐帧 | 引擎时钟，帧率随游戏负载变化 |
 | Ore 组件 CSS 外观 | 路径可解析时可看 | 可用 | 可用 |
 | `Shell` / `Widgets` / Java 控制器行为 | 需要 mock/桥接 | 已注册控制器可运行 | 已注册控制器可运行 |
+| Java ViewModel 的 o-* 声明式绑定 | 需另做 mock，不执行 Java | 显式装入 Java 控制器并调用 Bindings.attach | kit 提供相同绑定实现；页面仍需游戏验收，见[绑定合同](bindings.md) |
 | 页面 JavaScript | 浏览器 JS | Rhino 沙箱子集 | Rhino 沙箱子集 |
 | MC 字体、中文换行 | 字宽/换行不等价 | 读取 MC 资源，仍有后备字体差异 | 游戏字体与资源包；必须检查 |
 | 中文 IME 候选与预编辑 | 浏览器原生 | 不能替代 MC 输入链路验收 | 需按版本、输入后端实测 |

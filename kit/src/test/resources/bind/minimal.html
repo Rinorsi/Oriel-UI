@@ -1,0 +1,9 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Java bindings</title></head><body>
+<main>
+  <h1 o-text="title"></h1>
+  <p id="status" o-if="visible" o-class:active="active" o-attr:title="tip">Ready</p>
+  <ul><li o-for="row in rows" o-key="row.id" o-text="row.label"></li></ul>
+  <button id="save" o-on:click="save">Save</button>
+</main>
+</body></html>

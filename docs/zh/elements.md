@@ -2,6 +2,8 @@
 
 [入口](index.md) · [CSS](css-guide.md) · [脚本](scripting.md) · [容器](server.md)
 
+Java 控制器可显式启用 o-text/o-for/o-key/o-if/o-class:*/o-attr:*/o-on:* 属性，完整参数、默认、错误与运行环境见 [Java 声明式绑定](bindings.md)。它们不是原生 HTML 行为。
+
 本页的默认尺寸是 GUI px，按当前 MC 扩展 UA 样式计算；加载 `ore.css` 或作者样式后可能被覆盖。布尔属性按存在判断：`disabled="false"` 通常仍是禁用，应移除属性。自定义元素写完整结束标签，不使用 JSX 自闭合语法。
 
 ## 文档和普通标签

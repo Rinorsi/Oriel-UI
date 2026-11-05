@@ -27,6 +27,7 @@
 | 查按钮、开关、下拉、抽屉和主题怎么写 | [组件与参数](components.md) |
 | 查可用动画和粒子 | [动效](motion.md)与[组件](components.md) |
 | 查 JS 能否用 fetch、模块、Canvas、Vue | [脚本与交互合同](scripting.md) |
+| 用 Java ViewModel 驱动 o-text/o-for 等指令 | [Java 声明式绑定](bindings.md)：路径、稳定 key、诊断与可运行示例 |
 | 换一个 agent 继续做 UI | 把本页和 [制作流程](making-a-page.md)交给它，再给业务字段合同 |
 | 新增、删除、改名一个能力或字段 | [维护约定](maintenance.md)：同一次变更同步哪些文档 |
 | 了解引擎工作原理 | [架构](architecture.md)；页面作者无需先读 |
