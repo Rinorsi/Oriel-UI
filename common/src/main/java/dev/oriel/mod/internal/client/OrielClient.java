@@ -38,8 +38,6 @@ import java.util.function.Consumer;
 public final class OrielClient {
     public static final Identifier DEMO_HUD = Constants.id("demo_hud");
     public static final Identifier DEMO_TOAST = Constants.id("demo_toast");
-    /** The potion HUD preset ({@code /oriel showcase potions}). */
-    public static final Identifier POTION_HUD = Constants.id("potion_hud");
 
     private static Consumer<CustomPacketPayload> serverSender = p ->
             Constants.LOG.warn("Oriel: no client network sender installed; dropped {}", p.type().id());
@@ -78,56 +76,8 @@ public final class OrielClient {
             }
             return all;
         });
-        // The potion HUD shows the player's own effects.
-        PlayerEffects.init();
-        InventoryEffects.init();
         // The template centre's favourites, recently viewed and saved copies (config/oriel/).
         TemplateLibrary.init();
-        OrielHud.register(POTION_HUD, OrielKit.POTIONS, OrielHud.Input.WHEN_CHAT_OPEN);
-        // The gallery's HUD card: every lasting effect on the player (to see the HUD and the inventory's panel full),
-        // then the potion HUD over the game, closing the gallery so it can be seen.
-        OrielScreens.onPageLoad(OrielKit.GALLERY, driver -> driver.onMessage(OrielKit.CHANNEL, value -> {
-            if (value.isJsonPrimitive() && value.getAsString().equals("hud")) {
-                // After the click that sent it has been handled: the page must not close under its own event.
-                Minecraft.getInstance().schedule(() -> {
-                    McClient.setScreen(null);
-                    giveEveryLastingEffect();
-                    if (!OrielHud.isShown(POTION_HUD)) OrielHud.show(POTION_HUD);
-                });
-            }
-        }));
-    }
-
-    /**
-     * Gives the player every registered effect that lasts (instant ones such as instant health are left out), at
-     * varied levels and durations, through {@code /effect}: so it works only where the player may cheat, and says so
-     * in chat otherwise, as the command does. The ones that hide the screen or the player are left out too, since the
-     * point is to look at the effect lists: blindness, darkness, nausea and invisibility.
-     */
-    private static final java.util.Set<String> OBSCURING = java.util.Set.of(
-            "minecraft:blindness", "minecraft:darkness", "minecraft:nausea", "minecraft:invisibility");
-
-    static void giveEveryLastingEffect() {
-        var player = Minecraft.getInstance().player;
-        if (player == null) return;
-        int i = 0;
-        for (net.minecraft.world.effect.MobEffect effect : BuiltInRegistries.MOB_EFFECT) {
-            //? if >=26.2 {
-            if (effect.isInstantaneous()) continue;
-            //?} else
-            //if (effect.isInstantenous()) continue;
-            Identifier id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
-            if (id == null || OBSCURING.contains(id.toString())) continue;
-            int seconds = 40 + (i * 53) % 560, amplifier = i % 3;
-            // With their particles: hiding them hides the effect's icon too (vanilla ties showIcon to them).
-            player.connection.sendCommand("effect give @s " + id + " " + seconds + " " + amplifier);
-            i++;
-        }
-    }
-
-    /** Whether vanilla's effect icons at the top right are left out: the potion HUD shows the effects instead. */
-    public static boolean hidesVanillaEffects() {
-        return OrielHud.isShown(POTION_HUD);
     }
 
     public static void sendToServer(CustomPacketPayload payload) {
@@ -165,7 +115,5 @@ public final class OrielClient {
         if (ServerProbeClient.ENABLED) ServerProbeClient.tick();
         ServerPages.tick();
         Mobdex.tick();
-        PlayerEffects.tick();
-        InventoryEffects.tick();
     }
 }

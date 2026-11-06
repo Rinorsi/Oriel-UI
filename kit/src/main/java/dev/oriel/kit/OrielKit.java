@@ -28,7 +28,7 @@ public final class OrielKit {
     public static final String MUSIC = page("music");
     public static final String SETTINGS = page("settings");
     public static final String POTIONS = page("potions");
-    /** The player's effects beside vanilla's inventories (the mod shows it as an overlay there). */
+    /** The effects panel meant to sit beside a vanilla inventory: a design for a mod that places it; Oriel itself does not. */
     public static final String INVENTORY_EFFECTS = page("inventory_effects");
     public static final String EDITOR = page("editor");
     public static final String CATALOG = page("catalog");

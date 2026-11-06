@@ -60,19 +60,9 @@ public final class OrielClientCommands {
     /** The kit presets under {@code /oriel showcase}. */
     public static final List<String> PRESETS = CommandNames.PRESETS;
 
-    /** Opens a preset page, or the gallery; {@code hud} toggles the potion HUD overlay. */
+    /** Opens a preset page, or the gallery. */
     public static void preset(String name) {
-        if (name.equals("potions")) {
-            togglePotionHud();
-            return;
-        }
         OrielScreens.open(name.equals("templates") ? OrielKit.STYLES : OrielKit.page(name));
-    }
-
-    /** Shows or hides the potion HUD preset, which takes the pointer while chat is open. */
-    public static void togglePotionHud() {
-        if (OrielHud.isShown(OrielClient.POTION_HUD)) OrielHud.hide(OrielClient.POTION_HUD);
-        else OrielHud.show(OrielClient.POTION_HUD);
     }
 
     /** Opens a demo page; {@code hud} toggles the demo HUD overlay instead. */

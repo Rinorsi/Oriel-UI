@@ -11,7 +11,7 @@
 | 一个动作为中心的玩法界面 | C 舞台 + 侧栏 | `forge`、`music` |
 | 设置、文档、图鉴、目录 | D 列表 + 实时预览 | `settings`、`catalog` |
 | 编辑器、工具 | E 四区工作台 | `editor` |
-| 游戏中常驻信息 | F HUD 紧凑栏 + 展开 | `potions` |
+| 游戏中常驻信息 | F HUD 紧凑栏 + 展开（预览；放进游戏要自己写 Mixin） | `potions` |
 
 ## A 全屏拼贴（bento）
 

@@ -7,7 +7,6 @@ import dev.oriel.mod.internal.client.DevPointer;
 import dev.oriel.mod.internal.client.TourCursor;
 import dev.oriel.mod.internal.client.OrielClient;
 import dev.oriel.mod.internal.client.OrielClientCommands;
-import dev.oriel.mod.internal.client.InventoryEffects;
 import dev.oriel.mod.client.OrielHud;
 import dev.oriel.mod.client.OrielScreens;
 import dev.oriel.mod.internal.net.OrielNetwork;
@@ -56,14 +55,8 @@ public final class OrielFabricClient implements ClientModInitializer {
         });
         *///?}
         HudElementRegistry.attachElementAfter(VanillaHudElements.TITLE_AND_SUBTITLE, Constants.id("hud"), OrielHud::extract);
-        HudElementRegistry.replaceElement(VanillaHudElements.MOB_EFFECTS, vanilla -> (g, delta) -> {
-            if (!OrielClient.hidesVanillaEffects()) vanilla.extractRenderState(g, delta);
-        });
         // Interactive HUD overlays: drawn above every screen and given its pointer input first (per-screen events).
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
-            // The effects panel beside vanilla's inventories, in place of vanilla's list.
-            InventoryEffects.wrapVanilla(screen);
-            ScreenEvents.beforeExtract(screen).register((s, g, mouseX, mouseY, a) -> InventoryEffects.prepare(s));
             ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> OrielHud.extractAboveScreen(g, a));
             // The dev tour's cursor, over everything: after the screen's tooltips and the overlays above it.
             if (DevFlags.TOUR) ScreenEvents.afterExtract(screen).register((s, g, mouseX, mouseY, a) -> TourCursor.extractAboveScreen(g));

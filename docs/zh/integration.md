@@ -158,7 +158,7 @@ OrielHud.hide(id("tracker"));
 - HUD 默认不接收输入；用 `OrielHud.Input.WHEN_CHAT_OPEN`、`WHEN_CURSOR_FREE` 或自己的判断函数，指定在哪些界面上可以用鼠标点它。
 - 页面可以自己 `oriel.close()`（动画结束时），Toast 队列就是这样做的。
 - 每帧都会画，页面要写得便宜：少用会触发重排的属性动画（见 [CSS 支持参考](css-reference.md) 里的"变化时"列）。
-- 我们自带的药水 HUD 是现成例子：`kit/.../preset/PotionHudPreset.java`、`potions.html`，数据来自玩家自己的药水效果。
+- 我们自带的药水 HUD 是现成例子：`kit/.../preset/PotionHudPreset.java`、`potions.html`。库里它只是预览（示例效果）；要显示真实效果，在你自己的模组里用 `GameEffects.provide(...)` 提供数据。要把它放到原版界面旁或替换原版效果图标，需要你的模组自己写 Mixin，Oriel 不注入。
 
 详见 [HUD 叠加层](hud.md)。
 

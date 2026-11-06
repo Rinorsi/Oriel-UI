@@ -25,9 +25,9 @@ class GalleryPresetTest {
         assertTrue(doc.querySelector(".m-zoom") != null, "the tile grows into the page first");
         frame(doc, clock, 400);
         assertEquals(List.of(OrielKit.FORGE), host.navigations);
-        // The HUD tile asks the host first; this host declines, so the page opens instead.
+        // The HUD tile opens the potion HUD preview page; it asks the host for nothing and changes nothing in the game.
         click(doc, ".card[data-page=potions]", 0, Modifiers.NONE, clock);
-        assertEquals("oriel \"hud\"", host.sent.getLast());
+        assertTrue(host.sent.isEmpty(), "the tile sends the host no message");
         assertEquals(OrielKit.POTIONS, host.navigations.getLast());
         click(doc, "#close", 0, Modifiers.NONE, clock);
         assertTrue(host.closed);

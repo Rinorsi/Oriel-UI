@@ -9,8 +9,7 @@ import dev.oriel.kit.Shell;
 
 /**
  * The launcher. The shared markup ({@link Shell}) opens the presets and closes the screen; this adds the potion HUD
- * tile, which asks the host to show the HUD over the game ({@code oriel} message {@code "hud"}) and opens its page
- * when the host declines (the previewer, tests), and T for the theme (the title bar button is Shell's, as on every page).
+ * tile, which opens its preview page, and T for the theme (the title bar button is Shell's, as on every page).
  */
 public final class GalleryPreset implements PageControllers.Controller {
     @Override
@@ -28,7 +27,6 @@ public final class GalleryPreset implements PageControllers.Controller {
     }
 
     private static void openHud(Document doc) {
-        if (doc.host().send(OrielKit.CHANNEL, "\"hud\"")) return;
         doc.navigate(OrielKit.POTIONS);
     }
 }

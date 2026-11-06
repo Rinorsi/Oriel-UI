@@ -74,8 +74,6 @@
 | 键 | 缺省 | 范围 | 含义 |
 |---|---|---|---|
 | `client.serverPages` | `allow` | `allow`、`ask`、`block` | 服务器打开的页面是否显示。`ask` 每次访问问一次。 |
-| `client.inventoryEffects` | `false` | `true`、`false` | 在原版生存/创造背包旁显示 Oriel 效果面板（并替换原版的效果列表）。**默认关闭**：库不该在没被要求时改动原版背包界面；想要就设为 `true`。 |
-| `client.hideVanillaInventoryEffects` | `true` | `true`、`false` | Oriel 面板显示时隐藏原版效果列表。 |
 | `client.maxInlineHtmlChars` | 200000 | 1 到 200000 | 显示的最大内联页面。 |
 | `client.maxDataChars` | 100000 | 1 到 100000 | 接受的服务器数据最大长度。 |
 | `client.maxDataDepth` | 64 | 1 到 512 | 接受的服务器数据最大嵌套深度。 |

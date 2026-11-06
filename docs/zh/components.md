@@ -61,7 +61,7 @@ Java：`new Slider(doc, doc.getElementById("power"), 10).onInput(v -> ...).onCom
 
 ## 状态效果面板
 
-药水 HUD 的完整面板（`PotionHudPreset`），也嵌在原版背包旁和 kit 背包的"效果"页签里。效果按增益、减益、中性分组，每组可以显示成两种样子：
+药水 HUD 的完整面板（`PotionHudPreset`），也嵌在 kit 背包的"效果"页签里。**这是界面设计和预览，库不会把它放进游戏**：这类界面要放进游戏，需要用 Mixin 修改 Minecraft 自己的逻辑；Oriel 支持设计这类界面，但**不会注入**，请在你自己的模组里接入（见下面的"放进游戏的做法"）。效果按增益、减益、中性分组，每组可以显示成两种样子：
 
 | 样子 | 内容 | 什么时候 |
 |---|---|---|
@@ -72,7 +72,8 @@ Java：`new Slider(doc, doc.getElementById("power"), 10).onInput(v -> ...).onCom
 - 点组标题可以在行和图标块之间切换；玩家的选择会保留，不会被新增或到期的效果改回去。
 - 嵌入：`new PotionHudPreset().mountPanel(doc, where, compactOver)`。`where` 是可以滚动的容器；`compactOver` 是阈值：原版背包旁用 `PotionHudPreset.COMPACT_OVER`（4），有足够高度的页签传 0（始终显示行，玩家仍可手动切换）。
 - 滚动提示：面板会给 `where` 的父元素加 `more-above` / `more-below` 类，表示上方或下方还有内容被遮住。页面用它在对应边缘画渐隐（见 `inventory_effects.html`）。
-- 原版背包旁的面板由 `InventoryEffects` 放置：在背包右侧（放不下时放左侧），高度不超过背包本身（创造模式物品栏包括下排页签），超出部分在面板内滚动。配置项见 [安全与配置](security.md) 的 `client.inventoryEffects`。
+- 预览用示例效果（会自己到期、新增）。要显示玩家真实的效果，在你自己的模组里调用 `GameEffects.provide(...)` 提供数据。
+- **放进游戏的做法（你自己的模组做）**：药水栏要放在原版背包旁或原版效果图标的位置，必须改 Minecraft 自己的逻辑（隐藏原版列表、读背包位置），这需要 Mixin 或加载器的屏幕事件。Oriel 不做这一步，也不注册任何 Mixin：好处是装上库不会动原版界面，出问题的范围小。`InventoryEffectsPreset` 是专为这种场景准备的面板页，宿主发 `place`（x、y、宽、高）给它放位置，下游模组自己决定放哪、怎么隐藏原版列表。
 
 ## Shell 的 data-* 合同
 

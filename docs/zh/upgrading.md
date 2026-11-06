@@ -15,7 +15,7 @@
 
 ### 行为变化（不改代码，但你会感觉到）
 
-- **背包旁的 Oriel 效果面板默认关闭**（`client.inventoryEffects=false`）。以前默认开并替换原版列表；要用请在 `config/oriel.properties` 里设为 `true`。你的旧配置文件里如果已经写着 `true` 就仍然开着，自己改。
+- **库不再改动原版界面。** 背包旁的 Oriel 效果面板、隐藏原版效果图标的药水 HUD 都**移除了**：`/oriel showcase potions` 现在只是用示例效果的预览页，不碰原版，也不再给玩家加效果。配置项 `client.inventoryEffects`、`client.hideVanillaInventoryEffects` 随之删除（旧配置文件里留着也无妨，会被忽略）。这类界面要放进游戏，需要用 Mixin 修改 Minecraft 自己的逻辑；Oriel 支持设计这类界面，但**不会注入**，请在你自己的模组里接入，见 [组件](components.md) 的"状态效果面板"。
 - 页面没处理 Escape 时，**回到上一个页面**，没有上一页才关闭；从模板中心的「演示」「我的页面」打开页面再按 Esc 回来，**回到原来的视图、排序、搜索、标签和滚动位置**，不再回到"全部"的顶部（10 分钟内有效）。
 - 「我的页面」只列索引（标题、副标题、封面路径），封面图按需分批加载（每次 3 张，只加载正在显示和下一行的卡片），页面本身点开才加载；几十个页面不再一次全部加载。
 - 按键设置里新增「优易库 Oriel UI → 打开优易库首页」：开发环境默认 F8，玩家环境默认不绑定。
@@ -33,7 +33,7 @@
 
 1. 改依赖范围、jar 名、`oriel_version`。
 2. 全文搜索 `/oriel demo`、`/oriel legacy`、`ITEM_EDITOR`、`ItemEditorPreset`，按上表替换或删除。
-3. 如果你依赖了背包效果面板，在配置里打开 `client.inventoryEffects`。
+3. 如果你依赖了背包效果面板或药水 HUD 替换原版图标：它们不再由库提供，请在你自己的模组里用 `PotionHudPreset` / `InventoryEffectsPreset` 加 Mixin 实现（`GameEffects.provide` 提供数据）。
 4. 做页面前按 [热更新](hot-reload.md) 选一种配置，开始边改边看。
 5. 用 `oriel_check`（或 `preview --check --strict`）检查页面，警告清零。
 

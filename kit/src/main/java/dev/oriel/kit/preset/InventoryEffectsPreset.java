@@ -9,8 +9,9 @@ import dev.oriel.kit.Dom;
 import dev.oriel.kit.Shell;
 
 /**
- * The player's effects beside a vanilla inventory: the potion HUD's full panel ({@link PotionHudPreset#mountPanel}) in
- * a window of its own, where its host puts it. The host sends {@value #PLACE} (x, y, width, and the height it may take,
+ * The effects panel for beside a vanilla inventory: the potion HUD's full panel ({@link PotionHudPreset#mountPanel}) in
+ * a window of its own, where its host puts it. Oriel does not put it into the game (that takes a mixin in the mod that
+ * wants it); a mod that does can feed it {@link dev.oriel.kit.GameEffects}. The host sends {@value #PLACE} (x, y, width, and the height it may take,
  * in GUI px); the panel scrolls inside that. Below {@link #NARROW} px wide every group shows as icon chips and the title
  * as its icon.
  */

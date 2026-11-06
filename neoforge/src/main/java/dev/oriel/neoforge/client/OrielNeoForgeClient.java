@@ -8,7 +8,6 @@ import dev.oriel.mod.internal.client.McClient;
 import dev.oriel.mod.internal.client.TourCursor;
 import dev.oriel.mod.internal.client.OrielClient;
 import dev.oriel.mod.internal.client.OrielClientCommands;
-import dev.oriel.mod.internal.client.InventoryEffects;
 import dev.oriel.mod.client.OrielHud;
 import dev.oriel.mod.client.OrielScreens;
 import dev.oriel.mod.internal.client.replaced.ItemTooltips;
@@ -78,20 +77,11 @@ public final class OrielNeoForgeClient {
         modBus.addListener((AddClientReloadListenersEvent e) ->
                 e.addListener(Constants.id("documents"), (ResourceManagerReloadListener) resources -> OrielClient.onResourceReload()));
         modBus.addListener((RegisterGuiLayersEvent e) -> e.registerAbove(VanillaGuiLayers.TITLE, Constants.id("hud"), OrielHud::extract));
-        // The potion HUD shows the effects instead of vanilla's icons at the top right.
-        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre e) -> {
-            if (e.getName().equals(VanillaGuiLayers.EFFECTS) && OrielClient.hidesVanillaEffects()) e.setCanceled(true);
-        });
         modBus.addListener((net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent e) -> e.register(dev.oriel.mod.internal.client.OrielKeys.HOME));
         modBus.addListener((RegisterMenuScreensEvent e) -> {
             for (OrielScreens.ContainerBinding<?> b : OrielScreens.takeContainers()) registerMenuScreen(e, b);
         });
         NeoForge.EVENT_BUS.addListener((RegisterClientCommandsEvent e) -> e.getDispatcher().register(OrielClientCommands.create()));
-        // The effects panel beside vanilla's inventories, in place of vanilla's list.
-        NeoForge.EVENT_BUS.addListener((ScreenEvent.Render.Pre e) -> InventoryEffects.prepare(e.getScreen()));
-        NeoForge.EVENT_BUS.addListener((ScreenEvent.RenderInventoryMobEffects e) -> {
-            if (InventoryEffects.hideVanilla(e.getScreen())) e.setCanceled(true);
-        });
         // Interactive HUD overlays: drawn above the screen (not its background layers) and given its pointer input first.
         NeoForge.EVENT_BUS.addListener((ScreenEvent.Render.Post e) -> {
             if (e.getScreen() == McClient.screen()) OrielHud.extractAboveScreen(e.getGuiGraphics(), e.getPartialTick());

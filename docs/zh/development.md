@@ -9,7 +9,7 @@
 | 命令 | 端 | 说明 |
 |---|---|---|
 | `/oriel open <url>` | 客户端 | 打开任意页面，如 `/oriel open mymod:oriel/shop.html`。 |
-| `/oriel showcase [名称]` | 客户端 | 唯一的演示入口。不带名称打开首页画廊；名称可以是 Oriel 的预设页 `inventory`、`forge`、`music`、`settings`、`editor`（演示用的编辑界面）、`catalog`、`icons`、`templates`（模板中心）；`potions`（开关药水 HUD 叠加层）、`toast`（开关一个可交互的 HUD 叠加层：按 T 然后点它）；引擎基础小演示 `layout`（弹性盒与网格）、`animation`、`livedata`（实时数据：待办、计数器）、`forms`（原版风格表单）、`titlecard`（开关淡入淡出的标题卡）；或展示页 `title`、`hud`、`shop`、`mobdex`（游戏里的每种生物，附你的击杀统计）、`journal`、`console`、`models`（3D 的方块、物品和生物，以及头肩肖像）、`scene`。 |
+| `/oriel showcase [名称]` | 客户端 | 唯一的演示入口。不带名称打开首页画廊；名称可以是 Oriel 的预设页 `inventory`、`forge`、`music`、`settings`、`editor`（演示用的编辑界面）、`catalog`、`icons`、`templates`（模板中心）；`potions`（药水 HUD 预览，用示例效果，不改动游戏）、`toast`（开关一个可交互的 HUD 叠加层：按 T 然后点它）；引擎基础小演示 `layout`（弹性盒与网格）、`animation`、`livedata`（实时数据：待办、计数器）、`forms`（原版风格表单）、`titlecard`（开关淡入淡出的标题卡）；或展示页 `title`、`hud`、`shop`、`mobdex`（游戏里的每种生物，附你的击杀统计）、`journal`、`console`、`models`（3D 的方块、物品和生物，以及头肩肖像）、`scene`。 |
 | `/oriel showcase chest` | 服务端 | 在真实箱子菜单上的物品栏演示（需要作弊权限）。 |
 | `/oriel showcase live` | 服务端 | 作为带实时数据的服务端会话的模板演示。 |
 | `/oriel reload` | 客户端 | 重载所有打开的页面。资源重载（F3+T）也会。 |

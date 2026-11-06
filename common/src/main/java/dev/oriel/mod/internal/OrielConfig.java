@@ -60,11 +60,6 @@ public final class OrielConfig {
 
     // ---- Client ----
 
-    public static final Setting<Boolean> CLIENT_INVENTORY_EFFECTS = bool("client.inventoryEffects", false,
-            "Show the player's effects in Oriel's panel beside the survival and creative inventories, in place of vanilla's list. Off by default: a library should not change the vanilla inventory unless asked.");
-    public static final Setting<Boolean> CLIENT_HIDE_INVENTORY_EFFECTS = bool("client.hideVanillaInventoryEffects", true,
-            "Leave out vanilla's effects list beside the inventory while Oriel's panel is there.");
-
     public static final Setting<ServerPages> CLIENT_SERVER_PAGES = choice("client.serverPages", ServerPages.ALLOW,
             "Pages a server opens: allow, ask (once per server visit) or block.");
     public static final Setting<Integer> CLIENT_MAX_INLINE_HTML = integer("client.maxInlineHtmlChars", OpenPayload.MAX_HTML, 1, OpenPayload.MAX_HTML,
