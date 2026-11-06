@@ -65,11 +65,20 @@ public final class StylesPreset implements PageControllers.Controller {
             {"forms", "oriel:oriel/demo/settings.html"}, {"achievement", "oriel:oriel/showcase/achievement.html"}};
     /** The view the centre opens on next time (set by {@link #startAt}), e.g. "demos"; then back to "all". */
     private static volatile String startView;
+    /** Where the player was in the centre when a page opened from it: Escape on that page comes back here, not to the top of All. */
+    private record Place(String view, String sort, String query, String tag, float scroll, long at) {}
+    private static volatile Place place;
+    private static final long PLACE_MS = 10 * 60 * 1000L;
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
     private String view = "all", sort = "pick", query = "", tag = "";
     private Element tagbar;
     private Template open;
     private Element grid, drawer, veil, specHome;
+
+    private void rememberPlace() {
+        Element list = Dom.byId(doc, "scroll");
+        place = new Place(view, sort, query, tag, list == null ? 0 : list.scrollTop(), System.currentTimeMillis());
+    }
 
     /** The next template centre opens on {@code view} ("demos", "pages", "fav", ...) instead of All. */
     public static void startAt(String view) {
@@ -126,6 +135,16 @@ public final class StylesPreset implements PageControllers.Controller {
         String start = startView;
         startView = null;
         if (start != null) view = start;
+        Place back = place;
+        place = null;
+        float restoreScroll = -1;
+        if (start == null && back != null && System.currentTimeMillis() - back.at() < PLACE_MS) {
+            view = back.view();
+            sort = back.sort();
+            query = back.query();
+            tag = back.tag();
+            restoreScroll = back.scroll();
+        }
         int order = 0;
         for (Element e : doc.querySelectorAll(".tpl")) {
             String id = e.getAttribute("data-id");
@@ -135,6 +154,8 @@ public final class StylesPreset implements PageControllers.Controller {
             templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));
         }
         buildTagbar();
+        for (Element chip : tagbar.querySelectorAll("span")) chip.toggleClass("on", chip.getAttribute("data-tag").equals(tag));
+        for (Element s : doc.querySelectorAll("#sort [data-sort]")) s.toggleClass("on", s.getAttribute("data-sort").equals(sort));
         for (Element item : doc.querySelectorAll("#side .item")) item.toggleClass("on", item.getAttribute("data-view").equals(view));
         for (Element item : doc.querySelectorAll("#side .item")) {
             Shell.activate(item, () -> {
@@ -152,6 +173,7 @@ public final class StylesPreset implements PageControllers.Controller {
             });
         }
         Element q = Dom.byId(doc, "q");
+        if (!query.isEmpty()) q.setValue(query);
         Dom.on(q, "input", ev -> {
             query = q.value().trim().toLowerCase(Locale.ROOT);
             render();
@@ -162,7 +184,11 @@ public final class StylesPreset implements PageControllers.Controller {
         Shell.activate(Dom.byId(doc, "d-save"), () -> save(open));
         Shell.activate(Dom.byId(doc, "d-fav"), () -> favorite(open, !favorites.contains(open.id)));
         Shell.activate(Dom.byId(doc, "open-folder"), () -> send("folder", "", false));
-        if (doc.initialData() != null) library(JsonParser.parseString(doc.initialData()));
+        if (doc.initialData() != null) {
+            // The game hands the library over as {"library": {...}}; the preview harness passes the bare object.
+            JsonElement first = JsonParser.parseString(doc.initialData());
+            library(first.isJsonObject() && first.getAsJsonObject().has(LIBRARY) ? first.getAsJsonObject().get(LIBRARY) : first);
+        }
         doc.addDataListener((key, json) -> {
             if (json == null) return;
             JsonElement value = JsonParser.parseString(json);
@@ -170,9 +196,16 @@ public final class StylesPreset implements PageControllers.Controller {
             else if (key == null && value.isJsonObject() && value.getAsJsonObject().has(LIBRARY)) library(value.getAsJsonObject().get(LIBRARY));
         });
         render();
-        String back = returnTo;
+        String backTo = returnTo;
         returnTo = null;
-        if (back != null) for (Template t : templates) if (t.id.equals(back)) openDetails(t);
+        if (backTo != null) for (Template t : templates) if (t.id.equals(backTo)) openDetails(t);
+        if (restoreScroll > 0) {
+            // The list may still be filling (the game sends the folder's pages a moment after the page opens): try twice.
+            float y = restoreScroll;
+            Element list = Dom.byId(doc, "scroll");
+            doc.scheduler().setTimeout(() -> list.scrollTo(0, y), 120);
+            doc.scheduler().setTimeout(() -> list.scrollTo(0, y), 400);
+        }
     }
 
     /** A template's card: its cover, badges, favourite, title, author and tags. */
@@ -364,6 +397,7 @@ public final class StylesPreset implements PageControllers.Controller {
         if (t == null) return;
         if (saved.contains(t.id)) {
             returnTo = t.id;
+            rememberPlace();
             doc.navigate(namespace + ":" + t.id + ".html");
             return;
         }
@@ -455,6 +489,7 @@ public final class StylesPreset implements PageControllers.Controller {
             Dom.text(Dom.query(card, ".by span"), page.subtitle().isEmpty() ? LocalPage.cut(path, LocalPage.SUBTITLE_MAX) : page.subtitle());
             Shell.activate(card, () -> {
                 returnTo = null;
+                rememberPlace();
                 doc.navigate(namespace + ":" + path);
             });
             pageCards.add(card);
@@ -520,7 +555,7 @@ public final class StylesPreset implements PageControllers.Controller {
         return out;
     }
 
-    private static long modified(Element card) {
+    private long modified(Element card) {
         try {
             return Long.parseLong(attr(card, "data-mod"));
         } catch (NumberFormatException e) {
@@ -570,6 +605,7 @@ public final class StylesPreset implements PageControllers.Controller {
             String url = d[1];
             Shell.activate(card, () -> {
                 returnTo = null;
+                rememberPlace();
                 doc.navigate(url);
             });
             demoCards.add(card);

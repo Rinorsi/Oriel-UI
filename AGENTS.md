@@ -73,6 +73,8 @@
 
 **先读 `docs/zh/principles.md`（产品定位与 agent 工作准则：库是什么、不是什么，十条准则，动手前自问）；改了不兼容的东西要写 `docs/zh/upgrading.md`。** MCP：`oriel_rules` 的 `topic=principles` / `upgrading`。要点：库不含应用功能；会改变原版的功能默认关闭；列表里的每一项点开必须有内容；先查 showcase 索引再做效果；先配热更新再做页面；汇报分清"实测"和"没验证"。
 
+**要把已有的视频动画、网页或原版界面复刻成页面时（开发者用），另读 `docs/zh/replication.md`**（参数对照表、必须一致的项目、阶段检查）；MCP：`oriel_rules` 的 `topic=replication`。普通做页面不用它。
+
 **做页面有两条路，默认走第一条（边改边看）：**
 
 1. **快速迭代（默认）**：把页面写进用户游戏的 `config/oriel/my-pages/<项目名>/`（路径看游戏日志里 `Oriel: pages in 'oriel_mine:' come from …`，或问用户）。用户的游戏开着时，**保存页面读过的任何文件都会热重载，发布版 jar 也一样**，用户直接在游戏里看到。你用 `oriel_snapshot` 或预览器截图（640×360 和 427×240）发到对话里给用户看，**不需要先走网页验收、不需要批准、不要自己再启动一个游戏**。每轮先 `oriel_check`（警告为 0）再保存。游戏里打开：`/oriel open oriel_mine:<项目名>/index.html`。

@@ -102,9 +102,14 @@ final class KitHost implements Host {
 
     /** {@link #open(String, PageControllers.Controller)} in a viewport of the given GUI size. */
     Document open(String url, PageControllers.Controller controller, int width, int height) {
+        return open(url, controller, width, height, null);
+    }
+
+    /** {@link #open(String, PageControllers.Controller, int, int)} with the data the game hands the page when it opens. */
+    Document open(String url, PageControllers.Controller controller, int width, int height, String initialData) {
         OrielKit.register();
         PageControllers.register(url, () -> controller);
-        Document doc = Document.parse(this, url, loadText(url), null, new Viewport(width, height, 2));
+        Document doc = Document.parse(this, url, loadText(url), initialData, new Viewport(width, height, 2));
         doc.frame(0);
         if (doc.error() != null) throw new AssertionError("page stopped", doc.error());
         return doc;
