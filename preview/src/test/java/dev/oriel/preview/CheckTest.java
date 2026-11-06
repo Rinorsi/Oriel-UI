@@ -17,6 +17,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /** {@code --check}: a clean page passes; a missing image fails; a CSS slip is listed. */
 class CheckTest {
     @Test
+    void keepsLegacyWrappingTextOverflowCheck(@TempDir Path dir) throws Exception {
+        Path page = dir.resolve("word.html"), report = dir.resolve("report.json");
+        Files.writeString(page, "<div style='font-size:8px;width:10px;overflow:hidden'>unbreakableword</div>");
+        assertEquals(3, Check.run(page, "zh_cn", true, report));
+        var results = com.google.gson.JsonParser.parseString(Files.readString(report)).getAsJsonArray();
+        assertTrue(results.get(0).getAsJsonObject().getAsJsonArray("design").toString().contains("文字被截断"));
+    }
+
+    @Test
+    void strictCheckingIncludesSmallViewportLayoutWarnings(@TempDir Path dir) throws Exception {
+        Path page = dir.resolve("small.html"), report = dir.resolve("report.json");
+        Files.writeString(page, "<style>div {font-size:8px;width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}"
+                + "@media (max-width:500px) {div {width:20px}}</style><div>Long item name</div>");
+        assertEquals(3, Check.run(page, "zh_cn", true, report));
+        var results = com.google.gson.JsonParser.parseString(Files.readString(report)).getAsJsonArray();
+        assertFalse(results.get(0).toString().contains("text-ellipsis-tooltip"));
+        assertTrue(results.get(1).toString().contains("text-ellipsis-tooltip"));
+    }
+
+    @Test
     void writesStructuredDiagnosticsAtBothViewports(@TempDir Path dir) throws Exception {
         Path page = dir.resolve("page.html"), report = dir.resolve("report.json");
         Files.writeString(page, "<style>p { colour: red; }</style><p>hello</p>");
@@ -71,7 +91,7 @@ class CheckTest {
         assertEquals(1, code, report);
         assertTrue(report.contains("FAIL bad.html"), report);
         assertTrue(report.contains("missing image"), report);
-        assertTrue(report.contains("css: "), report);
+        assertTrue(report.contains("css: (640x360) "), report);
         assertTrue(report.contains("OK   good.html"), report);
     }
 

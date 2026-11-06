@@ -11,6 +11,7 @@ import dev.oriel.engine.style.ComputedStyle;
  * still meet. A reused scratch object.
  */
 final class Geometry {
+    dev.oriel.engine.dom.Element element;
     float x, y, width, height;
     /** Top, right, bottom, left. */
     final float[] border = new float[4], padding = new float[4];
@@ -19,6 +20,7 @@ final class Geometry {
 
     /** A box's geometry with its border box at (x, y). */
     Geometry box(Box b, ComputedStyle s, float x, float y, float devicePixel) {
+        element = b.kind == Box.Kind.PSEUDO ? null : b.element;
         return set(x, y, b.width, b.height, b.borderTop, b.borderRight, b.borderBottom, b.borderLeft,
                 b.paddingTop, b.paddingRight, b.paddingBottom, b.paddingLeft, s, devicePixel);
     }
@@ -30,6 +32,7 @@ final class Geometry {
      */
     Geometry fragment(Fragment.InlineBox f, ComputedStyle s, float x, float y, float devicePixel) {
         Box b = f.box();
+        element = b.kind == Box.Kind.PSEUDO ? null : b.element;
         boolean first = f.first(), last = f.last();
         set(x + f.x(), y + f.y(), f.width(), f.height(),
                 b.borderTop, last ? b.borderRight : 0, b.borderBottom, first ? b.borderLeft : 0,

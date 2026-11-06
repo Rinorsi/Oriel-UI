@@ -76,6 +76,7 @@ final class Check {
                 PageScene scene = new PageScene(host, PreviewHost.pageUrl(page), null, new Viewport(size[0], size[1], 2));
                 FrameRenderer frames = new FrameRenderer(assets, font);
                 for (int i = 0; i < FRAMES && scene.error() == null; i++) frames.render(scene, size[0] * 2, size[1] * 2, 2, i * 16.0, null);
+                if (scene.document() != null && scene.error() == null) PageLint.report(scene.document(), host);
                 com.google.gson.JsonObject result = new com.google.gson.JsonObject();
                 result.addProperty("file", page.toAbsolutePath().toString());
                 result.addProperty("width", size[0]);
@@ -95,15 +96,12 @@ final class Check {
                 if (scene.error() != null) problems.add("error" + at + ": " + firstLine(scene.error()));
                 for (String error : host.runtimeErrors()) problems.add("error" + at + ": " + error);
                 for (String url : host.missingImages()) if (!problems.contains("missing image: " + url)) problems.add("missing image: " + url);
-                if (size == SIZES[0]) {
-                    for (String d : host.diagnosticLines()) problems.add("css: " + d);
-                    warnings = host.problems();
-                    if (scene.document() != null && scene.error() == null) {
-                        List<String> design = DesignLint.run(scene.document());
-                        for (String d : design) problems.add("design: " + d);
-                        warnings += design.size();
-                    }
-                }
+                for (String d : host.diagnosticLines()) problems.add("css:" + at + " " + d);
+                warnings += host.problems();
+                for (String d : designIssues) problems.add("design:" + at + " " + d);
+                warnings += designIssues.size();
+                if (scene.document() != null) scene.document().close();
+                assets.close();
             }
             boolean bad = problems.stream().anyMatch(p -> p.startsWith("error") || p.startsWith("missing"));
             if (bad) failed++;

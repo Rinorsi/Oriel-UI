@@ -146,10 +146,14 @@ public final class Preview {
         if (options.narrate()) ((PageScene) scene).narrateTo(System.out);
 
         if (options.actions() != null) {
-            System.exit(strict(actions((PageScene) scene, new FrameRenderer(assets, font, options.background()), options), host, options));
+            int code = actions((PageScene) scene, new FrameRenderer(assets, font, options.background()), options);
+            if (scene instanceof PageScene page && page.document() != null && page.error() == null) PageLint.report(page.document(), host);
+            System.exit(strict(code, host, options));
         }
         if (options.snapshot() != null) {
-            System.exit(strict(snapshot(scene, new FrameRenderer(assets, font, options.background()), options), host, options));
+            int code = snapshot(scene, new FrameRenderer(assets, font, options.background()), options);
+            if (scene instanceof PageScene page && page.document() != null && page.error() == null) PageLint.report(page.document(), host);
+            System.exit(strict(code, host, options));
         }
         SwingUtilities.invokeLater(() -> new PreviewWindow(scene, host, options.scale(), options.width(), options.height(), options.background()).show());
     }

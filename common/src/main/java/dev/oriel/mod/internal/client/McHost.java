@@ -89,6 +89,18 @@ public final class McHost implements Host {
     }
 
     @Override
+    public void prepareImage(String url) {
+        if (!readable(url)) return;
+        Identifier id = McImages.id(url);
+        if (id == null) return;
+        if (OrielPages.isFolder(id.getNamespace())) {
+            dev.oriel.mod.internal.client.render.FolderTextures.ensure(id);
+        } else if (McImages.textureSize(url) != null) {
+            Minecraft.getInstance().getTextureManager().getTexture(id);
+        }
+    }
+
+    @Override
     public boolean imageFailed(String url) {
         return McImages.textureSize(url) == null;
     }

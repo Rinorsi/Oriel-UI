@@ -9,6 +9,7 @@ import { registerProject, projectStatus, freeze, validateActions } from './lib/p
 import { checkProject, snapshotRevision } from './lib/checks.mjs';
 import { webPreview, review } from './lib/web.mjs';
 import { integrate, gamePreview } from './lib/integration.mjs';
+import { scaffold } from './lib/scaffold.mjs';
 
 initState();
 const string = { type: 'string' }, number = { type: 'integer' }, object = { type: 'object' };
@@ -30,6 +31,7 @@ function reviewResult(receipt) {
   return response;
 }
 const TOOLS = [
+  tool('oriel_scaffold', '只读检测下游 Fabric/NeoForge/Stonecutter 工程并返回接入清单。prepare=true 在工作区生成并检查固定骨架；经 oriel_review 用户批准后 apply=true + reviewId 只新建 HTML/Java，不改已有文件或构建配置。', { projectRoot: string, loader: { ...string, enum: ['fabric', 'neoforge'] }, minecraft: string, modId: string, resourcesDir: string, javaDir: string, javaPackage: string, launchMode: { ...string, enum: ['gradle-inside', 'gradle-outside', 'jar'] }, prepare: { type: 'boolean' }, apply: { type: 'boolean' }, reviewId: string }, ['projectRoot'], args => scaffold(args)),
   tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
   tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {
     projectId: string, title: string, sourceRoot: string, namespace: string, entry: string, profile: object,

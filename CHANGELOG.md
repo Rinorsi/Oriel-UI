@@ -7,6 +7,12 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
+
+- Images: opt-in `img loading=lazy` and `data-oriel-lazy` URL backgrounds share a document queue (three sources per 50ms by default, configurable on html), with half-viewport prefetch, fixed-size placeholders and cancellation of unstarted detached elements. Eager loading stays the default; loaded textures retain host-managed lifetimes. The preview checker warns on more than 24 image/background references without lazy loading.
+
+- Preview: structured, bounded post-layout diagnostics for ellipsized text without a tooltip, clipped nowrap text (including ancestor clips), shrinking flex content, and oversized PNG references. Strict checks now include both viewports; snapshots/actions check their final layout. PNG inspection reads only headers and file sizes. Existing kit/showcase/demo pages retain these findings as INFO pending separate visual fixes; external pages remain strict warnings. See docs/zh/validation.md for coverage limits.
+
 - MCP: a resource-only mod-project integration target for downstream mods, with metadata/resource-directory detection, explicit candidates for ambiguous projects, project-bound path checks and copyable opening/hot-reload guidance. Existing approval, snapshot and transaction checks apply; downstream game verification remains separate.
 
 - Layout: constrain scroll-container flex intrinsic contributions by min/max size, keeping auto-height parents sized to the scrollport while preserving the full scrollable content. Fixed-height workarounds for limited scrollboxes are no longer needed.

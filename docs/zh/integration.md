@@ -230,3 +230,13 @@ OrielScreens.open("mymod:ui/settings/index.html");
 Fabric 在客户端初始化中注册快捷键或客户端命令，NeoForge 在客户端事件中注册；在客户端线程调用上述打开代码（见第 4 节）。工具只返回片段，不修改 Java、Gradle、元数据，不安装 jar。
 
 热更新指引按资源目录标明工程类型，并提供 [热更新](hot-reload.md) 第 1 节三种模组开发情形：工程内 runClient 自动读取；外部运行目录设置 `-Doriel.sourceRoot=<含 src/main/resources 的子工程>`；仅 jar 开发设置 dev-sources.properties。实际运行方式不能单靠资源目录判断，按启动方式选择。复制成功不等于游戏验证，须在下游游戏打开验证，MCP 不为此目标启动库自己的客户端。
+
+### 一步接入：检测并生成最小骨架
+
+调用 MCP 工具 `oriel_scaffold`，只传绝对路径 `projectRoot` 即可只读检测 Fabric / NeoForge、Minecraft 版本、Stonecutter、mod id、资源目录、Java 包和已有 Oriel 依赖。返回 Gradle / 元数据依赖、客户端打开代码、客户端命令注册片段；默认不写工程，也不生成骨架包。仅解析已知文件的字面量，不执行 Gradle；动态值、多个版本或目录歧义会返回 `missing` / `candidates`，用同名参数补充，不能把推测当成检测结果。
+
+热更新不能从源码推断实际启动方式：补 `launchMode=gradle-inside|gradle-outside|jar`，分别对应[热更新](hot-reload.md)第 1 节第 2/3/4 种情形。Stonecutter 多版本需明确选 `minecraft`，依赖片段合并到现有加载器构建脚本并按目标版本选工件。清单是可复制片段，不会安装库、改构建或覆盖整个 depends。
+
+要写入示例：同一工具传 `prepare=true`，只在工作区生成固定包，调用与 `oriel_check` 相同的真实引擎严格检查及双尺寸截图。拿返回的 `projectId` 调用 `oriel_review`（`mode=screenshots`），展示截图和清单，用户在聊天里明确批准后逐字引用原话记录决定，再用原参数、`apply=true`、`reviewId` 写入。参数、目标、资源或规则改变须重新 prepare/check/review。
+
+只新建两个不存在的文件：`assets/<modid>/ui/hello/index.html` 与所选源码目录/包下的 `OrielHello.java`；已有文件跳过并列在 `skipped`，重复执行幂等。不会改 Gradle、元数据或已有 Java；命令片段须自行合入客户端初始化，`OrielHello` 不能从公共/服务端入口引用。回执保留批准版本、写入摘要、跳过项及 `gameVerified=false`；下游编译、客户端效果和热更新仍需实际工程另行验证，不会启动 Oriel 自己的游戏。

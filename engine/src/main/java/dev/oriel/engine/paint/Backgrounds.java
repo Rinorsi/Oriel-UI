@@ -56,6 +56,8 @@ final class Backgrounds {
         }
         for (int i = layers.size() - 1; i >= 0; i--) {
             BackgroundLayer layer = layers.get(i);
+            if (layer.image() instanceof Image.Url && dev.oriel.engine.replaced.LazyImages.lazyBackground(g.element)
+                    && !document.lazyImages().allows(g.element, layer.image())) continue;
             if ((layer.clip() == BackgroundLayer.Box.TEXT) == text) layer(canvas, batch, g, s, layer, dp);
         }
     }

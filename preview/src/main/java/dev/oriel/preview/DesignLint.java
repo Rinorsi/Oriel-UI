@@ -9,6 +9,7 @@ import dev.oriel.engine.style.ComputedStyle;
 import dev.oriel.engine.style.Overflow;
 import dev.oriel.engine.style.TextOverflow;
 import dev.oriel.engine.style.Visibility;
+import dev.oriel.engine.style.WhiteSpace;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -51,8 +52,9 @@ final class DesignLint {
             if (r[0] + r[2] > vw + 0.5f || r[1] + r[3] > vh + 0.5f || r[0] < -0.5f || r[1] < -0.5f) {
                 if (!inScroller(e) && !clippedInside(e, vw, vh)) out.add("文字超出窗口: " + where + " 「" + clip(text) + "」");
             }
-            // An animated box (a line typing itself out) is cut off on purpose while it plays.
-            if ((s.overflowX == Overflow.HIDDEN || s.overflowX == Overflow.CLIP) && s.textOverflow != TextOverflow.ELLIPSIS
+            // Preserve the older wrapping-text overflow check; PageLint handles nowrap fragments and ancestor clips.
+            if (s.whiteSpace != WhiteSpace.NOWRAP
+                    && (s.overflowX == Overflow.HIDDEN || s.overflowX == Overflow.CLIP) && s.textOverflow != TextOverflow.ELLIPSIS
                     && s.animations.isEmpty() && e.box.scrollWidth > e.box.paddingBoxWidth() + 1) {
                 out.add("文字被截断（加 text-overflow: ellipsis 或放宽）: " + where + " 「" + clip(text) + "」");
             }

@@ -26,6 +26,8 @@
 
 - **限高滚动框直接用 `max-height: 40px; overflow-y: auto`。** 内容少时随内容收缩，超出时内部滚动；父级自动高度按限高后的盒子计算。`height: 40px` 则始终保留固定高度，不需要额外包固定高度容器。
 
+检查器会报告实际省略却没有 title / title-json 的文字、nowrap 被自身或祖先裁掉的文字，以及 flex 行收缩切掉的内容；图标和角标可设 flex:none / min-width，文字区域单独省略并提供完整提示。详见[诊断列表](validation.md#布局后诊断与-png-检查)。引用 PNG 宽高超过 2048px 或文件超过 1 MiB 也会报告，应先缩图、压缩。
+
 ## 3. 最小骨架：直接复制这个
 
 放在 `assets/<你的模组id>/ui/index.html`（或 `config/oriel/my-pages/` 里）。这份已用 `preview --check --strict` 检查通过，0 警告。
@@ -94,3 +96,4 @@ UI 交互音效用库的[声音 token](capabilities.md#ui-音效)，默认悬停
 - 不要在 Oriel 仓库里加应用功能（物品编辑器、商店逻辑等）：它们属于你自己的模组或页面，库只提供 UI 能力。
 - 块里不再放块（见 [设计规范](design.md)）；颜色、圆角、阴影用 `ore.css` 的变量，不手写一套。
 - 不要把测试数据或本机路径写进发布的页面。
+- 长列表图片用 `loading="lazy"`，URL 背景元素用 `data-oriel-lazy`，并显式预留宽高；同页图片/背景超过 24 处且没有懒加载会报诊断，预算与边界见[性能规范](performance.md#列表图片懒加载)。

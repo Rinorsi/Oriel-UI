@@ -1,5 +1,7 @@
 # 能力、限制与选型
 
+下游骨架：`oriel_scaffold` 默认只读检测 Fabric/NeoForge/Stonecutter，返回依赖/客户端命令/热更新清单；可选固定包严格检查、截图聊天批准后，仅新建示例 HTML/Java。歧义需显式补参数，不改已有工程配置，游戏验证独立；见 [MCP 参数与边界](mcp.md#下游骨架oriel_scaffold)。
+
 [文档入口](index.md) · [CSS](css-guide.md) · [元素](elements.md) · [验收](validation.md)
 
 适用：Oriel UI 0.11.0 源码基准 `9928647`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。
@@ -43,6 +45,7 @@ Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟�
 
 - 颜色：hex、RGB/RGBA、HSL/HSLA、命名色、`currentColor`、`color-mix(in srgb, ...)`；MC 扩展色 `mc-gold` 等。
 - 背景：PNG、多层背景、线性/径向/锥形渐变及对应重复渐变、GUI 精灵、Canvas 图像。
+- 图片加载：`img loading=lazy` 与 URL 背景 `data-oriel-lazy` 共享视口预取队列，默认每 50ms 最多 3 个源，页面可配置；默认 eager 不变，详见[性能规范](performance.md#列表图片懒加载)。
 - 形状：实线/虚线等边框、圆角、`box-shadow`、`text-shadow`、`border-image`、文字描边、渐变字。
 - 合成：blur/brightness/contrast/grayscale/invert/opacity/saturate/sepia/hue-rotate/drop-shadow；clip 的 inset/circle/ellipse/polygon；mask 的 add/subtract/intersect/exclude；混合模式见 CSS 表。
 - 动态：2D 平移缩放旋转倾斜、transition、keyframes、命名动效、FLIP、Java Canvas 粒子；3D 内容通过 `-mc-yaw/-mc-pitch` 转动。

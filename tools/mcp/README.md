@@ -1,5 +1,7 @@
 # Oriel UI workflow MCP
 
+下游首次接入：`oriel_scaffold` 只传 projectRoot 默认只读返回检测值、待补项和清单。补齐参数后 prepare=true 生成并严格检查固定骨架；通过截图验收、用户聊天批准后 apply=true + reviewId，只新建不存在的 HTML/Java，保留已有文件。详细字段与热更新模式见 [工具参数](../../docs/zh/mcp.md#下游骨架oriel_scaffold)。测试：`node --test tools/mcp/scaffold.test.mjs`，ORIEL_TEST_TMP 指向工作区临时目录；不访问真实下游工程。
+
 动画开工：`oriel_rules({topic:"performance"})` 读取权威性能规范；包括密集粒子、原生 fillQuad、清理与前后测量要求。
 
 本地 stdio 入口：node tools/mcp/oriel-preview.mjs。使用说明与完整参数见 [MCP 手册](../../docs/zh/mcp.md)，调用顺序见 [制作流程](../../docs/zh/ui-workflow.md)，可复制指引见 [Agent 提示词](../../docs/zh/agent-prompts.md)。

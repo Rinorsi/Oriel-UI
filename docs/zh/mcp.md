@@ -1,5 +1,24 @@
 # MCP 页面制作与接入
 
+## 下游骨架：oriel_scaffold
+
+默认只读检测下游工程并返回接入清单；不执行 Gradle、不安装 jar、不修改构建、元数据或已有 Java。支持 Fabric、NeoForge 和常见 Stonecutter 源码结构。
+
+| 参数 | 类型 / 默认 | 说明 |
+|---|---|---|
+| `projectRoot` | string，必填 | 已有工程绝对路径；禁止 `..`、链接和 junction |
+| `loader` / `minecraft` / `modId` | string，可省略 | 字面量不能唯一检测时显式选择；loader 为 fabric/neoforge，MC 为 26.1.2/26.2/26.3 |
+| `resourcesDir` | string，可省略 | 工程内相对资源目录；常见目录唯一时自动选择，common 优先 |
+| `javaPackage` / `javaDir` | string，可省略 | 检测已有包名/公共包前缀及源码目录；Java 目录限 src/main/java、src/client/java 或 common/fabric/neoforge 下相同结构；优先客户端目录 |
+| `launchMode` | string，可省略 | gradle-inside / gradle-outside / jar；不推测运行方式，缺省返回待补项，对应热更新第 2/3/4 种情形 |
+| `prepare` | boolean，false | 仅在工作区生成固定包（含完整清单与 Java），执行 oriel_check 的严格检查和双尺寸截图；返回 projectId/check |
+| `apply` | boolean，false | 需要原参数和 reviewId；仅创建不存在的两个文件；不能与 prepare 同时 true |
+| `reviewId` | string，apply 必填 | 对 prepare 生成的固定版本完成截图验收、用户在聊天里同意后，由 oriel_review.decide 逐字记录的批准回执 |
+
+最小只读调用：只传 projectRoot。回执包含检测值、`missing`、`candidates`、`existingOriel`；信息齐全后包含 `snippets`（Gradle/depends/open/客户端命令）、`files`（目标与完整内容）及热更新指引。动态 Gradle、占位符及多版本无法唯一判断时补同名参数；不会擅选版本。Gradle 片段为 Groovy 写法，Kotlin DSL 工程按现有写法合并。
+
+写入步骤：补齐 missing → 同参数 prepare=true → oriel_review.prepare(projectId, mode=screenshots) → 展示截图及完整文件清单 → 用户聊天批准 → oriel_review.decide → 同参数 apply=true, reviewId。只新建资源目录下 `assets/<modid>/ui/hello/index.html` 和 Java 目录下 `<包路径>/OrielHello.java`；已有文件一律跳过（`skipped`），并发创建不会被覆盖，失败回滚本次写入。返回 plans 回执、摘要及 gameVerified=false。目标、生成内容、规则或预览环境改变使批准失效；无批准报 APPROVAL_REQUIRED，目标改变报 SCAFFOLD_CHANGED，越界或链接报路径诊断。下游编译、命令及真实游戏仍须另行验证。
+
 动画开工先调用 `oriel_rules`，参数 `{ "topic": "performance" }`，读取 [粒子与动画性能规范](performance.md)。默认仍为 overview；performance 与其他主题一样返回 profile/source/text/rulesHash，支持可选 feature 筛选并参与验收规则版本哈希。
 
 [入口](index.md) · [完整流程](ui-workflow.md) · [Agent 提示词](agent-prompts.md) · [检查工具](validation.md)

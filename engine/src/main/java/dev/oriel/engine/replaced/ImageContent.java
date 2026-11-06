@@ -42,7 +42,8 @@ final class ImageContent implements ReplacedContent {
 
     @Override
     public void attributeChanged(String name) {
-        if (name.equals("src")) load();
+        if (name.equals("src") || name.equals("loading")) load();
+        if (name.equals("loading")) document().invalidateLayout();
     }
 
     @Override
@@ -52,7 +53,7 @@ final class ImageContent implements ReplacedContent {
 
     @Override
     public void paint(Canvas canvas, float x, float y, float w, float h) {
-        if (source == null) return;
+        if (source == null || !allowed()) return;
         ComputedStyle s = element.style;
         int tint = s == null ? Colors.WHITE : s.tint;
         if (dev.oriel.engine.css.ImageProviders.handles(source)) {
@@ -67,6 +68,12 @@ final class ImageContent implements ReplacedContent {
         return element.ownerDocument();
     }
 
+    Image source() { return source; }
+
+    private boolean allowed() {
+        return !LazyImages.lazyImage(element) || element.isConnected() && document().lazyImages().allows(element, source);
+    }
+
     private void load() {
         String src = element.getAttribute("src");
         src = src == null ? "" : src.strip();
@@ -78,7 +85,7 @@ final class ImageContent implements ReplacedContent {
 
     /** Reads the natural size again; true when it changed (a canvas was resized, a texture appeared). */
     private boolean refreshSize() {
-        float[] size = source == null ? null : ImageSources.size(document(), source);
+        float[] size = source == null || !allowed() ? null : ImageSources.size(document(), source);
         float w = size == null ? Float.NaN : size[0], h = size == null ? Float.NaN : size[1];
         boolean changed = Float.compare(w, width) != 0 || Float.compare(h, height) != 0;
         width = w;

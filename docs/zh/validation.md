@@ -1,5 +1,7 @@
 # 检查与验收工具
 
+下游骨架 `oriel_scaffold` 默认只读；prepare 使用 `oriel_check` 的严格引擎诊断与双尺寸截图，用户聊天批准后 apply 仅新建不存在的 HTML/Java。`node --test tools/mcp/scaffold.test.mjs` 用伪造工程覆盖检测、路径、批准及幂等；`ORIEL_TEST_TMP` 指向仓库外临时目录。Java 注册片段未据此证明下游编译或游戏可用，详见 [MCP 手册](mcp.md#下游骨架oriel_scaffold)。
+
 粒子/动画的性能验收见 [性能规范](performance.md)（MCP：`oriel_rules` 的 `topic=performance`）。strict 零诊断不等于帧率达标；保留同动作基线、离线与实机证据分开记录。
 
 [入口](index.md) · [制作流程](ui-workflow.md)
@@ -45,6 +47,22 @@ checkUi 查加载、控制器异常、资源、CSS 诊断和部分设计问题�
 默认checkUi/CLI的 --check 将CSS与设计警告列为WARN但仍可返回0，页面异常或缺图返回1；不是所有警告都会阻止构建。需要警告阻断时用 -PuiStrict，或CLI的 --check TARGET --strict；此时仅警告返回3，页面错误仍返回1。--lang可与--strict组合。空目录返回2。此选项只改变检查退出码，不改页面样式或渲染。
 
 CI 对全部 kit 页面分别执行默认语言（zh_cn）和 en_us 的严格检查；任一语言出现警告即阻止构建。Gradle 会把预览器的非零退出码报告为任务失败，具体退出码见任务日志。此门禁不替代截图、游戏或联机验收。
+
+### 布局后诊断与 PNG 检查
+
+以下诊断用于预览器、MCP 的检查路径；检查的是当前数据和当前布局，不替代实际游戏操作。双尺寸检查的任一视口出现警告都会使 strict 失败；快照和动作预览也在最后一帧运行这些规则。
+
+| 诊断 code | 触发条件与修复 |
+|---|---|
+| text-ellipsis-tooltip | 实际绘制出了 text-overflow 省略号，但文字与祖先没有有效悬停提示。添加完整内容的 title / title-json，或放宽、换行；只声明 ellipsis 但文字能完整显示不会报。空 title 会屏蔽祖先提示，data-tip 没有内置提示行为，不能代替 title。 |
+| text-clipped | nowrap 文字片段被自身或祖先 overflow 的横向裁剪切掉，且没有实际省略号。给文字所在盒子设置省略号并加 title，或换行、放宽容器；也检查滚动容器内部分可见的文字，不报完全不可见的行。 |
+| flex-content-clipped | flex 行子项发生收缩且内容被切。图标、角标用 flex:none / min-width，文本区单独收缩并设置省略号和提示。已完整显示或已使用省略号的文本不会报此项。 |
+| image-too-large | 页面 img 或计算样式背景、边框、遮罩引用的 PNG 宽或高 >2048px，或文件 >1 MiB。按显示尺寸缩图、压缩；支持资源命名空间与页面旁文件，同一 URL 去重，只读 PNG 文件头与文件大小，不解码整图。 |
+| images-without-lazy | 同页非 canvas/sprite/data 的 img 引用与 URL 背景层合计 >24 处，且这些源完全没有 `loading=lazy` / `data-oriel-lazy`。含隐藏和视口外元素，重复 URL 按使用处计数；渐变不计。给列表图启用懒加载并预留宽高，配置见[性能规范](performance.md#列表图片懒加载)。 |
+
+每个规则、每个视口最多显示前 5 处，超出另报一条总数汇总；结构化报告保留 code/source/line/column/suggestion。文本规则跳过隐藏、完全不可见、尚未稳定的入场动画、循环动画及旋转/斜切内容；已结束的入场动画、轴向缩放/平移仍检查。非 nowrap、多行裁剪、复杂遮挡不在 text-clipped 的覆盖范围内。动态生成节点没有原始行号时用元素标识定位。离线字体和数据必须与目标页面匹配。
+
+**库内示例迁移例外：** 上表新增规则在本仓库真实路径下的 kit/ui、common/showcase 和 common/demo 页面保留 INFO，提示“库内示例待修复”，不阻断 strict；这些页面的视觉修复单独验收。仅凭 oriel 命名空间不能豁免，外部页面和 tools/mcp/examples 仍为 WARNING。原有 CSS、缺图和设计规则不放宽，因此 INFO 不等于该页面已完整通过视觉或旧规则验收。
 
 | Preview 参数 | 默认/作用 |
 |---|---|

@@ -103,7 +103,7 @@ textarea 在空白与中文允许的边界换行；相同字体、字距、内�
 | slot | index：菜单 slots 列表下标 | UA 18×18；只能在绑定的容器 Screen 生效；不是 Inventory 的原始下标 |
 | player-head | name 或 uuid，都省略为当前玩家 | UA 显示 8×8；需要 16×16 要显式设 CSS；皮肤解析须游戏检查 |
 | sprite | src=命名空间:GUI精灵路径 | 自然尺寸由精灵决定；九宫格/tile 由元数据控制 |
-| img | src=相对PNG / ns:textures/...png / sprite:ns:path / canvas:id | 自然尺寸来自资源；不能依赖浏览器 data URL/远程图片加载 |
+| img | src=相对PNG / ns:textures/...png / sprite:ns:path / canvas:id；loading=eager（缺省）/lazy | 自然尺寸来自资源；lazy 按视口分批读取，显式设置 width/height 占位；不能依赖浏览器 data URL/远程图片加载，见[图片懒加载](performance.md#列表图片懒加载) |
 | canvas | width、height：像素缓冲区 | 缺省 300×150，每边最大 2048；CSS 尺寸与缓冲区尺寸不同；仅支持 [Canvas 子集](scripting.md) |
 | mc-text | key + 可选 args，或 json | 翻译键/聊天组件转普通文本与 span；args 为逗号分隔字符串；添加元素和相关属性变化时展开 |
 

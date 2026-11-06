@@ -48,6 +48,9 @@ public interface Host {
      */
     default float[] imageSize(String url) { return null; }
 
+    /** Prepares a lazy image's pixels/texture within its batch budget. Sizes alone may only read a header. */
+    default void prepareImage(String url) {}
+
     /** True after image loading has failed, distinct from a size that is merely unknown or still loading. */
     default boolean imageFailed(String url) { return false; }
 

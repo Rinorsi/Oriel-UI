@@ -50,7 +50,7 @@
 | 浮层 | data-pop=目标id；目标 .o-pop | 值不加 #；Widgets 放置与开关 |
 | 右键菜单 | data-context=目标id；目标 .o-context | Widgets 处理右键/关闭；菜单业务自行接 |
 | 格式输入 | .o-mcfield 内 input.ore-field | Shell 接 McField 工具条和预览 |
-| 懒显示 | .o-lazy | 进入可视区域逐步揭开；不是网络自动加载 |
+| 懒显示 | .o-lazy | 进入可视区域逐步揭开；图片读取请另用 img loading=lazy / URL 背景 data-oriel-lazy，见[性能规范](performance.md#列表图片懒加载) |
 | 预加载遮罩 | .o-preload；data-min 毫秒，默认 500 | Lazy.ready(doc) 完成；Lazy.progress 更新进度 |
 
 ```html

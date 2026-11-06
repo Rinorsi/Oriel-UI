@@ -59,6 +59,7 @@ public final class Document extends Node {
     private final String initialData;
     private final Scheduler scheduler = new Scheduler(this);
     private final Scrolling scrolling = new Scrolling();
+    private final dev.oriel.engine.replaced.LazyImages lazyImages = new dev.oriel.engine.replaced.LazyImages(this);
     private final Diagnostics diagnostics;
     private final dev.oriel.engine.i18n.Messages messages = new dev.oriel.engine.i18n.Messages(this);
     private final StyleEngine styleEngine;
@@ -159,6 +160,7 @@ public final class Document extends Node {
     public Limits limits() { return limits; }
     public String url() { return url; }
     public Scheduler scheduler() { return scheduler; }
+    public dev.oriel.engine.replaced.LazyImages lazyImages() { return lazyImages; }
 
     private PageControllers.Controller controller;
 
@@ -350,6 +352,10 @@ public final class Document extends Node {
             animationEngine.tick(nowMs);
             if (updateReplaced()) layoutDirty = true;
             updateLayout();
+            if (lazyImages.frame(nowMs)) {
+                repaint = true;
+                updateLayout();
+            }
             if (laidOut) {
                 laidOut = false;
                 input.afterLayout();
@@ -431,7 +437,7 @@ public final class Document extends Node {
     public boolean needsFrame(double nowMs) {
         if (error != null || closed) return false;
         return messages.languageChanged() || dirty() || scheduler.hasWork(nowMs) || animationEngine.isAnimating() || input.isActive()
-                || input.tooltipDue(nowMs);
+                || input.tooltipDue(nowMs) || lazyImages.needsFrame(nowMs);
     }
 
     /**
@@ -443,7 +449,7 @@ public final class Document extends Node {
      */
     public boolean settled() {
         if (error != null || closed) return true;
-        return !(dirty() || animationEngine.isSettling() || input.isSettling());
+        return !(dirty() || animationEngine.isSettling() || input.isSettling() || lazyImages.pending());
     }
 
     /**
@@ -605,6 +611,7 @@ public final class Document extends Node {
     public void stop(String message, Throwable cause) {
         if (error != null) return;
         error = cause;
+        lazyImages.clear();
         scheduler.clear();
         if (scripts != null) scripts.dispose();
         if (cause instanceof VirtualMachineError) release();
@@ -613,6 +620,7 @@ public final class Document extends Node {
 
     /** Lets go of everything the page built: its scripts, and its tree with the script objects it holds. */
     private void release() {
+        lazyImages.clear();
         scripts = null;
         children.clear();
         nodeCount = 0;
@@ -641,6 +649,7 @@ public final class Document extends Node {
     private void connect(Node node, boolean loaded) {
         if (node instanceof Element e) {
             if (e.replaced == null) addReplaced(e);
+            lazyImages.track(e);
             // An expanded mc-text's new children were connected as they were inserted.
             if (loaded && ElementExpansion.connected(this, e)) return;
             if (e.hasInertContent()) return;
@@ -687,6 +696,7 @@ public final class Document extends Node {
 
     /** {@code node} is about to leave the document (not just move within it). */
     void nodeRemoving(Node node) {
+        lazyImages.forget(node);
         if (focused != null && node.contains(focused)) setFocus(null);
         scrolling.forget(node);
         input.nodeRemoving(node);
@@ -725,6 +735,7 @@ public final class Document extends Node {
     void attributeChanged(Element element, String name) {
         if (element.replaced != null) element.replaced.attributeChanged(name); // also a canvas outside the document
         if (!element.isConnected()) return;
+        if (name.equals("loading") || name.equals("data-oriel-lazy")) lazyImages.track(element);
         subtreeChanged(element.parent, element, name);
         boolean layout = switch (name) {
             case "width", "height", "src" -> element.replaced != null;
@@ -930,6 +941,7 @@ public final class Document extends Node {
             dispatchEvent(new Event("unload", false, false));
         });
         closed = true;
+        lazyImages.clear();
         scheduler.clear();
         if (scripts != null) scripts.dispose();
         for (ReplacedContent content : replaced) dispose(content, "replaced content");
