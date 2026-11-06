@@ -112,6 +112,7 @@ public final class StylesPreset implements PageControllers.Controller {
             Shell.activate(item, () -> {
                 view = item.getAttribute("data-view");
                 for (Element i : doc.querySelectorAll("#side .item")) i.toggleClass("on", i == item);
+                if (view.equals("pages")) send("refresh", "", false); // files may have been copied in since the page opened
                 render();
             });
         }

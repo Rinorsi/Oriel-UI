@@ -27,7 +27,7 @@ import java.util.Set;
  * {@code config/oriel/my-pages/}, served as the folder namespace {@value #NAMESPACE}: the player edits the copy there
  * and every save reloads it. What is saved is what is in that folder.
  *
- * <p>The index page ({@link OrielKit#STYLES}) sends {@code {"op": "fav" | "save" | "recent" | "folder", "id": ...,
+ * <p>The index page ({@link OrielKit#STYLES}) sends {@code {"op": "fav" | "save" | "recent" | "folder" | "refresh", "id": ...,
  * "on": ...}} on {@link OrielKit#CHANNEL} and gets the state back as its {@value StylesPreset#LIBRARY} data:
  * {@code {"favorites": [...], "saved": [...], "recent": [...], "folder": "..."}}.
  */
@@ -65,7 +65,7 @@ public final class TemplateLibrary {
         String op = request.has("op") ? request.get("op").getAsString() : "";
         String id = request.has("id") ? request.get("id").getAsString() : "";
         Constants.LOG.debug("Oriel: template centre asks {} {}", op, id);
-        if (!op.equals("folder") && !StylesPreset.PAGES.contains(id)) return false;
+        if (!op.equals("folder") && !op.equals("refresh") && !StylesPreset.PAGES.contains(id)) return false;
         switch (op) {
             case "fav" -> {
                 if (request.has("on") && request.get("on").getAsBoolean()) favorites.add(id);
@@ -79,6 +79,7 @@ public final class TemplateLibrary {
                 store();
             }
             case "save" -> save(id);
+            case "refresh" -> { } // the state sent back lists the folder as it is now
             case "folder" -> {
                 if (dir != null) openFolder(dir);
                 return false;
