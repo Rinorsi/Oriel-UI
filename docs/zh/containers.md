@@ -45,6 +45,6 @@ OrielScreens.registerContainer(MyMenus.BOT, "mymod:oriel/bot.html", menu -> {
 
 这个函数在界面打开时运行，之后每个客户端 tick 都运行，只要它的结果或槽位变了，页面就会得到新数据，所以它可以读取菜单、同步的 `ContainerData`，或你的网络包更新的客户端状态。（`driver().push` 会替换整个 `oriel.data`，包括槽位，直到下一次变化；请改用这个函数。）
 
-试一试：`/oriel demo chest` 打开一个箱子，它的界面是 `assets/oriel/oriel/demo/chest.html`。
+试一试：`/oriel showcase chest` 打开一个箱子，它的界面是 `assets/oriel/oriel/demo/chest.html`。
 
 该样例及 `ForgeMenu.open(player)` 缺省固定到脚下的非空气方块，最大距离 8 格，并检查拥有者、存活、关闭状态和方块是否存续。自定义固定位置使用 `ForgeMenu.Workstation`；两参数的 `ForgeMenu` 构造器保留便携模式。参数、失败和授权合同见[服务端菜单](server.md#锻造菜单的接入合同)。

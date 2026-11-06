@@ -1,6 +1,6 @@
 # 服务端与容器
 
-字段速查见 [物品编辑器合同](item-editor.md)、[Java API](java-api.md)。结构化拒绝原因的翻译见 [国际化](i18n.md)。
+字段速查见 [Java API](java-api.md)。结构化拒绝原因的翻译见 [国际化](i18n.md)。
 
 Oriel 的页面运行在客户端。服务端决定业务状态和物品变化，通过协议 v2 发送页面与数据；不在服务端创建 Screen，也不依赖客户端渲染类。
 
@@ -9,7 +9,7 @@ Oriel 的页面运行在客户端。服务端决定业务状态和物品变化�
 | 类型 | 谁打开、谁拥有状态 | 使用场景 | 入口 |
 |---|---|---|---|
 | 纯客户端 | 客户端打开，状态只影响本地展示 | 设置、图鉴、HUD、演示 | OrielScreens、OrielHud |
-| 服务端驱动页面 | 服务端针对一个玩家创建会话，校验消息并推送状态 | 商店、任务、对话、物品编辑表单 | OrielServer、OrielSession |
+| 服务端驱动页面 | 服务端针对一个玩家创建会话，校验消息并推送状态 | 商店、任务、对话、编辑表单 | OrielServer、OrielSession |
 | 物品容器 | 服务端菜单拥有槽位和计算结果，原版同步物品 | 锻造台、仓库、真实物品交易 | MenuType、AbstractContainerMenu、OrielContainerScreen |
 
 有真实物品拖拽、Shift 点击或快捷栏交换，就使用容器。普通按钮操作可以使用服务端页面，但购买数量、费用、库存等必须由服务端重新校验。不要让页面发送一份 ItemStack JSON 后直接覆盖玩家物品。
@@ -90,7 +90,7 @@ public final class ServerPageExample {
 
 MenuType 和菜单工厂属于公共注册，实际菜单实例在服务端拥有输入、输出和配方计算。客户端工厂建立相同数量和顺序的槽，只接收原版同步结果。OrielContainerScreen 将 HTML 的 slot 元素映射到菜单索引，点击、拖拽、Shift 点击、拾取物品走原版菜单包。
 
-现有 /oriel demo chest 是最小可运行参考：OrielDemos.CHEST 注册为独立 MenuType；服务端 OrielDemos.openChest(player) 打开 27 格样例容器；客户端初始化已经注册 OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE)。可以直接从自己的服务端命令调用：
+现有 /oriel showcase chest 是最小可运行参考：OrielDemos.CHEST 注册为独立 MenuType；服务端 OrielDemos.openChest(player) 打开 27 格样例容器；客户端初始化已经注册 OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE)。可以直接从自己的服务端命令调用：
 
 ```java
 import dev.oriel.mod.server.ForgeMenu;
@@ -136,7 +136,7 @@ OrielContainerScreen 自动给页面提供 title、inventory 和 slots 数组（
 
 空参数抛 NullPointerException；不合规方块或距离抛 IllegalArgumentException。
 
-兼容构造器 `new ForgeMenu(id, inventory)` 保留不绑定坐标的便携模式（也供客户端工厂使用）；固定工作站服务端应使用三参数构造器传入非 null 的 `Workstation`。命令权限由命令入口检查，直接调用 `open` 的业务方自行负责授权。`/oriel demo chest` 样例同样固定到脚下方块、默认 8 格，并检查拥有者、存活和关闭状态；它的物品是每次打开独立生成的演示样本，不是持久化容器。
+兼容构造器 `new ForgeMenu(id, inventory)` 保留不绑定坐标的便携模式（也供客户端工厂使用）；固定工作站服务端应使用三参数构造器传入非 null 的 `Workstation`。命令权限由命令入口检查，直接调用 `open` 的业务方自行负责授权。`/oriel showcase chest` 样例同样固定到脚下方块、默认 8 格，并检查拥有者、存活和关闭状态；它的物品是每次打开独立生成的演示样本，不是持久化容器。
 
 ```java
 var station = new ForgeMenu.Workstation(player.level(), pos, Blocks.SMITHING_TABLE, 6);
@@ -181,9 +181,9 @@ public final class ForgeClientRegistration {
 
 服务端会话的页面不能读取客户端注册的 folder 命名空间；初次打开、页面导航/重载及脚本/样式等文本或二进制加载均保留这个限制。读取拒绝返回 null，记录 ERROR 级 server-folder-access Diagnostic（来源为被拒绝 URL，行号未知为 0）；页面因此找不到资源时会按加载失败处理。本地客户端页面仍可使用已注册目录。脚本沙箱与 JSON 深度诊断见 [脚本合同](scripting.md)。
 
-协议版本为 2：物品编辑器的拒绝原因从字符串改为 `{key,args,count?}`，客户端按当前语言解析；不可编码组件也通过独立字段标记，客户端显示本地化说明。外层网络包 codec 不变，但应用数据契约不兼容，因此双方必须一起升级，不能让协议 1 客户端把 key 当文案显示。限制由 config/oriel.properties 中 server.*、client.* 控制：会话数量、消息突发量／速率、JSON 大小与深度等。通道名不是授权，合法 JSON 也可能包含巨大数字；钱、价格、配方、物品权威状态始终来自服务端。
+协议版本为 2：服务端的拒绝原因从字符串改为 `{key,args,count?}`，客户端按当前语言解析；不可编码组件也通过独立字段标记，客户端显示本地化说明。外层网络包 codec 不变，但应用数据契约不兼容，因此双方必须一起升级，不能让协议 1 客户端把 key 当文案显示。限制由 config/oriel.properties 中 server.*、client.* 控制：会话数量、消息突发量／速率、JSON 大小与深度等。通道名不是授权，合法 JSON 也可能包含巨大数字；钱、价格、配方、物品权威状态始终来自服务端。
 
-/oriel edit 的 ItemEditor.save 是表单校验参考：再次验证命令权限、快捷栏索引和原物品快照，只应用改过的字段，检查范围并保留未知组件。它不等价于原版物品槽交互，不应作为容器拖拽的实现方式。
+服务端保存一个表单（例如编辑手里的物品）时的校验写法：再次验证命令权限、快捷栏索引和原物品快照，只应用改过的字段，检查范围并保留未知组件。它不等价于原版物品槽交互，不应作为容器拖拽的实现方式。
 
 纯客户端类放客户端入口。公共注册／服务端菜单不得 import net.minecraft.client；不要通过在客户端调用同名服务端静态方法假装完成联网。
 

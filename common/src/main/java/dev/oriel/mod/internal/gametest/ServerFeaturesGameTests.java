@@ -21,7 +21,6 @@ import java.util.List;
 /** Server-only regressions for fallback, per-player routing and atomic forge inventory changes. */
 public final class ServerFeaturesGameTests {
     public static void init() {
-        GameTests.add("item_editor_localization", ItemEditorLocalizationGameTests::run);
         GameTests.add("runtime_version", h -> {
             String version = dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel");
             h.assertFalse(version.isBlank(), "loader supplies the running library version");
@@ -47,7 +46,6 @@ public final class ServerFeaturesGameTests {
         GameTests.add("unsupported_client", ServerFeaturesGameTests::unsupported);
         GameTests.add("player_isolation", ServerFeaturesGameTests::isolation);
         GameTests.add("forge_menu", ServerFeaturesGameTests::forge);
-        ItemEditorComponentsGameTests.init();
         GameTests.add("forge_workstation", ServerFeaturesGameTests::workstation);
     }
 

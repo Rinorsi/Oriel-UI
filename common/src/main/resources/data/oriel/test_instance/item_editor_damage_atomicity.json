@@ -1,1 +1,0 @@
-{"type":"minecraft:function","environment":"minecraft:default","function":"oriel:item_editor_damage_atomicity","max_ticks":200,"setup_ticks":1,"structure":"oriel:test/arena"}

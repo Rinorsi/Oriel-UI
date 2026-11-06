@@ -25,7 +25,7 @@ Agent 从 [调用提示词](agent-prompts.md) 开始；工具连接和完整参�
 
 | 内容 | 物品组件编辑器示例 |
 |---|---|
-| 界面与入口 | 服务端页面；管理员命令；URL mymod:ui/item_editor.html |
+| 界面与入口 | 服务端页面；管理员命令；URL mymod:ui/editor.html |
 | 主操作 | 改工作副本 → 保存 → 等服务端接受/拒绝 |
 | 状态 | loading / ready / dirty / saving / saved / rejected / unavailable |
 | 数据 | 物品快照、可编辑字段、只读组件树、附魔/属性选项；逐字段类型/空值/范围 |
@@ -35,7 +35,7 @@ Agent 从 [调用提示词](agent-prompts.md) 开始；工具连接和完整参�
 | 原生内容 | item/model 预览；只有真实拖放才需要 slot |
 | 文案 | zh_cn/en_us 键、空状态、错误、长文本与中文输入 |
 
-现有编辑器合同见 [item-editor](item-editor.md)，不要猜字段。新增功能先定义业务合同，不把提议写成库已支持的能力。
+字段合同写进你自己的文档，不要猜字段。新增功能先定义业务合同，不把提议写成库已支持的能力。
 
 ## 2. 选择行为路线
 

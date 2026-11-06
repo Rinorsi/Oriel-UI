@@ -19,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LocalizationTest {
     private static final List<String> PAGES = List.of("gallery", "inventory", "forge", "music", "settings",
-            "editor", "catalog", "icons", "item_editor");
+            "editor", "catalog", "icons");
     private static final List<Supplier<PageControllers.Controller>> CONTROLLERS = List.of(GalleryPreset::new,
             InventoryPreset::new, ForgePreset::new, MusicPreset::new, SettingsPreset::new,
-            EditorPreset::new, CatalogPreset::new, IconsPreset::new, ItemEditorPreset::new);
+            EditorPreset::new, CatalogPreset::new, IconsPreset::new);
 
     @Test void languageCatalogsHaveIdenticalNonemptyKeys() {
         KitHost host = new KitHost();
@@ -137,21 +137,6 @@ class LocalizationTest {
         after.restoreState(saved);
         assertEquals("minecraft:torch", after.slots[6].id());
         assertTrue(en.body().textContent().contains(Lang.t(en, "oriel.ui.inventory.sharpness_v_diamond_sword")));
-        zh.close(); en.close();
-    }
-
-    @Test void itemEditorKeepsUnsavedUserTextAcrossLanguageReloads() {
-        KitHost host = new KitHost();
-        ItemEditorPreset before = new ItemEditorPreset();
-        Document zh = host.open(OrielKit.ITEM_EDITOR, before);
-        before.edit("name", new com.google.gson.JsonPrimitive("我的试验剑"));
-        Object saved = before.saveState();
-        host.language = "en_us";
-        ItemEditorPreset after = new ItemEditorPreset();
-        Document en = host.open(OrielKit.ITEM_EDITOR, after);
-        after.restoreState(saved);
-        assertEquals("我的试验剑", after.work.get("name").getAsString());
-        assertNotEquals("钻石剑", after.baseline.get("defaultName").getAsString());
         zh.close(); en.close();
     }
 

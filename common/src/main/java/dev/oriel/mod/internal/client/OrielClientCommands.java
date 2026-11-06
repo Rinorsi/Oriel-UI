@@ -18,7 +18,7 @@ import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import java.util.List;
 
 /**
- * Client commands: {@code /oriel open <url> | demo [preset] | legacy [name] | showcase [page] | reload | canvastest}. Generic in the command source so
+ * Client commands: {@code /oriel open <url> | showcase [page] | reload | canvastest}. Generic in the command source so
  * each loader registers the same tree with its own client source type.
  */
 public final class OrielClientCommands {
@@ -35,17 +35,14 @@ public final class OrielClientCommands {
     private OrielClientCommands() {}
 
     public static <S> LiteralArgumentBuilder<S> create() {
-        // The Oriel UI presets: /oriel demo opens their gallery, /oriel demo hud toggles the potion HUD.
-        LiteralArgumentBuilder<S> presets = LiteralArgumentBuilder.<S>literal("demo").executes(c -> later(() -> preset("gallery")));
-        for (String name : PRESETS) presets.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> preset(name))));
-        // The demos inherited from Vellum.
-        LiteralArgumentBuilder<S> demo = LiteralArgumentBuilder.<S>literal("legacy").executes(c -> later(() -> demo("gallery")));
-        for (String name : DEMOS) demo.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> demo(name))));
-        demo.then(LiteralArgumentBuilder.<S>literal("toast").executes(c -> later(OrielClientCommands::toast)));
-        for (String name : SERVER_DEMOS) demo.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> askServer("oriel demo " + name)));
-        LiteralArgumentBuilder<S> showcase = LiteralArgumentBuilder.<S>literal("showcase")
-                .executes(c -> later(() -> OrielScreens.open(showcaseUrl("index"))));
+        // One demo entry: /oriel showcase opens the gallery home; its words are the kit presets, the show-off pages, the
+        // toast overlay, and the server's two demos (the server runs those: past this dispatcher, which would take them again).
+        LiteralArgumentBuilder<S> showcase = LiteralArgumentBuilder.<S>literal("showcase").executes(c -> later(() -> preset("gallery")));
+        for (String name : PRESETS) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> preset(name))));
         for (String name : SHOWCASE) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> OrielScreens.open(showcaseUrl(name)))));
+        for (String name : CommandNames.BASICS) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> demo(basicsPage(name)))));
+        showcase.then(LiteralArgumentBuilder.<S>literal(CommandNames.TOAST).executes(c -> later(OrielClientCommands::toast)));
+        for (String name : SERVER_DEMOS) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> askServer("oriel showcase " + name)));
         return LiteralArgumentBuilder.<S>literal("oriel")
                 .then(LiteralArgumentBuilder.<S>literal("version").executes(c -> later(() -> McClient.systemMessage(
                         Component.literal("Oriel UI runtime version: " + dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel"))))))
@@ -55,20 +52,17 @@ public final class OrielClientCommands {
                                     String url = StringArgumentType.getString(c, "url");
                                     return later(() -> OrielScreens.open(url));
                                 })))
-                .then(LiteralArgumentBuilder.<S>literal("edit").executes(c -> askServer("oriel edit")))
-                .then(presets)
-                .then(demo)
                 .then(showcase)
                 .then(LiteralArgumentBuilder.<S>literal("reload").executes(c -> later(OrielClient::onResourceReload)))
                 .then(LiteralArgumentBuilder.<S>literal("canvastest").executes(c -> later(() -> McClient.setScreen(new CanvasTestScreen()))));
     }
 
-    /** The presets {@code /oriel demo} opens: a page each, and the potion HUD. */
+    /** The kit presets under {@code /oriel showcase}. */
     public static final List<String> PRESETS = CommandNames.PRESETS;
 
     /** Opens a preset page, or the gallery; {@code hud} toggles the potion HUD overlay. */
     public static void preset(String name) {
-        if (name.equals("hud")) {
+        if (name.equals("potions")) {
             togglePotionHud();
             return;
         }
@@ -108,7 +102,16 @@ public final class OrielClientCommands {
     }
 
     public static String demoUrl(String name) {
-        return "oriel:oriel/demo/" + (name.equals("gallery") ? "index" : name) + ".html";
+        return "oriel:oriel/demo/" + name + ".html";
+    }
+
+    /** The page a {@link CommandNames#BASICS} word opens. */
+    private static String basicsPage(String word) {
+        return switch (word) {
+            case "forms" -> "settings";
+            case "titlecard" -> "hud";
+            default -> word;
+        };
     }
 
     public static String showcaseUrl(String name) {

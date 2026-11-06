@@ -43,15 +43,4 @@ public record LocalizedMessage(String key, List<String> args, Long count) {
     public String render(Document doc) {
         return count == null ? Lang.t(doc, key, args.toArray()) : Lang.plural(doc, key, count, args.toArray());
     }
-
-    /** Only explicitly identified server codec failures are translated; user component strings remain untouched. */
-    public static com.google.gson.JsonElement componentValue(Document doc, JsonObject item, String id, com.google.gson.JsonElement value) {
-        if (item.has("unencodableComponents")) {
-            for (var failed : item.getAsJsonArray("unencodableComponents")) {
-                if (id.equals(failed.getAsString()))
-                    return new com.google.gson.JsonPrimitive(Lang.t(doc, "oriel.server.item_editor.unencodable"));
-            }
-        }
-        return value;
-    }
 }

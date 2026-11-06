@@ -191,19 +191,18 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 </section>
 ```
 
-`<slot index="n">` 把菜单的第 n 个格子放到元素画出来的位置，格子跟着滚动、变换、动画走；点击、拖拽、Shift 点击、物品提示由原版处理，所以服务端同步不用你操心。服务端那一半（`MenuType`、`AbstractContainerMenu`、方块或命令里 `player.openMenu(...)`）是你的模组自己的，和不用本库时完全一样。示例：`/oriel demo chest` 对应 `OrielDemos.java` 与 [容器页面](containers.md)。
+`<slot index="n">` 把菜单的第 n 个格子放到元素画出来的位置，格子跟着滚动、变换、动画走；点击、拖拽、Shift 点击、物品提示由原版处理，所以服务端同步不用你操心。服务端那一半（`MenuType`、`AbstractContainerMenu`、方块或命令里 `player.openMenu(...)`）是你的模组自己的，和不用本库时完全一样。示例：`/oriel showcase chest` 对应 `OrielDemos.java` 与 [容器页面](containers.md)。
 
 ## 8. 命令与配置
 
 | 命令 | 作用 |
 |---|---|
-| `/oriel demo` | 打开首页（客户端） |
-| `/oriel demo catalog` | 组件与动效的活目录 |
+| `/oriel showcase` | 打开首页（客户端） |
+| `/oriel showcase catalog` | 组件与动效的活目录 |
 | `/oriel open <url>` | 打开任意页面，如 `/oriel open mymod:oriel/shop.html` |
 | `/oriel reload` | 重新加载所有已打开的页面（F3+T 也会） |
-| `/oriel edit` | 物品数据编辑器（服务端校验后写回，需要管理员权限） |
-| `/oriel demo chest` | 真实箱子菜单配页面槽位（服务端，需要管理员权限） |
-| `/oriel demo live` | 服务端会话示例（每秒推送玩家状态） |
+| `/oriel showcase chest` | 真实箱子菜单配页面槽位（服务端，需要管理员权限） |
+| `/oriel showcase live` | 服务端会话示例（每秒推送玩家状态） |
 
 配置文件 `config/oriel.properties`，所有键、默认值与范围见 [安全与设置](security.md#设置)。常用的：`client.serverPages`（`allow` / `ask` / `block`，是否显示服务器发来的页面）、`client.reducedMotion`、`client.shapeShader`、`client.inspector`（仅含开发工具的构建启用 F12 元素检查器，`-Poriel_release` 正式包忽略此开关）。
 

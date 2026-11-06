@@ -29,7 +29,6 @@
 | 画在 HUD 上的叠加层 | [HUD 叠加层](hud.md) |
 | 带物品槽的界面 | [容器页面](containers.md)（页面一侧）→ [服务端与容器](server.md)（服务端一侧） |
 | 玩家可以自己改的页面（改文件夹） | [页面接口：玩家可编辑的页面](pages.md#玩家可编辑的页面) |
-| Ore 风格物品组件编辑器 | [组件](components.md) → [编辑器字段合同](item-editor.md) → [服务端](server.md) |
 | 浏览器里先把视觉做好，再移植 | [制作流程](ui-workflow.md)，特别是浏览器桥接和四层验收 |
 | 查某个 CSS 属性、选择器或单位 | [CSS 参数参考](css-guide.md)；先看顶部的语义例外 |
 | 查 `<item>` / `<entity>` / `<scene>` 的属性、提示框、原版外观类 | [元素参数](elements.md) |
@@ -47,7 +46,7 @@
 
 **制作**：[能力边界](capabilities.md) · [制作流程](ui-workflow.md) · [设计](design.md) · [组件](components.md) · [动效](motion.md) · [布局配方](recipes.md) · [国际化](i18n.md)
 
-**参数**：[CSS 参数参考](css-guide.md) · [CSS 支持参考](css-reference.md) · [元素](elements.md) · [脚本](scripting.md) · [Java 声明式绑定](bindings.md) · [物品编辑器字段](item-editor.md)
+**参数**：[CSS 参数参考](css-guide.md) · [CSS 支持参考](css-reference.md) · [元素](elements.md) · [脚本](scripting.md) · [Java 声明式绑定](bindings.md)
 
 **接入**：[最小 Fabric 工程](quickstart.md) · [接入指南](integration.md) · [页面接口](pages.md) · [HUD](hud.md) · [容器页面](containers.md) · [Java API](java-api.md) · [服务端与容器](server.md) · [迁移](migrating.md) · [朗读](narration.md) · [安全与设置](security.md)
 

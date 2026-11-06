@@ -1,6 +1,6 @@
 # 优易库设计规范（Ore 像素主题 v2）
 
-相关：动效 `motion.md`、布局套路 `recipes.md`、做页面流程 `ui-workflow.md`；游戏里 `/oriel demo catalog` 是所有组件与动效的活目录。
+相关：动效 `motion.md`、布局套路 `recipes.md`、做页面流程 `ui-workflow.md`；游戏里 `/oriel showcase catalog` 是所有组件与动效的活目录。
 
 适用于 `kit/src/main/resources/assets/oriel/ui/` 下的所有页面。样式全部在 `ore.css`，页面只写布局。
 

@@ -142,7 +142,7 @@
 
 /* The figures. */
 /* The figures, along the bottom of the picture. */
-.stats { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 16px; padding: 6px 8% 7px;
+.stats { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; padding: 6px 5% 7px;
     background: linear-gradient(rgba(10, 9, 24, 0), rgba(10, 9, 24, 0.78) 40%); animation: fx-rise 700ms var(--o-ease-out) 320ms both; }
 .stats .s { display: flex; align-items: baseline; gap: 4px; }
 .stats .v { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); }
@@ -152,6 +152,7 @@
 /* Small GUIs (427×240 is 1280×720 at GUI scale 3). */
 @media (max-width: 560px) { .o-seg em { display: none; } }
 @media (max-width: 700px) { .o-hints { display: none; } }
+@media (max-width: 560px) { .stats { display: none; } }
 [data-window=mini] .o-hints { display: none; }
 @media (max-height: 300px) {
     .stage .tag { display: none; }

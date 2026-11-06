@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 public final class OrielClient {
     public static final Identifier DEMO_HUD = Constants.id("demo_hud");
     public static final Identifier DEMO_TOAST = Constants.id("demo_toast");
-    /** The potion HUD preset ({@code /oriel demo hud}). */
+    /** The potion HUD preset ({@code /oriel showcase potions}). */
     public static final Identifier POTION_HUD = Constants.id("potion_hud");
 
     private static Consumer<CustomPacketPayload> serverSender = p ->

@@ -294,7 +294,7 @@ public final class DevAutopilot {
         guiScale(mc, 2);
         shoot(mc, "showcase_index", () -> OrielScreens.open(OrielClientCommands.showcaseUrl("index")));
         for (String page : OrielClientCommands.SHOWCASE) {
-            if (!page.equals("scene")) shoot(mc, "showcase_" + page, () -> OrielScreens.open(OrielClientCommands.showcaseUrl(page)));
+            if (!page.equals("scene") && !page.equals("index")) shoot(mc, "showcase_" + page, () -> OrielScreens.open(OrielClientCommands.showcaseUrl(page)));
         }
         scene(mc);
         inspector(mc);
@@ -351,7 +351,7 @@ public final class DevAutopilot {
         grab(mc, "templates_input", 5);
         shoot(mc, "chest", () -> {
             McClient.setScreen(null);
-            command(mc, "oriel demo chest");
+            command(mc, "oriel showcase chest");
         });
         // The demo HUD's card fades in and out over four seconds, then closes: shoot it a second in, not settled.
         steps.add(() -> {
@@ -925,38 +925,6 @@ public final class DevAutopilot {
         pause(6);
         grab(mc, "preset_editor_selected", 5);
 
-        // The item editor, end to end: the server opens it on a held sword, an edit is made and saved, and the synced
-        // item is checked.
-        steps.add(() -> {
-            McClient.setScreen(null);
-            command(mc, "item replace entity @s weapon.mainhand with minecraft:diamond_sword[minecraft:enchantments={\"minecraft:sharpness\":5},minecraft:custom_name=\"龙牙\"]");
-        });
-        pause(10);
-        steps.add(() -> mc.player.connection.send(new net.minecraft.network.protocol.game.ServerboundChatCommandPacket("oriel edit")));
-        settle("the item editor", SETTLE);
-        grab(mc, "preset_item_editor", 5);
-        onPage("make it epic", p -> p.click("#rarity [data-r=epic]"));
-        onPage("the enchantments tab", p -> p.click("#tabs [data-tab=ench]"));
-        onPage("search mending", p -> {
-            p.click("#ench-search");
-            p.type("mending");
-        });
-        pause(6);
-        onPage("add mending", p -> p.click("#ench-results .o-chip"));
-        pause(6);
-        grab(mc, "preset_item_editor_edited", 5);
-        onPage("save", p -> p.click("#save"));
-        pause(20);
-        grab(mc, "preset_item_editor_saved", 5);
-        steps.add(() -> {
-            var held = mc.player.getMainHandItem();
-            check(held.get(net.minecraft.core.component.DataComponents.RARITY) == net.minecraft.world.item.Rarity.EPIC,
-                    "the edited sword is epic", "the edited sword is {}", held.get(net.minecraft.core.component.DataComponents.RARITY));
-            int enchantments = held.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS,
-                    net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY).size();
-            check(enchantments == 2, "the sword has two enchantments", "the sword has {} enchantments", enchantments);
-        });
-
         shoot(mc, "preset_gallery_light", () -> OrielClientCommands.preset("gallery"));
         onPage("the light theme", p -> p.click("[data-action=theme]"));
         pause(10);
@@ -1366,7 +1334,7 @@ public final class DevAutopilot {
         pause(20);
         steps.add(() -> {
             String[] lines = {"oriel.dev.acceptance.ready", "oriel.dev.acceptance.home", "oriel.dev.acceptance.catalog",
-                    "oriel.dev.acceptance.edit", "oriel.dev.acceptance.hud", "oriel.dev.acceptance.ime", "oriel.dev.acceptance.reload"};
+                    "oriel.dev.acceptance.hud", "oriel.dev.acceptance.ime", "oriel.dev.acceptance.reload"};
             for (String key : lines) McClient.systemMessage(Component.literal(ClientText.t(key)));
             OrielClientCommands.preset("gallery");
         });

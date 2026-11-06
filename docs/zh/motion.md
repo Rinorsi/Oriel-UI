@@ -1,6 +1,6 @@
 # 动效规范
 
-Ore kit 的动画优先用 `ore.css` 里的命名动效和 `dev.oriel.kit.Motion`，不要在页面里自己写时长和曲线。游戏里打开 `/oriel demo catalog` →「动效」可以逐个点着看。
+Ore kit 的动画优先用 `ore.css` 里的命名动效和 `dev.oriel.kit.Motion`，不要在页面里自己写时长和曲线。游戏里打开 `/oriel showcase catalog` →「动效」可以逐个点着看。
 
 ## 1. 时长与曲线（`--m-*`）
 

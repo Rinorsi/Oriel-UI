@@ -198,7 +198,7 @@ let draft = {name: ''};
 let saving = false;
 function rejectionText(reason, locale) {
   if (!reason || typeof reason.key !== 'string' || !Array.isArray(reason.args)) {
-    return oriel.t('oriel.server.item_editor.bad_data');
+    return oriel.t('mymod.error.bad_data');
   }
   if (reason.count === undefined) return oriel.t(reason.key, ...reason.args);
   if (typeof locale !== 'string') throw new Error('Host must provide clientLocale for plural messages');
@@ -221,7 +221,7 @@ function save() {
 }
 ```
 
-这是使用物品编辑回执结构的自定义页面片段，要求有 `error` 节点、相应的宿主会话，以及由客户端宿主提供的 `clientLocale`（如 `zh_cn`/`en_us`，语言切换时同步）。`clientLocale` 是此示例的接线要求，不是既有编辑器自动提供的字段，也不应使用服务器语言代替。JS 目前没有 `LocalizedMessage` 或复数辅助绑定；不能直接把协议 2 的 reason 对象赋给 `textContent`。既有 Java 控制器用 `LocalizedMessage.fromJson(reason).render(document)`，无需新增该字段。生产页还应有等待超时和重新读取入口；超时不得把未确认请求当成功，也不要无条件重发非幂等交易。
+这是使用结构化拒绝回执（status/reason）的自定义页面片段，要求有 `error` 节点、相应的宿主会话，以及由客户端宿主提供的 `clientLocale`（如 `zh_cn`/`en_us`，语言切换时同步）。`clientLocale` 是此示例的接线要求，不是既有编辑器自动提供的字段，也不应使用服务器语言代替。JS 目前没有 `LocalizedMessage` 或复数辅助绑定；不能直接把协议 2 的 reason 对象赋给 `textContent`。既有 Java 控制器用 `LocalizedMessage.fromJson(reason).render(document)`，无需新增该字段。生产页还应有等待超时和重新读取入口；超时不得把未确认请求当成功，也不要无条件重发非幂等交易。
 
 ## 模板
 
