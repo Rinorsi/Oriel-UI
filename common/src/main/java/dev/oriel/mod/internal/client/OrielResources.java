@@ -30,10 +30,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@code common/src/main/resources/assets} between the run directory and the project root (the directory with
  * {@code settings.gradle}). The source and folder files pages were read from are watched: saving one reloads open
  * documents without a rebuild.
+ *
+ * <p>In any environment, a developer can point a mod's namespace at its source folder in
+ * {@code config/oriel/dev-sources.properties} ({@code editor=C:/work/editor-mod/src/main/resources/assets/editor}, one
+ * line per namespace; the value may also be the {@code assets} folder that contains the namespace). Pages, stylesheets,
+ * scripts and JSON of that namespace are then read from the folder, watched, and fall back to the mod's jar for any file
+ * the folder lacks. This is for developing against the jar in a plain {@code mods} folder; images still come from the jar.
  */
 public final class OrielResources {
     private static final long POLL_MS = 200;
     private static List<Path> sourceAssets = List.of();
+    /** Namespaces a developer pointed at their sources ({@code config/oriel/dev-sources.properties}). */
+    private static final java.util.Map<String, Path> OVERLAYS = new ConcurrentHashMap<>();
     /** Source and folder files read for pages, which the watcher polls. */
     private static final Set<Path> FILES_READ = ConcurrentHashMap.newKeySet();
     private static boolean watching;
@@ -41,11 +49,36 @@ public final class OrielResources {
     private OrielResources() {}
 
     public static void init() {
+        loadOverlays();
         if (!Services.PLATFORM.isDevelopmentEnvironment()) return;
         sourceAssets = findSourceAssets();
         if (sourceAssets.isEmpty()) return;
         Constants.LOG.info("Oriel: dev mode, reading UI sources from {} and reloading pages when they are saved", sourceAssets);
         startWatching();
+    }
+
+    /** Reads {@code config/oriel/dev-sources.properties}; a bad line is skipped with a warning. */
+    private static void loadOverlays() {
+        Path file = Services.PLATFORM.configDir().resolve("oriel").resolve("dev-sources.properties");
+        if (!Files.isRegularFile(file)) return;
+        java.util.Properties props = new java.util.Properties();
+        try (java.io.Reader in = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            props.load(in);
+        } catch (IOException | IllegalArgumentException e) {
+            Constants.LOG.warn("Oriel: cannot read {}: {}", file, e.toString());
+            return;
+        }
+        for (String ns : props.stringPropertyNames()) {
+            Path dir = Path.of(props.getProperty(ns).trim());
+            if (Files.isDirectory(dir.resolve(ns))) dir = dir.resolve(ns);
+            if (!Identifier.isValidNamespace(ns) || !Files.isDirectory(dir)) {
+                Constants.LOG.warn("Oriel: dev-sources.properties: '{}' needs an existing folder, got {}", ns, dir);
+                continue;
+            }
+            OVERLAYS.put(ns, dir.toAbsolutePath().normalize());
+            Constants.LOG.info("Oriel: dev source: '{}:' pages are read from {} and reloaded when saved", ns, dir);
+        }
+        if (!OVERLAYS.isEmpty()) startWatching();
     }
 
     /** A folder was registered: its files are watched in every environment. */
@@ -110,6 +143,11 @@ public final class OrielResources {
     }
 
     private static @Nullable Path sourceFile(Identifier id) {
+        Path overlay = OVERLAYS.get(id.getNamespace());
+        if (overlay != null) {
+            Path p = overlay.resolve(id.getPath()).normalize();
+            if (p.startsWith(overlay) && Files.isRegularFile(p)) return p;
+        }
         for (Path root : sourceAssets) {
             Path p = root.resolve(id.getNamespace()).resolve(id.getPath()).normalize();
             if (p.startsWith(root) && Files.isRegularFile(p)) return p;

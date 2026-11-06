@@ -101,7 +101,7 @@ src/main/resources/assets/mymod/oriel/icon.png       →  <img src="icon.png">
 - URL 是 Minecraft 风格的标识符：`命名空间:路径`，**命名空间必须是你的模组 id**；路径没有强制目录，本手册示例统一用 `oriel/`。库自己的内置页面放在 `assets/oriel/ui/…` 与 `assets/oriel/oriel/…`，那只是库内部的习惯。相对引用按页面所在目录解析。
 - 资源包可以覆盖你的页面，玩家因此能换皮肤。
 - Ore 像素主题的结构和类名见 [制作流程](ui-workflow.md) 与 [设计规范](design.md)。不用主题，自己写 CSS 也完全可以。
-- 开发环境下，保存页面文件会热重载已打开的页面，不用重启游戏。**下游模组要在自己的 `runClient` 里加 `-Doriel.sourceRoot=<含 src/main/resources/assets 的工程目录>`，库才找得到你的源码资源**（Oriel 自己的构建已带；写法见 [快速入门](quickstart.md#边改边看模组自己的页面也能热更新开发环境)）。
+- 开发环境下，保存页面文件会热重载已打开的页面，不用重启游戏。下游模组：运行目录在工程里时自动生效；运行目录在别处加 `-Doriel.sourceRoot=<工程目录>`；只把 jar 丢进 `mods/` 开发就在 `config/oriel/dev-sources.properties` 写一行 `命名空间=源码资源目录`（三种写法见 [快速入门](quickstart.md#边改边看模组自己的页面也能热更新)）。
 
 ## 4. 客户端打开页面（A 类）
 

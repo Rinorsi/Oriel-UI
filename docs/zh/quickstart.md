@@ -207,9 +207,13 @@ public final class MyModClient implements ClientModInitializer {
 
 封面推荐 16:9（官方封面 320×180），其他比例会被裁切；封面必须是文件夹内的 PNG。鼠标放到卡片上会显示完整标题、副标题、文件路径、修改时间和大小，超长内容会被截断，不会出框。
 
-## 边改边看：模组自己的页面也能热更新（开发环境）
+## 边改边看：模组自己的页面也能热更新
 
-打包进模组的页面（`assets/<模组id>/…`）默认要重新构建才变。想**保存即在游戏里刷新**，只要在模组的 `runClient` 里加一个 JVM 参数，告诉库你的源码资源在哪：
+打包进模组的页面（`assets/<模组id>/…`）默认要重新构建才变。下面三种情形，**选符合你的那一种**，都不需要模组里写任何代码：
+
+**① 用 Gradle 的 `runClient`，运行目录在工程里（默认的 `run/`）：什么都不用配。** 库会从游戏的工作目录往上找，找到工程的 `src/main/resources/assets` 并监视它，保存页面即刷新。启动日志里有 `Oriel: dev mode, reading UI sources from [...]` 就是生效了（已实测：最小 Fabric 工程 + 发布版 jar）。
+
+**② 运行目录不在工程里（例如放到别处的 `daily/…/run`）：加一个 JVM 参数，告诉库源码在哪。**
 
 ```groovy
 // build.gradle（Fabric Loom）
@@ -222,12 +226,22 @@ loom {
 }
 ```
 
-NeoForge（ModDevGradle）在对应的 `runs { client { … } }` 里写 `systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath`（这一条没有实测）。多模块工程里 `oriel.sourceRoot` 填**含有 `src/main/resources/assets` 的那个子工程目录**。
+NeoForge（ModDevGradle）写 `systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath`（这一条没有实测）。多模块工程里填**含有 `src/main/resources/assets` 的那个子工程目录**。
 
-- 效果（已实测：最小 Fabric 工程 + 发布版 jar）：启动日志出现 `Oriel: dev mode, reading UI sources from [你的 src/main/resources/assets]`；页面打开后改 `hello.html` 并保存，约 1 秒内页面重新加载并显示新内容。页面、样式表、脚本、图片、翻译 JSON 都算。
-- 只在开发环境（`runClient`）生效，玩家的发布环境不受影响。Java 代码的改动不在这条里，仍需重新编译。
-- 不想动 build.gradle，也可以把页面放进游戏的 `config/oriel/my-pages/`，所有环境都能保存即重载，见上面的"我的页面"。
-- **不要为了热更新去发明"开发时改读文件夹页"之类的开关**：这个参数就是官方做法，页面地址不变，物品读写和控制器都照旧。
+**③ 不用 Gradle，只是把模组 jar 丢进 `mods/` 开发：在游戏的 `config/oriel/dev-sources.properties` 里写一行**，把你的命名空间指向源码里的资源目录：
+
+```properties
+# 一行一个命名空间；值是 assets/<命名空间> 这个目录（也可以写 assets 目录，库会自己找下一层）
+mymod=C:/work/my-mod/src/main/resources/assets/mymod
+```
+
+之后进游戏打开页面，改源码保存，约 1 秒内页面刷新；文件夹里没有的文件自动用 jar 里的。日志里有 `Oriel: dev source: 'mymod:' pages are read from …` 就是生效了（已实测：改一份放在工程外面的拷贝，页面从该拷贝加载并在保存后刷新）。这条在**任何环境**都生效，包括玩家环境，所以别把这个文件发给玩家。
+
+共同的说明：
+- 页面、样式表、脚本、翻译 JSON 都是热的；**图片（PNG）仍取自 jar**，换图要重新构建。Java 代码的改动也仍需重新编译。
+- 之后才新建的文件不会触发刷新（保存一个已有文件，或重新打开页面）。
+- 另一条路：把页面放进 `config/oriel/my-pages/`，所有环境保存即重载，见上面的"我的页面"。
+- **不要为了热更新自己发明"开发时改读文件夹页"的开关**，上面三种就是官方做法，页面地址不变，物品读写和控制器都照旧。
 
 ## 页面路径约定
 
