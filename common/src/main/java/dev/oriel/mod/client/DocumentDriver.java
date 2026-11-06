@@ -127,6 +127,9 @@ public final class DocumentDriver {
     private final List<Runnable> closeHandlers = new ArrayList<>();
     private final List<Predicate<KeyEvent>> keyHandlers = new ArrayList<>();
     private String url;
+    /** The pages this screen came through, newest first: Escape on a page nothing else handles goes back to the last one instead of closing. */
+    private final java.util.ArrayDeque<String> history = new java.util.ArrayDeque<>();
+    private static final int HISTORY_MAX = 16;
     private @Nullable String html;
     /** {@code oriel.data} as last pushed, merged and patched, for the next load. */
     private final PageData data = new PageData();
@@ -602,6 +605,11 @@ public final class DocumentDriver {
             owner.closeDocument();
             return true;
         }
+        // Escape that the page left alone: back to the page this one was opened from, if there is one; else the screen closes.
+        if (!used && e.isEscape() && !history.isEmpty() && owner.screen() != null) {
+            pendingNavigation = history.peekFirst();
+            return true;
+        }
         return used;
     }
 
@@ -893,6 +901,12 @@ public final class DocumentDriver {
                     }
                 }
             } else if (Urls.withoutQuery(target).endsWith(".html")) {
+                // Going to the page we came from is going back: it comes off the history instead of being added to it.
+                if (target.equals(history.peekFirst())) history.pollFirst();
+                else if (!target.equals(url)) {
+                    history.addFirst(url);
+                    while (history.size() > HISTORY_MAX) history.pollLast();
+                }
                 url = target;
                 html = null;
                 load();

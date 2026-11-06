@@ -9,7 +9,7 @@ import java.util.*;
 public class ApiCheck {
     private static final List<String> API = List.of("server.OrielServer", "server.OrielSession", "server.ForgeMenu",
             "client.OrielScreens", "client.OrielScreen", "client.OrielContainerScreen", "client.OrielHud",
-            "client.OrielAutomation", "client.DocumentDriver", "client.OrielEntities");
+            "client.OrielAutomation", "client.DocumentDriver", "client.OrielEntities", "client.OrielPages");
     private static final SortedSet<String> lines = new TreeSet<>();
     private static final List<String> errors = new ArrayList<>();
 

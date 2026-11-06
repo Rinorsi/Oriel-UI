@@ -69,6 +69,15 @@
 .by img { width: 9px; height: 9px; flex: none; }
 .by em { margin-left: auto; font-style: normal; color: var(--o-text-faint); }
 .tags { display: flex; gap: 2px; overflow: hidden; }
+/* A card's line under its title: one line, cut with an ellipsis (the hover text has all of it). */
+.by span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* Tag filter: the commonest tags, one row; a tag on a card does the same when clicked. */
+.tagbar { flex: none; display: flex; gap: 3px; padding: 4px 8px 0; overflow: hidden; }
+.tagbar.off { display: none; }
+.tagbar span { flex: none; padding: 0 4px; color: var(--o-text-dim); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; cursor: pointer; }
+.tagbar span:hover { color: var(--o-text); border-color: var(--o-text-faint); }
+.tagbar span.on { color: var(--o-text); background: var(--o-tile); border-color: var(--o-accent); }
+.tags span { cursor: pointer; }
 .tags span { flex: none; padding: 0 3px; color: var(--o-text-faint); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
 
 /* ---- Empty states ---- */
@@ -181,6 +190,7 @@
           <div class="o-grow"></div>
           <div class="o-seg" id="sort"><span class="on" data-sort="pick" data-i18n="oriel.ui.styles.sort.pick">oriel.ui.styles.sort.pick</span><span data-sort="new" data-i18n="oriel.ui.styles.sort.new">oriel.ui.styles.sort.new</span><span data-sort="name" data-i18n="oriel.ui.styles.sort.name">oriel.ui.styles.sort.name</span></div>
         </div>
+        <div class="tagbar" id="tagbar"></div>
         <div class="scroll" id="scroll">
           <div class="headline"><span class="o-h2" id="view-title" data-i18n="oriel.ui.styles.view.all.title">oriel.ui.styles.view.all.title</span><span class="o-faint" id="view-sub" data-i18n="oriel.ui.styles.view.all.sub">oriel.ui.styles.view.all.sub</span></div>
           <div class="grid" id="grid"></div>
@@ -214,7 +224,7 @@
         </div>
       </div>
     </div>
-    <div class="foot"><span id="foot-count"></span><span data-i18n="oriel.ui.styles.foot">oriel.ui.styles.foot</span></div>
+    <div class="foot"><span id="foot-count"></span></div>
   </div>
 </div>
 

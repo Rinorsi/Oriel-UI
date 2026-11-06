@@ -66,7 +66,8 @@ public final class StylesPreset implements PageControllers.Controller {
     /** The view the centre opens on next time (set by {@link #startAt}), e.g. "demos"; then back to "all". */
     private static volatile String startView;
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
-    private String view = "all", sort = "pick", query = "";
+    private String view = "all", sort = "pick", query = "", tag = "";
+    private Element tagbar;
     private Template open;
     private Element grid, drawer, veil, specHome;
 
@@ -117,6 +118,7 @@ public final class StylesPreset implements PageControllers.Controller {
 
     private void buildCentre() {
         grid = Dom.byId(doc, "grid");
+        tagbar = Dom.byId(doc, "tagbar");
         drawer = Dom.byId(doc, "drawer");
         veil = Dom.byId(doc, "veil");
         specHome = Dom.byId(doc, "tpls");
@@ -132,6 +134,7 @@ public final class StylesPreset implements PageControllers.Controller {
                     attr(e, "data-ver"), attr(e, "data-date"), tags, attr(e, "data-desc"), e, null, order++);
             templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));
         }
+        buildTagbar();
         for (Element item : doc.querySelectorAll("#side .item")) item.toggleClass("on", item.getAttribute("data-view").equals(view));
         for (Element item : doc.querySelectorAll("#side .item")) {
             Shell.activate(item, () -> {
@@ -188,7 +191,14 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.text(Dom.query(card, ".by span"), t.author);
         Dom.text(Dom.query(card, ".by em"), t.ver);
         Element tags = Dom.query(card, ".tags");
-        for (String tag : t.tags) tags.appendChild(Dom.el(doc, "span", null, tag));
+        for (String name : t.tags) {
+            Element chip = Dom.el(doc, "span", null, name);
+            Dom.onClick(chip, ev -> {
+                ev.stopPropagation();
+                selectTag(name);
+            });
+            tags.appendChild(chip);
+        }
         Element fav = Dom.query(card, ".fav");
         Dom.onClick(fav, ev -> {
             ev.stopPropagation();
@@ -214,8 +224,9 @@ public final class StylesPreset implements PageControllers.Controller {
         for (Template t : templates) t.card.remove();
         for (Element c : pageCards) c.remove();
         for (Element c : demoCards) c.remove();
-        if (view.equals("pages")) for (Element c : pageCards) if (pageMatches(c)) grid.appendChild(c);
-        if (view.equals("demos")) for (Element c : demoCards) if (pageMatches(c)) grid.appendChild(c);
+        if (view.equals("pages")) for (Element c : ordered(pageCards)) if (pageMatches(c)) grid.appendChild(c);
+        if (view.equals("demos")) for (Element c : ordered(demoCards)) if (pageMatches(c)) grid.appendChild(c);
+        tagbar.toggleClass("off", view.equals("pages") || view.equals("demos") || view.equals("guide"));
         for (Template t : shown) {
             grid.appendChild(t.card);
             t.card.toggleClass("faved", favorites.contains(t.id));
@@ -275,6 +286,7 @@ public final class StylesPreset implements PageControllers.Controller {
     }
 
     private boolean matches(Template t) {
+        if (!tag.isEmpty() && !t.tags.contains(tag)) return false;
         if (query.isEmpty()) return true;
         if (t.title.toLowerCase(Locale.ROOT).contains(query) || t.author.toLowerCase(Locale.ROOT).contains(query)
                 || t.desc.toLowerCase(Locale.ROOT).contains(query) || t.id.contains(query)) return true;
@@ -436,6 +448,8 @@ public final class StylesPreset implements PageControllers.Controller {
                     + "</div><div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");
             if (covered) Dom.query(card, "img.shot").setAttribute("src", namespace + ":" + page.cover());
             card.setAttribute("data-path", (page.title() + " " + page.subtitle() + " " + path).toLowerCase(Locale.ROOT));
+            card.setAttribute("data-title", page.title().toLowerCase(Locale.ROOT));
+            card.setAttribute("data-mod", Long.toString(page.modified()));
             card.setAttribute("title", tooltip(page));
             Dom.text(Dom.query(card, ".meta b"), page.title());
             Dom.text(Dom.query(card, ".by span"), page.subtitle().isEmpty() ? LocalPage.cut(path, LocalPage.SUBTITLE_MAX) : page.subtitle());
@@ -472,6 +486,69 @@ public final class StylesPreset implements PageControllers.Controller {
         return query.isEmpty() || card.getAttribute("data-path").toLowerCase(Locale.ROOT).contains(query);
     }
 
+    /** The commonest tags (at most twelve), as chips above the grid; one is selected at a time, a second click clears it. */
+    private void buildTagbar() {
+        java.util.Map<String, Integer> count = new java.util.TreeMap<>();
+        for (Template t : templates) for (String name : t.tags) if (!name.isBlank()) count.merge(name, 1, Integer::sum);
+        List<String> names = new ArrayList<>(count.keySet());
+        names.sort(Comparator.comparingInt((String n) -> -count.get(n)).thenComparing(n -> n));
+        for (String name : names.subList(0, Math.min(12, names.size()))) {
+            Element chip = Dom.el(doc, "span", null, name);
+            chip.setAttribute("data-tag", name);
+            Dom.onClick(chip, ev -> selectTag(name));
+            tagbar.appendChild(chip);
+        }
+    }
+
+    private void selectTag(String name) {
+        tag = tag.equals(name) ? "" : name;
+        for (Element chip : tagbar.querySelectorAll("span")) chip.toggleClass("on", chip.getAttribute("data-tag").equals(tag));
+        render();
+    }
+
+    /** Page and demo cards in the order the sort asks: by title with 01, 02, 10 in number order, or by when the file changed. */
+    private List<Element> ordered(List<Element> cards) {
+        List<Element> out = new ArrayList<>(cards);
+        Comparator<Element> byTitle = (a, b) -> naturalCompare(attr(a, "data-title"), attr(b, "data-title"));
+        switch (sort) {
+            case "name" -> out.sort(byTitle);
+            case "new" -> out.sort(Comparator.comparingLong((Element e) -> modified(e)).reversed().thenComparing(byTitle));
+            default -> {
+                if (cards == pageCards) out.sort(byTitle);   // the files have no order of their own; demos keep the declared one
+            }
+        }
+        return out;
+    }
+
+    private static long modified(Element card) {
+        try {
+            return Long.parseLong(attr(card, "data-mod"));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** Compares text so that runs of digits go by value: "2" before "10", "01" before "02". */
+    static int naturalCompare(String a, String b) {
+        int i = 0, j = 0;
+        while (i < a.length() && j < b.length()) {
+            char x = a.charAt(i), y = b.charAt(j);
+            if (Character.isDigit(x) && Character.isDigit(y)) {
+                int si = i, sj = j;
+                while (i < a.length() && Character.isDigit(a.charAt(i))) i++;
+                while (j < b.length() && Character.isDigit(b.charAt(j))) j++;
+                java.math.BigInteger na = new java.math.BigInteger(a.substring(si, i)), nb = new java.math.BigInteger(b.substring(sj, j));
+                int c = na.compareTo(nb);
+                if (c != 0) return c;
+            } else {
+                if (x != y) return Character.compare(x, y);
+                i++;
+                j++;
+            }
+        }
+        return Integer.compare(a.length() - i, b.length() - j);
+    }
+
     private int pageCount(List<Element> cards) {
         int n = 0;
         for (Element c : cards) if (pageMatches(c)) n++;
@@ -487,6 +564,7 @@ public final class StylesPreset implements PageControllers.Controller {
             Dom.text(Dom.query(card, ".badge"), Lang.t(doc, "oriel.ui.styles.badge.legacy"));
             Dom.query(card, "img.shot").setAttribute("src", "../textures/ui/demos/" + d[0] + ".png");
             card.setAttribute("data-path", (title + " " + desc + " " + d[0]).toLowerCase(Locale.ROOT));
+            card.setAttribute("data-title", title.toLowerCase(Locale.ROOT));
             Dom.text(Dom.query(card, ".meta b"), title);
             Dom.text(Dom.query(card, ".by span"), desc);
             String url = d[1];

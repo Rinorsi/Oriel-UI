@@ -14,6 +14,8 @@ kit 新增 `dev.oriel.kit.bind.ViewModel` / `Bindings.attach(Document, ViewModel
 
 | 方法 | 返回/用途 |
 |---|---|
+| OrielPages.folder(String namespace, Path dir) | 把一个文件夹当作命名空间的页面来源；保存读过的文件即重载，所有环境（见 [页面接口](pages.md#玩家可编辑的页面)） |
+| OrielPages.isFolder(String namespace) | 该命名空间是否由文件夹提供 |
 | OrielScreens.open(String url) | OrielScreen，资源页 |
 | OrielScreens.open(String url, JsonElement data) | 资源页+初始数据 |
 | OrielScreens.openInline(String html, JsonElement data) | 内联页；外部资源仍要可解析 |

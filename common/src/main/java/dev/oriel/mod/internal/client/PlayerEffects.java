@@ -56,5 +56,9 @@ public final class PlayerEffects {
         if (!next.equals(snapshot.effects())) snapshot = new GameEffects.Snapshot(next);
     }
 
-    public static boolean hasEffects() { return !snapshot.effects().isEmpty(); }
+    /** Whether the effects panel has a row to show: an effect with its icon hidden (showIcon false, as vanilla's own list) is not one. */
+    public static boolean hasEffects() {
+        for (GameEffects.Entry e : snapshot.effects()) if (e.showIcon()) return true;
+        return false;
+    }
 }

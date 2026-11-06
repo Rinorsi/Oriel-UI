@@ -91,7 +91,7 @@ test('engine, kit and preview have no game, graphics or loader imports', () => {
 });
 
 test('the mod facade packages contain only the declared downstream API', () => {
-  const api = new Set(['DocumentDriver','OrielAutomation','OrielContainerScreen','OrielEntities','OrielHud','OrielScreen','OrielScreens','OrielServer','OrielSession','ForgeMenu']);
+  const api = new Set(['DocumentDriver','OrielAutomation','OrielContainerScreen','OrielEntities','OrielHud','OrielPages','OrielScreen','OrielScreens','OrielServer','OrielSession','ForgeMenu']);
   const dir=path.join(root,'common/src/main/java/dev/oriel/mod');
   const outsiders=walk(dir).filter(f=>f.endsWith('.java')&&!f.includes(path.sep+'internal'+path.sep)
     && path.basename(f)!=='package-info.java'&&!api.has(path.basename(f,'.java')));

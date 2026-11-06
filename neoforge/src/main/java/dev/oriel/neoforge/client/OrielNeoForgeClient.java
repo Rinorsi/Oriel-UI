@@ -82,7 +82,7 @@ public final class OrielNeoForgeClient {
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre e) -> {
             if (e.getName().equals(VanillaGuiLayers.EFFECTS) && OrielClient.hidesVanillaEffects()) e.setCanceled(true);
         });
-        modBus.addListener((net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent e) -> e.register(dev.oriel.mod.internal.client.OrielKeys.DEMOS));
+        modBus.addListener((net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent e) -> e.register(dev.oriel.mod.internal.client.OrielKeys.HOME));
         modBus.addListener((RegisterMenuScreensEvent e) -> {
             for (OrielScreens.ContainerBinding<?> b : OrielScreens.takeContainers()) registerMenuScreen(e, b);
         });

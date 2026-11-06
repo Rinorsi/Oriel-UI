@@ -111,6 +111,9 @@ dev.oriel.mod.client.OrielHud.Input [public, static, final] dev.oriel.mod.client
 dev.oriel.mod.client.OrielHud.Input [public, static, final] dev.oriel.mod.client.OrielHud.Input WHEN_CURSOR_FREE
 dev.oriel.mod.client.OrielHud.Input [public, static] dev.oriel.mod.client.OrielHud.Input valueOf(java.lang.String) throws= varargs=false
 dev.oriel.mod.client.OrielHud.Input [public, static] dev.oriel.mod.client.OrielHud.Input[] values() throws= varargs=false
+dev.oriel.mod.client.OrielPages CLASS [public, final] typeparams= extends=java.lang.Object implements=
+dev.oriel.mod.client.OrielPages [public, static] boolean isFolder(java.lang.String) throws= varargs=false
+dev.oriel.mod.client.OrielPages [public, static] void folder(java.lang.String,java.nio.file.Path) throws= varargs=false
 dev.oriel.mod.client.OrielScreen CLASS [public] typeparams= extends=net.minecraft.client.gui.screens.Screen implements=dev.oriel.mod.client.DocumentDriver.Owner
 dev.oriel.mod.client.OrielScreen [protected] void init() throws= varargs=false
 dev.oriel.mod.client.OrielScreen [protected] void updateNarratedWidget(net.minecraft.client.gui.narration.NarrationElementOutput) throws= varargs=false

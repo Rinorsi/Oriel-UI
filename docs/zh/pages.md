@@ -55,6 +55,8 @@ book.driver().onKey(e -> {
 mod 可以用一个文件夹来提供一个命名空间，玩家改文件就能改页面，不用做资源包。Hudsmith 就这样做它的 HUD，HUD 放在 `config/hudsmith/` 里：
 
 ```java
+import dev.oriel.mod.client.OrielPages;   // 公开 API；不要用 dev.oriel.mod.internal 下的同名内部类
+
 // 客户端初始化。用自己专属的命名空间，不要用你的 mod id，这样内置页面仍来自你的 jar。
 OrielPages.folder("hudsmith_hud", configDir.resolve("hudsmith"));
 OrielHud.register(HUD, "hudsmith_hud:hud.html");
