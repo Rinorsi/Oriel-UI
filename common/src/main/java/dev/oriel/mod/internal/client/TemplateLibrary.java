@@ -135,9 +135,23 @@ public final class TemplateLibrary {
         List<String> saved = new ArrayList<>();
         if (dir != null) for (String id : StylesPreset.PAGES) if (Files.exists(dir.resolve(id + ".html"))) saved.add(id);
         o.add("saved", array(saved));
+        o.add("pages", array(pages()));
         o.addProperty("folder", dir == null ? "" : dir.toString());
         o.addProperty("namespace", NAMESPACE);
         return o;
+    }
+
+    /** Every page in the folder, below it and with / separators: what a player dropped there or a tool copied in. */
+    private static List<String> pages() {
+        List<String> found = new ArrayList<>();
+        if (dir == null || !Files.isDirectory(dir)) return found;
+        try (var walk = Files.walk(dir, 5)) {
+            walk.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".html"))
+                    .map(p -> dir.relativize(p).toString().replace('\\', '/')).sorted().limit(300).forEach(found::add);
+        } catch (IOException | RuntimeException e) {
+            Constants.LOG.warn("Oriel: could not list {}: {}", dir, e.toString());
+        }
+        return found;
     }
 
     private static JsonArray array(Iterable<String> ids) {

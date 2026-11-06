@@ -21,6 +21,14 @@ async function imageResult(receipt) {
   if (receipt.image && fs.existsSync(receipt.image)) response.content.push({ type: 'image', mimeType: 'image/png', data: fs.readFileSync(receipt.image).toString('base64') });
   return response;
 }
+// Screenshots review: the user must actually see these images, so they travel back as MCP image content (capped).
+function reviewResult(receipt) {
+  if (!receipt.imagePaths) return receipt;
+  const { imagePaths, ...value } = receipt;
+  const response = result(value);
+  for (const file of imagePaths.slice(0, 12)) if (fs.existsSync(file)) response.content.push({ type: 'image', mimeType: 'image/png', data: fs.readFileSync(file).toString('base64') });
+  return response;
+}
 const TOOLS = [
   tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
   tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {
@@ -50,8 +58,8 @@ const TOOLS = [
     if (args.boxes) command.push('--boxes', args.boxes);
     const r = await preview(command); return imageResult({ passed: r.code === 0 && fs.existsSync(image), image: fs.existsSync(image) ? image : null, exitCode: r.code, output: r.output });
   }),
-  tool('oriel_review', 'prepare 创建经过检查的固定版本验收页；status 查询用户决定。禁止 Agent 代点批准；没有批准设置接口。', { action: { ...string, enum: ['prepare', 'status'] }, projectId: string, reviewId: string }, [], args => review(args)),
-  tool('oriel_integrate', '仅接入用户本人批准的当前版本。plan 返回写入清单；apply 检查文件冲突并安装，失败恢复本次写入。', { action: { ...string, enum: ['plan', 'apply'] }, reviewId: string, planId: string, target: { ...string, enum: ['oriel-dev'] } }, [], args => integrate(args)),
+  tool('oriel_review', 'prepare 创建经过检查的固定版本验收：mode=web（缺省）开本机验收网页，必须用户本人点击批准，Agent 不能设置批准；mode=screenshots 把检查截图原样返回，让用户在聊天里看图决定，用户同意后用 decide 逐字引用用户的话（回执标注为聊天批准，由 Agent 代记）。status 查询决定。', { action: { ...string, enum: ['prepare', 'status', 'decide'] }, projectId: string, reviewId: string, mode: { ...string, enum: ['web', 'screenshots'] }, decision: { ...string, enum: ['approved', 'rejected'] }, quote: string }, [], async args => reviewResult(await review(args))),
+  tool('oriel_integrate', '仅接入用户本人批准的当前版本。target=oriel-dev 写入本仓库共同资源；target=oriel-folder 复制进 folder 指定的文件夹（通常是游戏的 config/oriel/my-pages，游戏里以 oriel_mine: 打开），不改仓库也不改你的模组。plan 返回写入清单；apply 检查文件冲突并安装，失败恢复本次写入。', { action: { ...string, enum: ['plan', 'apply'] }, reviewId: string, planId: string, target: { ...string, enum: ['oriel-dev', 'oriel-folder'] }, folder: string }, [], args => integrate(args)),
   tool('oriel_game_preview', '仅在验收并接入后启动独立游戏预览任务。status 查询截图、精确版本及诊断；cancel 仅取消本工具任务。', { action: { ...string, enum: ['start', 'status', 'cancel'] }, projectId: string, jobId: string, scene: string }, [], args => gamePreview(args)),
   tool('oriel_pages', '列出本库 kit 页面及已有像素图标，制作前优先复用。', {}, [], () => ({
     pages: fs.readdirSync(path.join(KIT, 'assets/oriel/ui')).filter(f => f.endsWith('.html')),

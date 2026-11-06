@@ -47,6 +47,9 @@ public final class StylesPreset implements PageControllers.Controller {
     private final List<Template> templates = new ArrayList<>();
     private final Set<String> favorites = new LinkedHashSet<>(), saved = new LinkedHashSet<>();
     private final List<String> recent = new ArrayList<>();
+    /** Pages found in the player's folder (paths below it, as the game lists them) and their cards. */
+    private final List<String> pages = new ArrayList<>();
+    private final List<Element> pageCards = new ArrayList<>();
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
     private String view = "all", sort = "pick", query = "";
     private Template open;
@@ -183,26 +186,31 @@ public final class StylesPreset implements PageControllers.Controller {
             }
         }
         for (Template t : templates) t.card.remove();
+        for (Element c : pageCards) c.remove();
+        if (view.equals("pages")) for (Element c : pageCards) if (pageMatches(c)) grid.appendChild(c);
         for (Template t : shown) {
             grid.appendChild(t.card);
             t.card.toggleClass("faved", favorites.contains(t.id));
             Dom.query(t.card, ".fav").toggleClass("on", favorites.contains(t.id));
             Dom.query(t.card, ".saved-mark").setAttribute("style", saved.contains(t.id) ? "" : "display: none");
         }
-        boolean mine = view.equals("fav") || view.equals("saved") || view.equals("recent");
+        boolean pagesView = view.equals("pages");
+        boolean mine = view.equals("fav") || view.equals("saved") || view.equals("recent") || pagesView;
         show("empty-community", community && shown.isEmpty() && query.isEmpty());
-        show("empty-mine", mine && shown.isEmpty() && query.isEmpty());
-        show("empty-search", !guide && shown.isEmpty() && !query.isEmpty());
+        show("empty-mine", mine && (pagesView ? pages.isEmpty() : shown.isEmpty()) && query.isEmpty());
+        Dom.text(Dom.byId(doc, "empty-mine-text"), Lang.t(doc, pagesView ? "oriel.ui.styles.empty.pages_text" : "oriel.ui.styles.empty.mine.text"));
+        show("empty-search", !guide && (pagesView ? pageCount() == 0 : shown.isEmpty()) && !query.isEmpty());
         show("guide", guide);
         Dom.text(Dom.byId(doc, "empty-mine-title"), Lang.t(doc, "oriel.ui.styles.empty." + switch (view) {
             case "fav" -> "fav";
             case "saved" -> "saved";
+            case "pages" -> "pages";
             default -> "recent";
         }));
         if (guide) Dom.text(Dom.byId(doc, "guide-folder"), folder);
         Dom.text(Dom.byId(doc, "view-title"), title(view));
         Dom.text(Dom.byId(doc, "view-sub"), Lang.t(doc, "oriel.ui.styles.view." + (view.startsWith("group:") ? "all" : view) + ".sub"));
-        Dom.text(Dom.byId(doc, "count"), guide ? "" : Lang.plural(doc, "oriel.ui.styles.count", shown.size()));
+        Dom.text(Dom.byId(doc, "count"), guide ? "" : Lang.plural(doc, "oriel.ui.styles.count", pagesView ? pageCount() : shown.size()));
         Dom.text(Dom.byId(doc, "crumb"), Lang.t(doc, "oriel.ui.styles.crumb.view", title(view)));
         Dom.text(Dom.byId(doc, "foot-count"), Lang.plural(doc, "oriel.ui.styles.foot_count", templates.size()));
         counts();
@@ -214,7 +222,8 @@ public final class StylesPreset implements PageControllers.Controller {
             if (n == null) continue;
             String v = item.getAttribute("data-view");
             int count = 0;
-            for (Template t : templates) if (inView(t, v)) count++;
+            if (v.equals("pages")) count = pages.size();
+            else for (Template t : templates) if (inView(t, v)) count++;
             Dom.text(n, count == 0 && !v.equals("all") ? "" : Integer.toString(count));
         }
     }
@@ -231,7 +240,7 @@ public final class StylesPreset implements PageControllers.Controller {
             case "fav" -> favorites.contains(t.id);
             case "saved" -> saved.contains(t.id);
             case "recent" -> recent.contains(t.id);
-            case "guide" -> false;
+            case "guide", "pages" -> false;
             default -> true;
         };
     }
@@ -248,7 +257,7 @@ public final class StylesPreset implements PageControllers.Controller {
     private String title(String view) {
         String v = view.startsWith("group:") ? view.substring(6) : view;
         return Lang.t(doc, "oriel.ui.styles.view." + (switch (v) {
-            case "official", "community", "fav", "saved", "recent", "guide", "hud", "menu", "theme" -> v;
+            case "official", "community", "fav", "saved", "recent", "pages", "guide", "hud", "menu", "theme" -> v;
             default -> "all";
         }) + ".title");
     }
@@ -361,6 +370,11 @@ public final class StylesPreset implements PageControllers.Controller {
             recent.clear();
             for (JsonElement e : o.getAsJsonArray("recent")) recent.add(e.getAsString());
         }
+        if (o.has("pages")) {
+            pages.clear();
+            for (JsonElement e : o.getAsJsonArray("pages")) pages.add(e.getAsString());
+            rebuildPageCards();
+        }
         if (o.has("namespace")) namespace = o.get("namespace").getAsString();
         if (o.has("folder") && !o.get("folder").getAsString().isEmpty()) {
             folder = o.get("folder").getAsString().replace('\\', '/');
@@ -368,6 +382,36 @@ public final class StylesPreset implements PageControllers.Controller {
         }
         render();
         refreshDetails();
+    }
+
+    /** One plain card per page in the folder; opening it loads the page itself, so what the player sees is the file. */
+    private void rebuildPageCards() {
+        for (Element c : pageCards) c.remove();
+        pageCards.clear();
+        for (String path : pages) {
+            String name = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
+            Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"o-ico\" "
+                    + "src=\"../textures/icons/layers.png\" style=\"position: absolute; left: 40%; top: 35%; width: 20%; height: 30%\"></div>"
+                    + "<div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");
+            card.setAttribute("data-path", path);
+            Dom.text(Dom.query(card, ".meta b"), name);
+            Dom.text(Dom.query(card, ".by span"), path);
+            Shell.activate(card, () -> {
+                returnTo = null;
+                doc.navigate(namespace + ":" + path);
+            });
+            pageCards.add(card);
+        }
+    }
+
+    private boolean pageMatches(Element card) {
+        return query.isEmpty() || card.getAttribute("data-path").toLowerCase(Locale.ROOT).contains(query);
+    }
+
+    private int pageCount() {
+        int n = 0;
+        for (Element c : pageCards) if (pageMatches(c)) n++;
+        return n;
     }
 
     private static void replace(Set<String> set, JsonArray ids) {

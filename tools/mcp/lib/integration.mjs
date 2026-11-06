@@ -5,26 +5,66 @@ import { ROOT, STATE, now, id, sha, fileHash, safePath, inside, requireThat, loa
 import { assertCurrent, verifyRevision } from './projects.mjs';
 import { installFiles } from './transaction.mjs';
 
+const DEV_ROOT = path.join(ROOT, 'common/src/main/resources');
+// The game serves config/oriel/my-pages/ as this namespace, so a page copied there opens without any mod code.
+const FOLDER_NAMESPACE = 'oriel_mine';
+const TARGETS = ['oriel-dev', 'oriel-folder'];
+
+// An approval is either a click on the local review page, or, for a screenshots review only, the user's own words in chat
+// quoted verbatim. Only web-worker.mjs writes source 'local-review-form'; only review({action:'decide'}) writes 'user-chat'.
 export function approved(reviewId) {
   const review = loadRecord('reviews', reviewId);
-  requireThat(review.kind === 'human' && review.decision === 'approved' && review.source === 'local-review-form', 'APPROVAL_REQUIRED', '必须由用户本人在固定版本的网页验收页批准。');
+  const web = review.kind === 'human' && review.decision === 'approved' && review.source === 'local-review-form';
+  const chat = review.kind === 'human' && review.decision === 'approved' && review.mode === 'screenshots' && review.source === 'user-chat'
+    && typeof review.quote === 'string' && review.quote.trim().length > 0 && Array.isArray(review.shotHashes) && review.shotHashes.length > 0;
+  requireThat(web || chat, 'APPROVAL_REQUIRED', '必须由用户本人批准固定版本：在网页验收页点击，或看过截图后在聊天里明确同意（须逐字引用用户的话）。');
   const revision = loadRecord('revisions', review.revisionId);
   requireThat(revision.hash === review.hash && revision.check?.passed, 'CHECK_REQUIRED', '验收版本没有有效检查结果。');
   assertCurrent(revision);
   return { review, revision };
 }
-export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-dev' }) {
-  requireThat(target === 'oriel-dev', 'TARGET_ADAPTER_REQUIRED', '首版接入适配器为本仓库 oriel-dev；其他工程需提供专属适配器，不能猜测目录。');
+const rootOf = plan => plan.target === 'oriel-folder' ? plan.folder : DEV_ROOT;
+const targetOf = file => file.target ?? file.file;
+
+function devFiles(revision) {
+  return revision.files.filter(f => f.file.startsWith('assets/' + revision.project.namespace + '/')).map(f => {
+    const destination = safePath(DEV_ROOT, f.file);
+    return { file: f.file, hash: f.hash, destination, previous: fileHash(destination), operation: fs.existsSync(destination) ? 'update' : 'create' };
+  });
+}
+// In a folder the page's namespace is oriel_mine and the namespace folder itself is the root, so files lose "assets/<ns>/".
+function folderFiles(revision, folder) {
+  const ns = revision.project.namespace, prefix = 'assets/' + ns + '/';
+  return revision.files.filter(f => f.file.startsWith(prefix)).map(f => {
+    if (/\.(html|css|js|json)$/i.test(f.file)) {
+      const text = fs.readFileSync(safePath(revision.pack, f.file), 'utf8');
+      requireThat(!text.includes(ns + ':'), 'FOLDER_NAMESPACE_REFERENCE',
+        '放进文件夹后页面的命名空间是 ' + FOLDER_NAMESPACE + '，不是 ' + ns + '；请在页面里用相对路径引用自己的资源：' + f.file, { file: f.file });
+    }
+    const target = f.file.slice(prefix.length), destination = safePath(folder, target);
+    return { file: f.file, target, hash: f.hash, destination, previous: fileHash(destination), operation: fs.existsSync(destination) ? 'update' : 'create' };
+  });
+}
+export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-dev', folder }) {
+  requireThat(TARGETS.includes(target), 'TARGET_ADAPTER_REQUIRED', '接入目标为 oriel-dev（本仓库共同资源）或 oriel-folder（复制进指定文件夹）；其他工程需提供专属适配器，不能猜测目录。');
   if (action === 'plan') {
     const { review, revision } = approved(reviewId);
-    const root = path.join(ROOT, 'common/src/main/resources');
-    const files = revision.files.filter(f => f.file.startsWith('assets/' + revision.project.namespace + '/')).map(f => {
-      const destination = safePath(root, f.file);
-      return { file: f.file, hash: f.hash, destination, previous: fileHash(destination), operation: fs.existsSync(destination) ? 'update' : 'create' };
-    });
-    const plan = { id: id('plan'), projectId: revision.projectId, reviewId: review.id, revisionId: revision.id, hash: revision.hash, target, root, files,
-      pageUrl: revision.project.namespace + ':' + revision.project.entry, status: 'planned', createdAt: now(),
-      notes: ['接入共同资源目录；两个加载器均会打包。', '使用 /oriel open 打开，游戏预览工具会自动打开。', '不生成真实业务处理器，不安装 browser/mock.js。'] };
+    let root, files, pageUrl, notes;
+    if (target === 'oriel-dev') {
+      root = DEV_ROOT; files = devFiles(revision); pageUrl = revision.project.namespace + ':' + revision.project.entry;
+      notes = ['接入共同资源目录；两个加载器均会打包。', '使用 /oriel open 打开，游戏预览工具会自动打开。', '不生成真实业务处理器，不安装 browser/mock.js。'];
+    } else {
+      requireThat(typeof folder === 'string' && path.isAbsolute(folder), 'FOLDER_REQUIRED', 'oriel-folder 目标需要 folder 参数：一个绝对路径，通常是游戏的 config/oriel/my-pages。');
+      root = path.resolve(folder);
+      requireThat(!inside(ROOT, root), 'FOLDER_IN_REPOSITORY', '目标文件夹不能在 Oriel 仓库内。');
+      fs.mkdirSync(root, { recursive: true });   // an empty directory; the paths below are checked against a real root
+      files = folderFiles(revision, root); pageUrl = FOLDER_NAMESPACE + ':' + revision.project.entry;
+      notes = ['复制到指定文件夹，不改 Oriel 仓库，也不改你的模组。', '该文件夹是游戏的 config/oriel/my-pages 时，游戏里用 /oriel open ' + pageUrl + ' 打开，保存文件即热重载。',
+        '游戏预览工具会把同样的文件放进它自己的独立运行目录再打开。', '不生成真实业务处理器，不安装 browser/mock.js。'];
+    }
+    requireThat(files.length > 0, 'NOTHING_TO_INSTALL', '页面包里没有属于命名空间 ' + revision.project.namespace + ' 的文件。');
+    const plan = { id: id('plan'), projectId: revision.projectId, reviewId: review.id, revisionId: revision.id, hash: revision.hash, target, root, ...(target === 'oriel-folder' ? { folder: root } : {}),
+      files, pageUrl, status: 'planned', createdAt: now(), approval: review.source, notes };
     plan.planHash = sha(JSON.stringify({ hash: plan.hash, target, files }));
     saveRecord('plans', plan); return plan;
   }
@@ -32,7 +72,7 @@ export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-d
   const plan = loadRecord('plans', planId);
   const { revision } = approved(plan.reviewId);
   requireThat(plan.status === 'planned' && revision.hash === plan.hash, 'STALE_PLAN', '接入计划已过期或已执行。');
-  requireThat(plan.root === path.join(ROOT, 'common/src/main/resources') && plan.planHash === sha(JSON.stringify({ hash: plan.hash, target: plan.target, files: plan.files })), 'PLAN_CHANGED', '接入计划被修改。');
+  requireThat(plan.root === rootOf(plan) && plan.planHash === sha(JSON.stringify({ hash: plan.hash, target: plan.target, files: plan.files })), 'PLAN_CHANGED', '接入计划被修改。');
   try {
     installFiles(plan.files, revision.pack, plan.root, path.join(STATE, 'plans', plan.id));
   } catch (error) {
@@ -60,13 +100,14 @@ export async function gamePreview({ action = 'start', projectId, jobId, scene = 
   const { revision } = approved(project.integration.reviewId);
   requireThat(revision.hash === project.integration.hash, 'STALE_INTEGRATION', '接入版本已经变化。');
   const plan = loadRecord('plans', project.integration.planId);
-  for (const file of plan.files) requireThat(fileHash(safePath(plan.root, file.file)) === file.hash, 'TARGET_CONFLICT', '游戏资源被改动：' + file.file);
+  for (const file of plan.files) requireThat(fileHash(safePath(plan.root, targetOf(file))) === file.hash, 'TARGET_CONFLICT', '游戏资源被改动：' + targetOf(file));
   const selected = revision.project.scenes.find(s => s.name === scene);
   requireThat(selected, 'UNKNOWN_SCENE', '该场景未纳入网页验收。');
   const running = fs.readdirSync(path.join(STATE, 'jobs')).filter(f => f.endsWith('.json')).map(f => readJson(path.join(STATE, 'jobs', f))).find(j => j.kind === 'game' && ['queued', 'running'].includes(j.status));
   requireThat(!running, 'GAME_BUSY', '已有游戏预览任务，请先等待或取消。', { jobId: running?.id });
   const job = { id: id('game'), kind: 'game', projectId, revisionId: revision.id, hash: revision.hash, reviewId: project.integration.reviewId,
-    pageUrl: project.integration.pageUrl, profile: project.profile, scene, actions: selected.actions, fixture: project.fixture, status: 'queued', createdAt: now() };
+    pageUrl: project.integration.pageUrl, profile: project.profile, scene, actions: selected.actions, fixture: project.fixture, status: 'queued', createdAt: now(),
+    target: plan.target, ...(plan.target === 'oriel-folder' ? { pagesCopy: plan.files.map(f => ({ from: safePath(plan.root, f.target), to: f.target, hash: f.hash })) } : {}) };
   job.directory = path.join(STATE, 'jobs', job.id); fs.mkdirSync(job.directory, { recursive: true }); saveRecord('jobs', job);
   const log = fs.openSync(path.join(job.directory, 'worker.log'), 'a');
   const child = spawn(process.execPath, [path.join(ROOT, 'tools/mcp/game-worker.mjs'), job.id], { cwd: ROOT, detached: true, windowsHide: true, stdio: ['ignore', log, log], env: { ...process.env, ORIEL_MCP_STATE: STATE } });

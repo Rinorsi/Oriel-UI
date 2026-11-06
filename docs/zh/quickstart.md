@@ -187,6 +187,7 @@ public final class MyModClient implements ClientModInitializer {
 | 想做什么 | 做法 |
 |---|---|
 | 打开任意页面 | `/oriel open mymod:oriel/hello.html` |
+| 不建工程，先看一个 .html | 把页面（连同它的 css、图片）放进游戏的 `config/oriel/my-pages/`，进游戏 `/oriel open oriel_mine:文件名.html`（子文件夹照写，如 `oriel_mine:item-editor/index.html`）；也可在 模板中心 → 我的页面 里点开。页面里用相对路径引用同文件夹的资源。保存即热重载 |
 | 改了页面看效果 | 开发环境保存文件会热重载已打开的页面；也可以 `/oriel reload` |
 | 看库自带的例子 | `/oriel showcase`、`/oriel demo`；示例页面源码在库 jar 的 `assets/oriel/oriel/showcase/` 下（可用 `unzip` 查看） |
 | 确认库已加载 | 日志里应有 `Oriel UI runtime version: 0.10.0`，模组列表里有 `oriel` |

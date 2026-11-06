@@ -117,3 +117,64 @@ test('structure failures return blocking diagnostics instead of approvable succe
     const review = await client.call('oriel_review', { projectId }); assert.equal(review.structuredContent.code, 'CHECK_REQUIRED');
   } finally { client.close(); }
 });
+
+test('screenshots review: images come back, the user quote is required, chat approval installs into a folder and nowhere else', { timeout: 300000 }, async () => {
+  const source = path.join(STATE, id('shots-fixture'));
+  fs.mkdirSync(path.join(source, 'assets/shots_test/ui'), { recursive: true });
+  const html = path.join(source, 'assets/shots_test/ui/index.html'), css = path.join(source, 'assets/shots_test/ui/style.css');
+  fs.writeFileSync(html, '<html><head><title>Test</title><link rel="stylesheet" href="style.css"></head><body><p id="status">ready</p></body></html>');
+  fs.writeFileSync(css, 'p { color: #6cc349; }');
+  const folder = path.join(STATE, id('my-pages')), client = new McpClient(), projectId = id('shots');
+  const scenes = [{ name: 'initial', actions: [] }];
+  const checkAndPrepare = async () => {
+    const checked = await client.call('oriel_check', { projectId });
+    assert.equal(checked.isError, undefined, JSON.stringify(checked.structuredContent));
+    const prepared = await client.call('oriel_review', { projectId, mode: 'screenshots' });
+    assert.equal(prepared.isError, undefined, JSON.stringify(prepared.structuredContent));
+    return prepared;
+  };
+  try {
+    await client.initialize();
+    assert.equal((await client.call('oriel_project', { projectId, sourceRoot: source, namespace: 'shots_test', entry: 'ui/index.html', scenes })).isError, undefined);
+    const prepared = await checkAndPrepare();
+    assert.ok(prepared.content.some(part => part.type === 'image'), 'the screenshots travel back as images');
+    const item = prepared.structuredContent;
+    assert.equal(item.mode, 'screenshots'); assert.equal(item.decision, 'pending'); assert.equal(item.agentMayApprove, false);
+    // Pending: nothing installs.
+    assert.equal((await client.call('oriel_integrate', { reviewId: item.id, target: 'oriel-folder', folder })).structuredContent.code, 'APPROVAL_REQUIRED');
+    // The user's words are required, and a web review cannot be decided from chat.
+    assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: item.id, decision: 'approved' })).structuredContent.code, 'QUOTE_REQUIRED');
+    assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: item.id, decision: 'approved', quote: '   ' })).structuredContent.code, 'QUOTE_REQUIRED');
+    const webItem = { ...loadRecord('reviews', item.id), id: id('review'), mode: 'web' }; saveRecord('reviews', webItem);
+    assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: webItem.id, decision: 'approved', quote: 'looks good' })).structuredContent.code, 'REVIEW_MODE');
+    const decided = await client.call('oriel_review', { action: 'decide', reviewId: item.id, decision: 'approved', quote: '可以，就这样接入' });
+    assert.equal(decided.isError, undefined, JSON.stringify(decided.structuredContent));
+    assert.equal(decided.structuredContent.source, 'user-chat'); assert.equal(decided.structuredContent.approvalStrength, 'chat-attested-by-agent');
+    assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: item.id, decision: 'rejected', quote: '又改主意了' })).structuredContent.code, 'REVIEW_CLOSED');
+    // A chat approval record that was tampered with does not unlock anything.
+    for (const tamper of [{ quote: '' }, { mode: 'web' }, { shotHashes: [] }, { source: 'agent' }]) {
+      const bad = { ...loadRecord('reviews', item.id), id: id('review'), ...tamper }; saveRecord('reviews', bad);
+      assert.equal((await client.call('oriel_integrate', { reviewId: bad.id, target: 'oriel-folder', folder })).structuredContent.code, 'APPROVAL_REQUIRED', JSON.stringify(tamper));
+    }
+    // The folder target needs an absolute folder outside the repository.
+    assert.equal((await client.call('oriel_integrate', { reviewId: item.id, target: 'oriel-folder' })).structuredContent.code, 'FOLDER_REQUIRED');
+    assert.equal((await client.call('oriel_integrate', { reviewId: item.id, target: 'oriel-folder', folder: 'relative/dir' })).structuredContent.code, 'FOLDER_REQUIRED');
+    assert.equal((await client.call('oriel_integrate', { reviewId: item.id, target: 'oriel-folder', folder: path.join(ROOT, 'build/my-pages') })).structuredContent.code, 'FOLDER_IN_REPOSITORY');
+    const plan = (await client.call('oriel_integrate', { reviewId: item.id, target: 'oriel-folder', folder })).structuredContent;
+    assert.equal(plan.target, 'oriel-folder', JSON.stringify(plan)); assert.equal(plan.pageUrl, 'oriel_mine:ui/index.html');
+    assert.deepEqual(plan.files.map(f => f.target).sort(), ['ui/index.html', 'ui/style.css']);
+    const applied = await client.call('oriel_integrate', { action: 'apply', planId: plan.id });
+    assert.equal(applied.isError, undefined, JSON.stringify(applied.structuredContent));
+    assert.equal(fileHash(path.join(folder, 'ui/index.html')), fileHash(html)); assert.equal(fileHash(path.join(folder, 'ui/style.css')), fileHash(css));
+    assert.equal(fileHash(path.join(ROOT, 'common/src/main/resources/assets/shots_test/ui/index.html')), null, 'nothing is written into the repository');
+    // A page that names its own namespace cannot be copied into a folder, where the namespace is oriel_mine.
+    fs.writeFileSync(css, 'p { color: #6cc349; } /* see shots_test:ui/other.png */');
+    await client.call('oriel_project', { projectId, sourceRoot: source, namespace: 'shots_test', entry: 'ui/index.html', scenes });
+    const second = (await checkAndPrepare()).structuredContent;
+    assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: second.id, decision: 'approved', quote: 'ok' })).isError, undefined);
+    assert.equal((await client.call('oriel_integrate', { reviewId: second.id, target: 'oriel-folder', folder })).structuredContent.code, 'FOLDER_NAMESPACE_REFERENCE');
+    // Changing the page after the decision makes the approval stale.
+    fs.appendFileSync(html, '<p>changed after approval</p>');
+    assert.equal((await client.call('oriel_integrate', { reviewId: second.id, target: 'oriel-folder', folder })).isError, true);
+  } finally { client.close(); }
+});

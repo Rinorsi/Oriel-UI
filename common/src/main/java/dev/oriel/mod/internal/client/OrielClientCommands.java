@@ -1,6 +1,7 @@
 package dev.oriel.mod.internal.client;
 
 import dev.oriel.mod.client.OrielHud;
+import dev.oriel.mod.internal.CommandNames;
 import dev.oriel.mod.client.OrielScreen;
 import dev.oriel.mod.client.OrielScreens;
 
@@ -22,15 +23,14 @@ import java.util.List;
  */
 public final class OrielClientCommands {
     /** The client-side demo pages, under {@code assets/oriel/oriel/demo/} (the gallery is {@code index.html}). */
-    public static final List<String> DEMOS = List.of("gallery", "settings", "layout", "animation", "templates", "hud");
+    public static final List<String> DEMOS = CommandNames.DEMOS;
     /**
      * Demos run by the server ({@code OrielCommand}). The client forwards them itself: Fabric's client dispatcher
      * claims every {@code /oriel ...} command once a client {@code oriel} node exists.
      */
-    public static final List<String> SERVER_DEMOS = List.of("chest", "live");
+    public static final List<String> SERVER_DEMOS = CommandNames.SERVER_DEMOS;
     /** The show-off pages under {@code assets/oriel/oriel/showcase/}. */
-    public static final List<String> SHOWCASE = List.of("title", "hud", "shop", "mobdex", "journal", "console", "models",
-            "scene");
+    public static final List<String> SHOWCASE = CommandNames.SHOWCASE;
 
     private OrielClientCommands() {}
 
@@ -64,7 +64,7 @@ public final class OrielClientCommands {
     }
 
     /** The presets {@code /oriel demo} opens: a page each, and the potion HUD. */
-    public static final List<String> PRESETS = List.of("inventory", "forge", "music", "settings", "hud", "editor", "catalog", "icons");
+    public static final List<String> PRESETS = CommandNames.PRESETS;
 
     /** Opens a preset page, or the gallery; {@code hud} toggles the potion HUD overlay. */
     public static void preset(String name) {

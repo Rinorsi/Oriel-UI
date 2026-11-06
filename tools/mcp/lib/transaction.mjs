@@ -5,7 +5,7 @@ import { safePath, fileHash, requireThat, id } from './core.mjs';
 // File transaction only; authorization lives in integration.mjs, never in a test shortcut.
 export function installFiles(files, sourceRoot, targetRoot, backupRoot, copy = fs.copyFileSync) {
   for (const file of files) {
-    requireThat(safePath(targetRoot, file.file) === file.destination && fileHash(file.destination) === file.previous, 'TARGET_CONFLICT', '目标文件在计划后发生变化：' + file.file);
+    requireThat(safePath(targetRoot, file.target ?? file.file) === file.destination && fileHash(file.destination) === file.previous, 'TARGET_CONFLICT', '目标文件在计划后发生变化：' + file.file);
     requireThat(fileHash(safePath(sourceRoot, file.file)) === file.hash, 'SNAPSHOT_CHANGED', '待安装资源与验收内容不一致。');
   }
   fs.mkdirSync(backupRoot, { recursive: true });
