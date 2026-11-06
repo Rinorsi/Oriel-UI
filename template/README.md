@@ -1,51 +1,41 @@
-# Oriel mod template
+# Oriel mod 模板
 
-模板不会自动转译 H5，也不会替业务生成权限校验与菜单。开发见 [制作流程](../docs/zh/ui-workflow.md)、[Java API](../docs/zh/java-api.md)，完成后按 [验收工具](../docs/zh/validation.md)验证。
+模板不会自动转译 H5，也不会替业务生成权限校验与菜单。开发见[制作流程](../docs/zh/ui-workflow.md)、[Java API](../docs/zh/java-api.md)，完成后按[验收工具](../docs/zh/validation.md)验证。
 
-Two small mods to start from, one for NeoForge and one for Fabric, on Minecraft 26.3. Each adds a `/notes` command that
-opens a notes page: the mod gives the page your notes, and the page sends back what you add and remove.
+两个小 mod 可供起步，一个 NeoForge、一个 Fabric，面向 Minecraft 26.3。每个都加了一个 `/notes` 命令，打开一个笔记页面：mod 把你的笔记交给页面，页面把你的增删发回来。
 
-![The notes page](notes.png)
+![笔记页面](notes.png)
 
-## Start a mod
+## 开始一个 mod
 
-Copy the folder for your loader:
+复制你的加载器对应的文件夹：
 
 ```bash
 cp -R template/neoforge my-mod
 ```
 
-(or `template/fabric`). Then in `my-mod`:
+（或 `template/fabric`）。然后在 `my-mod` 里：
 
-1. Set `mod_id`, `mod_name`, `mod_group_id` and the rest in `gradle.properties`.
-2. Rename the `com.example.examplemod` package and the `assets/examplemod` folder to match. On NeoForge, `MOD_ID` in
-   `ExampleModClient` has to match too.
-3. `./gradlew runClient`, open a world and type `/notes`.
+1. 在 `gradle.properties` 里设置 `mod_id`、`mod_name`、`mod_group_id` 等。
+2. 把包 `com.example.examplemod` 和文件夹 `assets/examplemod` 改成对应的名字。在 NeoForge 上，`ExampleModClient` 里的 `MOD_ID` 也要一致。
+3. `./gradlew runClient`，进入一个世界，输入 `/notes`。
 
-On macOS, if the client hangs on its first frame, add `enableVsync:false` to `runs/client/options.txt`.
+在 macOS 上，如果客户端在第一帧卡住，在 `runs/client/options.txt` 里加 `enableVsync:false`。
 
-## What's in it
+## 里面有什么
 
-- `src/main/resources/assets/examplemod/oriel/notes.html` is the page: HTML, CSS and a Vue-style template, with a
-  few lines of script.
-- `Notes.java` opens the page with its data and handles the messages it sends.
-- `ExampleModClient.java` registers `/notes`.
-- `build.gradle` gets Oriel from this checkout's `build/template-maven` or `mavenLocal()`. Run the repository
-  `./gradlew templateCompile` to publish current artifacts into the private build directory and compile both templates.
-  For a copied project, run `publishToMavenLocal` in this repository or pass `-PorielRepository=<local repository>`.
-- Supported 0.9 dependency ranges are `>=0.9.0 <0.10.0` (Fabric) and `[0.9.0,0.10.0)` (NeoForge). A pre-1.0
-  incompatible change increments the minor version. Required dependencies are recommended; Jar-in-Jar is optional.
-  The current API-boundary migration is 0.10.0, so these templates now use `>=0.10.0 <0.11.0` / `[0.10.0,0.11.0)`.
-- `neoforge.mods.toml` or `fabric.mod.json` makes Oriel a required dependency. Players install it like any other
-  mod, and launchers do it for them when you list it as a required dependency on your Modrinth and CurseForge pages.
-  To ship one jar instead, bundle Oriel in yours ([Depending on Oriel](../docs/api/setup.md#depending-on-oriel)).
+- `src/main/resources/assets/examplemod/oriel/notes.html` 是页面：HTML、CSS 和一个 Vue 风格模板，加几行脚本。
+- `Notes.java` 带着数据打开页面，并处理它发来的消息。
+- `ExampleModClient.java` 注册 `/notes`。
+- `build.gradle` 从本仓库的 `build/template-maven` 或 `mavenLocal()` 获取 Oriel。在仓库里运行 `./gradlew templateCompile`，会把当前工件发布到私有构建目录并编译两个模板。对复制出去的工程，请在本仓库运行 `publishToMavenLocal`，或传 `-PorielRepository=<本地仓库>`。没有仓库、只有 jar 时见[只有 jar 时的最小 Fabric 工程](../docs/zh/quickstart.md)。
+- 当前模板用 0.10 系列依赖范围：Fabric `>=0.10.0 <0.11.0`，NeoForge `[0.10.0,0.11.0)`。1.0 之前，不兼容的变更会提升 minor 版本。推荐必需依赖；Jar-in-Jar 是可选的。
+- `neoforge.mods.toml` 或 `fabric.mod.json` 把 Oriel 设成必需依赖。玩家像装其他 mod 一样安装它，如果你在 Modrinth 和 CurseForge 页面上把它列为必需依赖，启动器会替他们装。想只发一个 jar，就把 Oriel 打进你的 jar（见[接入指南](../docs/zh/integration.md#依赖写法)）。
 
-While `runClient` is running, saving `notes.html` reloads the open page, so you can change it without restarting
-the game. The [previewer](../preview/README.md) shows a page without launching Minecraft at all.
+`runClient` 运行期间，保存 `notes.html` 会重载打开的页面，不用重启游戏就能改。[预览器](../preview/README.md)可以完全不启动 Minecraft 就显示页面。
 
-## Next
+## 下一步
 
-- [Opening pages](../docs/api/pages.md): data, messages, opening pages from the server.
-- [Containers](../docs/api/containers.md): inventories with real slots.
-- [Scripting](../docs/SCRIPTING.md): the JavaScript and templates.
-- [All docs](../docs/index.md)
+- [页面接口](../docs/zh/pages.md)：数据、消息、从服务器打开页面。
+- [容器页面](../docs/zh/containers.md)：带真实槽位的物品栏。
+- [脚本](../docs/zh/scripting.md)：JavaScript 和模板。
+- [全部文档](../docs/zh/index.md)

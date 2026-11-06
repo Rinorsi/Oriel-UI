@@ -11,7 +11,7 @@ public final class Scripting {
 
     /**
      * The sandboxed JavaScript runtime (Mozilla Rhino, relocated): DOM bindings, the {@code oriel} API and templates.
-     * See {@code docs/SCRIPTING.md}.
+     * See {@code docs/zh/scripting.md}.
      */
     public static Function<Document, ScriptRuntime> rhino() {
         ScriptRuntimeProvider found = null;

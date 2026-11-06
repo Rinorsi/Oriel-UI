@@ -27,7 +27,7 @@ Gradle wrapper 用你自己的（`gradle wrapper`，Gradle 9.x，JDK 25）。把
 | 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.10.0.jar` |
 | 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.10.0.jar` |
 
-`fabric_loader_version` 目前都是 `0.19.5`。以上来自 [版本适配](../versions.md)；换版本时以该页为准。
+`fabric_loader_version` 目前都是 `0.19.5`。以上来自 [版本适配](versions.md)；换版本时以该页为准。
 
 ## settings.gradle
 
@@ -169,7 +169,7 @@ public final class MyModClient implements ClientModInitializer {
 </html>
 ```
 
-`mc-dim`、`mc-center` 给页面原版风格的暗背景和居中，见 [元素参数](elements.md#内置页面类)。`oriel.close()` 见 [脚本与交互合同](scripting.md)。
+`mc-dim`、`mc-center` 给页面原版风格的暗背景和居中，见 [元素参数](elements.md#原版外观类)。`oriel.close()` 见 [脚本与交互合同](scripting.md)。
 
 ## 构建与运行
 

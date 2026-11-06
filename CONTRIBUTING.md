@@ -12,7 +12,7 @@
 
 ## 环境与文件位置
 
-使用项目的 Gradle wrapper、JDK 25，Node 24 用于开发工具与工程回归。Windows shell 示例使用 Git Bash；只为当前进程设置环境，不要求修改系统或全局Git配置。支持目标见[版本维护](docs/versions.md)。
+使用项目的 Gradle wrapper、JDK 25，Node 24 用于开发工具与工程回归。Windows shell 示例使用 Git Bash；只为当前进程设置环境，不要求修改系统或全局Git配置。支持目标见[版本维护](docs/zh/versions.md)。
 
 代码、测试和使用手册进仓库；日志、运行目录、临时文件、验收图和进度报告放仓库外工作区的当天目录。先按AGENTS.md创建当天目录，再将以下变量设置为实际的仓库外绝对路径：
 
@@ -41,7 +41,7 @@ node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs
 
 ## API、版本和安全边界
 
-公共API与0.10迁移合同见[安装与稳定性](docs/api/setup.md)。`public` 不等于下游稳定API；不要依赖 `internal` 或 `@ApiStatus.Internal` 类型。1.0之前不兼容的公共API变更提升次版本，消费者限制并验证同一次版本范围；当前没有额外承诺统一的弃用宽限期。
+公共API与0.10迁移合同见[安装与稳定性](docs/zh/integration.md#2-获取与依赖)。`public` 不等于下游稳定API；不要依赖 `internal` 或 `@ApiStatus.Internal` 类型。1.0之前不兼容的公共API变更提升次版本，消费者限制并验证同一次版本范围；当前没有额外承诺统一的弃用宽限期。
 
 有意更改API快照前先审查下游影响，同步迁移说明和模板；不能直接用 `-PupdateApi` 让意外破坏变绿。新增MC版本要提供对应加载器构建与运行证据，不能只放宽模组元数据范围。网络消息始终由服务器验证权限、载荷、槽位和当前权威状态，不能把通道名或合法JSON当成授权。
 

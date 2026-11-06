@@ -227,7 +227,7 @@ class SandboxTest {
         assertEquals("true", new TestHost().load("").eval(expression));
     }
 
-    /** The dialect limits SCRIPTING.md documents: each is a syntax error. */
+    /** The dialect limits docs/zh/scripting.md documents: each is a syntax error. */
     @ParameterizedTest
     @ValueSource(strings = {
             "const {a, ...rest} = {a: 1, b: 2}",

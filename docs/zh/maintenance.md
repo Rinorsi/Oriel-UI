@@ -23,17 +23,19 @@
 | 变更源 | 必须同步的文档/字段 |
 |---|---|
 | 属性注册、Prop、默认样式、MC PropertySchema | `css-guide.md`：属性名、可接受值、默认、继承、重排、插值、别名、示例、语义例外；`capabilities.md` |
-| CSS tokenizer/parser、选择器、at 规则、媒体查询 | CSS 表的语法范围、诊断、降级；`making-a-page.md` 的浏览器约束 |
+| CSS tokenizer/parser、选择器、at 规则、媒体查询 | CSS 表的语法范围、诊断、降级；`ui-workflow.md` 的浏览器约束 |
 | HTML、原生/替换元素、表单 | `elements.md`：标签、属性、类型、默认、单位、组合条件、预览/游戏差异 |
 | ore.css、Shell、Widgets、Motion、Fonts、Particles | `components.md`、`design.md`、`motion.md`：类、必需子结构、状态类、data-*、CSS 变量、Java 接线要求 |
-| 脚本 bindings、模板、沙箱 | `scripting.md` 与 `../SCRIPTING.md`：JS 名称、参数、返回、事件、生命周期、不支持项 |
-| kit/bind 的 Java ViewModel 与 o-* 指令 | `bindings.md`：API、路径语法、指令类型/缺省、key、诊断与生命周期；`scripting.md`、`../SCRIPTING.md`、`java-api.md`、`capabilities.md` 与索引同步入口 |
-| OrielScreens / Driver / HUD / Server / Session / Entities | `java-api.md`、`integration.md`、对应 `../api/` 补充：签名、线程、关闭/重载、错误、稳定性 |
+| 脚本 bindings、模板、沙箱 | `scripting.md`：JS 名称、参数、返回、事件、生命周期、不支持项 |
+| kit/bind 的 Java ViewModel 与 o-* 指令 | `bindings.md`：API、路径语法、指令类型/缺省、key、诊断与生命周期；`scripting.md`、`scripting.md`、`java-api.md`、`capabilities.md` 与索引同步入口 |
+| OrielScreens / Driver / HUD / Server / Session / Entities | `java-api.md`、`integration.md`、`pages.md`、`hud.md`、`containers.md`、`development.md`：签名、线程、关闭/重载、错误、稳定性 |
 | 页面推送数据、消息频道、保存结果 | 页面专属字段合同（现有 `item-editor.md` / `server.md`）：方向、类型、可空、缺省、范围、只读、请求/回执、失败条件 |
-| 配置、限额、协议、依赖与发布坐标 | `../api/security.md`、`integration.md`、`server.md`、`capabilities.md`、`../../template/README.md` |
+| 朗读器读取的内容、aria 属性、实时区域 | `narration.md`、`elements.md` |
+| 沙箱限额、`limits.*` 与 `client.*`/`server.*` 设置键 | `security.md`、`scripting.md` 的限额一节、`integration.md` |
+| 配置、限额、协议、依赖与发布坐标 | `security.md`、`integration.md`、`server.md`、`capabilities.md`、`../../template/README.md` |
 | i18n 接口、语言 key、回退逻辑 | `components.md` 的字体/翻译段、`scripting.md`、新增的专属 i18n 参考及索引；不得覆盖原流程 |
-| preview CLI / MCP / h5ref / 脚手架 | `validation.md`、`making-a-page.md`、工具 README：参数、默认、退出码、路径、覆盖范围 |
-| 增删模块、MC 版本、加载器 | `architecture.md`、`integration.md`、`../versions.md` 与本页适用基准 |
+| preview CLI / MCP / h5ref / 脚手架 | `validation.md`、`ui-workflow.md`、工具 README：参数、默认、退出码、路径、覆盖范围 |
+| 增删模块、MC 版本、加载器 | `architecture.md`、`integration.md`、`versions.md` 与本页适用基准 |
 
 ## 每个新增能力的文档字段
 

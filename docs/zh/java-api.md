@@ -1,6 +1,6 @@
 # Java 接入 API 与生命周期
 
-[入口](index.md) · [接入依赖](integration.md) · [服务端](server.md) · [页面接口补充](../api/pages.md)
+[入口](index.md) · [接入依赖](integration.md) · [服务端](server.md) · [页面接口补充](pages.md)
 
 kit 新增 `dev.oriel.kit.bind.ViewModel` / `Bindings.attach(Document, ViewModel)` / `Bindings.close()`，供 Java 控制器按路径驱动 o-* 指令。参数、线程、自动 unload 清理、更新失败语义与可运行示例见 [Java 声明式绑定](bindings.md)。
 
@@ -68,7 +68,7 @@ push/merge/patch 的 JSON 被保存为文本，之后修改原 Gson 对象不会
 | hide(id) / isShown(id) | 关闭显示 / 查询 |
 | push(id,data) / patch(id,key,value) | 隐藏时也保存，下次 show 使用 |
 
-NONE 不接鼠标；WHEN_CHAT_OPEN 在聊天界面可点；WHEN_CURSOR_FREE 在任何已有 Screen 上可点；不是鼠标锁定游戏视角时抢输入。键盘仍交给底下 Screen。html/body 背景、pointer-events:none 可穿透；未被使用的滚轮可传下去；捕获到按下的 overlay 保留对应释放/拖拽。F1 随 HUD 隐藏。完整语义见 [HUD 补充](../api/hud.md)。
+NONE 不接鼠标；WHEN_CHAT_OPEN 在聊天界面可点；WHEN_CURSOR_FREE 在任何已有 Screen 上可点；不是鼠标锁定游戏视角时抢输入。键盘仍交给底下 Screen。html/body 背景、pointer-events:none 可穿透；未被使用的滚轮可传下去；捕获到按下的 overlay 保留对应释放/拖拽。F1 随 HUD 隐藏。完整语义见 [HUD 补充](hud.md)。
 
 ## OrielServer 与 OrielSession
 
@@ -110,6 +110,6 @@ Java Host.send(channel,jsonText) 使用 JSON 文本，区别于 JS oriel.send �
 
 ## 自动化与实体扩展
 
-OrielAutomation 用于游戏内点击、输入、拖拽与等待；准确签名与线程见 [开发参考](../api/development.md)，预览动作 CLI 见 [验收工具](validation.md)。不能把它当服务端交易 API。
+OrielAutomation 用于游戏内点击、输入、拖拽与等待；准确签名与线程见 [开发参考](development.md)，预览动作 CLI 见 [验收工具](validation.md)。不能把它当服务端交易 API。
 
-OrielEntities.registerPortraitState(EntityType<T>, PortraitState<? super T>) 为模组实体提供肖像 render state；回调 `(entity,partialTick)` 返回 state，null 回退，重复注册替换；每帧调用。Oriel 会去掉名称/世界阴影等并调整肖像朝向，详细字段见 [元素扩展](../api/elements.md#entity-render-states)。
+OrielEntities.registerPortraitState(EntityType<T>, PortraitState<? super T>) 为模组实体提供肖像 render state；回调 `(entity,partialTick)` 返回 state，null 回退，重复注册替换；每帧调用。Oriel 会去掉名称/世界阴影等并调整肖像朝向，详细字段见 [元素扩展](elements.md#实体渲染状态java)。

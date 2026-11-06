@@ -28,16 +28,46 @@ Java 控制器可显式启用 o-text/o-for/o-key/o-if/o-class:*/o-attr:*/o-on:* 
 
 通用属性：`id`、`class`、`style`、`hidden`、`tabindex`、`title`、`title-json`、`title-nowrap`、`data-*`。data-* 本身只存字符串，除本文/组件手册列出的监听者外，不会自动产生行为。
 
-焦点：可交互的 div 应给 `tabindex="0"` 并接 Enter/Space；优先原生 button/input。tabindex=-1 允许程序聚焦而不加入普通 Tab 顺序。朗读使用 aria-label、aria-labelledby、aria-describedby、aria-hidden、aria-live 等，准确范围见 [朗读参考](../api/narration.md)。
+焦点：可交互的 div 应给 `tabindex="0"` 并接 Enter/Space；优先原生 button/input。tabindex=-1 允许程序聚焦而不加入普通 Tab 顺序。朗读使用 aria-label、aria-labelledby、aria-describedby、aria-hidden、aria-live 等，准确范围见 [朗读参考](narration.md)。
 
-## 内置页面类
+## 原版外观类
 
-来自内置样式表（`ua.css`），页面可直接使用：
+下列类来自内置样式表（`ua.css`），页面可直接使用，与原版 GUI 一致。按钮、文本框、滑块、复选框和 `<slot>` 不加类就已是原版外观。
 
-| 类 | 作用 |
+| 类 | 效果 |
 |---|---|
-| `mc-dim` | 游戏内菜单背后的暗色渐变（写在 `html` 上） |
-| `mc-center` | 让页面内容在屏幕中居中，类似原版容器界面（写在 `body` 上；`display:flex` 居中，`min-height:100vh`） |
+| `mc-panel` | 浅灰容器面板，带凸起斜边和黑色外框，像箱子界面 |
+| `mc-label` | 容器标题文字：深灰、无阴影（如"物品栏"） |
+| `mc-inset` | 槽位周围的凹陷斜边 |
+| `mc-tooltip` | 提示框：近黑底加紫色边框 |
+| `mc-dark` | 菜单列表背后的半透明深色面板 |
+| `mc-dim` | 游戏内菜单背后压暗世界的渐变（写在 `html` 上） |
+| `mc-center` | 让页面内容在屏幕居中，如原版容器界面（写在 `body` 上；`display:flex` 居中，`min-height:100vh`） |
+
+几行代码就能写出一个原版箱子，见 `common/src/main/resources/assets/oriel/oriel/demo/chest.html`。
+
+## Minecraft 字体里的文字与形状
+
+### 字体与颜色的 Minecraft 扩展
+
+- `font-family: minecraft:default | minecraft:uniform | minecraft:alt | minecraft:illageralt | <任意字体 id>`；`monospace` 即 uniform。
+- `text-shadow: minecraft`：游戏自己的文字阴影。
+- `-mc-tint`：对图片、精灵、实体和模型乘色；物品不能染色。
+- `sprite(ns:path)` 可作背景；聊天颜色可直接用名字：`mc-gold`、`mc-gray` 等。
+- 长度单位是 GUI 像素：`1px` 随 GUI 缩放，`1dp` 是一个设备像素。
+
+### 小块文字的排版细节
+
+Oriel 完全按原版方式量字，所以在小盒子里会出现字体的两个习惯：
+
+- 每个字形的步进都包含其后 1 px 的间隙，最后一个也算。一个单字徽标写 `padding: 0 2px`，字形左边留 2 px 背景、右边留 3 px，居中文字会偏左半个像素，和原版按钮一样。要精确居中，右边少补一像素：`padding: 0 1px 0 2px`。
+- 默认字号一行高 9 px，字形贴顶：大写字母占前 7 px，后 2 px 留给下伸部分和行距。因此盒子里只有一行大写时，上方没有空隙、下方有 2 px，要把上内边距比下内边距多加 2 px 才平衡。紧凑居中的单字徽标写 `padding: 2px 1px 0 2px`。
+
+### 平滑圆角还是像素锐利
+
+在受支持的 Minecraft 26.x 目标上，圆角、圆角边框和 box-shadow 由着色器绘制，所以曲线在任何 GUI 缩放或旋转下边缘都平滑，模糊是真正的高斯模糊；直角两种情况下都保持像素精确。
+
+想要生硬的像素边缘，给元素写 `shape-rendering: crispEdges`。它会继承，所以 `html { shape-rendering: crispEdges; }` 管整页。`auto`（缺省）和 `geometricPrecision` 允许平滑形状，`optimizeSpeed` 与 `crispEdges` 相同。玩家也可以在设置里用 `client.shapeShader=false` 为所有页面关掉着色器（见 [安全与设置](security.md#设置)）。预览器按着色器的方式绘制形状，也认 `crispEdges`。
 
 ## 表单
 
@@ -124,7 +154,39 @@ entity 默认 32×48，model 默认 32×32。width/height 给展示框，object-
 <model block="minecraft:anvil" style="width:64px;height:64px;-mc-yaw:30deg"></model>
 ```
 
-eyes 以实体直立轴眼高取景，猪/狐狸等头向前伸的实体旋转时可能偏框。模组实体用 OrielEntities.registerPortraitState 定制肖像 render state，见 [原生渲染扩展](../api/elements.md#entity-render-states)。
+eyes 以实体直立轴眼高取景，猪/狐狸等头向前伸的实体旋转时可能偏框。模组实体用 OrielEntities.registerPortraitState 定制肖像 render state，见 [原生渲染扩展](elements.md#实体渲染状态java)。
+
+### 摆放与取景
+
+`object-position` 像摆放图片一样摆放每个 Minecraft 元素：1 到 4 个值，可用关键字、长度和百分比（`right 4px bottom`、`25% 75%`）。物品和头像在默认样式里是 `object-fit: contain`，取盒子短边的正方形；模型也取这个正方形，再乘 `-mc-model-scale`。
+
+`<entity>` 有三种取景：
+
+- `-mc-entity-focus: body`（缺省）：容纳整个实体并留出旋转空间，`object-position` 摆放这块空间。不写 `object-position` 时它站在底边中央（`50% 100%`），不在盒子正中。`-mc-model-scale` 从这个位置放大，所以放大后看到的是脚。
+- `-mc-entity-focus: center`：取景同 `body`，但 `-mc-model-scale` 绕实体中心缩放，实体中心保持原位。用于可缩放的查看器。
+- `-mc-entity-focus: eyes`：裁成头肩特写。盒子短边对应实体眼高（`Entity.getEyeHeight()`，所以幼体取景更近）的 0.7，`object-position` 指定眼睛位置，缺省在 `50% 40%`。`-mc-model-scale` 绕眼睛缩放，旋转、俯仰和 `follow-mouse` 都不改变眼睛的位置。
+
+```html
+<entity id="…" follow-mouse style="width:32px; height:32px; -mc-entity-focus: eyes; object-position: 50% 40%"></entity>
+```
+
+眼点取在实体直立轴的眼高处。这适合头在身体正上方的生物（玩家、村民、傀儡、苦力怕）；猪、狐狸的头在该轴前方，侧过身时会跑出取景框。展示橱窗（`/oriel showcase models`）里有一排会跟随指针的肖像。
+
+### 跟随指针
+
+`follow-mouse` 让实体头部像背包界面转玩家那样朝指针转动：指针离眼睛 `d` px 时，左右和上下各转 `40° × atan(d / 40px)`，最多约 63°。身体跟着倾斜一半，头转剩下的部分。两个属性可调：
+
+- `-mc-gaze-reach: <长度>` 替换那个 40px。距离加倍，指针要加倍远才产生同样的转动。
+- `-mc-gaze-limit: <左右> [<上> [<下>]]` 限制头向两侧、向上、向下转的最大角度。每个值是角度或 `none`，省略的值重复前一个：`30deg 9deg` 表示左右各 30°、上下各 9°；`30deg 12deg 4deg` 让头能比向下看更高地向上看。身体仍按限制后转动的一半倾斜。
+
+在对话卡片上，指针通常停在回复项上，远低于说话者的头像，用缺省值时说话者会盯着自己的脚。Chronicle 的卡片让头基本保持水平并轻轻转动：
+
+```css
+entity.speaker { -mc-gaze-reach: 80px; -mc-gaze-limit: 30deg 9deg; }
+```
+
+两者只影响绘制，可以做动画（`transition: -mc-gaze-limit 300ms`）。`none` 不能插值，所以变到或变自 `none` 会立即生效，在 `@keyframes` 里则在中途生效。它们只作用于指针增加的部分：`-mc-yaw`、`-mc-pitch` 和拖动 `rotatable` 实体照常转动，注视在此基础上再转。指针距离：`-mc-entity-focus: eyes` 时从眼点量，`body` 时从盒子往下三分之一处量，与背包界面一致。
+
 
 ## scene 小场景
 
@@ -151,8 +213,129 @@ scene 是展示用小世界，不是服务端方块编辑器。默认 160×120�
 
 坐标 x 东、y 上、z 南；拾取按整方块盒，不按模型细部。分组支持 opacity、位移和角度动画；半透明方块实体有阈值限制。没有内置时间线，分步展示由 CSS 与控制器定时驱动。
 
-## 提示与验收
+### 分组动画与镜头
 
-title 缺省等 500ms，继承属性 -mc-tooltip-delay 可改；title-json 是聊天组件，title-nowrap 禁止折行。普通长提示约 170px 折行。item tooltip 的原版提示立即显示，祖先 title 追加其后；空 title 可阻止继承。
+分组决定什么显示、淡出和移动。分组每帧跟随自己的样式，所以过渡和 `@keyframes` 都能用：
+
+- `display: none`、`visibility: hidden`、`opacity: 0` 隐藏分组，隐藏的分组不能被悬停。
+- `opacity` 淡出分组。淡出的分组半透明绘制；其中的方块实体只在不透明度至少一半时显示。
+- `-mc-translate: x y z` 按方块单位移动，省略的值为 0：`-mc-translate: 0 -0.5`。
+- `-mc-yaw` 绕穿过方块中心的竖轴旋转，与 `<model>` 相同：正值从上往下看是顺时针，如 Minecraft 转实体（南到西）。
+- `-mc-pitch` 绕 x 轴（东到西）倾斜，`-mc-roll` 绕 z 轴（北到南）倾斜，也都过中心。正值把顶部向北和向东倾，缺省视角下朝向观察者。
+- 三者合用时，先 roll，再 pitch，再按 yaw 旋转，与 Minecraft 摆放实体的顺序一致。
+
+`-mc-translate` 对实体和锚点同样有效。每个分组只网格化一次，方块变化时才重做，所以移动和淡出分组很便宜；从脚本里增删或修改 `<block>`、`<block-group>` 子元素，下一帧就更新场景。分层视图也是分组：每层一个，高于当前层的隐藏。
+
+相机使用 `<model>` 的那些属性。`-mc-yaw` 和 `-mc-pitch` 为 0 时，场景像背包界面看方块那样：从东北上方 30° 看，能看到北面和东面。`-mc-yaw: -90deg` 看到南面和东面，`180deg` 看到南面和西面。场景在任何旋转下都适配盒子，`-mc-model-scale` 缩放，`-mc-scene-center: x y z` 是旋转并保持居中的点（缺省 `auto`，即方块的中心）。这些都可以做动画。
+
+悬停方块时显示方块名称提示（除非场景写了 `notooltips`），并在场景上触发 `blockhover`，`detail` 为 `{x, y, z, state, group}`（`group` 是容纳该方块的 `<block-group>`，没有则为 null）。指针离开方块时再触发一次，`detail` 为 null。没有拖动的点击触发 `blockclick`，`detail` 相同。两者都把方块当作整立方体。
+
+### 分步搭建示例
+
+Oriel 没有时间线。一个自己搭起来的建筑，由分组、CSS 和定时器组成，就像小屋展示（`/oriel showcase scene`）的做法：
+
+```html
+<style>
+  scene { transition: -mc-yaw 1600ms ease-in-out, -mc-pitch 1600ms ease-in-out; -mc-yaw: -90deg; }
+  scene.roof-view { -mc-yaw: -20deg; -mc-pitch: 10deg; }
+  block-group.pending { opacity: 0; }
+  block-group.drop { animation: drop 900ms ease-out both; }
+  @keyframes drop { from { opacity: 0; -mc-translate: 0 5 0; } 45% { opacity: 1; } }
+  .caption { transform: translate(-50%, -100%); transition: -mc-translate 1200ms ease-in-out; }
+</style>
+<scene structure="mymod:structures/hut.nbt">
+  <block-group class="pending" x="0..6" y="0" z="0..6"></block-group>
+  <block-group class="pending" x="0..6" y="1..3" z="0..6"></block-group>
+  <block-group class="pending" x="0..6" y="4..6" z="0..6"></block-group>
+  <scene-anchor class="caption" x="0" y="0" z="0"></scene-anchor>
+</scene>
+<script>
+  const steps = [
+    {text: '地基', point: '3 1 3'},
+    {text: '墙', point: '3 4 6'},
+    {text: '屋顶', point: '3 7 3', view: 'roof-view'},
+  ];
+  const scene = document.querySelector('scene');
+  const groups = scene.querySelectorAll('block-group');
+  const caption = scene.querySelector('.caption');
+  let step = 0;
+  function next() {
+    if (step === steps.length) return;
+    groups[step].className = 'drop';
+    caption.textContent = steps[step].text;
+    caption.style.setProperty('-mc-translate', steps[step].point);
+    scene.className = steps[step].view || '';
+    step++;
+    setTimeout(next, 2000);
+  }
+  next();
+</script>
+```
+
+标题靠自己的 `-mc-translate` 过渡在各点之间滑动，相机靠自己的过渡转动。实体也一样走动：给它的 `-mc-translate` 加过渡，移动时加上 `walk`。
+
+渲染范围：方块模型（同分组内相邻面被剔除）、按状态连接的方块（结构文件保存的栅栏、玻璃板、墙和楼梯已是连接状态；在 `<block>` 上自己写连接）、流体、用各自渲染器绘制但处于静止的方块实体（箱子、床、告示牌、旗帜），以及实体。方块按背包界面的光照满亮绘制，所以世界的时间和维度不会体现。两个分组之间的面会绘制，因此分组移开不会留下空洞。预览器按方块模型加简单明暗绘制，实体只画剪影，不画方块实体。
+
+## 提示框与物品提示
+
+任何元素都可以有 `title`（纯文本，换行符断行）或 `title-json`（聊天组件，用于彩色文字）。指针在元素上停留满它的 `-mc-tooltip-delay`（缺省半秒，除非规则另设）后，在指针处显示原版提示框，像控件提示一样在 170 px 处折行。给元素加 `title-nowrap` 则整行保持完整，只在换行符处断开。从悬停元素向上最近的 title 生效，容器槽位里的物品提示优先于它。
+
+`-mc-tooltip-delay: <时间>` 可继承，所以地图或商店列表设一次，就能像原版槽位物品那样立即显示提示。延迟取显示 title 的那个元素的值，不是指针下元素的值。它只被输入读取，因此改它不会触发任何布局或绘制的重新计算。
+
+```css
+.map { -mc-tooltip-delay: 0ms; }           /* 地图上的每个标记 */
+.map .legend { -mc-tooltip-delay: 1s; }    /* 图例除外，它要等 */
+```
+
+在 `<item tooltip>` 上，物品自己的提示立即显示，适用的 title（从物品向上最近的一个）把它的行加在物品提示之后，同一个框里。物品行和 title 行都不折行。这样商店行就有了原版商人的布局：物品、价格、备注。
+
+```html
+<div class="row" title-json='{"text":"","extra":[{"text":"6 个绿宝石购买","color":"green"},
+     {"text":"\n铁走了很远才到这里","color":"gray","italic":true}]}'>
+  <item id="minecraft:iron_sword" tooltip></item> 铁剑
+</div>
+```
+
+这是缺省行为，因为放了物品的行上的 title 通常就是在描述那个物品。只想显示物品自己的提示，给物品写空 title：`<item id="minecraft:iron_sword" tooltip title="">`。行内其他位置，title 在延迟后单独显示，除非行上有 `title-nowrap` 否则折行。在 NeoForge 上，物品的堆叠会像任何物品提示一样交给 NeoForge 的提示事件。
+
+## 实体渲染状态（Java）
+
+适用于全部受支持的 Minecraft 26.x 目标。
+
+Oriel 按你的渲染器生成的渲染状态来绘制实体。如果你的渲染器为世界添加了东西（对话气泡、标签、特效），请注册一个专为界面生成状态的函数：
+
+```java
+// 客户端初始化：
+OrielEntities.registerPortraitState(MyEntities.AUTOMATON.get(), AutomatonRenderer::portraitState);
+```
+
+```java
+public static <T extends Entity> void registerPortraitState(EntityType<T> type, PortraitState<? super T> state)
+
+@FunctionalInterface
+public interface PortraitState<T extends Entity> {   // OrielEntities.PortraitState
+    @Nullable EntityRenderState create(T entity, float partialTick);
+}
+```
+
+函数拿到实体和 partial tick，对屏幕上每个该类型的 `<entity>` 每帧运行一次。返回 null 则当帧退回渲染器自己的状态。对同一类型再次注册会替换原函数。方法引用或 lambda 都可以。
+
+随后 Oriel 会像处理自己的状态一样，在你的状态上设置这些字段：
+
+| 字段 | 设为 |
+|---|---|
+| `shadowPieces` | 清空 |
+| `outlineColor`、`nameTag`、`scoreText`、`leashStates`、`passengerOffset` | 无 |
+| `lightCoords` | 满亮 |
+| `ageInTicks` | 时钟（用于页面创建的实体，即 `type="…"`） |
+| `bodyRot` | 来自 `-mc-yaw`、拖动和 `follow-mouse` 的倾斜 |
+| `walkAnimationPos`、`walkAnimationSpeed` | 来自 `walk` 属性（不写则静止） |
+| `scale` | 1，同时 `boundingBoxWidth`、`boundingBoxHeight`、`eyeHeight` 除以原缩放 |
+| `yRot`、`xRot`（头部） | `follow-mouse` 时朝向指针；否则保持你的状态原值 |
+
+从 `bodyRot` 往下的字段只在生物实体的状态上设置。没有注册函数时，除非 `follow-mouse` 转动，头部朝正前方。身体取景按你返回的状态来量，所以它没包含的部分在盒子里不占空间。
+
+
+## 提示与验收
 
 浏览器用同尺寸 PNG/色块替身并标记占位。预览器也不能证明 3D 正确。真实皮肤、装备、附魔光、槽位、实体朝向、裁剪深度与提示均须进游戏检查。

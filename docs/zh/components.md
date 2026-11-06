@@ -72,7 +72,7 @@ Java：`new Slider(doc, doc.getElementById("power"), 10).onInput(v -> ...).onCom
 - 点组标题可以在行和图标块之间切换；玩家的选择会保留，不会被新增或到期的效果改回去。
 - 嵌入：`new PotionHudPreset().mountPanel(doc, where, compactOver)`。`where` 是可以滚动的容器；`compactOver` 是阈值：原版背包旁用 `PotionHudPreset.COMPACT_OVER`（4），有足够高度的页签传 0（始终显示行，玩家仍可手动切换）。
 - 滚动提示：面板会给 `where` 的父元素加 `more-above` / `more-below` 类，表示上方或下方还有内容被遮住。页面用它在对应边缘画渐隐（见 `inventory_effects.html`）。
-- 原版背包旁的面板由 `InventoryEffects` 放置：在背包右侧（放不下时放左侧），高度不超过背包本身（创造模式物品栏包括下排页签），超出部分在面板内滚动。配置项见 [安全与配置](../api/security.md) 的 `client.inventoryEffects`。
+- 原版背包旁的面板由 `InventoryEffects` 放置：在背包右侧（放不下时放左侧），高度不超过背包本身（创造模式物品栏包括下排页签），超出部分在面板内滚动。配置项见 [安全与配置](security.md) 的 `client.inventoryEffects`。
 
 ## Shell 的 data-* 合同
 

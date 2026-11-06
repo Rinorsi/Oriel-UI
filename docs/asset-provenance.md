@@ -1,6 +1,6 @@
 # 素材来源与许可登记
 
-[文档入口](index.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE)
+[文档入口](zh/index.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE)
 
 [逐文件清单](asset-provenance.json)登记 Git 跟踪的位图、SVG 和字体文件，包含路径、SHA-256、是否随运行资源打包、来源线索、许可文件及待确认状态。测试截图与模板说明图也单独登记；不把它们当成运行素材。HTML/CSS、字体 provider JSON、运行时画布及从玩家本机 Minecraft 读取的资源不属于这份二进制素材清单。
 
