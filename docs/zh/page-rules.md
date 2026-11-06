@@ -77,7 +77,7 @@
 - 页面里引用同文件夹的 css、图片、js，用**相对路径**；不要写 `oriel_mine:` 或你自己的命名空间前缀。
 - 在卡片上显示的信息写在 `<head>`：`<title>` 是标题（≤40 字）；`<meta name="oriel-subtitle" content="…">` 是副标题（≤80 字，没有就用 `description`）；封面是 `<meta name="oriel-cover" content="相对路径.png">`，没写就找同目录的 `cover.png`，再找 `页面名.png`（16:9 的 PNG，必须在文件夹内）。
 
-- **热更新有两条路，都不用自己造开关**：① 页面放进 `config/oriel/my-pages/`，所有环境保存即重载；② 模组自己的页面：Gradle `runClient` 且运行目录在工程里时自动热更新；运行目录在别处加 `-Doriel.sourceRoot=<工程目录>`；只把 jar 丢进 `mods/` 就在 `config/oriel/dev-sources.properties` 写一行 `命名空间=源码资源目录`（写法见 [快速入门](quickstart.md)）。**开始做页面前就先确认其中一条已配好**，不要等改了半天才发现不刷新。
+- **热更新有两条路，都不用自己造开关**：① 页面放进 `config/oriel/my-pages/`，所有环境保存即重载；② 模组自己的页面：Gradle `runClient` 且运行目录在工程里时自动热更新；运行目录在别处加 `-Doriel.sourceRoot=<工程目录>`；只把 jar 丢进 `mods/` 就在 `config/oriel/dev-sources.properties` 写一行 `命名空间=源码资源目录`（写法见 [热更新](hot-reload.md)）。**开始做页面前就先确认其中一条已配好**，不要等改了半天才发现不刷新。
 
 ## 6. 用什么检查
 

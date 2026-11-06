@@ -134,6 +134,8 @@ stdio：node tools/mcp/oriel-preview.mjs，cwd 仓库根，可设 ORIEL_ROOT。�
 
 ## 游戏与热重载
 
+怎么配、怎么确认、下游模组怎么做：见 [热更新](hot-reload.md)。下面是保存后重载的边界。
+
 ```bash
 ./gradlew :fabric:26.1:runClient
 # 游戏内：/oriel open mymod:ui/editor.html
