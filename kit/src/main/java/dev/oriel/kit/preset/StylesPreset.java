@@ -127,6 +127,7 @@ public final class StylesPreset implements PageControllers.Controller {
 
     private void buildCentre() {
         grid = Dom.byId(doc, "grid");
+        Dom.on(Dom.byId(doc, "scroll"), "scroll", ev -> loadCovers());
         tagbar = Dom.byId(doc, "tagbar");
         drawer = Dom.byId(doc, "drawer");
         veil = Dom.byId(doc, "veil");
@@ -286,6 +287,38 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.text(Dom.byId(doc, "crumb"), Lang.t(doc, "oriel.ui.styles.crumb.view", title(view)));
         Dom.text(Dom.byId(doc, "foot-count"), Lang.plural(doc, "oriel.ui.styles.foot_count", templates.size()));
         counts();
+        loadCovers();
+    }
+
+    private static final int COVERS_PER_STEP = 3, COVER_STEP_MS = 50;
+    private boolean coversQueued;
+
+    /** Page covers load a few at a time, for the cards that show or are about to; a folder of thirty pages opens at once and the pictures follow. */
+    private void loadCovers() {
+        if (coversQueued) return;
+        coversQueued = true;
+        doc.scheduler().setTimeout(this::coverStep, COVER_STEP_MS);
+    }
+
+    private void coverStep() {
+        coversQueued = false;
+        Element list = Dom.byId(doc, "scroll");
+        if (list == null) return;
+        float[] port = list.getBoundingClientRect();
+        int loaded = 0;
+        boolean more = false;
+        for (Element card : pageCards) {
+            Element img = Dom.query(card, "img.shot");
+            String url = img == null ? null : img.getAttribute("data-cover");
+            if (url == null || url.isEmpty()) continue;
+            float[] r = card.getBoundingClientRect();
+            if (r[3] <= 0 || r[1] > port[1] + port[3] + r[3] || r[1] + r[3] < port[1] - r[3]) continue; // hidden or more than a row away
+            if (loaded == COVERS_PER_STEP) { more = true; break; }
+            img.setAttribute("src", url);
+            img.setAttribute("data-cover", "");
+            loaded++;
+        }
+        if (more) loadCovers();
     }
 
     private void counts() {
@@ -480,7 +513,8 @@ public final class StylesPreset implements PageControllers.Controller {
                     ? "<img class=\"shot\">"
                     : "<img class=\"o-ico\" src=\"../textures/icons/layers.png\" style=\"position: absolute; left: 40%; top: 35%; width: 20%; height: 30%\">")
                     + "</div><div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");
-            if (covered) Dom.query(card, "img.shot").setAttribute("src", namespace + ":" + page.cover());
+            // The picture is loaded when the card is about to show (see loadCovers), not for every page in the folder at once.
+            if (covered) Dom.query(card, "img.shot").setAttribute("data-cover", namespace + ":" + page.cover());
             card.setAttribute("data-path", (page.title() + " " + page.subtitle() + " " + path).toLowerCase(Locale.ROOT));
             card.setAttribute("data-title", page.title().toLowerCase(Locale.ROOT));
             card.setAttribute("data-mod", Long.toString(page.modified()));

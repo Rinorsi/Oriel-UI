@@ -51,4 +51,29 @@ class StylesStartViewTest {
         assertEquals(1, doc.querySelectorAll("#grid .card").size(), "the page in the folder is listed without waiting for another message");
         doc.close();
     }
+
+    @Test void pageCoversLoadInBatchesForTheCardsThatShow() {
+        StringBuilder pages = new StringBuilder();
+        for (int i = 0; i < 24; i++) {
+            if (i > 0) pages.append(',');
+            pages.append("{\"path\":\"p").append(i).append("/index.html\",\"title\":\"P").append(i).append("\",\"cover\":\"p").append(i).append("/cover.png\"}");
+        }
+        String data = "{\"library\":{\"pages\":[" + pages + "],\"folder\":\"config/oriel/my-pages\",\"namespace\":\"oriel_mine\"}}";
+        KitHost host = new KitHost();
+        StylesPreset.startAt("pages");
+        Document doc = host.open(OrielKit.STYLES, new StylesPreset(true), 640, 360, data);
+        assertEquals(24, doc.querySelectorAll("#grid .card").size());
+        assertEquals(0, loaded(doc), "no picture is loaded when the list opens");
+        doc.frame(60);
+        assertTrue(loaded(doc) > 0 && loaded(doc) <= 3, "the first step loads at most three: " + loaded(doc));
+        for (int t = 120; t <= 2000; t += 60) doc.frame(t);
+        int shown = loaded(doc);
+        assertTrue(shown > 3 && shown < 24, "only the cards that show (and one row more) get a picture: " + shown);
+    }
+
+    private static int loaded(Document doc) {
+        int n = 0;
+        for (var img : doc.querySelectorAll("#grid .card img.shot")) if (img.getAttribute("src") != null && !img.getAttribute("src").isEmpty()) n++;
+        return n;
+    }
 }
