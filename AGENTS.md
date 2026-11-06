@@ -93,7 +93,7 @@
 先读 `docs/zh/page-rules.md`（字体字号、尺寸、可复制的骨架），再按下面做。细节在 `design.md`、`motion.md`、`recipes.md`。
 
 **1. 先看，再做，不从空白开始**
-- **主参考是 showcase**：源码在 `common/src/main/resources/assets/oriel/oriel/showcase/` 和 `.../demo/`，导览（每个效果在第几行、怎么复用）见 `docs/zh/showcase.md`（MCP：`oriel_rules` 的 `topic=showcase`）。要做哪类效果，先读对应页面的源码，不要从零发明。
+- **主参考是 showcase**：源码在 `common/src/main/resources/assets/oriel/oriel/showcase/` 和 `.../demo/`，导览（每个效果在第几行、怎么复用）见 `docs/zh/showcase.md`（MCP：`oriel_rules` 的 `topic=showcase`）。**要做哪类效果，先查索引再读源码，不要从零发明**：`node tools/showcase/query.mjs <关键词>`（例：`视差 无缝`、`box-shadow`、`进度条`）直接打印匹配效果的页面、行号、做法和那段代码；`--list --page showcase/shop.html` 看一页的全部效果。索引数据 `tools/showcase/index.json`（效果 → 页面 → 注释锚点，行号实时定位），效果表在 `docs/zh/showcase.md`。**新增或改名示例页时，同一次变更里给它加索引条目并运行 `node tools/showcase/query.mjs --write-doc`**，`node --test tools/showcase/index.test.mjs` 会检查。
 - 进游戏看：`/oriel showcase`（首页）→ 模板中心的「演示」（12 个整页示例：标题画面、HUD、商店、图鉴、日志、控制台等）；9 个官方模板和预设页是**次级参考**（整套风格、控制器写法）；`/oriel showcase catalog` 是所有组件与动效的活目录。
 - 挑最接近的一个当起点（`recipes.md` 有布局套路，先挑一个再改），把它的结构和类名学过来，不要自己重新发明。
 - 想借风格（光影、几何、配色分工）：工作区 `research/visual/` 有《我的世界：地下城》、Ore UI、Minecraft 品牌的风格指南和截图；只学风格，不复制美术资产。
