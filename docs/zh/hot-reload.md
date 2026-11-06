@@ -29,7 +29,7 @@ loom {
 }
 ```
 
-NeoForge（ModDevGradle）：`runs { client { systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath } }`（**这一条没有实测**）。
+NeoForge（ModDevGradle）：`runs { client { systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath } }`（**已实测**：NeoForge 26.1.2 最小模组，游戏目录放在工程外，日志出现 dev mode 那一行，页面改后约 2 秒重载）。
 
 ## 3. 只丢 jar：`config/oriel/dev-sources.properties`
 

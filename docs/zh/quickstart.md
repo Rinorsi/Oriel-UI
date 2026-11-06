@@ -228,7 +228,7 @@ loom {
 }
 ```
 
-NeoForge（ModDevGradle）写 `systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath`（这一条没有实测）。多模块工程里填**含有 `src/main/resources/assets` 的那个子工程目录**。
+NeoForge（ModDevGradle）写 `systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath`（放在 `neoForge { runs { client { … } } }` 里；已在 NeoForge 26.1.2 实测）。多模块工程里填**含有 `src/main/resources/assets` 的那个子工程目录**。
 
 **③ 不用 Gradle，只是把模组 jar 丢进 `mods/` 开发：在游戏的 `config/oriel/dev-sources.properties` 里写一行**，把你的命名空间指向源码里的资源目录：
 
