@@ -1,5 +1,9 @@
 # AGENTS.md — 优易库 / Oriel UI
 
+## 视频 UI 复刻任务的必读规范
+
+做 video 动画的游戏 UI 复刻前，必须先读工作区 `../Oriel-UI-Workspace/planning/UI-REPLICATION-STANDARD.md`，填写原版参数对照表，制作过程中逐项执行，不能只在收工时补验收。Oriel 用法以 docs 为准；原动画源码与实际画面是视觉和动效依据。当前原型只放用户实际游戏的「我的页面」，透明背景，逐个制作。最新未完成项见工作区 `daily/2026-11-06/reports/VIDEO-UI-REPLICATION-STATUS.md`。
+
 > 给任何在本仓库工作的 agent。先读本文，再读工作区里的决策文档（路径见下）。
 
 ## 这是什么
@@ -71,6 +75,8 @@
 
 1. **快速迭代（默认）**：把页面写进用户游戏的 `config/oriel/my-pages/<项目名>/`（路径看游戏日志里 `Oriel: pages in 'oriel_mine:' come from …`，或问用户）。用户的游戏开着时，**保存页面读过的任何文件都会热重载，发布版 jar 也一样**，用户直接在游戏里看到。你用 `oriel_snapshot` 或预览器截图（640×360 和 427×240）发到对话里给用户看，**不需要先走网页验收、不需要批准、不要自己再启动一个游戏**。每轮先 `oriel_check`（警告为 0）再保存。游戏里打开：`/oriel open oriel_mine:<项目名>/index.html`。
 2. **正式交付（要进模组或本仓库时才走）**：`oriel_project` → `oriel_check` → `oriel_review`（网页点击，或 `mode=screenshots` 看图后聊天同意）→ 用户批准固定版本后 `oriel_integrate`（`oriel-dev` 写本仓库，`oriel-folder` 写指定文件夹）→ `oriel_game_preview`。Agent 禁止代点批准或修改验收记录；规则、资源、数据或目标变化须重新检查和验收。详见 docs/zh/agent-prompts.md、docs/zh/mcp.md、ui-workflow.md。
+
+**模组自己的页面也要热更新**：下游模组的 `runClient` 里加 `-Doriel.sourceRoot=<含 src/main/resources/assets 的工程目录>`（已实测），不要自己发明读文件夹页的开关；详见 docs/zh/quickstart.md「边改边看」。
 
 不管走哪条：先读 `oriel_rules` 的 `quickref`；在用户没有要求时，不为"测试工具"启动游戏客户端。
 

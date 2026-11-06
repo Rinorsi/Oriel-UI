@@ -207,6 +207,28 @@ public final class MyModClient implements ClientModInitializer {
 
 封面推荐 16:9（官方封面 320×180），其他比例会被裁切；封面必须是文件夹内的 PNG。鼠标放到卡片上会显示完整标题、副标题、文件路径、修改时间和大小，超长内容会被截断，不会出框。
 
+## 边改边看：模组自己的页面也能热更新（开发环境）
+
+打包进模组的页面（`assets/<模组id>/…`）默认要重新构建才变。想**保存即在游戏里刷新**，只要在模组的 `runClient` 里加一个 JVM 参数，告诉库你的源码资源在哪：
+
+```groovy
+// build.gradle（Fabric Loom）
+loom {
+    runs {
+        client {
+            vmArg "-Doriel.sourceRoot=${project.projectDir.absolutePath}"
+        }
+    }
+}
+```
+
+NeoForge（ModDevGradle）在对应的 `runs { client { … } }` 里写 `systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath`（这一条没有实测）。多模块工程里 `oriel.sourceRoot` 填**含有 `src/main/resources/assets` 的那个子工程目录**。
+
+- 效果（已实测：最小 Fabric 工程 + 发布版 jar）：启动日志出现 `Oriel: dev mode, reading UI sources from [你的 src/main/resources/assets]`；页面打开后改 `hello.html` 并保存，约 1 秒内页面重新加载并显示新内容。页面、样式表、脚本、图片、翻译 JSON 都算。
+- 只在开发环境（`runClient`）生效，玩家的发布环境不受影响。Java 代码的改动不在这条里，仍需重新编译。
+- 不想动 build.gradle，也可以把页面放进游戏的 `config/oriel/my-pages/`，所有环境都能保存即重载，见上面的"我的页面"。
+- **不要为了热更新去发明"开发时改读文件夹页"之类的开关**：这个参数就是官方做法，页面地址不变，物品读写和控制器都照旧。
+
 ## 页面路径约定
 
 资源 URL 是 `命名空间:路径`，路径本身没有强制目录。本手册给你的页面用 `assets/<模组id>/oriel/…`；库自己的内置页面放在 `assets/oriel/ui/…` 和 `assets/oriel/oriel/…`，两者只是不同包的各自习惯，并不冲突。

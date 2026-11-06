@@ -22,6 +22,8 @@
 - 间距只用 2 / 4 / 6 / 8 / 12。图标 16×16，放大只用 2 倍。
 - **任何文字都不能出框**：长文本用 `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`，或让它换行；统计行、标签行要么换行要么在小屏隐藏。
 
+- **已知引擎限制：限高滚动框会把父级撑到完整内容高度。** 子元素写 `max-height: 40px; overflow-y: auto`，父级自动高度却按子元素完整内容算（实测 8 行内容的父级是 108px，应为 52px），页面下面就多出一块空白。弹性布局和普通块布局都会这样。**绕开：滚动框用固定的 `height` 而不是 `max-height`**（实测父级正确变成 52px）；或者滚动框外面再包一层固定高度的容器。
+
 ## 3. 最小骨架：直接复制这个
 
 放在 `assets/<你的模组id>/ui/index.html`（或 `config/oriel/my-pages/` 里）。这份已用 `preview --check --strict` 检查通过，0 警告。
@@ -74,6 +76,8 @@
 - 放进游戏的 `config/oriel/my-pages/`（子文件夹照放），进游戏 `/oriel open oriel_mine:子文件夹/文件名.html`，也会出现在 模板中心 → 我的页面；**保存即热重载**。
 - 页面里引用同文件夹的 css、图片、js，用**相对路径**；不要写 `oriel_mine:` 或你自己的命名空间前缀。
 - 在卡片上显示的信息写在 `<head>`：`<title>` 是标题（≤40 字）；`<meta name="oriel-subtitle" content="…">` 是副标题（≤80 字，没有就用 `description`）；封面是 `<meta name="oriel-cover" content="相对路径.png">`，没写就找同目录的 `cover.png`，再找 `页面名.png`（16:9 的 PNG，必须在文件夹内）。
+
+- **热更新有两条路，都不用自己造开关**：① 页面放进 `config/oriel/my-pages/`，所有环境保存即重载；② 模组自己的页面，在 `runClient` 里加 `-Doriel.sourceRoot=<工程目录>`，保存即重载（写法见 [快速入门](quickstart.md)）。**开始做页面前就先确认其中一条已配好**，不要等改了半天才发现不刷新。
 
 ## 6. 用什么检查
 
