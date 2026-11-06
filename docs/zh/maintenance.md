@@ -32,6 +32,10 @@
 | 页面推送数据、消息频道、保存结果 | 页面专属字段合同（如 `server.md` 里的服务端页面合同）：方向、类型、可空、缺省、范围、只读、请求/回执、失败条件 |
 | 朗读器读取的内容、aria 属性、实时区域 | `narration.md`、`elements.md` |
 | 沙箱限额、`limits.*` 与 `client.*`/`server.*` 设置键 | `security.md`、`scripting.md` 的限额一节、`integration.md` |
+| 不兼容变更、命令改名、默认值或可见行为变化、版本号 | `upgrading.md`（"之前 → 现在"迁移表）、`../../CHANGELOG.md`、`principles.md`（若触及准则）、`../../template/README.md` 与模板里的依赖范围 |
+| 新增或改名公开类（`dev.oriel.mod.client` / `server`） | `api/*.txt` 快照（`-PupdateApi`）、`tools/api/ApiCheck.java` 与 `tools/backend-boundaries.test.mjs` 的名单、`java-api.md` |
+| 新增或改名示例页（showcase / demo） | `tools/showcase/index.json` 条目，运行 `node tools/showcase/query.mjs --write-doc` 刷新 `showcase.md` 的效果表 |
+| 热更新机制、开发环境读取源码的方式 | `hot-reload.md`、`quickstart.md`「边改边看」、`page-rules.md` |
 | 配置、限额、协议、依赖与发布坐标 | `security.md`、`integration.md`、`server.md`、`capabilities.md`、`../../template/README.md` |
 | i18n 接口、语言 key、回退逻辑 | `components.md` 的字体/翻译段、`scripting.md`、新增的专属 i18n 参考及索引；不得覆盖原流程 |
 | preview CLI / MCP / h5ref / 脚手架 | `validation.md`、`ui-workflow.md`、工具 README：参数、默认、退出码、路径、覆盖范围 |

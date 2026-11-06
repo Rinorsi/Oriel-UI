@@ -3,7 +3,7 @@ import path from 'node:path';
 import { ROOT, sha, requireThat, fileHash, walk } from './core.mjs';
 
 export const topics = {
-  quickref: 'page-rules.md', hotreload: 'hot-reload.md', showcase: 'showcase.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
+  principles: 'principles.md', upgrading: 'upgrading.md', quickref: 'page-rules.md', hotreload: 'hot-reload.md', showcase: 'showcase.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
   components: 'components.md', design: 'design.md', workflow: 'ui-workflow.md', integration: 'integration.md', validation: 'validation.md',
 };
 export const profileVersions = ['26.1.2', '26.2', '26.3'];
