@@ -62,7 +62,7 @@ public final class StylesPreset implements PageControllers.Controller {
             {"console", "oriel:oriel/showcase/console.html"}, {"models", "oriel:oriel/showcase/models.html"},
             {"scene", "oriel:oriel/showcase/scene.html"}, {"layout", "oriel:oriel/demo/layout.html"},
             {"animation", "oriel:oriel/demo/animation.html"}, {"livedata", "oriel:oriel/demo/templates.html"},
-            {"forms", "oriel:oriel/demo/settings.html"}, {"achievement", "oriel:oriel/showcase/achievement.html"}};
+            {"forms", "oriel:oriel/demo/settings.html"}};
     /** The view the centre opens on next time (set by {@link #startAt}), e.g. "demos"; then back to "all". */
     private static volatile String startView;
     /** Where the player was in the centre when a page opened from it: Escape on that page comes back here, not to the top of All. */
@@ -627,6 +627,8 @@ public final class StylesPreset implements PageControllers.Controller {
     /** One card per demo page: its cover, title and a line about it; opening it loads the page itself. */
     private void buildDemoCards() {
         for (String[] d : DEMOS) {
+            // HotSwap preserves static arrays in an already-running development client.
+            if ("achievement".equals(d[0])) continue;
             String title = Lang.t(doc, "oriel.ui.styles.demo." + d[0] + ".title"), desc = Lang.t(doc, "oriel.ui.styles.demo." + d[0] + ".desc");
             Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"shot\"><i class=\"sheen\"></i><span class=\"badge\"></span></div>"
                     + "<div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");

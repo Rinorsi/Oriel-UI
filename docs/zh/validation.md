@@ -1,5 +1,7 @@
 # 检查与验收工具
 
+粒子/动画的性能验收见 [性能规范](performance.md)（MCP：`oriel_rules` 的 `topic=performance`）。strict 零诊断不等于帧率达标；保留同动作基线、离线与实机证据分开记录。
+
 [入口](index.md) · [制作流程](ui-workflow.md)
 
 命令在 **Oriel-UI 仓库根目录、Git Bash** 执行，Java 25。PowerShell 用 gradlew.bat 并转换变量语法。构建/测试输出之外，截图、脚本、日志、临时页写仓库外 daily。

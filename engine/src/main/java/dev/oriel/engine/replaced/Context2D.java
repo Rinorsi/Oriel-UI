@@ -18,6 +18,7 @@ import java.util.Locale;
  *       {@code save()}/{@code restore()}.</li>
  *   <li>Rectangles: {@code fillRect}, {@code strokeRect}, {@code clearRect}. Coordinates are canvas pixels and edges
  *       snap to whole pixels (no antialiasing, no transforms).</li>
+ *   <li>Oriel extension: {@code fillQuad} fills a convex quadrilateral without script-side scanlines.</li>
  *   <li>Pixels: {@code getImageData}, {@code putImageData} (which replaces, ignoring {@code globalAlpha}, as in
  *       browsers), and {@code drawImage} of another canvas (nearest-neighbour scaling).</li>
  * </ul>
@@ -33,6 +34,10 @@ public final class Context2D {
     private float lineWidth = 1, alpha = 1;
     private final Deque<State> saved = new ArrayDeque<>();
     private int[] scratch = new int[0];
+    private int[] sourceRow = new int[0], sampleX = new int[0], sampledRow = new int[0];
+    // Retain only small self-copy snapshots, never a whole large atlas per destination context.
+    private static final int MAX_RETAINED_SNAPSHOT = 64 * 1024;
+    private int[] snapshot = new int[0];
 
     public Context2D(Element canvas) {
         this.element = canvas;
@@ -88,6 +93,58 @@ public final class Context2D {
 
     public void fillRect(float x, float y, float w, float h) {
         fill(x, y, x + w, y + h, fill);
+    }
+
+    /**
+     * Oriel extension: fills a convex quadrilateral with vertices in perimeter order, using pixel-centre
+     * scanlines and source-over. Either winding is accepted; a collinear quad draws nothing.
+     * Throws for non-finite, concave or self-crossing input rather than silently drawing the wrong shape.
+     */
+    public void fillQuad(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
+        double[] x = {x0, x1, x2, x3}, y = {y0, y1, y2, y3};
+        double sign = 0;
+        for (int i = 0; i < 4; i++) {
+            int j = (i + 1) % 4, k = (i + 2) % 4;
+            double cross = (x[j] - x[i]) * (y[k] - y[j]) - (y[j] - y[i]) * (x[k] - x[j]);
+            if (!Double.isFinite(x[i]) || !Double.isFinite(y[i]) || !Double.isFinite(cross)
+                    || cross != 0 && sign != 0 && Math.signum(cross) != sign) {
+                throw new IllegalArgumentException("fillQuad requires finite coordinates and a convex quadrilateral in perimeter order");
+            }
+            if (cross != 0) sign = Math.signum(cross);
+        }
+        int color = Colors.withAlphaFactor(fill, alpha);
+        if (sign == 0 || Colors.isTransparent(color)) return;
+        CanvasContent content = content();
+        if (content == null) return;
+        PixelSurface surface = content.surface();
+        int top = Math.max(0, (int) Math.floor(Math.min(Math.min(y0, y1), Math.min(y2, y3))));
+        int bottom = Math.min(surface.height(), (int) Math.ceil(Math.max(Math.max(y0, y1), Math.max(y2, y3))));
+        boolean painted = false;
+        for (int rowY = top; rowY < bottom; rowY++) {
+            double center = rowY + .5, left = Double.POSITIVE_INFINITY, right = Double.NEGATIVE_INFINITY;
+            for (int i = 0; i < 4; i++) {
+                int j = (i + 1) % 4;
+                if (y[i] <= center && y[j] > center || y[j] <= center && y[i] > center) {
+                    double at = x[i] + (center - y[i]) * (x[j] - x[i]) / (y[j] - y[i]);
+                    left = Math.min(left, at);
+                    right = Math.max(right, at);
+                }
+            }
+            if (right <= left) continue;
+            // Match script fillRect(left, rowY, right-left, 1), including its float edge rounding.
+            int l = Math.max(0, Math.round((float) left));
+            int r = Math.min(surface.width(), Math.round((float) left + (float) (right - left)));
+            if (r <= l) continue;
+            if (Colors.alpha(color) == 255) surface.fillRect(l, rowY, r - l, 1, color);
+            else {
+                int[] row = scratch(r - l);
+                surface.getPixels(l, rowY, r - l, 1, row);
+                for (int i = 0; i < r - l; i++) row[i] = over(color, row[i]);
+                surface.setPixels(l, rowY, r - l, 1, row);
+            }
+            painted = true;
+        }
+        if (painted) content.changed();
     }
 
     /** Strokes the rectangle's outline, {@code lineWidth} wide and centred on the edges. */
@@ -182,24 +239,57 @@ public final class Context2D {
         if (from == null || to == null || sw == 0 || sh == 0) return;
         int[] dest = pixelRect(to.surface(), dx, dy, dx + dw, dy + dh);
         if (dest == null) return;
-        // The source rectangle, read once (it may be this canvas).
+        // A self-copy needs a snapshot before writing. Independent surfaces can be read a row at a time.
         PixelSurface src = from.surface();
         int[] srcRect = pixelRect(src, sx, sy, sx + sw, sy + sh);
         if (srcRect == null) return;
-        int[] pixels = new int[srcRect[2] * srcRect[3]];
-        src.getPixels(srcRect[0], srcRect[1], srcRect[2], srcRect[3], pixels);
-        float scaleX = sw / dw, scaleY = sh / dh;
         PixelSurface surface = to.surface();
+        int[] pixels = null;
+        if (src == surface) {
+            int length = srcRect[2] * srcRect[3];
+            if (length > MAX_RETAINED_SNAPSHOT) pixels = new int[length];
+            else {
+                if (snapshot.length < length) snapshot = new int[length];
+                pixels = snapshot;
+            }
+            src.getPixels(srcRect[0], srcRect[1], srcRect[2], srcRect[3], pixels);
+        } else if (sourceRow.length < srcRect[2]) sourceRow = new int[srcRect[2]];
+        float scaleX = sw / dw, scaleY = sh / dh;
         int[] row = scratch(dest[2]);
+        if (sampleX.length < dest[2]) {
+            sampleX = new int[dest[2]];
+            sampledRow = new int[dest[2]];
+        }
+        for (int i = 0; i < dest[2]; i++) {
+            sampleX[i] = (int) Math.floor(sx + (dest[0] + i + 0.5f - dx) * scaleX) - srcRect[0];
+        }
+        int previousY = -1, firstSample = 0, lastSample = 0;
         for (int y = dest[1]; y < dest[1] + dest[3]; y++) {
             int ty = (int) Math.floor(sy + (y + 0.5f - dy) * scaleY) - srcRect[1];
-            surface.getPixels(dest[0], y, dest[2], 1, row);
-            for (int i = 0; i < dest[2]; i++) {
-                int tx = (int) Math.floor(sx + (dest[0] + i + 0.5f - dx) * scaleX) - srcRect[0];
-                if (tx < 0 || ty < 0 || tx >= srcRect[2] || ty >= srcRect[3]) continue;
-                row[i] = over(Colors.withAlphaFactor(pixels[ty * srcRect[2] + tx], alpha), row[i]);
+            if (ty < 0 || ty >= srcRect[3]) continue;
+            if (ty != previousY) {
+                if (pixels == null) src.getPixels(srcRect[0], srcRect[1] + ty, srcRect[2], 1, sourceRow);
+                firstSample = dest[2];
+                lastSample = 0;
+                for (int i = 0; i < dest[2]; i++) {
+                    int tx = sampleX[i];
+                    sampledRow[i] = tx < 0 || tx >= srcRect[2] ? 0 : Colors.withAlphaFactor(
+                            pixels == null ? sourceRow[tx] : pixels[ty * srcRect[2] + tx], alpha);
+                    if (!Colors.isTransparent(sampledRow[i])) {
+                        firstSample = Math.min(firstSample, i);
+                        lastSample = i + 1;
+                    }
+                }
+                previousY = ty;
             }
-            surface.setPixels(dest[0], y, dest[2], 1, row);
+            // Sprite atlases commonly contain large transparent margins. Do not read/write those pixels.
+            int width = lastSample - firstSample;
+            if (width <= 0) continue;
+            surface.getPixels(dest[0] + firstSample, y, width, 1, row);
+            for (int i = 0; i < width; i++) {
+                row[i] = over(sampledRow[firstSample + i], row[i]);
+            }
+            surface.setPixels(dest[0] + firstSample, y, width, 1, row);
         }
         to.changed();
     }
@@ -248,8 +338,12 @@ public final class Context2D {
         if (sa == 255) return src;
         if (sa == 0) return dst;
         int da = Colors.alpha(dst) * (255 - sa) / 255, a = sa + da;
-        return Colors.argb(a, (Colors.red(src) * sa + Colors.red(dst) * da) / a,
-                (Colors.green(src) * sa + Colors.green(dst) * da) / a, (Colors.blue(src) * sa + Colors.blue(dst) * da) / a);
+        if (da == 0) return src;
+        // Weighted byte channels already lie in 0..255; no clamping is needed. Preserve integer rounding.
+        int r = (Colors.red(src) * sa + Colors.red(dst) * da) / a;
+        int g = (Colors.green(src) * sa + Colors.green(dst) * da) / a;
+        int b = (Colors.blue(src) * sa + Colors.blue(dst) * da) / a;
+        return a << 24 | r << 16 | g << 8 | b;
     }
 
     private int[] scratch(int length) {

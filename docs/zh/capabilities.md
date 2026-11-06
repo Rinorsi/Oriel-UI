@@ -64,7 +64,7 @@ filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不�
 | SVG、video、audio、iframe、WebGL | 不作为浏览器平台提供 | PNG/原生模型；声音走 `oriel.playSound` |
 | fetch、XHR、WebSocket、Java 直调、任意文件读写 | 脚本不提供 | 命名消息由宿主处理 |
 | localStorage 跨重启保存 | 两种 storage 都是当前页内存 | Java/服务端持久化 |
-| Canvas 路径、文字、transform、绘制任意图片 | Canvas 只有像素/矩形/另一 Canvas 的 drawImage | 用 DOM、图片元素或原生模型 |
+| Canvas 路径、文字、transform、绘制任意图片 | Canvas 支持像素/矩形/凸四边形 fillQuad/另一 Canvas 的 drawImage；没有通用路径 | 用 DOM、图片元素或原生模型；fillQuad 参数见 scripting.md |
 | 页面改 `oriel.data` 就同步服务端 | 只改变本地对象 | send 请求；服务端校验后 push/patch |
 | 原生物品任意透明度/染色 | 物品不是普通 RGBA 图片；低透明度会隐藏 | 不依赖半透明物品作关键反馈，游戏验收 |
 | 配方查看器适配已全部认证 | 有 GUI bounds 接缝，无 JEI/REI/EMI 全组合认证 | 标记 bounds，并在目标整合包测试 |

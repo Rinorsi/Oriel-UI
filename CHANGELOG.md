@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Canvas: reuse bounded blit buffers and horizontal samples, avoid redundant source-over channel clamps, and preserve overlapping self-copy snapshots. The Oriel-specific `fillQuad(x0, y0, x1, y1, x2, y2, x3, y3)` fills convex quadrilaterals in native scanlines, avoiding per-row JavaScript calls for rotated particles. Pixel-oracle and allocation regressions cover both paths. See `docs/zh/performance.md` and `docs/zh/scripting.md`; this does not add general paths, transforms, or GPU canvas rendering.
+
 Breaking (supported API): the item editor is no longer part of the library: `/oriel edit`, `OrielKit.ITEM_EDITOR`, `ItemEditorPreset`, `LocalizedMessage.componentValue` and the `oriel.ui.item_editor.*` / `oriel.server.item_editor.*` strings are gone (an application belongs in a mod built on Oriel). The demo commands are one: `/oriel showcase [page]` replaces `/oriel demo`, `/oriel legacy` and the old `/oriel showcase <page>`; the potion HUD toggle is `/oriel showcase potions` and `/oriel showcase templates` opens the template centre. Depend on `[0.11.0,0.12.0)`.
 
 - Template centre: a Demos view (the twelve inherited showcase pages, with covers) and a My pages view that lists `config/oriel/my-pages`; a page sets its card title, subtitle and cover in its own `<head>` (`<title>`, `oriel-subtitle`, `oriel-cover`, or `cover.png` beside it), and the card tooltip shows the path, time and size.

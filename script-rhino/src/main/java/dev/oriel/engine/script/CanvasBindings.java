@@ -38,6 +38,15 @@ final class CanvasBindings {
                 .action("save", (c, a) -> c.save())
                 .action("restore", (c, a) -> c.restore())
                 .action("fillRect", (c, a) -> c.fillRect(f(a, 0), f(a, 1), f(a, 2), f(a, 3)))
+                .action("fillQuad", (c, a) -> {
+                    if (a.length() != 8) throw Js.typeError("fillQuad takes 8 coordinates");
+                    try {
+                        c.fillQuad(a.num(0, Double.NaN), a.num(1, Double.NaN), a.num(2, Double.NaN), a.num(3, Double.NaN),
+                                a.num(4, Double.NaN), a.num(5, Double.NaN), a.num(6, Double.NaN), a.num(7, Double.NaN));
+                    } catch (IllegalArgumentException e) {
+                        throw Js.typeError(e.getMessage());
+                    }
+                })
                 .action("strokeRect", (c, a) -> c.strokeRect(f(a, 0), f(a, 1), f(a, 2), f(a, 3)))
                 .action("clearRect", (c, a) -> c.clearRect(f(a, 0), f(a, 1), f(a, 2), f(a, 3)))
                 .method("createImageData", (c, a) -> a.get(0) instanceof Scriptable like

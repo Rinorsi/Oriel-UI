@@ -1,5 +1,7 @@
 # Oriel UI workflow MCP
 
+动画开工：`oriel_rules({topic:"performance"})` 读取权威性能规范；包括密集粒子、原生 fillQuad、清理与前后测量要求。
+
 本地 stdio 入口：node tools/mcp/oriel-preview.mjs。使用说明与完整参数见 [MCP 手册](../../docs/zh/mcp.md)，调用顺序见 [制作流程](../../docs/zh/ui-workflow.md)，可复制指引见 [Agent 提示词](../../docs/zh/agent-prompts.md)。
 
 Node 22+、Java 25；工作目录为仓库根，ORIEL_WORKSPACE 和 ORIEL_MCP_STATE 指定仓库外状态目录。stdout 仅用于 JSON-RPC。旧 oriel_pages/check/snapshot 工具仍提供；项目模式增加严格诊断、固定版本、人工验收与接入关卡。

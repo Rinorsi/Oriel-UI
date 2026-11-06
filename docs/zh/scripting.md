@@ -113,6 +113,34 @@ Rhino 实现了 ES2015 的大部分和后续版本的不少内容。Oriel 用补
 
 **Text**：`data`、`nodeValue`、`length`。
 
+### Canvas 凸四边形扩展
+
+`ctx.fillQuad(x0, y0, x1, y1, x2, y2, x3, y3)` 是 **Oriel 扩展**，不属于浏览器 Canvas 标准。用于旋转矩形、粗线段和四边形粒子；由引擎一次处理扫描线，避免脚本逐行调用 fillRect。
+
+| 字段 | 合同 |
+|---|---|
+| 前置条件 | 本版引擎/预览器的 2D 上下文；先检测 `typeof ctx.fillQuad === "function"`。旧 0.11.0 jar 可能没有此方法，需要更新库并重启客户端 |
+| 参数 | 必须传 8 个可转为有限数值的坐标，单位为画布像素，允许小数/负值/出画布坐标；没有省略值 |
+| 顶点顺序 | 沿凸四边形周界顺时针或逆时针；自交、凹形、非有限坐标抛 TypeError；全部共线/面积为零不绘制 |
+| 样式 | 使用当前 fillStyle 和 globalAlpha，source-over 混合；save/restore 规则不变 |
+| 裁剪与采样 | 限制在画布边界内；像素中心扫描线，端点按 fillRect 的整数边界取样；无抗锯齿 |
+| 返回值 | undefined；不改变填色、透明度或现有状态 |
+| 范围 | Java 引擎与 Rhino 脚本均可用；不是通用路径、曲线、渐变、transform 或 GPU 绘制接口 |
+| 验证 | 引擎像素差分覆盖旋转、两种绕序、越界和透明度；真实游戏 GPU/FPS 须另测 |
+
+```html
+<canvas id="fx" width="80" height="60"></canvas>
+<script>
+const ctx = document.getElementById('fx').getContext('2d');
+if (typeof ctx.fillQuad !== 'function') throw new Error('This page needs Oriel fillQuad');
+ctx.fillStyle = '#ffd25a';
+ctx.globalAlpha = 0.7;
+ctx.fillQuad(40, 8, 64, 30, 40, 52, 16, 30);
+</script>
+```
+
+粒子分层、兼容回退和性能验证见 [开工规范](performance.md)。页面代码可为旧库/浏览器保留明确的兼容实现，但不能把旧路径的性能当成新版。
+
 **Document**：`documentElement`、`head`、`body`、`title`（可赋值；是界面的标题，朗读器会读它，所以赋值就是给界面改名）、`activeElement`（获得焦点的元素，没有则为 `body`）、`readyState`、`URL`、`location`、`defaultView`、`getElementById`、`createElement`、`createTextNode`、`createDocumentFragment`。
 
 ## 事件

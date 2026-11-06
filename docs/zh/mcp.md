@@ -1,5 +1,7 @@
 # MCP 页面制作与接入
 
+动画开工先调用 `oriel_rules`，参数 `{ "topic": "performance" }`，读取 [粒子与动画性能规范](performance.md)。默认仍为 overview；performance 与其他主题一样返回 profile/source/text/rulesHash，支持可选 feature 筛选并参与验收规则版本哈希。
+
 [入口](index.md) · [完整流程](ui-workflow.md) · [Agent 提示词](agent-prompts.md) · [检查工具](validation.md)
 
 Oriel MCP 为本机开发服务，使用 Node.js stdio；它不是安装模组后自动开放的网络端口。网页服务仅监听 127.0.0.1，游戏接入使用独立开发客户端。源码实现与实际运行验收应分别记录，本页不代表全部版本的游戏验收已完成。

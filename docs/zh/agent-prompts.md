@@ -4,6 +4,8 @@
 
 ## workflow
 
+制作或修改动画时，开工先调用 `oriel_rules` 的 `topic=performance`，读取 [粒子与动画性能规范](performance.md)。密集装饰不能逐粒子增删 DOM，也不能在脚本中逐扫描线绘制；同一动作对照和真实游戏测试的范围必须分别报告。
+
 **先判断走哪条路。** 用户在边做边看（默认）：把页面写进用户游戏的 config/oriel/my-pages/<项目名>/（热重载，发布版 jar 也支持），每轮先 oriel_check 警告清零，再用 oriel_snapshot 截 640×360 和 427×240 发到对话；不需要网页验收、不需要批准、不要自己启动游戏。只有用户要把页面正式放进模组或仓库时，才按下面的完整流程（验收 → 批准 → 接入 → 游戏预览）。
 
 你正在使用 Oriel MCP 制作 Minecraft UI。先调用 oriel_rules 读取 quickref（做页面前必读的硬规则：字体字号、尺寸、最小骨架、data-oriel-shell、放哪里怎么看）、overview 和目标主题的规则，再调用 oriel_project 登记 sourceRoot、namespace、entry、精确 MC 版本、加载器、演示数据、消息合同和交互场景。仅使用支持范围内的 HTML/CSS/JS；不确定的能力先查询，不能把浏览器能运行视为游戏支持。
