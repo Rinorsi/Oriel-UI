@@ -11,11 +11,11 @@ Oriel MCP 为本机开发服务，使用 Node.js stdio；它不是安装模组�
 ~~~json
 {
   "command": "node",
-  "args": ["D:/Minecraft/project/Mods/Oriel-UI/tools/mcp/oriel-preview.mjs"],
+  "args": ["<Oriel-UI 仓库绝对路径>/tools/mcp/oriel-preview.mjs"],
   "env": {
-    "ORIEL_ROOT": "D:/Minecraft/project/Mods/Oriel-UI",
-    "ORIEL_WORKSPACE": "D:/Minecraft/project/Mods/Oriel-UI-Workspace",
-    "JAVA_HOME": "C:/Users/XD/.jdks/jdk-25.0.5+8"
+    "ORIEL_ROOT": "<Oriel-UI 仓库绝对路径>",
+    "ORIEL_WORKSPACE": "<仓库外的工作区目录，用来放截图、日志和验收记录>",
+    "JAVA_HOME": "<JDK 25 安装目录>"
   }
 }
 ~~~
@@ -44,7 +44,7 @@ my-ui-package/
 {
   "projectId": "editor-demo",
   "title": "组件编辑器 · 前端示例",
-  "sourceRoot": "D:/Minecraft/project/Mods/Oriel-UI/tools/mcp/examples/workbench",
+  "sourceRoot": "<Oriel-UI 仓库绝对路径>/tools/mcp/examples/workbench",
   "namespace": "workbench_demo",
   "entry": "ui/index.html",
   "profile": {"minecraft": "26.1.2", "loader": "fabric"},

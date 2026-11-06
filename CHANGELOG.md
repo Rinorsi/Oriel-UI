@@ -1,5 +1,25 @@
 # Changelog
 
+Versions 0.9.0 and earlier below are the history inherited from the upstream project Vellum (MIT, Max Leiter), from which
+Oriel UI was forked. Names in those entries (`VellumPages`, `VellumSession`, `vellum.data`, `/vellum`, `vellum.properties`) are
+the upstream's; in this fork they are `OrielPages`, `OrielSession`, `oriel.data`, `/oriel` and `oriel.properties` (the handbook in `docs/zh` is authoritative). Treat
+those entries as history, not as documentation of the current API.
+
+## 0.10.0 (in development)
+
+Breaking (supported API): the canvas-specific slot callback is now `DocumentDriver.SlotSink`, and everything under
+`dev.oriel.mod.internal` is no longer callable API. Depend on `[0.10.0,0.11.0)`. See `docs/api/setup.md`.
+
+- Declarative bindings from a Java view model: `o-text`, `o-for` (with a required `o-key`), `o-if`, `o-class:*`, `o-attr:*` and `o-on:*`, with diagnostics that name the file and position. See `docs/zh/bindings.md`.
+- Editing a stylesheet no longer rebuilds the page: DOM, controller, focus, input, selection and scroll are kept. HTML and script changes still reload the page.
+- The element inspector and the other development tools are left out of release jars.
+- Text input: composition (IME) no longer deletes or commits by mistake, cancel and focus loss behave, the candidate window follows CSS scale, and deleting, moving and selecting step over whole grapheme clusters (emoji, combining marks). Chinese punctuation obeys line-start and line-end rules in `<textarea>` the same as in `<p>`.
+- Script sandbox: `JSON.parse` can no longer be used to get past the data depth limit, and pages pushed by a server can no longer read folders through navigation or reload.
+- Servers: workstation menus can check dimension, position, block and distance (default: a non-air block underfoot within 8 blocks). The item editor keeps unknown components and `custom_data`, falls back to read-only when a component codec fails, and checks old wear when lowering max damage.
+- Tooltip cards of the effects panel are placed by their measured size, so long descriptions stay inside the window.
+- Development workflow: a web-first MCP flow (preview, check, review, then game); `-Pautopilot=mcp` runs a page in the game. See `docs/zh/mcp.md`.
+- Build: Error Prone runs on JDK 25 over Oriel's own sources; local access-widened Loom outputs are no longer pinned byte for byte (external dependency digests are unchanged); `tools/verify-central.mjs` checks digests against Maven Central.
+
 ## 0.9.0
 
 - An element inspector: F12 on a page's screen docks a panel on the right with the page's tree, a picker, and the selected element's box, attributes, inline style, text and computed values. Attributes, style and text can be edited live, and elements deleted. Drag the panel's edge to resize it, and the bar between the tree and the details to share its height. It's on in a development environment, and `client.inspector=true` turns it on elsewhere. See "Inspector" in `docs/api/development.md`.

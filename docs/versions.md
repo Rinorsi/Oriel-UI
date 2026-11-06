@@ -36,7 +36,7 @@ differences, which are `>=26.3` comments and the `blaze3d`/`renderpearl` rename 
 在 Git Bash 中运行：
 
 ```sh
-bash tools/smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/run-smoke
+bash tools/smoke-all.sh /absolute/path/outside/the/repo/run-smoke
 ```
 
 脚本先编译完整矩阵，再依次启动 Fabric、NeoForge 的 26.1/26.2/26.3 客户端；每个客户端限时 600 秒。
@@ -53,7 +53,7 @@ bash tools/smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/run-smoke
 脚本自身的结果判定可用假 Gradle 进程验证，不会启动游戏：
 
 ```sh
-bash tools/test-smoke-all.sh /absolute/path/to/workspace/daily/2026-11-04/smoke-script-test
+bash tools/test-smoke-all.sh /absolute/path/outside/the/repo/smoke-script-test
 ```
 
 ## Adding a Minecraft version
