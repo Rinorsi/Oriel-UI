@@ -19,7 +19,7 @@ Agent 从 [调用提示词](agent-prompts.md) 开始；工具连接和完整参�
 3. 每轮调用 oriel_check 和 oriel_snapshot，查看结构诊断、640×360/427×240 引擎截图及场景结果；失败先修，不把浏览器成功当游戏兼容。
 4. 检查通过后调用 oriel_review.prepare，生成不可变版本的验收页。用户本人批准或填写意见；Agent 不代点批准。
 5. 用 oriel_status / oriel_review.status 核对批准是否仍对应当前内容。调用 oriel_integrate.plan 看文件清单，再 apply 安装；冲突、过期或无批准时工具阻断。
-6. 调用 oriel_game_preview.start/status，打开已接入页面并获取游戏截图和诊断。仅接入成功不代表游戏验证通过，真实业务另行验收。
+6. mod-project 目标在下游游戏中打开验证（不调用库的游戏预览工具）；其余目标调用 oriel_game_preview.start/status，打开已接入页面并获取游戏截图和诊断。仅接入成功不代表游戏验证通过，真实业务另行验收。
 
 源文件、主题资源、fixture、适配器、规则或目标变化后重新检查和验收。旧固定版本保留用于追踪，不悄悄更新用户正在看的页面。下文的页面合同、行为路线、资源规则与四层验收仍然适用。
 

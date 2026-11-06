@@ -161,6 +161,8 @@ ctx.fillQuad(40, 8, 64, 30, 40, 52, 16, 30);
 
 用 `new Event(type, {bubbles, cancelable})` 或 `new CustomEvent(type, {detail, bubbles, cancelable})` 创建自己的事件（和浏览器一样，两者缺省都不冒泡），再 `el.dispatchEvent(event)`；有监听器调用了 `preventDefault()` 时它返回 false。
 
+Oriel 的 `activationsound` 是可冒泡、可取消的 `Event`：原生按钮/复选等控件即将播放默认声音时派发，原生 select 打开也会派发。取消它只替换/抑制声音，不取消表单与复选动作。Shell 用它统一选择 UI token，自定义控件通过 `Shell.activate` 的键盘入口也会派发；这是库扩展事件，浏览器不提供。
+
 内联处理器（`<button onclick="buy(this.dataset.item, event)">`）运行时 `this` 是该元素，`event` 在作用域内；返回 `false` 取消事件，`on<event>` 属性处理器返回 `false` 同样取消。与浏览器不同，内联处理器**看不到元素的属性变量**：写 `this.value`，不要写 `value`。
 
 按 Esc 会关闭界面，除非 `keydown` 监听器调用了 `preventDefault()`；但 Shift+Esc 或快速多次 Esc 由宿主强制关闭，所以要保留明确的关闭入口。显示页面的 mod 可以处理页面没有占用的任何按键，例如打开界面的那个键。想为页面保留某个键，在 `keydown` 监听器里取消它。文本框有焦点时，除 Esc 之外的按键都是输入，永远不会传给 mod。
@@ -193,7 +195,7 @@ anim.finished.then(() => console.log('shown'));
 | `oriel.send(channel, value)` | 把 `JSON.stringify(value)` 发给服务器或 mod。突发 20 条，之后每秒 20 条，所以第一秒最多 40 条。多余的消息会被丢弃并给出警告，`send` 返回 false；返回 true 也不是业务成功的回执。默认单条消息上限 8192 字符。 |
 | `oriel.state(object)` | 让该对象的属性对[模板](#模板)可见，并返回它（缺省是空对象）。 |
 | `oriel.close()` | 关闭界面（HUD 则关闭对应叠加层）。 |
-| `oriel.playSound(id, volume = 1, pitch = 1)` | 播放声音事件，如 `'minecraft:ui.button.click'`；仍受客户端音量和限频控制。 |
+| `oriel.playSound(id, volume = 1, pitch = 1)` | 播放声音事件，如 `'minecraft:ui.button.click'`，或 kit 的 [UI 声音 token](capabilities.md#ui-音效)，如 `'tab'`（token 的基础音量/音高乘以参数）；未知裸 token 报错。受 `client.uiSounds`、`client.uiSoundVolume`、音量上限和限频控制。 |
 | `oriel.t(key, ...args)` | 翻译语言键，如 `oriel.t('gui.done')`，使用当前宿主语言；参数转成字符串。 |
 | `oriel.open(url)` | 打开另一个 Oriel 页面（可以相对当前页）。 |
 | `oriel.nextTick(fn)` | 在[模板](#更新)渲染完当前状态之后调用 `fn` 一次（下一帧）。 |

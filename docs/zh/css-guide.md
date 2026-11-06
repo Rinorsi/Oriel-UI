@@ -111,6 +111,8 @@
 | `-webkit-text-stroke-width` | 是 | 重绘 | 连续 | 关键字：`medium` `thick` `thin`；类型：长度 |
 | `-webkit-text-stroke-color` | 是 | 重绘 | 连续 | 关键字：`currentcolor` `transparent`；类型：颜色 |
 
+限高滚动框可直接写 `max-height: 40px; overflow-y: auto`：块布局与 flex 行/列的自动高度父级按子盒子限高后的尺寸计算，`scrollHeight` 保留完整内容高度。`height: 40px` 固定高度；`max-height` 在内容不足时不强制撑高。尺寸按 `box-sizing` 处理 padding/border，margin 在限高之外，显式 `min-height` 高于 `max-height` 时以前者为准。`overflow: hidden` 只可通过脚本滚动；`overflow: visible` 仍允许内容溢出。该行为由引擎布局/滚动测试覆盖，游戏效果需另验。
+
 ### 边框与轮廓
 
 | 属性 | 继承 | 变化时 | 动画 | 取值 |

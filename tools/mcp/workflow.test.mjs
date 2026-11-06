@@ -7,6 +7,7 @@ import { ROOT, STATE, initState, gradle, safePath, id, loadRecord, saveRecord, f
 import { assertCurrent } from './lib/projects.mjs';
 import { installFiles } from './lib/transaction.mjs';
 import { prompt } from './lib/rules.mjs';
+import { modProjectFiles } from './lib/mod-project.mjs';
 
 initState();
 test('Windows Gradle wrapper does not rely on current-directory command search', { skip: process.platform !== 'win32' }, async () => {
@@ -141,6 +142,11 @@ test('screenshots review: images come back, the user quote is required, chat app
     const item = prepared.structuredContent;
     assert.equal(item.mode, 'screenshots'); assert.equal(item.decision, 'pending'); assert.equal(item.agentMayApprove, false);
     // Pending: nothing installs.
+    const downstream = path.join(process.env.ORIEL_TEST_TMP || STATE, id('downstream'));
+    fs.mkdirSync(path.join(downstream, 'src/main/resources'), { recursive: true });
+    fs.writeFileSync(path.join(downstream, 'src/main/resources/fabric.mod.json'), JSON.stringify({ id: 'downstream_test' }));
+    const modArgs = { reviewId: item.id, target: 'mod-project', projectRoot: downstream, pageName: 'settings' };
+    assert.equal((await client.call('oriel_integrate', modArgs)).structuredContent.code, 'APPROVAL_REQUIRED');
     assert.equal((await client.call('oriel_integrate', { reviewId: item.id, target: 'oriel-folder', folder })).structuredContent.code, 'APPROVAL_REQUIRED');
     // The user's words are required, and a web review cannot be decided from chat.
     assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: item.id, decision: 'approved' })).structuredContent.code, 'QUOTE_REQUIRED');
@@ -167,14 +173,81 @@ test('screenshots review: images come back, the user quote is required, chat app
     assert.equal(applied.isError, undefined, JSON.stringify(applied.structuredContent));
     assert.equal(fileHash(path.join(folder, 'ui/index.html')), fileHash(html)); assert.equal(fileHash(path.join(folder, 'ui/style.css')), fileHash(css));
     assert.equal(fileHash(path.join(ROOT, 'common/src/main/resources/assets/shots_test/ui/index.html')), null, 'nothing is written into the repository');
+    const modPlan = (await client.call('oriel_integrate', modArgs)).structuredContent;
+    assert.equal(modPlan.pageUrl, 'downstream_test:ui/settings/index.html', JSON.stringify(modPlan));
+    assert.match(modPlan.guidance.openCode, /OrielScreens.open/);
+    const modApplied = await client.call('oriel_integrate', { action: 'apply', planId: modPlan.id });
+    assert.equal(modApplied.isError, undefined, JSON.stringify(modApplied));
+    assert.equal(modApplied.structuredContent.gameVerified, false);
+    assert.match(modApplied.structuredContent.guidance.hotReload, /hot-reload.md/);
+    const installed = path.join(downstream, 'src/main/resources/assets/downstream_test/ui/settings/index.html');
+    assert.equal(fileHash(installed), fileHash(html));
+    // A new plan for the same approved revision is idempotent; the original plan remains single-use.
+    const repeat = (await client.call('oriel_integrate', modArgs)).structuredContent;
+    assert.equal((await client.call('oriel_integrate', { action: 'apply', planId: repeat.id })).isError, undefined);
+    assert.equal((await client.call('oriel_integrate', { action: 'apply', planId: repeat.id })).structuredContent.code, 'STALE_PLAN');
+    const conflict = (await client.call('oriel_integrate', modArgs)).structuredContent;
+    fs.writeFileSync(installed, 'concurrent edit');
+    assert.equal((await client.call('oriel_integrate', { action: 'apply', planId: conflict.id })).structuredContent.code, 'TARGET_CONFLICT');
+    assert.equal(fs.readFileSync(installed, 'utf8'), 'concurrent edit');
+    fs.writeFileSync(path.join(downstream, 'unrelated.txt'), 'preserved');
+    const linkedPlan = (await client.call('oriel_integrate', modArgs)).structuredContent;
+    const assets = path.join(downstream, 'src/main/resources/assets');
+    const originalAssets = assets + '-original';
+    const escape = path.join(process.env.ORIEL_TEST_TMP || STATE, id('apply-escape'));
+    fs.mkdirSync(escape, { recursive: true });
+    fs.renameSync(assets, originalAssets);
+    fs.symlinkSync(escape, assets, process.platform === 'win32' ? 'junction' : 'dir');
+    try {
+      assert.equal((await client.call('oriel_integrate', { action: 'apply', planId: linkedPlan.id })).structuredContent.code, 'SYMLINK');
+      assert.deepEqual(fs.readdirSync(escape), []);
+    } finally { fs.unlinkSync(assets); fs.renameSync(originalAssets, assets); }
+    assert.equal(fs.readFileSync(path.join(downstream, 'unrelated.txt'), 'utf8'), 'preserved');
+    assert.equal((await client.call('oriel_integrate', { ...modArgs, resourcesDir: '../escape' })).structuredContent.code, 'PATH_ESCAPE');
+    assert.equal((await client.call('oriel_game_preview', { projectId })).structuredContent.code, 'DOWNSTREAM_GAME_REQUIRED');
     // A page that names its own namespace cannot be copied into a folder, where the namespace is oriel_mine.
     fs.writeFileSync(css, 'p { color: #6cc349; } /* see shots_test:ui/other.png */');
     await client.call('oriel_project', { projectId, sourceRoot: source, namespace: 'shots_test', entry: 'ui/index.html', scenes });
     const second = (await checkAndPrepare()).structuredContent;
     assert.equal((await client.call('oriel_review', { action: 'decide', reviewId: second.id, decision: 'approved', quote: 'ok' })).isError, undefined);
     assert.equal((await client.call('oriel_integrate', { reviewId: second.id, target: 'oriel-folder', folder })).structuredContent.code, 'FOLDER_NAMESPACE_REFERENCE');
+    assert.equal((await client.call('oriel_integrate', { ...modArgs, reviewId: second.id })).structuredContent.code, 'MOD_NAMESPACE_REFERENCE');
     // Changing the page after the decision makes the approval stale.
     fs.appendFileSync(html, '<p>changed after approval</p>');
     assert.equal((await client.call('oriel_integrate', { reviewId: second.id, target: 'oriel-folder', folder })).isError, true);
   } finally { client.close(); }
+});
+
+test('mod projects detect resources and metadata, return choices, and reject junctions', () => {
+  const root = path.join(process.env.ORIEL_TEST_TMP || STATE, id('mod-detection'));
+  fs.mkdirSync(root, { recursive: true });
+  const revision = { projectId: 'settings', project: { namespace: 'source_test', entry: 'ui/index.html' }, files: [] };
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root }), error => error.code === 'RESOURCE_DIRECTORY_REQUIRED' && error.details.candidates.length === 4);
+  fs.mkdirSync(path.join(root, 'fabric/src/main/resources'), { recursive: true });
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root }), error => error.code === 'MOD_ID_REQUIRED');
+  fs.writeFileSync(path.join(root, 'fabric/src/main/resources/fabric.mod.json'), 'invalid json');
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root }), error => error.code === 'MOD_ID_REQUIRED');
+  assert.equal(modProjectFiles(revision, { projectRoot: root, modId: 'explicit_mod' }).modId, 'explicit_mod');
+  fs.unlinkSync(path.join(root, 'fabric/src/main/resources/fabric.mod.json'));
+  fs.mkdirSync(path.join(root, 'neoforge/src/main/resources/META-INF'), { recursive: true });
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root }), error => error.code === 'RESOURCE_DIRECTORY_REQUIRED' && error.details.candidates.length === 2);
+  fs.writeFileSync(path.join(root, 'neoforge/src/main/resources/META-INF/neoforge.mods.toml'), '[[mods]]\nmodId = "detected_mod"\n[[dependencies.detected_mod]]\nmodId = "minecraft"\n');
+  const selected = modProjectFiles(revision, { projectRoot: root, resourcesDir: 'neoforge/src/main/resources' });
+  assert.equal(selected.modId, 'detected_mod');
+  assert.match(selected.guidance.hotReload, /neoforge/);
+  fs.mkdirSync(path.join(root, 'common/src/main/resources'), { recursive: true });
+  assert.equal(modProjectFiles(revision, { projectRoot: root }).resourcesDir, 'common/src/main/resources');
+  fs.writeFileSync(path.join(root, 'fabric/src/main/resources/fabric.mod.json'), JSON.stringify({ id: 'another_mod' }));
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root }), error => error.code === 'MOD_ID_REQUIRED' && error.details.candidates.length === 2);
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root + '/../unused' }), error => error.code === 'PROJECT_ROOT_REQUIRED');
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root, resourcesDir: '../outside' }), error => error.code === 'PATH_ESCAPE');
+  assert.throws(() => modProjectFiles(revision, { projectRoot: root, resourcesDir: 'unknown', modId: '../bad' }), error => error.code === 'MOD_ID_REQUIRED');
+  const outside = path.join(process.env.ORIEL_TEST_TMP || STATE, id('outside-mod'));
+  fs.mkdirSync(outside, { recursive: true });
+  const link = path.join(root, 'linked');
+  fs.symlinkSync(outside, link, process.platform === 'win32' ? 'junction' : 'dir');
+  try {
+    assert.throws(() => modProjectFiles(revision, { projectRoot: root, resourcesDir: 'linked/resources', modId: 'test_mod' }), error => error.code === 'SYMLINK');
+    assert.throws(() => modProjectFiles(revision, { projectRoot: link, modId: 'test_mod' }), error => error.code === 'SYMLINK');
+  } finally { fs.unlinkSync(link); }
 });

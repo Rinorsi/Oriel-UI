@@ -162,3 +162,5 @@ HTML（含内联 `<style>`）、脚本、JSON 或混合变更仍整页重建，�
 | 预览能输入游戏不行 | 单独验 IME，type 中文不替代候选窗链路 |
 
 实际验收记录版本/加载器/提交/资源/视口/动作/结果，放 daily；使用手册只留一般流程和已确认边界。
+
+mod-project 接入只验证资源复制与批准关卡，回执 gameVerified=false；需在下游游戏用回执 pageUrl 打开验证。oriel_game_preview 对此目标返回 DOWNSTREAM_GAME_REQUIRED。参数和路径限制见 [MCP 手册](mcp.md#下游模组目标mod-project)。

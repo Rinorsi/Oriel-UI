@@ -34,6 +34,7 @@ public final class SecurityGameTests {
         GameTests.add("malformed_payloads", SecurityGameTests::payloads);
         GameTests.add("session_cap", SecurityGameTests::sessionCap);
         GameTests.add("config_fallbacks", SecurityGameTests::config);
+        GameTests.add("ui_sound_tokens", SecurityGameTests::uiSoundTokens);
         GameTests.add("token_bucket", SecurityGameTests::bucket);
     }
 
@@ -158,6 +159,30 @@ public final class SecurityGameTests {
             h.assertTrue(warnings.contains("limits.heapLimitPercent=101 must be at most 100; using 90"), "limit warnings say why: " + warnings);
         } finally {
             OrielConfig.load(); // back to the file's settings
+        }
+        h.succeed();
+    }
+
+    private static void uiSoundTokens(GameTestHelper h) {
+        for (var sound : dev.oriel.kit.Sounds.tokens().values()) {
+            h.assertTrue(net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT
+                    .getOptional(net.minecraft.resources.Identifier.parse(sound.id())).isPresent(),
+                    "UI sound event is registered: " + sound.id());
+        }
+        try {
+            Properties p = new Properties();
+            p.setProperty("client.uiSounds", "false");
+            p.setProperty("client.uiSoundVolume", "0.25");
+            h.assertTrue(OrielConfig.apply(p).isEmpty(), "valid sound settings");
+            h.assertFalse(OrielConfig.CLIENT_UI_SOUNDS.get(), "UI sounds can be muted");
+            h.assertValueEqual(OrielConfig.CLIENT_UI_SOUND_VOLUME.get(), 0.25, "UI sound volume");
+            for (String bad : List.of("NaN", "Infinity", "-0.1", "1.1")) {
+                p.setProperty("client.uiSoundVolume", bad);
+                h.assertValueEqual(OrielConfig.apply(p).size(), 1, "invalid volume warns");
+                h.assertValueEqual(OrielConfig.CLIENT_UI_SOUND_VOLUME.get(), 1.0, "invalid volume uses default");
+            }
+        } finally {
+            OrielConfig.load();
         }
         h.succeed();
     }

@@ -46,7 +46,7 @@ AI 客户端 ──stdio──▶ MCP 服务器 ──▶ 状态目录（项目�
 | 检查 | 用真实引擎做严格检查，产出双尺寸截图；不通过不能往下走 | `oriel_check` |
 | 验收 | **网页验收**或**截图验收**，二选一（见下） | `oriel_review` |
 | 批准 | 用户本人批准固定版本；内容一变就失效 | 网页点击，或聊天里同意 |
-| 接入 | 把页面放进游戏能读到的位置（两种目标，见下） | `oriel_integrate` |
+| 接入 | 把页面放进游戏能读到的位置（三种目标，见下及文末） | `oriel_integrate` |
 | 游戏预览 | 独立开发客户端打开页面并截图 | `oriel_game_preview` |
 
 ### 两种验收方式
@@ -58,7 +58,7 @@ AI 客户端 ──stdio──▶ MCP 服务器 ──▶ 状态目录（项目�
 | 保证有多强 | 较强：批准来自网页的请求来源和会话令牌 | 较弱：工具看不到聊天，是 Agent 代记；回执标注 `chat-attested-by-agent`，并绑定当时的截图哈希，内容变了就失效 |
 | 适合 | 要点交互、看动画 | 看布局和外观，更快 |
 
-### 两种接入目标
+### 接入目标（另有下游 mod-project，见文末）
 
 | | `oriel-dev`（缺省） | `oriel-folder` |
 |---|---|---|
@@ -137,7 +137,7 @@ fixture 是 oriel.data 初值，最多 64 KiB；场景 1–16 个，名称唯一
 | oriel_check | projectId；旧调用可用 target、strict | 项目模式强制严格检查及双尺寸场景，返回 revisionId、diagnostics、shots、覆盖/未覆盖项；旧 target 不生成验收记录 |
 | oriel_snapshot | projectId 或旧 page；可选 scene/actions、width=640、height=360、frames=60、boxes | PNG、日志与执行结果；最大 1920×1080、600 帧。项目模式 strict |
 | oriel_review | action=prepare/status/decide，默认 prepare；prepare 用 projectId、mode=web（缺省）或 screenshots；status 用 reviewId；decide 用 reviewId、decision=approved/rejected、quote | prepare 要求当前严格检查通过：web 返回固定版本验收页，screenshots 把检查截图作为图片直接返回给 Agent 转发给用户；status 返回用户决定及是否仍有效；decide 只用于 screenshots，必须逐字引用用户在聊天里的话 |
-| oriel_integrate | action=plan/apply，默认 plan；plan 用 reviewId；apply 用 planId；target=oriel-dev（缺省）或 oriel-folder（再给 folder 绝对路径） | plan 给出目标清单和摘要；apply 校验批准、快照和目标冲突，再写入。失败恢复本次写入，遇并行变动保留并报冲突 |
+| oriel_integrate | action=plan/apply，默认 plan；plan 用 reviewId；apply 用 planId；target=oriel-dev（缺省）、oriel-folder（folder 绝对路径）或 mod-project（参数见文末） | plan 给出目标清单和摘要；apply 校验批准、快照和目标冲突，再写入。失败恢复本次写入，遇并行变动保留并报冲突 |
 | oriel_game_preview | action=start/status/cancel，默认 start；start 用 projectId、scene=initial；其他用 jobId | start 立即返回作业，之后查询状态、日志和游戏回执；只管理自身进程 |
 | oriel_pages | 无 | kit 页面名与 PNG 图标名，保留原工具名 |
 
@@ -159,7 +159,7 @@ topic：overview/html/css/javascript/components/design/workflow/integration/vali
 
 ## 游戏接入范围
 
-两个目标：oriel-dev 写入本仓库 common/src/main/resources/assets/<namespace>；oriel-folder 复制进 folder 参数指定的绝对路径文件夹（不能在 Oriel 仓库内，不存在会创建），游戏里页面命名空间固定为 oriel_mine，页面内不能写自己的命名空间（FOLDER_NAMESPACE_REFERENCE），应使用相对路径。两者都复用 OrielScreens 和 /oriel open，不生成业务保存接口。browser/ 不安装；oriel 主题仍由库提供。其他目标返回 TARGET_ADAPTER_REQUIRED，不能猜路径覆盖项目。
+内置资源与文件夹目标：oriel-dev 写入本仓库 common/src/main/resources/assets/<namespace>；oriel-folder 复制进 folder 参数指定的绝对路径文件夹（不能在 Oriel 仓库内，不存在会创建），游戏里页面命名空间固定为 oriel_mine，页面内不能写自己的命名空间（FOLDER_NAMESPACE_REFERENCE），应使用相对路径。两者都复用 OrielScreens 和 /oriel open，不生成业务保存接口。browser/ 不安装；oriel 主题仍由库提供。下游工程使用文末 mod-project；其他目标返回 TARGET_ADAPTER_REQUIRED。
 
 游戏预览用 oriel-folder 接入时，worker 会把同样的文件放进自己独立运行目录的 config/oriel/my-pages 再启动，不动你正在玩的游戏。你自己的游戏想看：把 folder 设为实际的 config/oriel/my-pages 即可，保存后热重载，用 /oriel open oriel_mine:入口 打开；也可以在"模板中心 → 我的页面"里看到并点开该文件夹里所有 .html。
 
@@ -196,3 +196,24 @@ node --test tools/mcp/workflow.test.mjs
 ~~~
 
 参数/回执文件均使用工作区路径。正式 UI 制作不通过测试伪造批准；测试夹具与用户验收分开。
+
+## 下游模组目标：mod-project
+
+前置条件同其他目标：当前页面已经检查通过，且用户本人批准固定版本。Node MCP 测试覆盖资源接入；不代表下游游戏验证通过。
+
+| 参数 | 类型、缺省与限制 |
+|---|---|
+| projectRoot | 必填字符串，已有工程绝对路径；拒绝 ..、符号链接和 junction |
+| resourcesDir | 可选字符串，工程内使用 / 的相对资源目录；优先已有 common/src/main/resources，否则从 src/main/resources、fabric/src/main/resources、neoforge/src/main/resources 选唯一已有目录；未知或多候选返回 RESOURCE_DIRECTORY_REQUIRED 和 candidates，需明确选择后重试；显式目录可以尚不存在 |
+| modId | 可选字符串，小写字母开头、2–64 位小写字母/数字/下划线，不能为 oriel/minecraft；从这些资源目录的 fabric.mod.json 或 neoforge.mods.toml 的 [[mods]] 字面量 id 读取；缺失、占位符或多个 id 返回 MOD_ID_REQUIRED，需明确传入 |
+| pageName | 可选字符串，默认 projectId；1–80 位小写字母/数字/下划线/连字符，首位为字母或数字 |
+
+~~~json
+{"action":"plan","reviewId":"review-…","target":"mod-project","projectRoot":"C:/work/my-mod","modId":"mymod","pageName":"settings"}
+~~~
+
+再用回执 id 作为 planId 调用 action=apply。写入 `<工程>/<resourcesDir>/assets/<modId>/ui/<pageName>/…`。自身资源全部在 ui/ 下时去除共同 ui/ 前缀，默认入口为 mymod:ui/settings/index.html；否则保留命名空间内完整目录树。保留批准的原文件字节及相对引用。HTML/CSS/JS/JSON 不能包含自身原命名空间引用，MOD_NAMESPACE_REFERENCE 要求改成相对路径后重新检查、验收；其他命名空间如 oriel:ui/ore.css 不受影响。
+
+plan 和 apply 回执的 guidance 包含 openCode、registration、hotReload、projectType。见 [接入指南](integration.md) 和 [热更新](hot-reload.md)。只写资源，不改 Java、Gradle 或元数据，不安装 jar。
+
+同一 plan 只可 apply 一次，重复返回 STALE_PLAN；新建 plan 可以幂等重复安装。计划后目标变化返回 TARGET_CONFLICT，沿用原子写入及回滚，不安装包外文件。gameVerified=false，必须在下游游戏验证；oriel_game_preview 对此目标返回 DOWNSTREAM_GAME_REQUIRED，不启动本库独立客户端。

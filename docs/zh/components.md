@@ -6,6 +6,8 @@
 
 ## 外壳与布局
 
+`Shell.setup` 统一接入[UI 声音 token](capabilities.md#ui-音效)：按钮、页签、开关和 `.m-modal.on` 状态；`data-oriel-sound` 可覆盖点击 token 或设 `off` 静音，`hover` 仅显式悬停播放。纯 HTML 用 `data-oriel-shell` 接线，只有 CSS 不接声音。
+
 ```html
 <div class="o-app"><div class="o-window">
   <header class="o-titlebar"><h1>编辑器</h1>

@@ -148,12 +148,18 @@ public final class McHost implements Host {
      */
     @Override
     public void playSound(String id, float volume, float pitch) {
+        if (!OrielConfig.CLIENT_UI_SOUNDS.get() || OrielConfig.CLIENT_UI_SOUND_VOLUME.get() == 0) return;
+        var resolved = dev.oriel.kit.Sounds.resolve(id, volume, pitch);
+        id = resolved.id();
+        volume = resolved.volume();
+        pitch = resolved.pitch();
         Identifier sound = Identifier.tryParse(id);
         var manager = Minecraft.getInstance().getSoundManager();
         if (sound == null || manager.getSoundEvent(sound) == null || !(volume > 0) || !sounds().tryTake()) return;
         SoundEvent event = BuiltInRegistries.SOUND_EVENT.getOptional(sound).orElseGet(() -> SoundEvent.createVariableRangeEvent(sound));
         float loudest = OrielConfig.CLIENT_MAX_SOUND_VOLUME.get().floatValue();
-        manager.play(SimpleSoundInstance.forUI(event, Float.isFinite(pitch) ? Math.clamp(pitch, 0.5f, 2f) : 1f, Math.min(volume, loudest)));
+        manager.play(SimpleSoundInstance.forUI(event, Float.isFinite(pitch) ? Math.clamp(pitch, 0.5f, 2f) : 1f,
+                Math.min(volume, loudest) * OrielConfig.CLIENT_UI_SOUND_VOLUME.get().floatValue()));
     }
 
     private TokenBucket sounds() {

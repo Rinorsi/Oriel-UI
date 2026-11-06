@@ -262,7 +262,8 @@ public final class PreviewHost implements Host {
 
     @Override
     public void playSound(String id, float volume, float pitch) {
-        log(LogLevel.DEBUG, "sound " + id);
+        var sound = dev.oriel.kit.Sounds.resolve(id, volume, pitch);
+        log(LogLevel.DEBUG, "sound " + id + " -> " + sound.id());
     }
 
     @Override

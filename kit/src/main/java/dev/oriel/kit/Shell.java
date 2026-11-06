@@ -131,13 +131,14 @@ public final class Shell {
     }
 
     /** Keeps images added after the page opened at the chosen weight (checked when the DOM has changed). */
-    private static void followIcons(Document doc) {
+    private static void followIcons(Document doc, Runnable sounds) {
         int[] seen = {doc.domVersion()};
         doc.scheduler().requestAnimationFrame(new java.util.function.DoubleConsumer() {
             @Override
             public void accept(double t) {
                 if (doc.domVersion() != seen[0]) {
                     if (!icons.equals("regular")) swapIcons(doc);
+                    sounds.run();
                     seen[0] = doc.domVersion();
                 }
                 doc.scheduler().requestAnimationFrame(this);
@@ -186,7 +187,7 @@ public final class Shell {
         window(doc, window);
         icons(doc, icons);
         font(doc, font);
-        followIcons(doc);
+        followIcons(doc, Sounds.attach(doc));
         for (Element e : doc.querySelectorAll("[data-icons-pick]")) activate(e, () -> icons(doc, e.getAttribute("data-icons-pick")));
         windowSwitch(doc);
         enter(doc);
@@ -323,6 +324,7 @@ public final class Shell {
         Dom.onKey(e, ev -> {
             if (ev.key.equals("Enter") || ev.key.equals(" ")) {
                 ev.preventDefault();
+                e.dispatchEvent(new dev.oriel.engine.event.Event("activationsound", true, true));
                 action.run();
             }
         });

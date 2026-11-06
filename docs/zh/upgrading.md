@@ -15,6 +15,8 @@
 
 ### 行为变化（不改代码，但你会感觉到）
 
+- 限高滚动框修复：`max-height` 配合 `overflow: auto|scroll|hidden` 的 flex 子元素，以限高后的尺寸参与父级自动高度和固有尺寸计算，内部完整内容仍可滚动。原来为绕开父级被撑高而写的固定 `height` 或外层固定高度容器，可按需改回 `max-height`（内容少时自动收缩）。已通过引擎布局/滚动回归；游戏效果需更新 jar 并重启后核验。
+
 - Canvas 的 drawImage 复用采样缓冲，并新增原生凸四边形 fillQuad；旧页面继续可用，使用新接口的页面应检测方法存在。更新 Java 库需要替换 jar/重启开发客户端，页面热重载不会升级引擎。参数与错误见 [脚本合同](scripting.md)，绘制路线与测量要求见 [性能规范](performance.md)。
 
 - **库不再改动原版界面。** 背包旁的 Oriel 效果面板、隐藏原版效果图标的药水 HUD 都**移除了**：`/oriel showcase potions` 现在只是用示例效果的预览页，不碰原版，也不再给玩家加效果。配置项 `client.inventoryEffects`、`client.hideVanillaInventoryEffects` 随之删除（旧配置文件里留着也无妨，会被忽略）。这类界面要放进游戏，需要用 Mixin 修改 Minecraft 自己的逻辑；Oriel 支持设计这类界面，但**不会注入**，请在你自己的模组里接入，见 [组件](components.md) 的"状态效果面板"。
@@ -23,6 +25,8 @@
 - 按键设置里新增「优易库 Oriel UI → 打开优易库首页」：开发环境默认 F8，玩家环境默认不绑定。
 
 ### 新增
+
+- UI 声音 token：按钮、页签、开关与模态框在 Shell 一处接入；`oriel.playSound('tab')`、`data-oriel-sound="off"`、`client.uiSounds` 和 `client.uiSoundVolume`，详见[音效合同](capabilities.md#ui-音效)。默认悬停仍静音；旧完整事件 id 继续可用。
 
 - 模板中心：**演示**（12 个整页示例，标"旧版自带"）、**我的页面**（列出 `config/oriel/my-pages`，标题、副标题、封面写在页面 `<head>`）、标签筛选；首页「演示」按钮。
 - 纯 HTML 页面在 `<html>` 加 `data-oriel-shell` 就能用库的动效，不用 Java 控制器。
@@ -41,9 +45,7 @@
 
 ### 已知限制（0.11.0 仍有）
 
-- 限高滚动框（`max-height` 加 `overflow-y:auto`）会让父级自动高度按完整内容算，见 [做页面前先读](page-rules.md) 的"已知引擎限制"。
 - 热更新里图片和语言文件不热；服务端打开的页面在源码路径下是否热更新没有验证。
-- UI 音效只有脚本的 `oriel.playSound` 和默认点击声，kit 与 showcase 页面还没有设计音效。
 
 ## 0.9.0 → 0.10.0
 

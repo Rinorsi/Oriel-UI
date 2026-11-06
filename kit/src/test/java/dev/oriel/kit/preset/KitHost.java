@@ -25,6 +25,22 @@ final class KitHost implements Host {
     final List<String> sent = new ArrayList<>();
     final List<String> logs = new ArrayList<>();
     final List<String> navigations = new ArrayList<>();
+    final List<String> sounds = new ArrayList<>();
+    final List<String> soundIds = new ArrayList<>();
+    boolean uiSounds = true;
+    boolean scriptsEnabled;
+
+    @Override
+    public dev.oriel.engine.script.ScriptRuntime createScriptRuntime(Document doc) {
+        return scriptsEnabled ? dev.oriel.engine.script.Scripting.rhino().apply(doc) : null;
+    }
+
+    @Override
+    public void playSound(String id, float volume, float pitch) {
+        if (!uiSounds) return;
+        sounds.add(id);
+        soundIds.add(dev.oriel.kit.Sounds.resolve(id, volume, pitch).id());
+    }
     final Map<String, float[]> imageSizes = new HashMap<>();
     boolean closed;
     String language = "zh_cn";

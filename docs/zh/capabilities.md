@@ -6,7 +6,7 @@
 
 ## 选择界面类型
 
-Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟预览、引擎严格检查、固定版本用户验收、oriel-dev 资源接入和独立游戏预览。网页桥接首版支持普通 DOM/JS，外部 Java 控制器及 Oriel 模板需专门适配，不能直接在浏览器执行。该工具能力不扩大下面列出的引擎 HTML/CSS/JS 范围。
+Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟预览、引擎严格检查、固定版本用户验收、oriel-dev / oriel-folder / mod-project 资源接入；前两者支持独立游戏预览，mod-project 需在下游游戏验证（参数见 MCP 手册）。网页桥接首版支持普通 DOM/JS，外部 Java 控制器及 Oriel 模板需专门适配，不能直接在浏览器执行。该工具能力不扩大下面列出的引擎 HTML/CSS/JS 范围。
 
 | 目标 | 选用 | 状态由谁决定 |
 |---|---|---|
@@ -49,6 +49,34 @@ Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟�
 - 控件：输入、多行、复选、单选、range、select、进度、details；Ore 页签、菜单、抽屉、浮层、通知、懒显示需正确接控制器。
 
 filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不代表能像浏览器一样平滑插值。要平滑呼吸光，优先使用 `opacity`、颜色、阴影、transform。
+
+## UI 音效
+
+声音 token 集中定义在 kit 的 `Sounds`，不附带音频文件。游戏宿主支持 `oriel.playSound('tab')`，原有 `oriel.playSound('minecraft:ui.button.click', 0.5, 1)` 继续可用；token 的音量和音高乘以调用参数。未知裸 token 报错，事件 id 仍受宿主资源检查。无头预览器只记录请求，不发声。
+
+| token | 原版事件 id | 基础音量 / 音高 | 用途与选择理由（待用户耳听） |
+|---|---|---|---|
+| `click` | `minecraft:ui.button.click` | 0.6 / 1 | 短促的常规按钮反馈 |
+| `hover` | `minecraft:ui.button.click` | 0.12 / 1.6 | 很轻的悬停提示，只显式开启 |
+| `open` | `minecraft:block.note_block.harp` | 0.35 / 1.2 | 较高的短音提示模态框进入 |
+| `close` | `minecraft:block.note_block.harp` | 0.3 / 0.8 | 同音色降低音高提示退出 |
+| `tab` | `minecraft:ui.button.click` | 0.4 / 1.3 | 比按钮轻，区分页签选择 |
+| `toggle` | `minecraft:ui.button.click` | 0.45 / 1.1 | 轻微提高音高表示状态切换 |
+| `success` | `minecraft:entity.experience_orb.pickup` | 0.4 / 1.2 | 简短的正向反馈，页面显式调用 |
+| `error` | `minecraft:block.note_block.bass` | 0.4 / 0.8 | 低音提示失败，避免尖锐高音，页面显式调用 |
+
+页面须调用 `Shell.setup(doc)`，或在没有专属控制器的 `<html>` 上声明 `data-oriel-shell`，才会接入默认交互声：`.ore-btn` 点击 `click`；`.ore-tab`、`.o-seg`、`.o-apptabs` 选择 `tab`；`.ore-toggle`、热 chip 与原生复选/单选 `toggle`；`.m-modal` 的 `on` 类在相邻帧间改变时播放 `open` / `close`。初始已打开的模态框不发声，同一帧开关抵消不发声。此行为不会修改原版界面。
+
+```html
+<html data-oriel-shell>
+  <body><button class="ore-btn" data-oriel-sound="success">完成</button>
+  <button class="ore-btn" data-oriel-sound="off">静音按钮</button></body>
+</html>
+```
+
+`data-oriel-sound` 覆盖当前元素的点击 token，值限上表或 `off`；`off` 只关闭声音，不阻止点击、表单与复选行为。`hover` 是特例：仅指针进入该元素时播放，点击不再播放；悬停声默认关闭。动态插入的按钮也生效；自定义控件的键盘激活通过 `Shell.activate` 接线。未知属性值诊断带页面路径和源码行号。无需 Shell 的页面仍可显式调用脚本声音；自定义宿主须在 `Host.playSound` 中用 `Sounds.resolve` 解析 token。
+
+`config/oriel.properties` 中 `client.uiSounds=true`、`client.uiSoundVolume=1` 为默认值。前者关闭所有 Oriel UI 声音（含脚本事件 id 和旧默认点击声）；后者范围 0–1，乘在 `min(请求音量, client.maxSoundVolume)` 后，再由游戏声音设置缩放。仍共用 `client.soundsPerSecond` 限频，不播放音乐、不更改原版音量。配置在启动时读取，修改配置后重启客户端。完整设置见[安全](security.md)。验证等级：有单元测试与注册表 GameTest；实际游戏听感须逐目标耳听，不能由预览日志推导。
 
 ## 明确不能按浏览器原样使用
 

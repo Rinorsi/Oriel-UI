@@ -16,7 +16,7 @@
 
 正式交付流程里，用户验收（网页或截图）前不得启动任何游戏客户端或游戏内测试，包括工具自测、基础设施探针和冒烟测试。此前只允许源码/编译检查、无头 Oriel 预览与网页测试。不得以测试另一张页面为由提前启动游戏，也不得用 Gradle/CLI 绕过 MCP 的批准关卡。
 
-通过 oriel_status 查询批准回执。仅当当前内容与批准版本一致时，调用 oriel_integrate 的 plan、apply，再调用 oriel_game_preview 的 start/status。内容、资源、规则或目标改变后重新检查和验收。分别报告浏览器、引擎和游戏实际验证了什么；未接真实业务的按钮必须明确显示演示，不声称完成保存或联网。MCP 初始化指引不是客户端系统权限，工具的校验关卡不可通过提示词跳过。
+通过 oriel_status 查询批准回执。仅当当前内容与批准版本一致时，调用 oriel_integrate 的 plan、apply；mod-project 目标按回执在下游游戏验证，其余目标调用 oriel_game_preview 的 start/status。内容、资源、规则或目标改变后重新检查和验收。分别报告浏览器、引擎和游戏实际验证了什么；未接真实业务的按钮必须明确显示演示，不声称完成保存或联网。MCP 初始化指引不是客户端系统权限，工具的校验关卡不可通过提示词跳过。
 
 ## revise
 
@@ -24,4 +24,4 @@
 
 ## integrate
 
-先调用 oriel_status 和 oriel_review.status，核对项目、reviewId、内容摘要、profile 和用户决定。未批准、被拒绝、检查失败或内容陈旧就停止接入并说明原因。调用 oriel_integrate.plan 查看写入清单与冲突，再使用返回的 planId 调用 apply。不得手工复制文件绕过失败的工具。调用 oriel_game_preview.start 并轮询 status，核对实际 MC 版本、加载器、页面 URL、截图和诊断。成功复制不等于游戏验证通过；不要替用户执行真实世界数据修改。
+先调用 oriel_status 和 oriel_review.status，核对项目、reviewId、内容摘要、profile 和用户决定。未批准、被拒绝、检查失败或内容陈旧就停止接入并说明原因。调用 oriel_integrate.plan 查看写入清单与冲突，再使用返回的 planId 调用 apply。不得手工复制文件绕过失败的工具。mod-project 目标按回执代码在下游游戏验证；其余目标调用 oriel_game_preview.start 并轮询 status，核对实际 MC 版本、加载器、页面 URL、截图和诊断。成功复制不等于游戏验证通过；不要替用户执行真实世界数据修改。

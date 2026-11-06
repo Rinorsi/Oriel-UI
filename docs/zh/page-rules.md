@@ -24,7 +24,7 @@
 - 间距只用 2 / 4 / 6 / 8 / 12。图标 16×16，放大只用 2 倍。
 - **任何文字都不能出框**：长文本用 `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`，或让它换行；统计行、标签行要么换行要么在小屏隐藏。
 
-- **已知引擎限制：限高滚动框会把父级撑到完整内容高度。** 子元素写 `max-height: 40px; overflow-y: auto`，父级自动高度却按子元素完整内容算（实测 8 行内容的父级是 108px，应为 52px），页面下面就多出一块空白。弹性布局和普通块布局都会这样。**绕开：滚动框用固定的 `height` 而不是 `max-height`**（实测父级正确变成 52px）；或者滚动框外面再包一层固定高度的容器。
+- **限高滚动框直接用 `max-height: 40px; overflow-y: auto`。** 内容少时随内容收缩，超出时内部滚动；父级自动高度按限高后的盒子计算。`height: 40px` 则始终保留固定高度，不需要额外包固定高度容器。
 
 ## 3. 最小骨架：直接复制这个
 
@@ -70,6 +70,8 @@
 - 关闭按钮用 `data-action="close"`，不用写脚本。
 
 ## 4. 不写 Java，也要库的动效：`data-oriel-shell`
+
+UI 交互音效用库的[声音 token](capabilities.md#ui-音效)，默认悬停静音；`data-oriel-sound="tab"` 覆盖点击声，`off` 关闭当前元素的声音，不要给每个悬停都加声。
 
 涟漪（`m-ripple`）、指针聚光（`m-spot`）、数字计数（`data-count`）、主题/图标切换、`data-action` 的关闭与返回、粒子画布，这些原来要 Java 控制器调用 `Shell.setup`。**纯 HTML 页面在 `<html>` 上加 `data-oriel-shell` 就等于调用了它**，不需要控制器。动效只用 `ore.css` 里已有的 `m-*` 类和 `--m-*` 曲线，不要自己写时长和缓动。有自己控制器的页面不用加。
 

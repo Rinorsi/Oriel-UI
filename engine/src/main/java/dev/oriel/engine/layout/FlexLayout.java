@@ -584,6 +584,11 @@ final class FlexLayout implements FormattingContext {
             if (contribution < it.flexBasis && innerBasis(c, it) * Math.max(1, shrink(it)) == 0) {
                 contribution = it.flexBasis;
             }
+            if (it.style.isScrollContainer()) {
+                // Content-based flex bases (including non-shrinking ones) can exceed the scrollport's limits.
+                // Clamp the border-box contribution, not the content measurement or its outside margins.
+                contribution = BoxModel.clamp(contribution - margins, it.minMain, styleMax) + margins;
+            }
             sum += contribution;
         }
         if (!max && c.wrap) return longest;

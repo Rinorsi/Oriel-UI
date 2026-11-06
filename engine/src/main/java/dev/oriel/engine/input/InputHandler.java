@@ -363,7 +363,7 @@ public final class InputHandler {
         SelectPopup p = new SelectPopup(select);
         if (p.isEmpty()) return;
         popup = p;
-        Activation.playClick(document);
+        Activation.playClick(select);
     }
 
     /**

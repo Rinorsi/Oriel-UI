@@ -22,14 +22,14 @@ final class Activation {
             case "label" -> forward(e, event);
             case "a" -> doc.navigate(e.getAttribute("href"));
             case "summary" -> {
-                playClick(doc);
+                playClick(e);
                 Element details = e.parentElement();
                 details.toggleAttribute("open", !details.hasAttribute("open"));
                 details.dispatchEvent(new Event("toggle", false, false));
             }
             default -> { // buttons, checkboxes, radios
                 if (e.isDisabled()) return;
-                playClick(doc);
+                playClick(e);
                 if (e.inputType().equals("checkbox")) {
                     e.setChecked(!e.checked());
                     Forms.fireInputAndChange(e);
@@ -43,8 +43,11 @@ final class Activation {
         }
     }
 
-    static void playClick(Document doc) {
-        if (!CLICK_SOUND.isEmpty()) doc.host().playSound(CLICK_SOUND, 1f, 1f);
+    static void playClick(Element element) {
+        // A theme may replace only the sound, without cancelling checkbox/form activation.
+        if (element.dispatchEvent(new Event("activationsound", true, true)) && !CLICK_SOUND.isEmpty()) {
+            element.ownerDocument().host().playSound(CLICK_SOUND, 1f, 1f);
+        }
     }
 
     private static boolean hasBehaviour(Element e) {

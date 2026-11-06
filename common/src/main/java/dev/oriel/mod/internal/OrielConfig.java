@@ -84,6 +84,10 @@ public final class OrielConfig {
             "A server that reopens its page within a second of you closing it with Escape, this many times in a row within 15 seconds, is stopped from opening pages for a while.");
     public static final Setting<Integer> CLIENT_REOPEN_BLOCK_SECONDS = integer("client.reopenBlockSeconds", 30, 1, 3600,
             "How long, in seconds, a server stopped for reopening pages stays stopped.");
+    public static final Setting<Boolean> CLIENT_UI_SOUNDS = bool("client.uiSounds", true,
+            "Play UI sounds, including page scripts and default control sounds.");
+    public static final Setting<Double> CLIENT_UI_SOUND_VOLUME = decimal("client.uiSoundVolume", 1, 0, 1,
+            "UI sound volume multiplier, 0 to 1, after the page volume cap.");
     public static final Setting<Double> CLIENT_SOUNDS_PER_SECOND = decimal("client.soundsPerSecond", 8, 0, 1000,
             "Sounds per second a page may play with oriel.playSound (per screen, a burst of as many, then this rate). 0 mutes pages.");
     public static final Setting<Double> CLIENT_MAX_SOUND_VOLUME = decimal("client.maxSoundVolume", 1, 0, 1,

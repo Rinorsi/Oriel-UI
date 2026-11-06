@@ -4,11 +4,12 @@ import { spawn } from 'node:child_process';
 import { ROOT, STATE, now, id, sha, fileHash, safePath, inside, requireThat, loadRecord, saveRecord, writeJson, readJson } from './core.mjs';
 import { assertCurrent, verifyRevision } from './projects.mjs';
 import { installFiles } from './transaction.mjs';
+import { modProjectFiles, assertProjectRoot } from './mod-project.mjs';
 
 const DEV_ROOT = path.join(ROOT, 'common/src/main/resources');
 // The game serves config/oriel/my-pages/ as this namespace, so a page copied there opens without any mod code.
 const FOLDER_NAMESPACE = 'oriel_mine';
-const TARGETS = ['oriel-dev', 'oriel-folder'];
+const TARGETS = ['oriel-dev', 'oriel-folder', 'mod-project'];
 
 // An approval is either a click on the local review page, or, for a screenshots review only, the user's own words in chat
 // quoted verbatim. Only web-worker.mjs writes source 'local-review-form'; only review({action:'decide'}) writes 'user-chat'.
@@ -23,7 +24,8 @@ export function approved(reviewId) {
   assertCurrent(revision);
   return { review, revision };
 }
-const rootOf = plan => plan.target === 'oriel-folder' ? plan.folder : DEV_ROOT;
+const rootOf = plan => plan.target === 'mod-project' ? assertProjectRoot(plan.projectRoot) : plan.target === 'oriel-folder' ? plan.folder : DEV_ROOT;
+const planDigest = plan => sha(JSON.stringify({ hash: plan.hash, target: plan.target, root: plan.root, files: plan.files, pageUrl: plan.pageUrl, projectRoot: plan.projectRoot, guidance: plan.guidance }));
 const targetOf = file => file.target ?? file.file;
 
 function devFiles(revision) {
@@ -45,14 +47,18 @@ function folderFiles(revision, folder) {
     return { file: f.file, target, hash: f.hash, destination, previous: fileHash(destination), operation: fs.existsSync(destination) ? 'update' : 'create' };
   });
 }
-export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-dev', folder }) {
-  requireThat(TARGETS.includes(target), 'TARGET_ADAPTER_REQUIRED', '接入目标为 oriel-dev（本仓库共同资源）或 oriel-folder（复制进指定文件夹）；其他工程需提供专属适配器，不能猜测目录。');
+export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-dev', folder, projectRoot, modId, resourcesDir, pageName }) {
+  requireThat(TARGETS.includes(target), 'TARGET_ADAPTER_REQUIRED', '接入目标为 oriel-dev、oriel-folder 或 mod-project。');
   if (action === 'plan') {
     const { review, revision } = approved(reviewId);
-    let root, files, pageUrl, notes;
+    let root, files, pageUrl, notes, extra = {};
     if (target === 'oriel-dev') {
       root = DEV_ROOT; files = devFiles(revision); pageUrl = revision.project.namespace + ':' + revision.project.entry;
       notes = ['接入共同资源目录；两个加载器均会打包。', '使用 /oriel open 打开，游戏预览工具会自动打开。', '不生成真实业务处理器，不安装 browser/mock.js。'];
+    } else if (target === 'mod-project') {
+      extra = modProjectFiles(revision, { projectRoot, modId, resourcesDir, pageName });
+      ({ root, files, pageUrl } = extra);
+      notes = ['只安装已批准的资源，不修改 Java、Gradle 或模组元数据。', '源包全部在 ui/ 下时去除共同 ui/ 前缀，否则保留命名空间内目录结构。', '下游游戏需自行打开验证；不启动 Oriel 的独立客户端。'];
     } else {
       requireThat(typeof folder === 'string' && path.isAbsolute(folder), 'FOLDER_REQUIRED', 'oriel-folder 目标需要 folder 参数：一个绝对路径，通常是游戏的 config/oriel/my-pages。');
       root = path.resolve(folder);
@@ -64,15 +70,15 @@ export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-d
     }
     requireThat(files.length > 0, 'NOTHING_TO_INSTALL', '页面包里没有属于命名空间 ' + revision.project.namespace + ' 的文件。');
     const plan = { id: id('plan'), projectId: revision.projectId, reviewId: review.id, revisionId: revision.id, hash: revision.hash, target, root, ...(target === 'oriel-folder' ? { folder: root } : {}),
-      files, pageUrl, status: 'planned', createdAt: now(), approval: review.source, notes };
-    plan.planHash = sha(JSON.stringify({ hash: plan.hash, target, files }));
+      ...extra, files, pageUrl, status: 'planned', createdAt: now(), approval: review.source, notes };
+    plan.planHash = planDigest(plan);
     saveRecord('plans', plan); return plan;
   }
   requireThat(action === 'apply', 'INVALID_ACTION', 'action 为 plan/apply。');
   const plan = loadRecord('plans', planId);
   const { revision } = approved(plan.reviewId);
   requireThat(plan.status === 'planned' && revision.hash === plan.hash, 'STALE_PLAN', '接入计划已过期或已执行。');
-  requireThat(plan.root === rootOf(plan) && plan.planHash === sha(JSON.stringify({ hash: plan.hash, target: plan.target, files: plan.files })), 'PLAN_CHANGED', '接入计划被修改。');
+  requireThat(plan.root === rootOf(plan) && plan.planHash === planDigest(plan), 'PLAN_CHANGED', '接入计划被修改。');
   try {
     installFiles(plan.files, revision.pack, plan.root, path.join(STATE, 'plans', plan.id));
   } catch (error) {
@@ -82,7 +88,7 @@ export function integrate({ action = 'plan', reviewId, planId, target = 'oriel-d
   const project = loadRecord('projects', plan.projectId);
   project.integration = { planId: plan.id, reviewId: plan.reviewId, hash: plan.hash, pageUrl: plan.pageUrl, at: now(), target: plan.target };
   saveRecord('projects', project);
-  return { ...project.integration, status: 'integrated', gameVerified: false, nextActions: ['oriel_game_preview.start'] };
+  return { ...project.integration, status: 'integrated', gameVerified: false, ...(plan.guidance ? { guidance: plan.guidance } : {}), nextActions: plan.target === 'mod-project' ? ['在下游游戏中打开 ' + plan.pageUrl + ' 并验证'] : ['oriel_game_preview.start'] };
 }
 export async function gamePreview({ action = 'start', projectId, jobId, scene = 'initial' }) {
   if (action !== 'start') {
@@ -100,6 +106,7 @@ export async function gamePreview({ action = 'start', projectId, jobId, scene = 
   const { revision } = approved(project.integration.reviewId);
   requireThat(revision.hash === project.integration.hash, 'STALE_INTEGRATION', '接入版本已经变化。');
   const plan = loadRecord('plans', project.integration.planId);
+  requireThat(plan.target !== 'mod-project', 'DOWNSTREAM_GAME_REQUIRED', 'mod-project 页面须在下游模组的游戏中验证，不能用 Oriel 的独立客户端冒充。');
   for (const file of plan.files) requireThat(fileHash(safePath(plan.root, targetOf(file))) === file.hash, 'TARGET_CONFLICT', '游戏资源被改动：' + targetOf(file));
   const selected = revision.project.scenes.find(s => s.name === scene);
   requireThat(selected, 'UNKNOWN_SCENE', '该场景未纳入网页验收。');

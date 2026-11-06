@@ -87,6 +87,8 @@
 | `client.reopenBlockSeconds` | 30 | 1 到 3600 | 停用多久。 |
 | `client.soundsPerSecond` | 8 | 0 到 1000 | 页面每秒（和同时）可播放的声音数，按界面计；0 表示静音页面。 |
 | `client.maxSoundVolume` | 1 | 0 到 1 | 页面可请求的最大音量。 |
+| `client.uiSounds` | `true` | `true`、`false` | 是否播放 Oriel 的 UI 声音，含脚本和默认控件声。 |
+| `client.uiSoundVolume` | 1 | 0 到 1 | UI 音量乘数，作用在 `maxSoundVolume` 限幅之后，再由游戏声音设置缩放；0 静音。 |
 | `client.webLinks` | `ask` | `ask`、`block` | 网页链接：先确认（在点击或按键之后），或永不打开。 |
 | `client.typingNotice` | `true` | `true`、`false` | 在服务器页面里输入时的提示。 |
 | `client.reducedMotion` | `false` | `true`、`false` | 页面看到 `prefers-reduced-motion: reduce`。 |

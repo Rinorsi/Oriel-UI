@@ -15,6 +15,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Activation behaviour through {@code element.click()}, which needs no layout. */
 class ActivationTest {
     @Test
+    void cancellingActivationSoundPreservesCheckboxDefaultAction() {
+        Page page = new TestHost().load("<input type=checkbox id=c>");
+        page.doc.addEventListener("activationsound", Event::preventDefault);
+        page.byId("c").click();
+        assertTrue(page.byId("c").checked());
+        assertEquals(List.of(), page.host.sounds);
+    }
+
+    @Test
     void checkboxTogglesAndFiresInputThenChange() {
         Page page = new TestHost().load("<input type=checkbox id=c>");
         Element c = page.byId("c");

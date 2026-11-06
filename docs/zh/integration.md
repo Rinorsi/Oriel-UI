@@ -208,10 +208,25 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 
 ## 9. 开发你自己的页面：最短路径
 
-通过 Agent 制作的新页面优先使用 [MCP 主工作流](ui-workflow.md)：网页预览、引擎检查、用户批准固定版本后再接入。首版自动接入适配器 oriel-dev 写入本库共同资源目录并提供游戏打开/验证入口；外部工程需明确适配器，不承诺自动生成服务器业务、容器菜单或权限处理。手动接入仍可按本页 API 完成。
+通过 Agent 制作的新页面优先使用 [MCP 主工作流](ui-workflow.md)：网页预览、引擎检查、用户批准固定版本后再接入。首版自动接入适配器 oriel-dev 写入本库共同资源目录并提供游戏打开/验证入口；外部工程可用 mod-project 资源接入目标（见下文），不承诺自动生成服务器业务、容器菜单或权限处理。手动接入仍可按本页 API 完成。
 
 1. 在本仓库的 kit 里加页面，用脚手架：`node tools/new-page.mjs bestiary "怪物图鉴"`；你自己的模组把页面放进自己的 `assets/<命名空间>/oriel/`（见第 3 节）。
 2. 对着 [CSS 支持参考](css-reference.md) 写样式，不确定的先查表；写了不支持的东西会得到诊断，不会悄悄失效。
 3. 无头检查：`./gradlew :preview:checkUi`，或让 AI 通过 MCP（`node tools/mcp/oriel-preview.mjs`）调用 `oriel_check`、`oriel_snapshot`。
 4. 进游戏看：`./gradlew :fabric:26.1:runClient`，`/oriel open mymod:oriel/xxx.html`，F12 看元素盒子。
 5. 要做自动验收：`OrielAutomation`（点击、输入、拖拽、等待页面稳定）见 [开发参考](development.md)。
+
+### 用 MCP 写入下游模组资源
+
+用户批准固定版本后，调用 oriel_integrate，参数 action=plan、reviewId、target=mod-project、projectRoot=C:/work/my-mod、modId=mymod、pageName=settings，再以回执 id 作为 planId 调用 apply。写入 src/main/resources/assets/mymod/ui/settings/，多模块优先 common；目录不明确返回候选供选择。完整参数、目录映射和限制见 [MCP 手册](mcp.md#下游模组目标mod-project)。
+
+默认入口包的回执给出可复制的最小代码：
+~~~java
+import dev.oriel.mod.client.OrielScreens;
+
+OrielScreens.open("mymod:ui/settings/index.html");
+~~~
+
+Fabric 在客户端初始化中注册快捷键或客户端命令，NeoForge 在客户端事件中注册；在客户端线程调用上述打开代码（见第 4 节）。工具只返回片段，不修改 Java、Gradle、元数据，不安装 jar。
+
+热更新指引按资源目录标明工程类型，并提供 [热更新](hot-reload.md) 第 1 节三种模组开发情形：工程内 runClient 自动读取；外部运行目录设置 `-Doriel.sourceRoot=<含 src/main/resources 的子工程>`；仅 jar 开发设置 dev-sources.properties。实际运行方式不能单靠资源目录判断，按启动方式选择。复制成功不等于游戏验证，须在下游游戏打开验证，MCP 不为此目标启动库自己的客户端。

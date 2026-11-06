@@ -7,6 +7,12 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- MCP: a resource-only mod-project integration target for downstream mods, with metadata/resource-directory detection, explicit candidates for ambiguous projects, project-bound path checks and copyable opening/hot-reload guidance. Existing approval, snapshot and transaction checks apply; downstream game verification remains separate.
+
+- Layout: constrain scroll-container flex intrinsic contributions by min/max size, keeping auto-height parents sized to the scrollport while preserving the full scrollable content. Fixed-height workarounds for limited scrollboxes are no longer needed.
+
+- UI sounds: eight kit tokens shared by script calls and Shell controls, declarative `data-oriel-sound` overrides (`off` mutes an element, `hover` opts into pointer-entry feedback), modal open/close cues, and client-wide `client.uiSounds` / `client.uiSoundVolume` settings. Existing namespaced sound ids remain supported; headless previews only record requests. No audio files or vanilla UI changes are added.
+
 - Canvas: reuse bounded blit buffers and horizontal samples, avoid redundant source-over channel clamps, and preserve overlapping self-copy snapshots. The Oriel-specific `fillQuad(x0, y0, x1, y1, x2, y2, x3, y3)` fills convex quadrilaterals in native scanlines, avoiding per-row JavaScript calls for rotated particles. Pixel-oracle and allocation regressions cover both paths. See `docs/zh/performance.md` and `docs/zh/scripting.md`; this does not add general paths, transforms, or GPU canvas rendering.
 
 Breaking (supported API): the item editor is no longer part of the library: `/oriel edit`, `OrielKit.ITEM_EDITOR`, `ItemEditorPreset`, `LocalizedMessage.componentValue` and the `oriel.ui.item_editor.*` / `oriel.server.item_editor.*` strings are gone (an application belongs in a mod built on Oriel). The demo commands are one: `/oriel showcase [page]` replaces `/oriel demo`, `/oriel legacy` and the old `/oriel showcase <page>`; the potion HUD toggle is `/oriel showcase potions` and `/oriel showcase templates` opens the template centre. Depend on `[0.11.0,0.12.0)`.
