@@ -5,7 +5,19 @@ Oriel UI was forked. Names in those entries (`VellumPages`, `VellumSession`, `ve
 the upstream's; in this fork they are `OrielPages`, `OrielSession`, `oriel.data`, `/oriel` and `oriel.properties` (the handbook in `docs/zh` is authoritative). Treat
 those entries as history, not as documentation of the current API.
 
-## 0.10.0 (in development)
+## 0.11.0 (in development)
+
+Breaking (supported API): the item editor is no longer part of the library: `/oriel edit`, `OrielKit.ITEM_EDITOR`, `ItemEditorPreset`, `LocalizedMessage.componentValue` and the `oriel.ui.item_editor.*` / `oriel.server.item_editor.*` strings are gone (an application belongs in a mod built on Oriel). The demo commands are one: `/oriel showcase [page]` replaces `/oriel demo`, `/oriel legacy` and the old `/oriel showcase <page>`; the potion HUD toggle is `/oriel showcase potions` and `/oriel showcase templates` opens the template centre. Depend on `[0.11.0,0.12.0)`.
+
+- Template centre: a Demos view (the twelve inherited showcase pages, with covers) and a My pages view that lists `config/oriel/my-pages`; a page sets its card title, subtitle and cover in its own `<head>` (`<title>`, `oriel-subtitle`, `oriel-cover`, or `cover.png` beside it), and the card tooltip shows the path, time and size.
+- Plain HTML pages opt into the shared behaviour (ripples, spotlights, counters, theme and icon switches, `data-action`) with `data-oriel-shell` on `<html>`, no Java controller needed.
+- A key binding, Options > Controls > Oriel UI > Open the demos (F8 in a development run, unbound for players), and a Demos button on the home page.
+- Dev: a downstream mod's own pages reload on save in a dev run when `runClient` passes `-Doriel.sourceRoot=<project dir>` (see `docs/zh/quickstart.md`).
+- MCP: an `oriel-folder` integration target, a screenshots review mode with a quoted chat approval, and `quickref` / `showcase` rule topics; `tools/showcase/query.mjs` finds a showcase effect and its source.
+- The previewer carries the library's own assets, so pages outside this repository that link `oriel:ui/ore.css` can be checked; Shell's injected icons use `oriel:` URLs.
+- Docs: `page-rules.md` (fonts and sizes, a checked skeleton, the max-height scroll box limit) and `showcase.md` (where each showcase effect lives).
+
+## 0.10.0
 
 Breaking (supported API): the canvas-specific slot callback is now `DocumentDriver.SlotSink`, and everything under
 `dev.oriel.mod.internal` is no longer callable API. Depend on `[0.10.0,0.11.0)`. See `docs/api/setup.md`.

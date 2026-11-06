@@ -2,7 +2,7 @@
 
 [文档入口](index.md) · [CSS](css-guide.md) · [元素](elements.md) · [验收](validation.md)
 
-适用：Oriel UI 0.10.0 源码基准 `9928647`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。
+适用：Oriel UI 0.11.0 源码基准 `9928647`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。
 
 ## 选择界面类型
 

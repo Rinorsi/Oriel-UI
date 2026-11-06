@@ -161,6 +161,7 @@ public final class OrielClient {
 
     /** Called by the loaders at the end of every client tick. */
     public static void tick() {
+        OrielKeys.tick();
         if (ServerProbeClient.ENABLED) ServerProbeClient.tick();
         ServerPages.tick();
         Mobdex.tick();

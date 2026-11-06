@@ -79,6 +79,7 @@ public final class OrielFabricClient implements ClientModInitializer {
         ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(Constants.id("documents"),
                 (ResourceManagerReloadListener) resources -> OrielClient.onResourceReload());
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, context) -> dispatcher.register(OrielClientCommands.create()));
+        net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper.registerKeyMapping(dev.oriel.mod.internal.client.OrielKeys.DEMOS);
         ClientTickEvents.END_CLIENT_TICK.register(client -> OrielClient.tick());
         if (DevFlags.AUTOPILOT) {
             ClientTickEvents.END_CLIENT_TICK.register(DevAutopilot::tick);

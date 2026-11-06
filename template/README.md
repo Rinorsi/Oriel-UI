@@ -28,7 +28,7 @@ cp -R template/neoforge my-mod
 - `Notes.java` 带着数据打开页面，并处理它发来的消息。
 - `ExampleModClient.java` 注册 `/notes`。
 - `build.gradle` 从本仓库的 `build/template-maven` 或 `mavenLocal()` 获取 Oriel。在仓库里运行 `./gradlew templateCompile`，会把当前工件发布到私有构建目录并编译两个模板。对复制出去的工程，请在本仓库运行 `publishToMavenLocal`，或传 `-PorielRepository=<本地仓库>`。没有仓库、只有 jar 时见[只有 jar 时的最小 Fabric 工程](../docs/zh/quickstart.md)。
-- 当前模板用 0.10 系列依赖范围：Fabric `>=0.10.0 <0.11.0`，NeoForge `[0.10.0,0.11.0)`。1.0 之前，不兼容的变更会提升 minor 版本。推荐必需依赖；Jar-in-Jar 是可选的。
+- 当前模板用 0.11 系列依赖范围：Fabric `>=0.11.0 <0.12.0`，NeoForge `[0.11.0,0.12.0)`。1.0 之前，不兼容的变更会提升 minor 版本。推荐必需依赖；Jar-in-Jar 是可选的。
 - `neoforge.mods.toml` 或 `fabric.mod.json` 把 Oriel 设成必需依赖。玩家像装其他 mod 一样安装它，如果你在 Modrinth 和 CurseForge 页面上把它列为必需依赖，启动器会替他们装。想只发一个 jar，就把 Oriel 打进你的 jar（见[接入指南](../docs/zh/integration.md#依赖写法)）。
 
 `runClient` 运行期间，保存 `notes.html` 会重载打开的页面，不用重启游戏就能改。[预览器](../preview/README.md)可以完全不启动 Minecraft 就显示页面。

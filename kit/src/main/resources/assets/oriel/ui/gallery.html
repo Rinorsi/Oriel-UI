@@ -56,7 +56,7 @@
 .stage .tag { color: #b9b2e0; letter-spacing: 1px; white-space: nowrap; }
 .stage .o-h1 { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
 .stage .o-h1 em { font-style: normal; color: #a8f2dc; }
-.stage .actions { display: flex; gap: 4px; margin-top: 4px; }
+.stage .actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .stage .actions .ore-btn { flex: none; white-space: nowrap; min-height: 22px; padding: 0 9px; }
 
 /* ---- The other tiles ---- */
@@ -211,6 +211,7 @@
         <div class="actions">
           <div class="ore-btn hero m-ripple" data-go="inventory" data-zoom tabindex="0" data-i18n-text-1="oriel.ui.gallery.start_exploring"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.gallery.start_exploring</div>
           <div class="ore-btn secondary m-ripple" data-go="catalog" tabindex="0" data-i18n-text-1="oriel.ui.gallery.component_catalog"><img class="o-ico" src="../textures/icons/grid.png">oriel.ui.gallery.component_catalog</div>
+          <div class="ore-btn secondary m-ripple" data-demos tabindex="0" data-i18n-text-1="oriel.ui.gallery.demos"><img class="o-ico" src="../textures/icons/star.png">oriel.ui.gallery.demos</div>
         </div>
       </div>
     </div>

@@ -38,9 +38,9 @@ repositories {
     mavenLocal()
 }
 // common/（针对原版编译）：API，加上它暴露的引擎类型
-dependencies { compileOnly("dev.oriel:oriel-common-26.3:0.10.0") }
+dependencies { compileOnly("dev.oriel:oriel-common-26.3:0.11.0") }
 // neoforge/ 和 fabric/：加载器 jar，让开发运行时把 Oriel 当作 mod 加载（它自带引擎和 Rhino）
-dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.10.0") }   // 或 oriel-fabric-26.3
+dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.11.0") }   // 或 oriel-fabric-26.3
 ```
 
 没有仓库、只有 jar 时见[只有 jar 时的最小 Fabric 工程](quickstart.md)。每个 Minecraft 版本有自己的工件，版本号相同：
@@ -53,15 +53,15 @@ dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.10.0") }   // 或
 
 所有目标均使用 Java 25 和未混淆的 Minecraft API。Fabric 使用 `implementation`，无需旧版 remapping Loom。26.1/26.2 使用 GLFW 输入事件；26.3 使用 SDL。渲染包迁移等差异见[版本适配](versions.md)。
 
-推荐的做法是必需依赖：`neoforge.mods.toml` 里 `[[dependencies.<modid>]] modId="oriel" type="required"`，`versionRange="[0.10.0,0.11.0)"`；`fabric.mod.json` 里 `"depends": {"oriel": ">=0.10.0 <0.11.0"}`；并在你的 Modrinth 和 CurseForge 页面上声明必需依赖，这样启动器会和你的 mod 一起安装它。玩家这样就能直接得到 Oriel 的修复，不用等你的下一个版本。
+推荐的做法是必需依赖：`neoforge.mods.toml` 里 `[[dependencies.<modid>]] modId="oriel" type="required"`，`versionRange="[0.11.0,0.12.0)"`；`fabric.mod.json` 里 `"depends": {"oriel": ">=0.11.0 <0.12.0"}`；并在你的 Modrinth 和 CurseForge 页面上声明必需依赖，这样启动器会和你的 mod 一起安装它。玩家这样就能直接得到 Oriel 的修复，不用等你的下一个版本。
 
 也可以把 Oriel 打进你的 jar，让玩家只装一个文件：
 
 ```groovy
 // NeoForge (ModDevGradle)
-dependencies { jarJar(implementation("dev.oriel:oriel-neoforge-26.3:0.10.0")) }
+dependencies { jarJar(implementation("dev.oriel:oriel-neoforge-26.3:0.11.0")) }
 // Fabric (Loom)
-dependencies { include(implementation("dev.oriel:oriel-fabric-26.3:0.10.0")) }
+dependencies { include(implementation("dev.oriel:oriel-fabric-26.3:0.11.0")) }
 ```
 
 无论哪种方式，都要在 `neoforge.mods.toml` 或 `fabric.mod.json` 里保留必需依赖。多个 mod 都带了 Oriel、或玩家另外装了它时，加载器先满足全部消费者的版本约束再选一份可用版本，约束无交集会拒绝加载，不保证总是选最新版，所以实际加载的版本可能与你编译时用的不同。Oriel 仍然显示在 mod 列表里，并保留自己的配置文件。Rhino 的许可证和声明已在 Oriel 的 jar 里。
@@ -84,7 +84,7 @@ dependencies { include(implementation("dev.oriel:oriel-fabric-26.3:0.10.0")) }
 
 公共 API 是：`dev.oriel.mod.server.OrielServer`、`OrielSession`、设置文件的键，以及 `dev.oriel.mod.client.OrielScreens`、`OrielScreen`、`OrielContainerScreen`、`OrielHud`、`OrielEntities`、`OrielAutomation` 和 `DocumentDriver` 的公共方法，再加上 `dev.oriel.mod.server.ForgeMenu` 及其槽位/数据合同。带 `@ApiStatus.Internal` 注解的成员是跨包的实现桥接，不是下游 API。所有实现类都在 `dev.oriel.mod.internal` 之下；即使 Java 的可见性是 public，也不要导入它们。
 
-1.0 之前，不兼容的受支持 API 变更会提升 minor 版本（0.9 到 0.10），绝不会只提升补丁版本。这次边界清理引入了 0.10.0：旧的、专属画布的槽位回调变成 `DocumentDriver.SlotSink`，实现包不再是可调用 API。所以当前模板要求 `>=0.10.0 <0.11.0` / `[0.10.0,0.11.0)`。已有的 0.9 消费者在迁移之前必须留在 0.9 范围内：`>=0.9.0 <0.10.0` / `[0.9.0,0.10.0)`，它与 0.10 范围无交集。把两版嵌入不同的父 mod，不会自动修复公共 API 的二进制差异。跨 minor 版本必须迁移消费者并分别验证；只改版本元数据的夹具、共同 DOM 子集的无头通过，都不能证明游戏内或全部 API 兼容。实际发行 jar 的无头消费者探针用法见 [验证工具](../../tools/compat/README.md)。Jar-in-Jar 是可选的；推荐的做法是必需的外部依赖。更宽的范围需要测试，不能因为编译成功就推断它可行。
+1.0 之前，不兼容的受支持 API 变更会提升 minor 版本（0.9 到 0.10），绝不会只提升补丁版本。这次边界清理引入了 0.10.0：旧的、专属画布的槽位回调变成 `DocumentDriver.SlotSink`，实现包不再是可调用 API。所以当前模板要求 `>=0.11.0 <0.12.0` / `[0.11.0,0.12.0)`。已有的 0.9 消费者在迁移之前必须留在 0.9 范围内：`>=0.9.0 <0.10.0` / `[0.9.0,0.10.0)`，它与 0.10 范围无交集。把两版嵌入不同的父 mod，不会自动修复公共 API 的二进制差异。跨 minor 版本必须迁移消费者并分别验证；只改版本元数据的夹具、共同 DOM 子集的无头通过，都不能证明游戏内或全部 API 兼容。实际发行 jar 的无头消费者探针用法见 [验证工具](../../tools/compat/README.md)。Jar-in-Jar 是可选的；推荐的做法是必需的外部依赖。更宽的范围需要测试，不能因为编译成功就推断它可行。 0.11.0 是又一个不兼容边界：物品编辑器（`/oriel edit`、`OrielKit.ITEM_EDITOR`、`ItemEditorPreset`）移出了库，演示命令合并为 `/oriel showcase`；依赖范围改为 `[0.11.0,0.12.0)`。
 
 `./gradlew check` 包含用本仓库编译的两个加载器模板，以及每个 Minecraft 版本的 API 快照 `api/*.txt`。`:common:<版本>:checkPublicApi` 拒绝受支持签名里出现内部类型和签名漂移；经过审查后用 `-PupdateApi` 更新。`checkBackendBoundaries` 锁定引擎、kit 和预览不得导入游戏或加载器。这些在 fork 的内部实现演进时保护它。
 

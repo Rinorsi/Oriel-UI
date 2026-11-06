@@ -1,6 +1,6 @@
 # 只有 jar 时的最小 Fabric 工程
 
-适用：你拿到的是打包好的库 jar（`oriel-fabric-<MC 版本>-0.10.0.jar`），没有本仓库，也没有 Maven 仓库。下面的文件在 Minecraft 26.1.2 + Fabric 上**实际编译并启动过**：构建通过，游戏日志里同时出现你的 mod 和 `oriel 0.10.0`。页面是否按预期渲染，需要你在游戏里打开确认（见末尾）。
+适用：你拿到的是打包好的库 jar（`oriel-fabric-<MC 版本>-0.11.0.jar`），没有本仓库，也没有 Maven 仓库。下面的文件在 Minecraft 26.1.2 + Fabric 上**实际编译并启动过**：构建通过，游戏日志里同时出现你的 mod 和 `oriel 0.10.0`。页面是否按预期渲染，需要你在游戏里打开确认（见末尾）。
 
 [入口](index.md) · [接入指南](integration.md) · [Java API](java-api.md)
 
@@ -11,7 +11,7 @@ my-mod/
   settings.gradle
   gradle.properties
   build.gradle
-  libs/oriel-fabric-26.1.2-0.10.0.jar          ← 库 jar 放这里
+  libs/oriel-fabric-26.1.2-0.11.0.jar          ← 库 jar 放这里
   src/main/java/com/example/mymod/MyModClient.java
   src/main/resources/fabric.mod.json
   src/main/resources/assets/mymod/oriel/hello.html
@@ -23,9 +23,9 @@ Gradle wrapper 用你自己的（`gradle wrapper`，Gradle 9.x，JDK 25）。把
 
 | Minecraft | `minecraft_version` | `fabric_version` | 库 jar |
 |---|---|---|---|
-| 26.1.2 | `26.1.2` | `0.155.3+26.1.2` | `oriel-fabric-26.1.2-0.10.0.jar` |
-| 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.10.0.jar` |
-| 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.10.0.jar` |
+| 26.1.2 | `26.1.2` | `0.155.3+26.1.2` | `oriel-fabric-26.1.2-0.11.0.jar` |
+| 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.11.0.jar` |
+| 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.11.0.jar` |
 
 `fabric_loader_version` 目前都是 `0.19.5`。以上来自 [版本适配](versions.md)；换版本时以该页为准。
 
@@ -51,7 +51,7 @@ rootProject.name = 'my-mod'
 minecraft_version=26.1.2
 fabric_loader_version=0.19.5
 fabric_version=0.155.3+26.1.2
-oriel_version=0.10.0
+oriel_version=0.11.0
 
 mod_id=mymod
 mod_name=My Mod
@@ -115,12 +115,12 @@ processResources {
         "fabric-api": "*",
         "minecraft": "~${minecraft_version}",
         "java": ">=25",
-        "oriel": ">=0.10.0 <0.11.0"
+        "oriel": ">=0.11.0 <0.12.0"
     }
 }
 ```
 
-`oriel` 这一行就是对库的**必需依赖**，范围限定在 0.10 系列；库升级到 0.11 前不会影响你。
+`oriel` 这一行就是对库的**必需依赖**，范围限定在 0.11 系列；库升级到 0.12 前不会影响你。
 
 ## 入口类：一个命令打开页面
 
@@ -190,7 +190,7 @@ public final class MyModClient implements ClientModInitializer {
 | 不建工程，先看一个 .html | 把页面（连同它的 css、图片）放进游戏的 `config/oriel/my-pages/`，进游戏 `/oriel open oriel_mine:文件名.html`（子文件夹照写，如 `oriel_mine:item-editor/index.html`）；也可在 模板中心 → 我的页面 里点开。页面里用相对路径引用同文件夹的资源。保存即热重载 |
 | 改了页面看效果 | 开发环境保存文件会热重载已打开的页面；也可以 `/oriel reload` |
 | 看库自带的例子 | `/oriel showcase`（首页画廊，后面可加页面名）；示例页面源码在库 jar 的 `assets/oriel/oriel/showcase/` 下（可用 `unzip` 查看） |
-| 确认库已加载 | 日志里应有 `Oriel UI runtime version: 0.10.0`，模组列表里有 `oriel` |
+| 确认库已加载 | 日志里应有 `Oriel UI runtime version: 0.11.0`，模组列表里有 `oriel` |
 | 页面写错了 | 不支持的 CSS/HTML 会在日志里报带文件和位置的诊断，不会静默忽略 |
 
 ## 我的页面：标题、副标题、封面，以及库的动效

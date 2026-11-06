@@ -85,7 +85,7 @@ AI 客户端 ──stdio──▶ MCP 服务器 ──▶ 状态目录（项目�
 
 需要 Node 22+、Java 25 和本仓库可用的 Gradle 环境。项目模式默认读取目标版本 common/versions 下的构建资源，也可用 ORIEL_MC_JAR 指定客户端资源；资源 JAR 摘要纳入验收，内部版本必须与 profile 一致。ORIEL_MCP_STATE 可指定固定状态目录，必须在工作区内、仓库外；默认工作区 daily/当天日期/scratch/mcp-workflow。跨日继续任务应使用原状态目录。运行记录跟随工作区清理策略，长期保留应按工作区约定添加 KEEP。
 
-首次检查会执行 :preview:installDist；源代码变化后重新构建，规则及引擎身份变化将使旧验收失效。规则使用目标 MC 26.1.2 / 26.2 / 26.3、Fabric / NeoForge、Oriel 0.10.0。浏览器预览无法替代六目标游戏验收。
+首次检查会执行 :preview:installDist；源代码变化后重新构建，规则及引擎身份变化将使旧验收失效。规则使用目标 MC 26.1.2 / 26.2 / 26.3、Fabric / NeoForge、Oriel 0.11.0。浏览器预览无法替代六目标游戏验收。
 
 初始化响应提供 instructions，resources/list/read 提供 oriel://rules/<topic>，prompts/list/get 提供 workflow、revise、integrate。客户端不支持这些能力时直接调用 oriel_rules。MCP 不能提升为客户端系统权限；工具独立检查前置条件。
 

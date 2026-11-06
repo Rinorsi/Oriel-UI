@@ -17,6 +17,11 @@ public final class GalleryPreset implements PageControllers.Controller {
     public void attach(Document doc) {
         Shell.setup(doc);
         for (Element e : doc.querySelectorAll("[data-page=potions]")) Shell.activate(e, () -> openHud(doc));
+        // The home page's Demos button: the template centre, on its Demos view.
+        for (Element e : doc.querySelectorAll("[data-demos]")) Shell.activate(e, () -> {
+            StylesPreset.startAt("demos");
+            Shell.go(doc, OrielKit.STYLES, "forward");
+        });
         Dom.onKey(doc, e -> {
             if (e.key.equalsIgnoreCase("t") && !e.defaultPrevented()) Shell.theme(doc, Shell.theme().equals("light") ? "dark" : "light");
         });

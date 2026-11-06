@@ -8,9 +8,9 @@ export const topics = {
 };
 export const profileVersions = ['26.1.2', '26.2', '26.3'];
 export function validateProfile(profile = {}) {
-  const result = { minecraft: profile.minecraft || '26.1.2', loader: profile.loader || 'fabric', oriel: '0.10.0' };
+  const result = { minecraft: profile.minecraft || '26.1.2', loader: profile.loader || 'fabric', oriel: '0.11.0' };
   requireThat(profileVersions.includes(result.minecraft) && ['fabric', 'neoforge'].includes(result.loader), 'UNSUPPORTED_PROFILE', '请选择明确支持的 MC/加载器组合。', { versions: profileVersions });
-  requireThat(!profile.oriel || profile.oriel === '0.10.0', 'UNSUPPORTED_PROFILE', '当前规则针对 Oriel 0.10.0。');
+  requireThat(!profile.oriel || profile.oriel === '0.11.0', 'UNSUPPORTED_PROFILE', '当前规则针对 Oriel 0.11.0。');
   return result;
 }
 export function instructions() {

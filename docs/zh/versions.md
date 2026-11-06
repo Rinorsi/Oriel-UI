@@ -12,7 +12,7 @@ Oriel 用 [Stonecutter](https://stonecutter.kikugie.dev) 从同一份源码树�
 
 每个版本有各自的 Gradle 子项目，以版本命名：`:common:26.1`、`:neoforge:26.1`、`:fabric:26.1`。它们的设置在 `stonecutter.properties.toml`。引擎、Rhino 和预览器只构建一次，所有版本共用。
 
-jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`（如 `oriel-neoforge-26.1.2-0.10.0.jar`），位于 `<加载器>/versions/<MC 版本>/build/libs/`。发布时会为每个版本、以同一个 Oriel 版本号发布 `dev.oriel:oriel-{common,neoforge,fabric}-<MC 版本>`。
+jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`（如 `oriel-neoforge-26.1.2-0.11.0.jar`），位于 `<加载器>/versions/<MC 版本>/build/libs/`。发布时会为每个版本、以同一个 Oriel 版本号发布 `dev.oriel:oriel-{common,neoforge,fabric}-<MC 版本>`。
 
 源码以 26.3 为活动版本。26.x 内部的 API 差异使用 `>=26.2`、`>=26.3`、`<26.3` 等 Stonecutter 条件，包名与键名迁移放在 `stonecutter.gradle`。**提交前恢复活动版本 26.3。**
 

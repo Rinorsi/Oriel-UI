@@ -63,10 +63,17 @@ public final class StylesPreset implements PageControllers.Controller {
             {"scene", "oriel:oriel/showcase/scene.html"}, {"layout", "oriel:oriel/demo/layout.html"},
             {"animation", "oriel:oriel/demo/animation.html"}, {"livedata", "oriel:oriel/demo/templates.html"},
             {"forms", "oriel:oriel/demo/settings.html"}, {"achievement", "oriel:oriel/showcase/achievement.html"}};
+    /** The view the centre opens on next time (set by {@link #startAt}), e.g. "demos"; then back to "all". */
+    private static volatile String startView;
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
     private String view = "all", sort = "pick", query = "";
     private Template open;
     private Element grid, drawer, veil, specHome;
+
+    /** The next template centre opens on {@code view} ("demos", "pages", "fav", ...) instead of All. */
+    public static void startAt(String view) {
+        startView = view;
+    }
 
     /** {@code index}: the centre, rather than one of the templates. */
     public StylesPreset(boolean index) {
@@ -114,6 +121,9 @@ public final class StylesPreset implements PageControllers.Controller {
         veil = Dom.byId(doc, "veil");
         specHome = Dom.byId(doc, "tpls");
         buildDemoCards();
+        String start = startView;
+        startView = null;
+        if (start != null) view = start;
         int order = 0;
         for (Element e : doc.querySelectorAll(".tpl")) {
             String id = e.getAttribute("data-id");
@@ -122,6 +132,7 @@ public final class StylesPreset implements PageControllers.Controller {
                     attr(e, "data-ver"), attr(e, "data-date"), tags, attr(e, "data-desc"), e, null, order++);
             templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));
         }
+        for (Element item : doc.querySelectorAll("#side .item")) item.toggleClass("on", item.getAttribute("data-view").equals(view));
         for (Element item : doc.querySelectorAll("#side .item")) {
             Shell.activate(item, () -> {
                 view = item.getAttribute("data-view");
