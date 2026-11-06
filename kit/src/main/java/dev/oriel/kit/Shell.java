@@ -310,8 +310,8 @@ public final class Shell {
             if (close == null) close = bar.querySelector("#close");
             if (close == null || bar.querySelector("[data-action=window]") != null) continue;
             Element button = Dom.html(doc, ("<div class=\"ore-btn icon o-winbtn\" data-action=\"window\" tabindex=\"0\" title=\"" + Lang.html(doc, "oriel.ui.shell.windowed_maximized") + "\">")
-                    + "<img class=\"o-ico i-restore\" src=\"../textures/icons/restore.png\">"
-                    + "<img class=\"o-ico i-max\" src=\"../textures/icons/maximize.png\"></div>");
+                    + "<img class=\"o-ico i-restore\" src=\"oriel:textures/icons/restore.png\">"
+                    + "<img class=\"o-ico i-max\" src=\"oriel:textures/icons/maximize.png\"></div>");
             close.parentElement().insertBefore(button, close);
             activate(button, () -> window(doc, window.equals("max") ? "mini" : "max"));
         }

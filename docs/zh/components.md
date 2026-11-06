@@ -76,7 +76,7 @@ Java：`new Slider(doc, doc.getElementById("power"), 10).onInput(v -> ...).onCom
 
 ## Shell 的 data-* 合同
 
-控制器每次 attach 调用一次 Shell.setup(doc)，返回 Particles。它设置共享主题/字体/图标/窗口模式，接 Widgets/Notice/粒子等；重复 setup 可能重复监听，不要每次刷新再调用。
+控制器每次 attach 调用一次 Shell.setup(doc)，返回 Particles。**纯 HTML 页面（玩家放在 my-pages 里的文件、没有 Java 的资源页）不用写控制器：在 `<html>` 或 `<body>` 上加 `data-oriel-shell`，库就会替它调用同一个 Shell.setup**，于是涟漪、聚光、数字计数、主题与图标切换、`data-action` 的关闭/返回、粒子画布等声明式效果照常生效。有自己控制器的页面不受影响。它设置共享主题/字体/图标/窗口模式，接 Widgets/Notice/粒子等；重复 setup 可能重复监听，不要每次刷新再调用。
 
 | 属性 | 值/默认 | 作用 |
 |---|---|---|

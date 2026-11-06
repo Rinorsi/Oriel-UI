@@ -68,7 +68,7 @@ final class Check {
             List<String> problems = new ArrayList<>();
             int warnings = 0;
             for (int[] size : SIZES) {
-                MinecraftAssets assets = MinecraftAssets.open(PreviewHost.packRoot(page).stream().toList(), jar);
+                MinecraftAssets assets = MinecraftAssets.openForPage(PreviewHost.packRoot(page).stream().toList(), jar);
                 MinecraftFont font = new MinecraftFont(assets);
                 PreviewHost host = new PreviewHost(assets, font);
                 host.setLanguage(language);

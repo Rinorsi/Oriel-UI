@@ -16,7 +16,7 @@ public final class CommandNames {
     /** Demos run by the server ({@code OrielCommand}); the client forwards them itself. */
     public static final List<String> SERVER_DEMOS = List.of("chest", "live");
     /** The show-off pages under {@code assets/oriel/oriel/showcase/}; the same pages are cards in the template centre's Demos view. */
-    public static final List<String> SHOWCASE = List.of("title", "hud", "shop", "mobdex", "journal", "console", "models", "scene");
+    public static final List<String> SHOWCASE = List.of("title", "hud", "shop", "mobdex", "journal", "console", "models", "scene", "achievement");
     /** Kit presets under {@code /oriel showcase}: a page each, and {@code potions}, which toggles the potion HUD overlay. */
     public static final List<String> PRESETS = List.of("inventory", "forge", "music", "settings", "potions", "editor", "catalog", "icons", "templates");
     /** The demo overlay that {@code /oriel showcase toast} toggles. */

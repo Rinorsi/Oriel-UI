@@ -9,6 +9,7 @@ import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.KeyboardEvent;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.kit.Dom;
+import dev.oriel.kit.LocalPage;
 import dev.oriel.kit.Lang;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
@@ -48,7 +49,9 @@ public final class StylesPreset implements PageControllers.Controller {
     private final Set<String> favorites = new LinkedHashSet<>(), saved = new LinkedHashSet<>();
     private final List<String> recent = new ArrayList<>();
     /** Pages found in the player's folder (paths below it, as the game lists them) and their cards. */
-    private final List<String> pages = new ArrayList<>();
+    private record Page(String path, String title, String subtitle, String cover, long modified, long size) {}
+
+    private final List<Page> pages = new ArrayList<>();
     private final List<Element> pageCards = new ArrayList<>();
     private final List<Element> demoCards = new ArrayList<>();
 
@@ -59,7 +62,7 @@ public final class StylesPreset implements PageControllers.Controller {
             {"console", "oriel:oriel/showcase/console.html"}, {"models", "oriel:oriel/showcase/models.html"},
             {"scene", "oriel:oriel/showcase/scene.html"}, {"layout", "oriel:oriel/demo/layout.html"},
             {"animation", "oriel:oriel/demo/animation.html"}, {"livedata", "oriel:oriel/demo/templates.html"},
-            {"forms", "oriel:oriel/demo/settings.html"}};
+            {"forms", "oriel:oriel/demo/settings.html"}, {"achievement", "oriel:oriel/showcase/achievement.html"}};
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
     private String view = "all", sort = "pick", query = "";
     private Template open;
@@ -387,7 +390,16 @@ public final class StylesPreset implements PageControllers.Controller {
         }
         if (o.has("pages")) {
             pages.clear();
-            for (JsonElement e : o.getAsJsonArray("pages")) pages.add(e.getAsString());
+            for (JsonElement e : o.getAsJsonArray("pages")) {
+                if (e.isJsonObject()) {
+                    JsonObject p = e.getAsJsonObject();
+                    String path = p.get("path").getAsString();
+                    pages.add(new Page(path, p.has("title") ? p.get("title").getAsString() : fileName(path), str(p, "subtitle"), str(p, "cover"),
+                            p.has("modified") ? p.get("modified").getAsLong() : 0, p.has("size") ? p.get("size").getAsLong() : 0));
+                } else {
+                    pages.add(new Page(e.getAsString(), fileName(e.getAsString()), "", "", 0, 0));
+                }
+            }
             rebuildPageCards();
         }
         if (o.has("namespace")) namespace = o.get("namespace").getAsString();
@@ -403,20 +415,46 @@ public final class StylesPreset implements PageControllers.Controller {
     private void rebuildPageCards() {
         for (Element c : pageCards) c.remove();
         pageCards.clear();
-        for (String path : pages) {
-            String name = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
-            Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"o-ico\" "
-                    + "src=\"../textures/icons/layers.png\" style=\"position: absolute; left: 40%; top: 35%; width: 20%; height: 30%\"></div>"
-                    + "<div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");
-            card.setAttribute("data-path", path);
-            Dom.text(Dom.query(card, ".meta b"), name);
-            Dom.text(Dom.query(card, ".by span"), path);
+        for (Page page : pages) {
+            String path = page.path();
+            boolean covered = !page.cover().isEmpty();
+            // A cover is the page's own picture; without one the card shows a plain icon.
+            Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\">" + (covered
+                    ? "<img class=\"shot\">"
+                    : "<img class=\"o-ico\" src=\"../textures/icons/layers.png\" style=\"position: absolute; left: 40%; top: 35%; width: 20%; height: 30%\">")
+                    + "</div><div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");
+            if (covered) Dom.query(card, "img.shot").setAttribute("src", namespace + ":" + page.cover());
+            card.setAttribute("data-path", (page.title() + " " + page.subtitle() + " " + path).toLowerCase(Locale.ROOT));
+            card.setAttribute("title", tooltip(page));
+            Dom.text(Dom.query(card, ".meta b"), page.title());
+            Dom.text(Dom.query(card, ".by span"), page.subtitle().isEmpty() ? LocalPage.cut(path, LocalPage.SUBTITLE_MAX) : page.subtitle());
             Shell.activate(card, () -> {
                 returnTo = null;
                 doc.navigate(namespace + ":" + path);
             });
             pageCards.add(card);
         }
+    }
+
+    /** The hover text of a page card: title, subtitle, where the file is, when it changed and how big it is; every line is cut short. */
+    private String tooltip(Page page) {
+        StringBuilder text = new StringBuilder(LocalPage.cut(page.title(), LocalPage.TITLE_MAX));
+        if (!page.subtitle().isEmpty()) text.append('\n').append(LocalPage.cut(page.subtitle(), LocalPage.SUBTITLE_MAX));
+        text.append('\n').append(LocalPage.cut(folder + page.path(), 72));
+        if (page.modified() > 0) {
+            String when = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                    .format(java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(page.modified()), java.time.ZoneId.systemDefault()));
+            text.append('\n').append(when).append(" · ").append(page.size() < 1024 ? page.size() + " B" : String.format(Locale.ROOT, "%.1f KB", page.size() / 1024.0));
+        }
+        return text.toString();
+    }
+
+    private static String str(JsonObject o, String key) {
+        return o.has(key) ? o.get(key).getAsString() : "";
+    }
+
+    private static String fileName(String path) {
+        return path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
     }
 
     private boolean pageMatches(Element card) {

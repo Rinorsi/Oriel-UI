@@ -3,7 +3,7 @@ import path from 'node:path';
 import { ROOT, sha, requireThat, fileHash, walk } from './core.mjs';
 
 export const topics = {
-  overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
+  quickref: 'page-rules.md', showcase: 'showcase.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
   components: 'components.md', design: 'design.md', workflow: 'ui-workflow.md', integration: 'integration.md', validation: 'validation.md',
 };
 export const profileVersions = ['26.1.2', '26.2', '26.3'];
@@ -14,7 +14,7 @@ export function validateProfile(profile = {}) {
   return result;
 }
 export function instructions() {
-  return '先调用 oriel_rules，按 workflow 提示制作共享 HTML/CSS/JS。网页与无头引擎检查通过后创建固定版本验收页，等待用户本人批准，禁止 Agent 代点批准。批准前不得启动任何游戏测试，包括工具自测和冒烟测试，也不得用 CLI 绕过。只有有效回执才能 plan/apply 接入游戏，随后检查游戏回执。资源或目标变化使旧批准失效。调用 oriel_status 获取下一步。';
+  return '先调用 oriel_rules（topic=quickref 是做页面前必读的十条硬规则：字体字号、尺寸、骨架、data-oriel-shell；topic=showcase 是示例页源码导览，做类似效果先读它），再按需读其他主题；按 workflow 提示制作共享 HTML/CSS/JS。网页与无头引擎检查通过后创建固定版本验收页，等待用户本人批准，禁止 Agent 代点批准。批准前不得启动任何游戏测试，包括工具自测和冒烟测试，也不得用 CLI 绕过。只有有效回执才能 plan/apply 接入游戏，随后检查游戏回执。资源或目标变化使旧批准失效。调用 oriel_status 获取下一步。';
 }
 export function prompt(name = 'workflow') {
   requireThat(['workflow', 'revise', 'integrate'].includes(name), 'UNKNOWN_PROMPT', '提示词不存在。');

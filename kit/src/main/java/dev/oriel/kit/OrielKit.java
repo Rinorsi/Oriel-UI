@@ -55,6 +55,7 @@ public final class OrielKit {
         if (registered) return;
         registered = true;
         Lang.register();
+        PageControllers.registerShared(() -> Shell::setup);
         PageControllers.register(GALLERY, GalleryPreset::new);
         PageControllers.register(INVENTORY, InventoryPreset::new);
         PageControllers.register(FORGE, ForgePreset::new);

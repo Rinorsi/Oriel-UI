@@ -60,11 +60,44 @@ public final class MinecraftAssets implements AutoCloseable {
 
     /** Opens {@code packs} (directories or zips containing {@code assets/}), searched in order, then the client jar. */
     public static MinecraftAssets open(List<Path> packs, Optional<Path> clientJar) {
+        return open(packs, clientJar, false);
+    }
+
+    /**
+     * As {@link #open(List, Optional)}, plus the library's own assets (oriel:ui/ore.css, its icons and fonts) from the previewer's class
+     * path, so a page that is not in this repository can link them as it does in game.
+     */
+    public static MinecraftAssets openForPage(List<Path> packs, Optional<Path> clientJar) {
+        return open(packs, clientJar, true);
+    }
+
+    private static MinecraftAssets open(List<Path> packs, Optional<Path> clientJar, boolean withLibrary) {
         List<FileSystem> archives = new ArrayList<>();
         List<Path> roots = new ArrayList<>();
         for (Path pack : packs) roots.add(rootOf(pack, archives));
+        if (withLibrary) libraryPack().ifPresent(pack -> roots.add(rootOf(pack, archives)));
         clientJar.ifPresent(jar -> roots.add(rootOf(jar, archives)));
         return new MinecraftAssets(List.copyOf(roots), archives, clientJar.isPresent());
+    }
+
+    /** The jar or directory the library's {@code assets/oriel/} is loaded from on the previewer's class path, if any. */
+    private static Optional<Path> libraryPack() {
+        try {
+            java.net.URL url = MinecraftAssets.class.getClassLoader().getResource("assets/oriel/ui/ore.css");
+            if (url == null) return Optional.empty();
+            String text = url.toString();
+            if (url.getProtocol().equals("jar")) {
+                String file = text.substring("jar:".length(), text.indexOf("!/"));
+                return Optional.of(Path.of(java.net.URI.create(file)));
+            }
+            if (url.getProtocol().equals("file")) {
+                Path css = Path.of(url.toURI());
+                return Optional.of(css.getParent().getParent().getParent().getParent()); // .../assets/oriel/ui/ore.css -> root
+            }
+        } catch (Exception e) {
+            // no library assets: pages that link them are reported as missing, as before
+        }
+        return Optional.empty();
     }
 
     private static Path rootOf(Path pack, List<FileSystem> archives) {

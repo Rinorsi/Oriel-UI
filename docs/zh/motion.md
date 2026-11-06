@@ -21,7 +21,7 @@ Ore kit 的动画优先用 `ore.css` 里的命名动效和 `dev.oriel.kit.Motion
 | 场景 | 写法 | 效果 |
 |---|---|---|
 | 按下 | `class="m-press"` | 按下缩到 95% 下沉 1px，松开弹回 |
-| 像素涟漪 | `class="m-ripple"`（需控制器调用 Shell.setup） | 从按下的点长出一个方形光环 |
+| 像素涟漪 | `class="m-ripple"`（Java 控制器页面调用 Shell.setup；纯 HTML 页面在 `<html>` 上写 `data-oriel-shell` 即可，见下） | 从按下的点长出一个方形光环 |
 | 悬停抬起 | `.o-tile.hot` 自带；其他元素 `m-lift` | 上浮 2px + 稀有度色光晕 |
 | 指针聚光 | `class="m-spot"` | 一团柔光跟着鼠标走（代替引擎画不了的 3D 倾斜） |
 | 进场 | `m-rise` `m-pop` `m-drop` `m-fade-in` `m-slide-left/right` | 一次性进场 |

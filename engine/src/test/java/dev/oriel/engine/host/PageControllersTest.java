@@ -53,4 +53,19 @@ class PageControllersTest {
         Document doc = Document.parse(host, "test:broken.html", "<p>x</p>");
         assertNotNull(doc.error());
     }
+    @Test
+    void aPageWithoutItsOwnControllerGetsTheSharedOneOnlyWhenItOptsIn() {
+        List<Document> attached = new ArrayList<>();
+        PageControllers.registerShared(() -> attached::add);
+        try {
+            TestHost host = new TestHost();
+            Document.parse(host, "test:plain.html", "<p>x</p>");
+            assertTrue(attached.isEmpty());
+            Document root = Document.parse(host, "test:optin-root.html", "<html data-oriel-shell><body><p>x</p></body></html>");
+            Document body = Document.parse(host, "test:optin-body.html", "<body data-oriel-shell><p>x</p></body>");
+            assertEquals(List.of(root, body), attached);
+        } finally {
+            PageControllers.registerShared(null);
+        }
+    }
 }

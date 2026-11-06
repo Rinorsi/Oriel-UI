@@ -31,7 +31,12 @@ AI 客户端 ──stdio──▶ MCP 服务器 ──▶ 状态目录（项目�
 - **看状态用 `oriel_status`**：返回当前阶段、检查/验收/接入/游戏回执和下一步。更细的看状态目录：`jobs/<作业号>/game.log`（游戏日志）、`game-receipt.json`（游戏回执）、截图。
 - **状态目录**：环境变量 `ORIEL_MCP_STATE`；没设置时是工作区的 `daily/<日期>/scratch/mcp-workflow`，里面有 `projects/`、`revisions/`、`reviews/`、`plans/`、`jobs/`。MCP 服务器重启后，项目和验收记录可以从同一目录恢复。
 
-### 一个页面的阶段
+### 两条路
+
+- **快速迭代（默认）**：不用 MCP 的验收和接入。直接把页面写进用户游戏的 `config/oriel/my-pages/<项目名>/`，热重载（发布版 jar 也支持），用 `oriel_check` 和 `oriel_snapshot` 把关、把截图发到对话里。
+- **正式交付**：下面这条完整链路，要用户批准。
+
+### 一个页面的阶段（正式交付）
 
 | 阶段 | 做什么 | 工具 |
 |---|---|---|
@@ -140,7 +145,7 @@ topic：overview/html/css/javascript/components/design/workflow/integration/vali
 
 ## 网页桥接和验收
 
-用户验收（网页点击，或截图验收里用户在聊天中的明确同意）之前不得启动任何游戏客户端或游戏内自测，包括基础设施探针、冒烟测试及其他页面。编译、无头 Oriel 引擎与浏览器测试可以先执行；不能以工具开发验证为由通过 CLI 绕过顺序。
+**正式交付流程里**，用户验收（网页点击，或截图验收里用户在聊天中的明确同意）之前不得启动任何游戏客户端或游戏内自测，包括基础设施探针、冒烟测试及其他页面。编译、无头 Oriel 引擎与浏览器测试可以先执行；不能以工具开发验证为由通过 CLI 绕过顺序。
 
 工具把资源 ID 映射到本地 URL，注入独立 oriel 桥接，提供 fixture、事件订阅、翻译和 nextTick。默认 send 记录模拟消息并返回 false；不会伪造服务器成功。可选 browser/mock.js 在共享页面脚本前加载。item/slot/entity/model/scene 是带说明的占位；原生字体、布局和 GPU 效果仍要看引擎/游戏结果。浏览器支持的完整平台不是新增的 Oriel 能力。
 

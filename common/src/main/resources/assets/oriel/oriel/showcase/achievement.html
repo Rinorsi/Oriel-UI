@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>地下城 · 成就提示</title>
+  <link rel="stylesheet" href="oriel:ui/ore.css">
+  <link rel="stylesheet" href="showcase.css">
+  <style>
+    /* A single reusable notice, presented like the other showcase pages. No control dashboard. */
+    html { font-family: oriel:pixel_12; font-size: 12px; }
+    body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: var(--o-bg); }
+    :root { --reward: #f7cf61; --reward-edge: #b28a41; --notice: #2d2820; --experience: #b98de5; }
+    .backdrop { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 75% 40%, #363026, #171c21 65%, #10151b); }
+    .stone { position: absolute; bottom: 0; width: 10%; background: linear-gradient(90deg,#11191d,#253034 70%,#12191e); border-top: 2px solid #3c4140; }
+    .stone.one { left: 5%; height: 50%; }
+    .stone.two { left: 21%; height: 68%; width: 7%; }
+    .stone.three { right: 5%; height: 38%; width: 8%; }
+    .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 17%; background: linear-gradient(#22282a,#11171d); border-top: 1px solid #41433d; }
+    .light { position: absolute; left: 15%; bottom: 17%; width: 120px; height: 120px; background: radial-gradient(ellipse,#b9863433,transparent 65%); }
+    .caption { position: absolute; left: 24px; bottom: 24px; color: #a6a9a9; font-size: 12px; line-height: 1.6; }
+    .caption b { display: block; color: #d6d5ca; font-size: 12px; font-weight: normal; }
+    .caption span { font-size: 12px; color: #858d91; }
+    .notice-anchor { position: absolute; top: 28%; right: 24px; width: 328px; max-width: calc(100vw - 48px); }
+    .notice-frame { padding: 1px; background: var(--reward-edge); clip-path: polygon(10px 0,100% 0,100% 100%,0 100%,0 10px); }
+    .notice { position: relative; display: flex; align-items: center; gap: 16px; padding: 16px 16px 16px 20px; min-height: 92px; background: var(--notice); clip-path: polygon(10px 0,100% 0,100% 100%,0 100%,0 10px); overflow: hidden; }
+    .edge { position: absolute; left: 0; top: 12px; bottom: 0; width: 3px; background: var(--reward); }
+    .gem { width: 46px; height: 46px; flex-shrink: 0; margin: 6px; border: 3px solid var(--reward); background: #131819; transform: rotate(45deg); box-shadow: inset 0 0 0 2px #765522, 0 0 12px #ad7b3144; display: flex; align-items: center; justify-content: center; }
+    .gem item { width: 32px; height: 32px; transform: rotate(-45deg); }
+    .copy { flex: 1; min-width: 0; }
+    .notice h1 { margin: 0 0 8px; font-size: 24px; font-weight: normal; color: var(--reward); text-shadow: 2px 2px 0 #1d1405; white-space: nowrap; }
+    .notice p { margin: 0; font-size: 12px; color: #ede9df; line-height: 1.5; }
+    .xp { margin-top: 6px; color: var(--experience); font-family: minecraft:default; font-size: 8px; text-align: right; }
+    .shine { position: absolute; left: -50px; top: 0; bottom: 0; width: 36px; background: linear-gradient(90deg,transparent,#fff1b5,transparent); opacity: .15; pointer-events: none; }
+    .hint { margin-top: 12px; color: #a7a49c; font-size: 12px; text-align: right; }
+    .hidden { display: none; }
+    @media(max-width:560px) {
+      .notice-anchor { right: 20px; top: 25%; width: 320px; max-width: calc(100vw - 40px); }
+      .notice { padding: 12px 12px 12px 16px; gap: 12px; min-height: 88px; }
+      .caption { left: 20px; bottom: 16px; }
+      .caption span { display: none; }
+    }
+    html[data-motion="reduced"] .shine { display: none; }
+  </style>
+</head>
+<body class="fullscreen">
+  <div class="backdrop" id="backdrop"><div class="stone one"></div><div class="stone two"></div><div class="stone three"></div><div class="floor"></div><div class="light"></div></div>
+  <div class="caption" id="caption"><b id="caption-title">地下城 · 成就提示</b><span id="caption-detail">斜角面板 / 菱形物品框 / 掠光</span></div>
+  <section class="notice-anchor" id="anchor" aria-live="polite">
+    <div class="notice-frame" id="notice-frame"><div class="notice">
+      <div class="edge"></div><div class="gem"><item id="minecraft:diamond_pickaxe" data-icon="true"></item></div>
+      <div class="copy"><h1 id="title">成就解锁！</h1><p id="message">深渊的第一步</p><div class="xp" id="reward">+50 XP</div></div>
+      <div class="shine" id="shine"></div>
+    </div></div>
+    <div class="hint" id="hint">R 重播 · Esc 返回</div>
+  </section>
+  <script>
+    // Opening the showcase plays once. R replays only in standalone demonstration mode.
+    // A consumer can supply {overlay:true, title, message, item, reward, reducedMotion}.
+    var data = (typeof oriel !== 'undefined' && oriel.data) || {};
+    var overlay = data.overlay === true;
+    var animations = [];
+    var timer = null;
+    var frame = document.getElementById('notice-frame');
+    function text(id, value) { document.getElementById(id).textContent = String(value); }
+    function stop() { animations.forEach(function(a) { a.cancel(); }); animations = []; if (timer !== null) clearTimeout(timer); timer = null; }
+    function reduced() { return data.reducedMotion === true || document.documentElement.getAttribute('data-motion') === 'reduced'; }
+    function duration(name, fallback) {
+      var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      if (!value) return fallback;
+      var n = parseFloat(value); return Number.isFinite(n) ? (value.endsWith('ms') ? n : n * 1000) : fallback;
+    }
+    function play() {
+      stop();
+      document.getElementById('anchor').classList.remove('hidden');
+      if (!reduced()) {
+        animations.push(frame.animate([{opacity:0,transform:'translateX(24px)'},{opacity:1,transform:'translateX(0px)'}],{duration:duration('--m-slow',360),easing:'cubic-bezier(0.2,0.8,0.2,1)',fill:'both'}));
+        animations.push(document.getElementById('shine').animate([{left:'-50px'},{left:'110%'}],{duration:duration('--m-slow',360)*2,delay:duration('--m-base',220),easing:'ease-out'}));
+      }
+      if (overlay) timer=setTimeout(function(){document.getElementById('anchor').classList.add('hidden');stop();},4500);
+    }
+    function update(next) {
+      data=next||{}; overlay=data.overlay===true;
+      document.getElementById('backdrop').classList.toggle('hidden',overlay);
+      document.getElementById('caption').classList.toggle('hidden',overlay);
+      document.getElementById('hint').classList.toggle('hidden',overlay);
+      document.body.style.background=overlay?'transparent':'';
+      var en=data.locale==='en_us';
+      text('title',data.title||(en?'UNLOCKED!':'成就解锁！'));
+      text('message',data.message||(en?'The first step into the deep':'深渊的第一步'));
+      text('reward',data.reward||'+50 XP');
+      text('hint',en?'R Replay / Esc Back':'R 重播 · Esc 返回');
+      text('caption-title',en?'DUNGEONS / ADVANCEMENT':'地下城 · 成就提示');
+      text('caption-detail',en?'Cut corners / Item frame / Light sweep':'斜角面板 / 菱形物品框 / 掠光');
+      document.querySelector('[data-icon]').setAttribute('id',data.item||'minecraft:diamond_pickaxe');
+      document.documentElement.setAttribute('data-motion',data.reducedMotion?'reduced':'full');
+      play();
+    }
+    window.addEventListener('keydown',function(e){
+      if(!overlay&&(e.key==='r'||e.key==='R')){e.preventDefault();play();}
+      if(!overlay&&e.key==='Escape'){e.preventDefault();location.href='oriel:ui/styles.html';}
+    });
+    window.addEventListener('pagehide',stop); window.addEventListener('unload',stop);
+    if(typeof oriel!=='undefined'&&oriel.on)oriel.on('data',function(next){update(next||oriel.data);});
+    update(data);
+  </script>
+</body>
+</html>
+

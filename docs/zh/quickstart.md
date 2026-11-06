@@ -155,7 +155,7 @@ public final class MyModClient implements ClientModInitializer {
   <title>Hello</title>
   <style>
     .box { width: 200px; padding: 8px; background: #2b2b2b; border: 1px solid #777; }
-    h1 { margin: 0 0 6px; font-size: 12px; }
+    h1 { margin: 0 0 6px; font-size: 16px; }
     button { margin-top: 6px; }
   </style>
 </head>
@@ -192,6 +192,20 @@ public final class MyModClient implements ClientModInitializer {
 | 看库自带的例子 | `/oriel showcase`（首页画廊，后面可加页面名）；示例页面源码在库 jar 的 `assets/oriel/oriel/showcase/` 下（可用 `unzip` 查看） |
 | 确认库已加载 | 日志里应有 `Oriel UI runtime version: 0.10.0`，模组列表里有 `oriel` |
 | 页面写错了 | 不支持的 CSS/HTML 会在日志里报带文件和位置的诊断，不会静默忽略 |
+
+## 我的页面：标题、副标题、封面，以及库的动效
+
+放进 `config/oriel/my-pages/` 的页面会出现在 模板中心 → 我的页面。卡片上的内容都写在页面自己的 `<head>` 里，全部可选：
+
+```html
+<html data-oriel-shell>   <!-- 想要涟漪、聚光、数字计数、主题切换等库的效果就加；纯展示可以不加 -->
+<head>
+  <title>物品工坊</title>                                          <!-- 标题，最长 40 字，没写用文件夹名/文件名 -->
+  <meta name="oriel-subtitle" content="编辑手里物品的组件">          <!-- 副标题，最长 80 字；没写用 description，再没有就显示路径 -->
+  <meta name="oriel-cover" content="images/cover.png">             <!-- 封面 PNG，相对页面；没写则找同目录的 cover.png，再找 页面名.png -->
+```
+
+封面推荐 16:9（官方封面 320×180），其他比例会被裁切；封面必须是文件夹内的 PNG。鼠标放到卡片上会显示完整标题、副标题、文件路径、修改时间和大小，超长内容会被截断，不会出框。
 
 ## 页面路径约定
 

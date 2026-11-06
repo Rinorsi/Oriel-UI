@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.oriel.kit.LocalPage;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.preset.StylesPreset;
 import dev.oriel.mod.client.OrielScreens;
@@ -136,19 +137,32 @@ public final class TemplateLibrary {
         List<String> saved = new ArrayList<>();
         if (dir != null) for (String id : StylesPreset.PAGES) if (Files.exists(dir.resolve(id + ".html"))) saved.add(id);
         o.add("saved", array(saved));
-        o.add("pages", array(pages()));
+        o.add("pages", pages());
         o.addProperty("folder", dir == null ? "" : dir.toString());
         o.addProperty("namespace", NAMESPACE);
         return o;
     }
 
-    /** Every page in the folder, below it and with / separators: what a player dropped there or a tool copied in. */
-    private static List<String> pages() {
-        List<String> found = new ArrayList<>();
+    /**
+     * Every page in the folder, below it and with / separators: what a player dropped there or a tool copied in, each as
+     * {@code {"path", "title", "subtitle", "cover", "modified", "size"}} (see {@link LocalPage}); the subtitle and the cover are empty when the page has none.
+     */
+    private static JsonArray pages() {
+        JsonArray found = new JsonArray();
         if (dir == null || !Files.isDirectory(dir)) return found;
         try (var walk = Files.walk(dir, 5)) {
             walk.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".html"))
-                    .map(p -> dir.relativize(p).toString().replace('\\', '/')).sorted().limit(300).forEach(found::add);
+                    .sorted().limit(300).forEach(p -> {
+                        LocalPage.Info info = LocalPage.read(dir, p);
+                        JsonObject page = new JsonObject();
+                        page.addProperty("path", info.path());
+                        page.addProperty("title", info.title());
+                        page.addProperty("subtitle", info.subtitle());
+                        page.addProperty("cover", info.cover());
+                        page.addProperty("modified", info.modified());
+                        page.addProperty("size", info.size());
+                        found.add(page);
+                    });
         } catch (IOException | RuntimeException e) {
             Constants.LOG.warn("Oriel: could not list {}: {}", dir, e.toString());
         }

@@ -31,6 +31,9 @@ public final class PageControllers {
     }
 
     private static final Map<String, Supplier<? extends Controller>> BY_URL = new ConcurrentHashMap<>();
+    private static volatile Supplier<? extends Controller> shared;
+    /** The attribute a page puts on {@code <html>} (or {@code <body>}) to get the shared behaviour. */
+    public static final String OPT_IN = "data-oriel-shell";
 
     private PageControllers() {}
 
@@ -39,13 +42,29 @@ public final class PageControllers {
         BY_URL.put(url, factory);
     }
 
+    /**
+     * Registers the controller that any page without its own gets by opting in with {@value #OPT_IN} on its root: a page
+     * that is only HTML and CSS (a player's file in a folder, a mod's resource) then has the library's shared behaviour.
+     */
+    public static void registerShared(Supplier<? extends Controller> factory) {
+        shared = factory;
+    }
+
     public static boolean has(String url) {
         return BY_URL.containsKey(url);
     }
 
-    /** Attaches the controller registered for the document's URL, if there is one. */
+    private static boolean optsIn(Document document) {
+        var root = document.documentElement();
+        if (root != null && root.hasAttribute(OPT_IN)) return true;
+        var body = document.body();
+        return body != null && body.hasAttribute(OPT_IN);
+    }
+
+    /** Attaches the controller registered for the document's URL, else the shared one for a page that opts in, if there is one. */
     public static void attach(Document document) {
         Supplier<? extends Controller> factory = BY_URL.get(document.url());
+        if (factory == null && shared != null && optsIn(document)) factory = shared;
         if (factory == null) return;
         Controller controller = factory.get();
         document.setController(controller);

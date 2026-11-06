@@ -1899,6 +1899,8 @@
   "oriel.ui.styles.view.demos.sub": "旧版模组自带的 Showcase 演示页，现已并入模板中心；点开查看，Esc 关闭",
   "oriel.ui.styles.demo.title.title": "标题画面",
   "oriel.ui.styles.demo.title.desc": "视差黄昏的标题画面",
+  "oriel.ui.styles.demo.achievement.title": "地下城 · 成就提示",
+  "oriel.ui.styles.demo.achievement.desc": "斜角提示与菱形物品框",
   "oriel.ui.styles.demo.hud.title": "HUD 套件",
   "oriel.ui.styles.demo.hud.desc": "Boss 血条与提示",
   "oriel.ui.styles.demo.shop.title": "商人集市",

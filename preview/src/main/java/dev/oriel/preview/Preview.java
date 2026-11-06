@@ -136,7 +136,7 @@ public final class Preview {
         System.out.println(jar.map(j -> "Minecraft assets: " + j).orElse("No Minecraft " + MinecraftAssets.MINECRAFT_VERSION
                 + " jar found (set -D" + MinecraftAssets.JAR_PROPERTY + " or " + MinecraftAssets.JAR_ENV + "); using a fallback font"));
         Optional<Path> pack = options.canvasTest() ? Optional.empty() : PreviewHost.packRoot(options.page());
-        MinecraftAssets assets = MinecraftAssets.open(pack.stream().toList(), jar);
+        MinecraftAssets assets = MinecraftAssets.openForPage(pack.stream().toList(), jar);
         MinecraftFont font = new MinecraftFont(assets);
         PreviewHost host = new PreviewHost(assets, font);
         host.setLanguage(options.language());

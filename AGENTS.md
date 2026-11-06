@@ -67,9 +67,12 @@
 
 ## UI 工作流（AI 快速入口）
 
-**用户网页验收前不得启动任何游戏客户端或游戏内测试，包括工具探针、冒烟测试和其他示例页；仅运行编译、无头预览及网页测试。不得通过 Gradle/CLI 绕过这一顺序。**
+**做页面有两条路，默认走第一条（边改边看）：**
 
-**默认先网页验收，再通过 MCP 接入游戏。** 读取 docs/zh/agent-prompts.md 和 docs/zh/mcp.md，调用 oriel_rules → oriel_project → oriel_web_preview → oriel_check/oriel_snapshot → oriel_review.prepare。用户本人批准固定版本后，才调用 oriel_integrate.plan/apply → oriel_game_preview。Agent 禁止代点批准或修改验收记录；规则、资源、数据或目标变化须重新检查和验收。旧三工具仍兼容，但只有项目模式产生有效验收。完整流程统一在 ui-workflow.md。
+1. **快速迭代（默认）**：把页面写进用户游戏的 `config/oriel/my-pages/<项目名>/`（路径看游戏日志里 `Oriel: pages in 'oriel_mine:' come from …`，或问用户）。用户的游戏开着时，**保存页面读过的任何文件都会热重载，发布版 jar 也一样**，用户直接在游戏里看到。你用 `oriel_snapshot` 或预览器截图（640×360 和 427×240）发到对话里给用户看，**不需要先走网页验收、不需要批准、不要自己再启动一个游戏**。每轮先 `oriel_check`（警告为 0）再保存。游戏里打开：`/oriel open oriel_mine:<项目名>/index.html`。
+2. **正式交付（要进模组或本仓库时才走）**：`oriel_project` → `oriel_check` → `oriel_review`（网页点击，或 `mode=screenshots` 看图后聊天同意）→ 用户批准固定版本后 `oriel_integrate`（`oriel-dev` 写本仓库，`oriel-folder` 写指定文件夹）→ `oriel_game_preview`。Agent 禁止代点批准或修改验收记录；规则、资源、数据或目标变化须重新检查和验收。详见 docs/zh/agent-prompts.md、docs/zh/mcp.md、ui-workflow.md。
+
+不管走哪条：先读 `oriel_rules` 的 `quickref`；在用户没有要求时，不为"测试工具"启动游戏客户端。
 
 **先读 `docs/zh/index.md`、`docs/zh/capabilities.md`、`docs/zh/ui-workflow.md`。页面开发的能力清单、参数与限制以这套文档为入口，不让新 agent 重新翻引擎整理清单。** 下列 kit 步骤是项目内 Java 控制器路线；库同时支持受限 JavaScript，范围见 `docs/zh/scripting.md`。
 
@@ -84,6 +87,36 @@
 3. 页面只写 HTML/CSS（`kit/src/main/resources/assets/oriel/ui/`，样式库 `ore.css`）；交互在 Java 控制器（`kit/.../preset/*Preset.java`），共用件在 `kit/.../kit/`（`Shell`、`Dom`、`Flip`、`Slider`、`fx/Particles`）。
 4. 每次改完：`./gradlew :kit:test :preview:checkUi`。排查布局：预览器 `--snapshot out.png --frames 60 --boxes "<选择器>"`。MCP：`node tools/mcp/oriel-preview.mjs`（检查、截图、交互）。
 5. 进游戏验收：`./gradlew :fabric:26.1:runClient -Pautopilot=oriel`（自动打开每个界面并截图，1280×720）。截图、日志放工作区 `daily/<日期>/`。
+
+## UI 设计规范（简版：怎么做出好看的界面）
+
+先读 `docs/zh/page-rules.md`（字体字号、尺寸、可复制的骨架），再按下面做。细节在 `design.md`、`motion.md`、`recipes.md`。
+
+**1. 先看，再做，不从空白开始**
+- **主参考是 showcase**：源码在 `common/src/main/resources/assets/oriel/oriel/showcase/` 和 `.../demo/`，导览（每个效果在第几行、怎么复用）见 `docs/zh/showcase.md`（MCP：`oriel_rules` 的 `topic=showcase`）。要做哪类效果，先读对应页面的源码，不要从零发明。
+- 进游戏看：`/oriel showcase`（首页）→ 模板中心的「演示」（12 个整页示例：标题画面、HUD、商店、图鉴、日志、控制台等）；9 个官方模板和预设页是**次级参考**（整套风格、控制器写法）；`/oriel showcase catalog` 是所有组件与动效的活目录。
+- 挑最接近的一个当起点（`recipes.md` 有布局套路，先挑一个再改），把它的结构和类名学过来，不要自己重新发明。
+- 想借风格（光影、几何、配色分工）：工作区 `research/visual/` 有《我的世界：地下城》、Ore UI、Minecraft 品牌的风格指南和截图；只学风格，不复制美术资产。
+
+**2. 用库的现成件，不手写一套**
+- 外壳：`.o-app > .o-window > .o-titlebar + .o-body`；控件：`.ore-btn`、`.ore-field`、`.ore-slot`、`.o-chip`、`.o-row`、`.o-seg`；图标用 `oriel_pages` 查名（200 个 16×16 像素图标）。
+- 颜色只用变量（`--o-text`、`--o-accent`、`--o-tile`、`--o-well`、`--o-line`…），这样暗色/亮色主题自动成立；稀有度用 `.r-common … .r-mythic`。
+- 动效只用 `m-*` / `fx-*` 类和 `--m-*` 曲线，不自己写时长；纯 HTML 页面在 `<html>` 加 `data-oriel-shell` 就能用涟漪、聚光、数字计数。
+
+**3. 好看的来源是层级和克制，不是堆效果**
+- 只有三层：底（世界压暗）→ 面（窗体）→ 浮（扁平块）。块里不再放块，分组用间距、小标题、分隔线。
+- 一屏只有一个主操作（绿色主按钮）和一个视觉焦点；光效分级使用（普通无光，史诗呼吸，传说才扫光），常驻动画不超过 3 处，**不要所有东西都发光**。
+- 间距 2/4/6/8/12，图标 16 或 32，对齐到同一条线；留白比再加一个装饰更值钱。
+- 配色分工（来自地下城参考，作风格建议而非硬规定）：金=奖励、红=危险、紫=魔法/经验、绿=主按钮/确认；几何偏直角，少圆角。
+
+**4. 动效要有"手感"，但克制**
+- 悬停/按下 120–160ms，展开/插入 220–360ms，弹出/强调 260–320ms 带轻微回弹；进场逐个延迟 40ms；成功 `fx-pop`、失败 `fx-shake`。
+- 页面切换、选中标签光条、数字滚动、涟漪、聚光这些用库自带的，不要重做。减少动效模式下要全部关闭。
+
+**5. 交付前自检（逐条做完再说"好了"）**
+- 640×360 和 427×240 各截一张图，**并排对照参考页**：对齐、字号、留白、有没有文字出框。
+- `preview --check --strict`（MCP 用 `oriel_check`）警告为 0；字号落在像素字阶梯上；中文用 `oriel:pixel_12` 12px。
+- 进游戏看一次真实效果，再把截图给用户确认；不要自己宣布"漂亮"。
 
 ## 能力与验证记录
 
