@@ -1,6 +1,6 @@
 # 优易库设计规范（Ore 像素主题 v2）
 
-相关：动效 `motion.md`、布局套路 `recipes.md`、做页面流程 `making-a-page.md`；游戏里 `/oriel demo catalog` 是所有组件与动效的活目录。
+相关：动效 `motion.md`、布局套路 `recipes.md`、做页面流程 `ui-workflow.md`；游戏里 `/oriel demo catalog` 是所有组件与动效的活目录。
 
 适用于 `kit/src/main/resources/assets/oriel/ui/` 下的所有页面。样式全部在 `ore.css`，页面只写布局。
 
@@ -61,7 +61,7 @@
 | 弹出、强调 | 260–320ms | `--o-ease-back`（轻微回弹） |
 | 呼吸、扫光、漂浮 | 1.6–3.2s 循环 | ease-in-out / linear |
 
-- 进场：窗体 `o-window-in`，块 `fx-rise` 逐个延迟 40ms。
+- 进场：块 `fx-rise` 逐个延迟 40ms（窗体本身没有专用进场类）。
 - 反馈：成功 `fx-pop`，失败 `fx-shake`。
 
 ## 7. 粒子（`dev.oriel.kit.fx.Particles`）

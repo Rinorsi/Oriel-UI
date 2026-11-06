@@ -1,6 +1,6 @@
 # Ore 组件与参数
 
-[入口](index.md) · [设计](design.md) · [动效](motion.md) · [制作流程](making-a-page.md)
+[入口](index.md) · [设计](design.md) · [动效](motion.md) · [制作流程](ui-workflow.md)
 
 主题资源：`oriel:ui/ore.css`。kit 与 PageControllers 是项目内复用层，尚非独立稳定第三方 SDK。**加载 CSS 只得到外观；Shell/Widgets 的 data-* 行为必须有控制器接线。**
 

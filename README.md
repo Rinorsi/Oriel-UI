@@ -29,7 +29,7 @@
 | [接入指南](docs/zh/integration.md) | 依赖、打开页面、HUD、服务端、容器 |
 | [服务端篇](docs/zh/server.md) | 什么界面需要服务端、数据怎么流、谁负责校验 |
 | [CSS 支持参考](docs/zh/css-reference.md) | 属性、选择器、函数的支持情况（由引擎生成） |
-| [做一个新页面](docs/zh/making-a-page.md) | 脚手架、页面结构、控制器 |
+| [做一个新页面](docs/zh/ui-workflow.md) | 脚手架、页面结构、控制器 |
 
 ## 构建
 

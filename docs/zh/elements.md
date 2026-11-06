@@ -30,6 +30,15 @@ Java 控制器可显式启用 o-text/o-for/o-key/o-if/o-class:*/o-attr:*/o-on:* 
 
 焦点：可交互的 div 应给 `tabindex="0"` 并接 Enter/Space；优先原生 button/input。tabindex=-1 允许程序聚焦而不加入普通 Tab 顺序。朗读使用 aria-label、aria-labelledby、aria-describedby、aria-hidden、aria-live 等，准确范围见 [朗读参考](../api/narration.md)。
 
+## 内置页面类
+
+来自内置样式表（`ua.css`），页面可直接使用：
+
+| 类 | 作用 |
+|---|---|
+| `mc-dim` | 游戏内菜单背后的暗色渐变（写在 `html` 上） |
+| `mc-center` | 让页面内容在屏幕中居中，类似原版容器界面（写在 `body` 上；`display:flex` 居中，`min-height:100vh`） |
+
 ## 表单
 
 | 元素 | 字段/缺省 | 使用说明 |

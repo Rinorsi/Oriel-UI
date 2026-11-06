@@ -6,10 +6,12 @@
 
 ## 第一次制作页面，按这个顺序读
 
+**只有库 jar、没有本仓库？** 先看 [只有 jar 时的最小 Fabric 工程](quickstart.md)：完整的构建文件、入口类和页面，已实际编译并启动验证。
+
 使用 Agent 时，先打开 [MCP 接入手册](mcp.md)和[调用提示词](agent-prompts.md)，按[网页验收 → 游戏接入流程](ui-workflow.md)制作。MCP 提供规则查询、可交互网页预览、严格检查、固定版本人工验收与受控游戏接入。
 
 1. [能做什么、不能做什么](capabilities.md)：选择 Screen、HUD、服务端页面或真实容器；先排除不支持的路线。
-2. [从 H5 到游戏的完整流程](making-a-page.md)：文件、状态、交互、资源映射、接入、每层验收和完成条件。
+2. [从 H5 到游戏的完整流程](ui-workflow.md)：文件、状态、交互、资源映射、接入、每层验收和完成条件。
 3. [设计规范](design.md)、[组件与参数](components.md)、[动效规范](motion.md)：Ore 外壳、主题、控件、反馈、字体与粒子。
 4. [CSS 参数参考](css-guide.md)、[HTML 与 Minecraft 元素](elements.md)：准确的名称、取值、默认、单位、限制和例子。
 5. [脚本与交互合同](scripting.md)：Java/JS 两条路线、模板、DOM、事件、数据流、浏览器适配。
@@ -21,14 +23,14 @@
 | 我要做 | 读这里 |
 |---|---|
 | Ore 风格物品组件编辑器 | [组件](components.md) → [编辑器字段合同](item-editor.md) → [服务端](server.md) |
-| 浏览器里先把视觉做好，再移植 | [制作流程](making-a-page.md)，特别是浏览器桥接和四层验收 |
+| 浏览器里先把视觉做好，再移植 | [制作流程](ui-workflow.md)，特别是浏览器桥接和四层验收 |
 | 查某个 CSS 属性、选择器或单位 | [CSS 参数参考](css-guide.md)；先看顶部的语义例外 |
 | 查 `<item>` / `<entity>` / `<scene>` 的属性 | [元素参数](elements.md) |
 | 查按钮、开关、下拉、抽屉和主题怎么写 | [组件与参数](components.md) |
 | 查可用动画和粒子 | [动效](motion.md)与[组件](components.md) |
 | 查 JS 能否用 fetch、模块、Canvas、Vue | [脚本与交互合同](scripting.md) |
 | 用 Java ViewModel 驱动 o-text/o-for 等指令 | [Java 声明式绑定](bindings.md)：路径、稳定 key、诊断与可运行示例 |
-| 换一个 agent 继续做 UI | 把本页和 [制作流程](making-a-page.md)交给它，再给业务字段合同 |
+| 换一个 agent 继续做 UI | 把本页和 [制作流程](ui-workflow.md)交给它，再给业务字段合同 |
 | 新增、删除、改名一个能力或字段 | [维护约定](maintenance.md)：同一次变更同步哪些文档 |
 | 了解引擎工作原理 | [架构](architecture.md)；页面作者无需先读 |
 

@@ -21,6 +21,8 @@ C 和 D 的原理与完整例子见 [服务端篇](server.md)。
 
 ## 2. 获取与依赖
 
+只有 jar、没有仓库时，直接看 [只有 jar 时的最小 Fabric 工程](quickstart.md)（`implementation files(...)` 的写法，已验证）。
+
 在本仓库里 `./gradlew build`，每个目标的 jar 在 `<加载器>/versions/<MC 版本>/build/libs/oriel-<加载器>-<MC 版本>-<版本>.jar`。把它放进测试环境的 `mods/`，开发时让你的工程依赖这个 jar。
 
 模组 id 固定为 `oriel`。在你的 `neoforge.mods.toml` / `fabric.mod.json` 里声明为**必需依赖**；想把库打进自己的 jar，用 Jar-in-Jar（NeoForge 的 `jarJar`、Fabric 的 `include`）。多个模组都带了本库时，加载器须先满足全部消费者的版本约束，再选择一份可用版本；约束无交集应拒绝加载，不能保证总是选最新版。
@@ -43,9 +45,9 @@ src/main/resources/assets/mymod/oriel/shop.css       →  页面里 <link rel="s
 src/main/resources/assets/mymod/oriel/icon.png       →  <img src="icon.png">
 ```
 
-- URL 是 Minecraft 风格的标识符：`命名空间:路径`。相对引用按页面所在目录解析。
+- URL 是 Minecraft 风格的标识符：`命名空间:路径`，**命名空间必须是你的模组 id**；路径没有强制目录，本手册示例统一用 `oriel/`。库自己的内置页面放在 `assets/oriel/ui/…` 与 `assets/oriel/oriel/…`，那只是库内部的习惯。相对引用按页面所在目录解析。
 - 资源包可以覆盖你的页面，玩家因此能换皮肤。
-- Ore 像素主题的结构和类名见 [做一个新页面](making-a-page.md) 与 [设计规范](design.md)。不用主题，自己写 CSS 也完全可以。
+- Ore 像素主题的结构和类名见 [制作流程](ui-workflow.md) 与 [设计规范](design.md)。不用主题，自己写 CSS 也完全可以。
 - 开发环境下，保存页面文件会热重载已打开的页面，不用重启游戏。
 
 ## 4. 客户端打开页面（A 类）
