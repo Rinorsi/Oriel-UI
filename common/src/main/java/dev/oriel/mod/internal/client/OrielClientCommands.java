@@ -66,7 +66,7 @@ public final class OrielClientCommands {
             togglePotionHud();
             return;
         }
-        OrielScreens.open(OrielKit.page(name));
+        OrielScreens.open(name.equals("templates") ? OrielKit.STYLES : OrielKit.page(name));
     }
 
     /** Shows or hides the potion HUD preset, which takes the pointer while chat is open. */
@@ -108,6 +108,7 @@ public final class OrielClientCommands {
     /** The page a {@link CommandNames#BASICS} word opens. */
     private static String basicsPage(String word) {
         return switch (word) {
+            case "livedata" -> "templates";
             case "forms" -> "settings";
             case "titlecard" -> "hud";
             default -> word;

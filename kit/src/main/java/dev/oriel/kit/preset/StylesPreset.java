@@ -50,6 +50,16 @@ public final class StylesPreset implements PageControllers.Controller {
     /** Pages found in the player's folder (paths below it, as the game lists them) and their cards. */
     private final List<String> pages = new ArrayList<>();
     private final List<Element> pageCards = new ArrayList<>();
+    private final List<Element> demoCards = new ArrayList<>();
+
+    /** Finished demo pages the centre lists next to the templates: id, the page they open (cover: textures/ui/demos/id.png). */
+    private static final String[][] DEMOS = {
+            {"title", "oriel:oriel/showcase/title.html"}, {"hud", "oriel:oriel/showcase/hud.html"}, {"shop", "oriel:oriel/showcase/shop.html"},
+            {"mobdex", "oriel:oriel/showcase/mobdex.html"}, {"journal", "oriel:oriel/showcase/journal.html"},
+            {"console", "oriel:oriel/showcase/console.html"}, {"models", "oriel:oriel/showcase/models.html"},
+            {"scene", "oriel:oriel/showcase/scene.html"}, {"layout", "oriel:oriel/demo/layout.html"},
+            {"animation", "oriel:oriel/demo/animation.html"}, {"livedata", "oriel:oriel/demo/templates.html"},
+            {"forms", "oriel:oriel/demo/settings.html"}};
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
     private String view = "all", sort = "pick", query = "";
     private Template open;
@@ -100,6 +110,7 @@ public final class StylesPreset implements PageControllers.Controller {
         drawer = Dom.byId(doc, "drawer");
         veil = Dom.byId(doc, "veil");
         specHome = Dom.byId(doc, "tpls");
+        buildDemoCards();
         int order = 0;
         for (Element e : doc.querySelectorAll(".tpl")) {
             String id = e.getAttribute("data-id");
@@ -188,19 +199,21 @@ public final class StylesPreset implements PageControllers.Controller {
         }
         for (Template t : templates) t.card.remove();
         for (Element c : pageCards) c.remove();
+        for (Element c : demoCards) c.remove();
         if (view.equals("pages")) for (Element c : pageCards) if (pageMatches(c)) grid.appendChild(c);
+        if (view.equals("demos")) for (Element c : demoCards) if (pageMatches(c)) grid.appendChild(c);
         for (Template t : shown) {
             grid.appendChild(t.card);
             t.card.toggleClass("faved", favorites.contains(t.id));
             Dom.query(t.card, ".fav").toggleClass("on", favorites.contains(t.id));
             Dom.query(t.card, ".saved-mark").setAttribute("style", saved.contains(t.id) ? "" : "display: none");
         }
-        boolean pagesView = view.equals("pages");
+        boolean pagesView = view.equals("pages"), demosView = view.equals("demos");
         boolean mine = view.equals("fav") || view.equals("saved") || view.equals("recent") || pagesView;
         show("empty-community", community && shown.isEmpty() && query.isEmpty());
         show("empty-mine", mine && (pagesView ? pages.isEmpty() : shown.isEmpty()) && query.isEmpty());
         Dom.text(Dom.byId(doc, "empty-mine-text"), Lang.t(doc, pagesView ? "oriel.ui.styles.empty.pages_text" : "oriel.ui.styles.empty.mine.text"));
-        show("empty-search", !guide && (pagesView ? pageCount() == 0 : shown.isEmpty()) && !query.isEmpty());
+        show("empty-search", !guide && (pagesView ? pageCount(pageCards) == 0 : demosView ? pageCount(demoCards) == 0 : shown.isEmpty()) && !query.isEmpty());
         show("guide", guide);
         Dom.text(Dom.byId(doc, "empty-mine-title"), Lang.t(doc, "oriel.ui.styles.empty." + switch (view) {
             case "fav" -> "fav";
@@ -211,7 +224,7 @@ public final class StylesPreset implements PageControllers.Controller {
         if (guide) Dom.text(Dom.byId(doc, "guide-folder"), folder);
         Dom.text(Dom.byId(doc, "view-title"), title(view));
         Dom.text(Dom.byId(doc, "view-sub"), Lang.t(doc, "oriel.ui.styles.view." + (view.startsWith("group:") ? "all" : view) + ".sub"));
-        Dom.text(Dom.byId(doc, "count"), guide ? "" : Lang.plural(doc, "oriel.ui.styles.count", pagesView ? pageCount() : shown.size()));
+        Dom.text(Dom.byId(doc, "count"), guide ? "" : Lang.plural(doc, "oriel.ui.styles.count", pagesView ? pageCount(pageCards) : demosView ? pageCount(demoCards) : shown.size()));
         Dom.text(Dom.byId(doc, "crumb"), Lang.t(doc, "oriel.ui.styles.crumb.view", title(view)));
         Dom.text(Dom.byId(doc, "foot-count"), Lang.plural(doc, "oriel.ui.styles.foot_count", templates.size()));
         counts();
@@ -224,6 +237,7 @@ public final class StylesPreset implements PageControllers.Controller {
             String v = item.getAttribute("data-view");
             int count = 0;
             if (v.equals("pages")) count = pages.size();
+            else if (v.equals("demos")) count = DEMOS.length;
             else for (Template t : templates) if (inView(t, v)) count++;
             Dom.text(n, count == 0 && !v.equals("all") ? "" : Integer.toString(count));
         }
@@ -241,7 +255,7 @@ public final class StylesPreset implements PageControllers.Controller {
             case "fav" -> favorites.contains(t.id);
             case "saved" -> saved.contains(t.id);
             case "recent" -> recent.contains(t.id);
-            case "guide", "pages" -> false;
+            case "guide", "pages", "demos" -> false;
             default -> true;
         };
     }
@@ -258,7 +272,7 @@ public final class StylesPreset implements PageControllers.Controller {
     private String title(String view) {
         String v = view.startsWith("group:") ? view.substring(6) : view;
         return Lang.t(doc, "oriel.ui.styles.view." + (switch (v) {
-            case "official", "community", "fav", "saved", "recent", "pages", "guide", "hud", "menu", "theme" -> v;
+            case "official", "community", "fav", "saved", "recent", "pages", "demos", "guide", "hud", "menu", "theme" -> v;
             default -> "all";
         }) + ".title");
     }
@@ -409,10 +423,30 @@ public final class StylesPreset implements PageControllers.Controller {
         return query.isEmpty() || card.getAttribute("data-path").toLowerCase(Locale.ROOT).contains(query);
     }
 
-    private int pageCount() {
+    private int pageCount(List<Element> cards) {
         int n = 0;
-        for (Element c : pageCards) if (pageMatches(c)) n++;
+        for (Element c : cards) if (pageMatches(c)) n++;
         return n;
+    }
+
+    /** One card per demo page: its cover, title and a line about it; opening it loads the page itself. */
+    private void buildDemoCards() {
+        for (String[] d : DEMOS) {
+            String title = Lang.t(doc, "oriel.ui.styles.demo." + d[0] + ".title"), desc = Lang.t(doc, "oriel.ui.styles.demo." + d[0] + ".desc");
+            Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"shot\"><i class=\"sheen\"></i><span class=\"badge\"></span></div>"
+                    + "<div class=\"meta\"><b></b><div class=\"by\"><span></span></div></div></div>");
+            Dom.text(Dom.query(card, ".badge"), Lang.t(doc, "oriel.ui.styles.badge.legacy"));
+            Dom.query(card, "img.shot").setAttribute("src", "../textures/ui/demos/" + d[0] + ".png");
+            card.setAttribute("data-path", (title + " " + desc + " " + d[0]).toLowerCase(Locale.ROOT));
+            Dom.text(Dom.query(card, ".meta b"), title);
+            Dom.text(Dom.query(card, ".by span"), desc);
+            String url = d[1];
+            Shell.activate(card, () -> {
+                returnTo = null;
+                doc.navigate(url);
+            });
+            demoCards.add(card);
+        }
     }
 
     private static void replace(Set<String> set, JsonArray ids) {

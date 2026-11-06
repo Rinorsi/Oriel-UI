@@ -292,9 +292,8 @@ public final class DevAutopilot {
         guiScale(mc, 3);
         shoot(mc, "canvastest_gui3", () -> {});
         guiScale(mc, 2);
-        shoot(mc, "showcase_index", () -> OrielScreens.open(OrielClientCommands.showcaseUrl("index")));
         for (String page : OrielClientCommands.SHOWCASE) {
-            if (!page.equals("scene") && !page.equals("index")) shoot(mc, "showcase_" + page, () -> OrielScreens.open(OrielClientCommands.showcaseUrl(page)));
+            if (!page.equals("scene")) shoot(mc, "showcase_" + page, () -> OrielScreens.open(OrielClientCommands.showcaseUrl(page)));
         }
         scene(mc);
         inspector(mc);

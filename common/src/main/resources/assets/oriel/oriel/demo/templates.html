@@ -56,7 +56,7 @@
 <body>
   <main class="window">
     <header>
-      <a class="back" href="../showcase/index.html">‹ Back</a>
+      <a class="back" href="oriel:ui/styles.html">‹ Back</a>
       <h1>Templates</h1>
     </header>
 
@@ -87,7 +87,7 @@
       {{ player }} at {{ x }}, {{ y }}, {{ z }} with {{ health }} health. Time: {{ time }}.
       <button @click="oriel.send('say', 'Hello from Oriel!')">Say hello</button>
     </div>
-    <p class="muted" v-if="source !== 'server'">Hi {{ player }}! Open this page with /oriel showcase live and the server pushes fresh stats every second.</p>
+    <p class="muted" v-if="source !== 'server'">Open this page with /oriel showcase live and the server pushes fresh stats every second.</p>
   </main>
 
   <script>
