@@ -68,7 +68,7 @@ final class RhinoScriptRuntime implements ScriptRuntime {
     private RhinoScriptRuntime(Document document, Context cx) {
         this.document = document;
         this.limits = document.limits();
-        String mode = System.getProperty("oriel.ecosystem", "old");
+        String mode = System.getProperty("oriel.ecosystem", "new");
         ecosystem = switch (mode) {
             case "old" -> false;
             case "new" -> true;

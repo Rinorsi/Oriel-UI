@@ -130,6 +130,8 @@ public final class DevAutopilot {
             if (!PLAY) {
                 mc.options.enableVsync().set(false);
                 mc.options.framerateLimit().set(Options.UNLIMITED_FRAMERATE_CUTOFF);
+                // Without input for a minute the game drops to 30 fps on its own, which would make long runs read as slow.
+                mc.options.inactivityFpsLimit().set(net.minecraft.client.InactivityFpsLimit.MINIMIZED);
             }
             String id = PLAY ? "oriel-play" : "oriel-autopilot";
             LevelSettings settings = new LevelSettings(id, GameType.CREATIVE,
@@ -173,6 +175,23 @@ public final class DevAutopilot {
             fail("a step failed", e);
         }
         if (!PLAY) DevPointer.hold(); // after screens the step opened, before their first frame
+    }
+
+    /** Every template of the library, one after the other: its frame rate once it has been open for five seconds. */
+    private static void templates(Minecraft mc) {
+        Constants.LOG.info("Oriel templates started");
+        for (String id : dev.oriel.kit.TemplateCatalog.ids()) {
+            String url = dev.oriel.kit.TemplateCatalog.page(id);
+            steps.add(() -> OrielScreens.open(url));
+            pause(100);
+            steps.add(() -> {
+                Screen screen = McClient.screen();
+                DocumentDriver driver = screen == null ? null : DocumentDriver.of(screen);
+                Constants.LOG.info("Oriel template {} at rest: {} fps, {} page errors", id, mc.getFps(),
+                        driver == null ? -1 : driver.pageErrorCount());
+            });
+        }
+        steps.add(() -> Constants.LOG.info("Oriel templates finished"));
     }
 
     /** Small cross-version acceptance run: every tab of the showcase window, then normal client shutdown. */
@@ -226,6 +245,10 @@ public final class DevAutopilot {
         guiScale(mc, 2);
         if (ONLY.equals("mcp")) {
             mcpPage(mc);
+            return;
+        }
+        if (ONLY.equals("templates")) {
+            templates(mc);
             return;
         }
         if (ONLY.equals("smoke")) {

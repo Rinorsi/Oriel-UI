@@ -5,7 +5,7 @@ public enum InputBackend {
     OLD, NEW, BOTH;
 
     public static InputBackend configured() {
-        return switch (System.getProperty("oriel.inputBackend", "old")) {
+        return switch (System.getProperty("oriel.inputBackend", "new")) {
             case "old" -> OLD;
             case "new" -> NEW;
             case "both" -> BOTH;

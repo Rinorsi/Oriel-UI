@@ -46,7 +46,7 @@ tasks.named('run', JavaExec) {
 }
 
 tasks.named('test', Test) {
-    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('old'))
+    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('new'))
     systemProperty('java.awt.headless', 'true')
     // The goldens, read from the project directory (Snapshots.java); the diffs go to build/snapshots.
     inputs.dir('src/test/snapshots').withPathSensitivity(PathSensitivity.RELATIVE)
@@ -67,7 +67,7 @@ tasks.withType(JavaCompile).configureEach {
 // did not take as written is listed. -PuiStrict makes warnings fail with exit 3 (page errors remain exit 1).
 // Without it, warnings remain nonfatal. CI checks both the default language and en_us strictly.
 tasks.register('checkUi', JavaExec) {
-    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('old'))
+    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('new'))
     group = 'verification'
     description = 'Checks every UI page for errors, missing images and CSS diagnostics'
     classpath = sourceSets.main.runtimeClasspath

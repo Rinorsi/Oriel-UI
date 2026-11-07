@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /** Narrow browser probes used by React, Preact and anime; not a browser emulation contract. */
 class EcosystemBindingsTest extends EcosystemModeTestSupport {
     @Test
-    void defaultModeRetainsTheOriginalBindings() {
-        System.clearProperty("oriel.ecosystem");
+    void oldModeRetainsTheOriginalBindings() {
+        System.setProperty("oriel.ecosystem", "old");
         Page page = new TestHost().load("<input id=i>");
         assertEquals("undefined undefined undefined true", page.eval("""
                 [typeof HTMLInputElement, typeof document.createElementNS,

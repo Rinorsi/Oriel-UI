@@ -21,7 +21,7 @@ final class CascadeAudit {
     private CascadeAudit() {}
 
     static Mode mode() {
-        return switch (System.getProperty("oriel.cascade", "old")) {
+        return switch (System.getProperty("oriel.cascade", "new")) {
             case "old" -> Mode.OLD;
             case "new" -> Mode.NEW;
             case "both" -> Mode.BOTH;

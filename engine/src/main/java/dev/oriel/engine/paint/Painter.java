@@ -25,7 +25,7 @@ public final class Painter {
     }
 
     private static Mode configuredMode() {
-        String value = System.getProperty("oriel.paintMode", "old");
+        String value = System.getProperty("oriel.paintMode", "new");
         return switch (value) {
             case "old" -> Mode.OLD;
             case "new" -> Mode.NEW;

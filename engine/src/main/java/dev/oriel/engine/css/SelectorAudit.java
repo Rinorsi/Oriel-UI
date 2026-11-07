@@ -20,7 +20,7 @@ final class SelectorAudit {
     private SelectorAudit() {}
 
     static Mode mode() {
-        return switch (System.getProperty("oriel.selector", "old")) {
+        return switch (System.getProperty("oriel.selector", "new")) {
             case "old" -> Mode.OLD;
             case "new" -> Mode.NEW;
             case "both" -> Mode.BOTH;

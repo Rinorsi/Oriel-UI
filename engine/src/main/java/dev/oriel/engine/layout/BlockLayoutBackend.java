@@ -5,7 +5,7 @@ enum BlockLayoutBackend {
     OLD, NEW, BOTH;
 
     static BlockLayoutBackend configured() {
-        return switch (System.getProperty("oriel.layout.block", "old")) {
+        return switch (System.getProperty("oriel.layout.block", "new")) {
             case "old" -> OLD;
             case "new" -> NEW;
             case "both" -> BOTH;

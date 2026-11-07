@@ -17,7 +17,7 @@ tasks.named('test') {
     inputs.file(rootProject.file('docs/zh/css-reference.md')).withPropertyName('cssReference')
     inputs.file(rootProject.file('kit/src/main/resources/assets/oriel/ui/oriel-shims.js')).withPropertyName('ecosystemShims')
     inputs.property('updateDocs', providers.environmentVariable('ORIEL_UPDATE_DOCS').orElse(''))
-    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('old'))
+    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('new'))
     def ecosystem = providers.environmentVariable('ORIEL_ECOSYSTEM_LIBS')
     inputs.property('ecosystemLibrariesDirectory', ecosystem.orElse(''))
     if (ecosystem.isPresent()) {

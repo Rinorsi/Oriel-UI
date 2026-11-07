@@ -96,7 +96,7 @@ public final class Layers {
     /** Frames a target may go unused before it is freed. */
     private static final int KEEP_FRAMES = 300;
     private static final long RETAINED_BYTES = 64L * 1024 * 1024;
-    private static final boolean BOUNDED_RETENTION = !System.getProperty("oriel.paintMode", "old").equals("old");
+    private static final boolean BOUNDED_RETENTION = !System.getProperty("oriel.paintMode", "new").equals("old");
 
     /** A GUI render state and the GUI renderer that draws it. */
     static final class Layer {

@@ -141,11 +141,11 @@ class CompiledSelectorTest {
     }
 
     @Test
-    void defaultStaysLegacyAndModesPreserveScopeOrderAndMutation() {
+    void defaultIsNewAndModesPreserveScopeOrderAndMutation() {
         String saved = System.getProperty("oriel.selector");
         try {
             System.clearProperty("oriel.selector");
-            assertEquals(SelectorAudit.Mode.OLD, SelectorAudit.mode());
+            assertEquals(SelectorAudit.Mode.NEW, SelectorAudit.mode());
             System.setProperty("oriel.selector", "invalid");
             assertThrows(IllegalArgumentException.class, SelectorAudit::mode);
             for (String mode : List.of("old", "new", "both")) {

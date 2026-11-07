@@ -71,12 +71,17 @@ final class CompiledSelector {
 
     private final Test[] compounds;
     private final char[] combinators;
+    /** Only descendant combinators: the nearest ancestor that matches each step is enough, nothing to backtrack. */
+    private final boolean descendantsOnly;
     final int specificity;
     final PseudoElement pseudoElement;
 
     private CompiledSelector(Selector source, Trace trace) {
         compounds = new Test[source.compounds.length];
         combinators = source.combinators.clone();
+        boolean descendants = true;
+        for (char c : combinators) descendants &= c == ' ';
+        descendantsOnly = descendants;
         pseudoElement = source.pseudoElement;
         int weight = pseudoElement == PseudoElement.NONE ? 0 : Selector.TYPE;
         for (int i = 0; i < compounds.length; i++) {
@@ -234,6 +239,16 @@ final class CompiledSelector {
         if (!compounds[compounds.length - 1].matches(element, ctx)) return false;
         if (compounds.length == 1) return true;
         if (compounds.length == 2) return predecessor(element, ctx);
+        if (descendantsOnly) {
+            Element cursor = element;
+            for (int i = compounds.length - 2; i >= 0; i--) {
+                Element p = cursor.parentElement();
+                while (p != null && !compounds[i].matches(p, ctx)) p = p.parentElement();
+                if (p == null) return false;
+                cursor = p;
+            }
+            return true;
+        }
         List<Element> frontier = List.of(element);
         for (int i = compounds.length - 2; i >= 0; i--) {
             List<Element> next = new ArrayList<>();
