@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<title data-i18n="oriel.ui.about.window_title">oriel.ui.about.window_title</title>
+<link rel="stylesheet" href="ore.css">
+<style>
+/* About: who made Oriel, where to find it, what else exists, and what Oriel is beyond the look this window wears. */
+.page { flex: 1; min-width: 0; min-height: 0; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+.intro { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 10px; position: relative; overflow: hidden;
+    background-image: radial-gradient(ellipse at 8% 30%, color-mix(in srgb, var(--o-accent) 22%, transparent), transparent 55%); animation: m-pop var(--m-slow) var(--m-spring) both; }
+.intro .logo { flex: none; width: 36px; height: 36px; image-rendering: pixelated; }
+.intro .who { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.intro .name { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.intro .name b { font-weight: normal; color: var(--o-text); white-space: nowrap; }
+.intro .ver { flex: none; padding: 0 4px; color: var(--o-accent-strong); border: 1px solid color-mix(in srgb, var(--o-accent) 55%, transparent); white-space: nowrap; }
+.intro .line { color: var(--o-text-dim); line-height: 11px; }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+.col { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.panel { min-width: 0; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; animation: m-pop var(--m-slow) var(--m-spring) both; }
+.col:nth-child(2) .panel { animation-delay: 80ms; }
+.panel h3 { margin: 0; display: flex; align-items: center; gap: 5px; font-weight: normal; color: var(--o-text); }
+.panel h3 .o-ico { -mc-tint: var(--o-accent-strong); }
+.panel p { margin: 0; color: var(--o-text-dim); line-height: 11px; }
+.panel p b { font-weight: normal; color: var(--o-text); }
+
+/* The looks Oriel can take: a row of small tags. */
+.looks { display: flex; flex-wrap: wrap; gap: 3px; }
+.looks span { padding: 0 5px; height: 14px; display: flex; align-items: center; color: var(--o-text-dim); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
+.looks span.on { color: var(--o-text); border-color: var(--o-accent); }
+
+/* Links and mods: rows that read like a list, with the action at the end. */
+.rows { display: flex; flex-direction: column; gap: 1px; }
+.row { display: flex; align-items: center; gap: 7px; min-height: 22px; padding: 3px 4px; border-top: 1px solid var(--o-line); }
+.row:first-child { border-top: 0; }
+.row > .o-ico { flex: none; -mc-tint: var(--o-text-dim); }
+.row .t { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.row .t b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .t span { color: var(--o-text-faint); line-height: 10px; }
+.row .copy { flex: none; min-height: 16px; padding: 0 6px; white-space: nowrap; }
+.row .tagline { flex: none; padding: 0 4px; color: var(--o-text-faint); border: 1px solid var(--o-line); white-space: nowrap; }
+
+@media (max-width: 600px) { .cols { grid-template-columns: 1fr; } .o-hints { display: none; } .o-seg em, .o-apptabs em { display: none; } }
+@media (max-height: 280px) { .intro .line { display: none; } }
+</style>
+</head>
+<body>
+<div class="o-app">
+<div class="o-window" id="about">
+  <div class="o-titlebar">
+    <div class="o-brand"><img src="../textures/ui/emblem.png"><b data-i18n="oriel.ui.brand.name">oriel.ui.brand.name</b><span data-i18n="oriel.ui.brand.sub">oriel.ui.brand.sub</span></div>
+    <div class="o-grow"></div>
+    <div class="ore-btn icon" data-action="theme" tabindex="0" title="oriel.ui.gallery.toggle_light_dark" data-i18n-title="oriel.ui.gallery.toggle_light_dark"><img class="o-ico" src="../textures/icons/sun.png"></div>
+    <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
+  </div>
+  <div class="o-tabbar">
+    <div class="o-apptabs" id="nav">
+      <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em data-i18n-text-0="oriel.ui.nav.home">oriel.ui.nav.home</em></div>
+      <div data-go="styles"><img class="o-ico" src="../textures/icons/users.png"><em data-i18n-text-0="oriel.ui.nav.community">oriel.ui.nav.community</em></div>
+      <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em data-i18n-text-0="oriel.ui.nav.components">oriel.ui.nav.components</em></div>
+      <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em data-i18n-text-0="oriel.ui.nav.icons">oriel.ui.nav.icons</em></div>
+      <div data-go="modsettings"><img class="o-ico" src="../textures/icons/gear.png"><em data-i18n-text-0="oriel.ui.nav.settings">oriel.ui.nav.settings</em></div>
+      <div class="on" data-go="about"><img class="o-ico" src="../textures/icons/help.png"><em data-i18n-text-0="oriel.ui.nav.about">oriel.ui.nav.about</em></div>
+      <i class="m-indicator" id="indicator"></i>
+    </div>
+  </div>
+  <div class="o-body">
+    <div class="page">
+      <div class="intro o-tile">
+        <img class="logo" src="../textures/ui/emblem.png">
+        <div class="who">
+          <div class="name"><b class="o-h2" data-i18n="oriel.ui.about.name">oriel.ui.about.name</b><span class="ver" id="ver"></span></div>
+          <span class="line" data-i18n="oriel.ui.about.tagline">oriel.ui.about.tagline</span>
+        </div>
+      </div>
+      <div class="cols">
+        <div class="col">
+          <div class="panel o-tile">
+            <h3><img class="o-ico" src="../textures/icons/sparkle.png"><span data-i18n="oriel.ui.about.beyond.title">oriel.ui.about.beyond.title</span></h3>
+            <p data-i18n="oriel.ui.about.beyond.text">oriel.ui.about.beyond.text</p>
+            <div class="looks">
+              <span class="on" data-i18n="oriel.ui.about.look.ore">oriel.ui.about.look.ore</span><span data-i18n="oriel.ui.about.look.dungeon">oriel.ui.about.look.dungeon</span><span data-i18n="oriel.ui.about.look.scifi">oriel.ui.about.look.scifi</span><span data-i18n="oriel.ui.about.look.xianxia">oriel.ui.about.look.xianxia</span><span data-i18n="oriel.ui.about.look.pixel">oriel.ui.about.look.pixel</span><span data-i18n="oriel.ui.about.look.custom">oriel.ui.about.look.custom</span>
+            </div>
+          </div>
+          <div class="panel o-tile">
+            <h3><img class="o-ico" src="../textures/icons/heart.png"><span data-i18n="oriel.ui.about.thanks.title">oriel.ui.about.thanks.title</span></h3>
+            <p data-i18n="oriel.ui.about.thanks.text">oriel.ui.about.thanks.text</p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="panel o-tile">
+            <h3><img class="o-ico" src="../textures/icons/crown.png"><span data-i18n="oriel.ui.about.author.title">oriel.ui.about.author.title</span></h3>
+            <p><b lang="zh" data-i18n="oriel.ui.about.author.name">oriel.ui.about.author.name</b> · <span data-i18n="oriel.ui.about.author.role">oriel.ui.about.author.role</span></p>
+            <div class="rows">
+              <div class="row"><img class="o-ico" src="../textures/icons/play.png"><div class="t"><b data-i18n="oriel.ui.about.link.bilibili">oriel.ui.about.link.bilibili</b><span>b23.tv/hjUvs0c</span></div>
+                <div class="ore-btn copy" tabindex="0" data-copy="https://b23.tv/hjUvs0c" data-i18n="oriel.ui.about.copy">oriel.ui.about.copy</div></div>
+              <div class="row"><img class="o-ico" src="../textures/icons/heart.png"><div class="t"><b data-i18n="oriel.ui.about.link.afdian">oriel.ui.about.link.afdian</b><span>afdian.com/a/Rinorsi</span></div>
+                <div class="ore-btn copy" tabindex="0" data-copy="https://afdian.com/a/Rinorsi" data-i18n="oriel.ui.about.copy">oriel.ui.about.copy</div></div>
+              <div class="row"><img class="o-ico" src="../textures/icons/code.png"><div class="t"><b data-i18n="oriel.ui.about.link.github">oriel.ui.about.link.github</b><span>github.com/Rinorsi/Oriel-UI</span></div>
+                <div class="ore-btn copy" tabindex="0" data-copy="https://github.com/Rinorsi/Oriel-UI" data-i18n="oriel.ui.about.copy">oriel.ui.about.copy</div></div>
+            </div>
+          </div>
+          <div class="panel o-tile">
+            <h3><img class="o-ico" src="../textures/icons/layers.png"><span data-i18n="oriel.ui.about.mods.title">oriel.ui.about.mods.title</span></h3>
+            <div class="rows">
+              <div class="row"><img class="o-ico" src="../textures/icons/hammer.png"><div class="t"><b data-i18n="oriel.ui.about.mod.editor.name">oriel.ui.about.mod.editor.name</b><span data-i18n="oriel.ui.about.mod.editor.text">oriel.ui.about.mod.editor.text</span></div>
+                <span class="tagline" data-i18n="oriel.ui.about.mod.editor.tag">oriel.ui.about.mod.editor.tag</span></div>
+              <div class="row"><img class="o-ico" src="../textures/icons/clock.png"><div class="t"><b data-i18n="oriel.ui.about.mod.more.name">oriel.ui.about.mod.more.name</b><span data-i18n="oriel.ui.about.mod.more.text">oriel.ui.about.mod.more.text</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>

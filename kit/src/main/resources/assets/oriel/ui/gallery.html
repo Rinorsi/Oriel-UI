@@ -6,14 +6,12 @@
 <style>
 /* The launcher, in the same window as every other page (moving between pages changes only the content): a bento
    grid. Every tile is a header and a live preview that fills the rest of the tile, so a larger GUI gives bigger
-   previews, never empty tiles. */
+   previews, never empty tiles. Top row: the pitch, the components, the community's picks. Bottom row: the mod's own
+   settings, the icons, the mod's information, and one tile that says more is coming. */
 
 .o-seg > span { gap: 3px; }
 
 .bento { flex: 1; min-width: 0; display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr; grid-template-rows: auto 1fr; gap: 6px; padding: 6px; }
-/* The fourth column of the top row: the forge over the music player. */
-.side { grid-column: 4; grid-row: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
-.side > .card { flex: 1; }
 
 /* ---- Tiles: a header, then the preview filling the rest ---- */
 .card { position: relative; min-height: 0; min-width: 0; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 5px;
@@ -34,7 +32,6 @@
 .bento > .card:nth-child(5) { animation-delay: 180ms; }
 .bento > .card:nth-child(6) { animation-delay: 220ms; }
 .bento > .card:nth-child(7) { animation-delay: 260ms; }
-.bento > .card:nth-child(8) { animation-delay: 300ms; }
 
 /* ---- Stage: the picture and the words (a night scene in both themes, so the words are always light) ---- */
 .stage { grid-column: 1 / 3; grid-row: 1; aspect-ratio: 2 / 1; padding: 0; justify-content: center; background-color: #1b1838;
@@ -51,79 +48,17 @@
 .stage .sheen { position: absolute; top: 0; bottom: 0; left: 0; width: 26%; pointer-events: none; animation: sheen 11s ease-in-out 2.4s infinite;
     background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(214, 236, 255, 0.10), rgba(255, 255, 255, 0)); transform: translateX(-120%); }
 @keyframes sheen { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(420%); } }
-.stage .pitch { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 0 8%;
+.stage .pitch { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 0 8%;
     animation: fx-rise 700ms var(--o-ease-out) 200ms both; }
 .stage .tag { color: #b9b2e0; letter-spacing: 1px; white-space: nowrap; }
 .stage .o-h1 { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
 .stage .o-h1 em { font-style: normal; color: #a8f2dc; }
+.stage .lede { max-width: 82%; color: #d4cff0; line-height: 11px; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.55); }
 .stage .actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .stage .actions .ore-btn { flex: none; white-space: nowrap; min-height: 22px; padding: 0 9px; }
 
-/* ---- The other tiles ---- */
-.inv { grid-column: 3; grid-row: 1; }
-.inv entity { position: absolute; left: 0; top: 3%; width: 100%; height: 94%; }
-.inv .floor { position: absolute; left: 20%; right: 20%; bottom: 2px; height: 12px; pointer-events: none;
-    background: radial-gradient(ellipse, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 70%); }
-.inv .thumb { background: linear-gradient(rgba(0, 0, 0, 0) 60%, rgba(255, 255, 255, 0.04)),
-    repeating-linear-gradient(to right, rgba(255, 255, 255, 0.035) 0 1px, rgba(0, 0, 0, 0) 1px 12px), var(--o-well); }
-
-.forge { }
-.forge model { position: absolute; left: 12%; top: 4%; width: 76%; height: 94%; -mc-yaw: 30deg; -mc-pitch: 24deg; transition: -mc-yaw 700ms var(--m-spring); }
-.forge:hover model { -mc-yaw: 210deg; }
-.forge .thumb { background: radial-gradient(ellipse at 50% 85%, rgba(255, 150, 60, 0.20), rgba(255, 150, 60, 0) 60%), var(--o-well); }
-
-.music { }
-.music .thumb { display: flex; flex-direction: column; gap: 3px; padding: 4px 5px; }
-.spectrum { position: relative; flex: 1; min-height: 6px; display: flex; align-items: flex-end; gap: 2px; }
-.spectrum i { flex: 1; height: 30%; background: repeating-linear-gradient(to top, var(--o-accent-strong) 0 2px, rgba(0, 0, 0, 0) 2px 3px);
-    animation: band 900ms ease-in-out infinite alternate; }
-@keyframes band { from { height: 15%; } to { height: 95%; } }
-.spectrum i:nth-child(2) { animation-delay: -0.5s; }
-.spectrum i:nth-child(3) { animation-delay: -0.3s; }
-.spectrum i:nth-child(4) { animation-delay: -0.8s; }
-.spectrum i:nth-child(5) { animation-delay: -0.2s; }
-.spectrum i:nth-child(6) { animation-delay: -0.6s; }
-.spectrum i:nth-child(7) { animation-delay: -0.4s; }
-.spectrum i:nth-child(8) { animation-delay: -0.9s; }
-.track { flex: none; display: flex; justify-content: space-between; gap: 4px; color: var(--o-text-dim); white-space: nowrap; }
-.track b { font-weight: normal; color: var(--o-text); }
-.progress { flex: none; position: relative; height: 2px; background: var(--o-line-strong); }
-.progress i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--o-text-dim); animation: play 30s linear infinite; }
-@keyframes play { to { width: 100%; } }
-
-/* Potion HUD: the game's own effect textures (any mod's effect has one at <namespace>:textures/mob_effect/<path>.png);
-   the list takes as many rows as the tile holds. */
-.hud { grid-column: 1; grid-row: 2; }
-.effs { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 3px; padding: 4px; overflow: hidden; }
-.effs .e { position: relative; flex: none; display: flex; align-items: center; gap: 4px; height: 18px; padding: 0 4px 0 4px; overflow: hidden; }
-.effs .e::before { content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 2px; background: #6cc349; }
-.effs .e.bad::before { background: #e25a5a; }
-.effs .e .left { position: absolute; left: 0; top: 0; bottom: 0; width: var(--t); background: color-mix(in srgb, #6cc349 14%, transparent); }
-.effs .e.bad .left { background: color-mix(in srgb, #e25a5a 14%, transparent); }
-.effs .e img { position: relative; width: 16px; height: 16px; flex: none; }
-.effs .e b { position: relative; flex: 1; min-width: 0; font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.effs .e span { position: relative; color: var(--o-text-dim); }
-.effs .e:nth-child(n+4) { display: none; }
-
-/* Component editor: the editor in miniature (tool strip, canvas with a selection being moved, properties). */
-.editor .thumb { display: flex; gap: 3px; padding: 3px; }
-.ed-tools { flex: none; width: 8px; display: flex; flex-direction: column; gap: 2px; }
-.ed-tools i { height: 8px; background: var(--o-line-strong); }
-.ed-tools i:nth-child(2) { background: var(--o-accent-strong); }
-.mock { position: relative; flex: 1; min-width: 0;
-    background-image: repeating-linear-gradient(to right, var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px), repeating-linear-gradient(var(--o-line) 0 1px, rgba(0, 0, 0, 0) 1px 6px); }
-.mock i { position: absolute; background: var(--o-tile); border: 1px solid var(--o-tile-edge); }
-.mock .a { left: 8%; top: 12%; width: 56%; height: 22%; }
-.mock .b { left: 8%; top: 46%; width: 22%; height: 42%; }
-.mock .c { left: 38%; top: 46%; width: 48%; height: 42%; border-color: var(--o-accent-strong); animation: nudge 3.2s var(--m-out) infinite; }
-.mock .c::after { content: ""; position: absolute; right: -2px; bottom: -2px; width: 3px; height: 3px; background: #ffffff; }
-@keyframes nudge { 0%, 40% { left: 38%; } 60%, 100% { left: 46%; } }
-.ed-props { flex: none; width: 30%; display: flex; flex-direction: column; gap: 3px; padding: 2px; border-left: 1px solid var(--o-line); }
-.ed-props i { height: 4px; background: var(--o-line-strong); }
-.ed-props i:nth-child(odd) { width: 70%; }
-.ed-props b { height: 6px; background: var(--o-accent); opacity: 0.5; margin-top: auto; }
-
-/* Components: a sampler filling the tile in two columns. */
+/* ---- Components: a sampler filling the tile ---- */
+.kit { grid-column: 3; grid-row: 1; }
 /* Auto-fill: as many 44px columns as the tile is wide, rows of 18px; samples past the last row are clipped away. */
 .kit .thumb { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); grid-auto-rows: 18px; gap: 4px 6px; padding: 7px 8px;
     align-content: start; align-items: center; }
@@ -132,15 +67,65 @@
 .kit .mini-meter { justify-self: stretch; height: 4px; background: var(--o-line-strong); }
 .kit .mini-meter i { display: block; height: 4px; width: 64%; background: var(--o-accent-strong); }
 
-/* Settings: rows spread over the tile. */
-.settings { grid-column: 3; grid-row: 2; }
-.settings .thumb { display: flex; flex-direction: column; justify-content: space-evenly; padding: 2px 6px; }
-.settings .thumb > div { display: flex; align-items: center; justify-content: space-between; gap: 4px; color: var(--o-text-dim); white-space: nowrap; }
-.settings .mini-slider { position: relative; width: 40%; height: 4px; background: var(--o-line-strong); }
-.settings .large { display: none; }
-.settings .mini-slider i { position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: var(--o-accent-strong); }
+/* ---- The community's picks: covers turning over, with the title and the author on each ---- */
+.pick { grid-column: 4; grid-row: 1; }
+.pick .thumb { background: #101114; padding: 0; cursor: pointer; }
+.pick .slide { position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0; pointer-events: none; transition: opacity 420ms ease; }
+.pick .slide.on { opacity: 1; pointer-events: auto; }
+.pick .slide img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.pick .slide .cap { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 1px; padding: 14px 6px 8px;
+    background: linear-gradient(rgba(8, 8, 12, 0), rgba(8, 8, 12, 0.88)); }
+.pick .slide .cap b { font-weight: normal; color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick .slide .cap span { color: #c9c9d4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick .dots { position: absolute; right: 5px; bottom: 4px; display: flex; gap: 3px; }
+.pick .dots i { width: 4px; height: 4px; background: rgba(255, 255, 255, 0.35); transition: background-color 200ms, width 200ms; }
+.pick .dots i.on { width: 10px; background: var(--o-accent-strong); }
+.pick .arrow { position: absolute; top: 50%; margin-top: -8px; width: 14px; height: 16px; display: flex; align-items: center; justify-content: center;
+    background: rgba(12, 12, 16, 0.6); border: 1px solid rgba(255, 255, 255, 0.25); opacity: 0; transition: opacity 160ms; -mc-tint: #ffffff; }
+.pick .arrow.prev { left: 3px; }
+.pick .arrow.next { right: 3px; }
+.pick .arrow img { width: 8px; height: 8px; }
+.pick .thumb:hover .arrow { opacity: 1; }
+.pick .arrow:hover { background: rgba(40, 40, 52, 0.85); }
 
-/* The figures. */
+/* ---- The mod's settings in miniature ---- */
+.cfg { grid-column: 1; grid-row: 2; }
+.cfg .thumb { display: flex; flex-direction: column; justify-content: space-evenly; padding: 2px 6px; }
+.cfg .thumb > div { display: flex; align-items: center; justify-content: space-between; gap: 4px; color: var(--o-text-dim); white-space: nowrap; }
+.cfg .mini-slider { position: relative; width: 40%; height: 4px; background: var(--o-line-strong); }
+.cfg .mini-slider i { position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: var(--o-accent-strong); }
+
+/* ---- The icons ---- */
+.ico { grid-column: 2; grid-row: 2; }
+.ico .thumb { display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 5px 7px; padding: 4px 8px; }
+.ico .thumb .o-ico { width: 14px; height: 14px; -mc-tint: var(--o-text-dim); transition: -mc-tint 200ms, transform 200ms var(--m-spring); }
+.ico:hover .thumb .o-ico { -mc-tint: var(--o-text); }
+.ico .thumb .o-ico:nth-child(3n+1) { animation: float 3.4s ease-in-out infinite alternate; }
+.ico .thumb .o-ico:nth-child(3n+2) { animation: float 3.4s ease-in-out -1.1s infinite alternate; }
+.ico .thumb .o-ico:nth-child(3n) { animation: float 3.4s ease-in-out -2.2s infinite alternate; }
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+
+/* ---- About ---- */
+.about { grid-column: 3; grid-row: 2; }
+.about .thumb { display: flex; align-items: center; gap: 6px; padding: 4px 7px; background: radial-gradient(ellipse at 15% 20%, color-mix(in srgb, var(--o-accent) 20%, transparent), transparent 65%), var(--o-well); }
+.about .thumb img { width: 24px; height: 24px; flex: none; image-rendering: pixelated; }
+.about .who { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.about .who b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.about .who span { color: var(--o-text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Coming soon: a quiet, unfinished tile ---- */
+.soon { grid-column: 4; grid-row: 2; cursor: default; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 4px, rgba(255, 255, 255, 0) 4px 8px); }
+.soon .thumb { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: transparent; border-style: dashed; }
+.soon .spark { width: 16px; height: 16px; -mc-tint: var(--o-text-faint); animation: twinkle 2.6s ease-in-out infinite alternate; }
+@keyframes twinkle { from { opacity: 0.35; transform: scale(0.9); } to { opacity: 1; transform: scale(1.08); } }
+.soon .t1 { color: var(--o-text-dim); }
+.soon .t2 { color: var(--o-text-faint); }
+.soon .ghost { display: flex; gap: 3px; margin-top: 2px; }
+.soon .ghost i { width: 14px; height: 4px; background: var(--o-line-strong); animation: ghost 1.8s ease-in-out infinite alternate; }
+.soon .ghost i:nth-child(2) { animation-delay: -0.6s; }
+.soon .ghost i:nth-child(3) { animation-delay: -1.2s; }
+@keyframes ghost { from { opacity: 0.3; } to { opacity: 0.9; } }
+
 /* The figures, along the bottom of the picture. */
 .stats { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; padding: 6px 5% 7px;
     background: linear-gradient(rgba(10, 9, 24, 0), rgba(10, 9, 24, 0.78) 40%); animation: fx-rise 700ms var(--o-ease-out) 320ms both; }
@@ -148,26 +133,25 @@
 .stats .v { color: #ffffff; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6); }
 .stats .k { color: #b9b2e0; white-space: nowrap; }
 
-
 /* Small GUIs (427×240 is 1280×720 at GUI scale 3). */
 @media (max-width: 560px) { .o-seg em { display: none; } }
 @media (max-width: 700px) { .o-hints { display: none; } }
-@media (max-width: 560px) { .stats { display: none; } }
+@media (max-width: 560px) { .stats, .stage .lede { display: none; } }
 [data-window=mini] .o-hints { display: none; }
 @media (max-height: 300px) {
-    .stage .tag { display: none; }
+    .stage .tag, .stage .lede { display: none; }
     .stage .pitch { gap: 6px; padding: 0 10px; }
-    .track, .progress, .stats, .settings .more { display: none; }
+    .stats { display: none; }
     .kit .thumb { padding: 2px 4px; gap: 2px 4px; }
+    .ico .thumb { gap: 3px 5px; }
+    .soon .ghost { display: none; }
 }
 /* Large GUIs, maximized (the window mode decides the room, not only the screen). */
 @media (min-width: 760px) and (min-height: 400px) {
-    [data-window=max] .stage .pitch { gap: 12px; }
+    [data-window=max] .stage .pitch { gap: 10px; }
     [data-window=max] .stage .o-h1 { font-size: 20px; line-height: 22px; }
     [data-window=max] .card { padding: 7px; gap: 6px; }
-    [data-window=max] .effs .e { height: 20px; }
-    [data-window=max] .effs .e:nth-child(-n+5) { display: flex; }
-    [data-window=max] .settings .large { display: flex; }
+    [data-window=max] .ico .thumb .o-ico { width: 18px; height: 18px; }
 }
 </style>
 </head>
@@ -184,10 +168,11 @@
   <div class="o-tabbar">
     <div class="o-apptabs" id="nav">
       <div class="on" data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em data-i18n-text-0="oriel.ui.nav.home">oriel.ui.nav.home</em></div>
+      <div data-go="styles"><img class="o-ico" src="../textures/icons/users.png"><em data-i18n-text-0="oriel.ui.nav.community">oriel.ui.nav.community</em></div>
       <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em data-i18n-text-0="oriel.ui.nav.components">oriel.ui.nav.components</em></div>
       <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em data-i18n-text-0="oriel.ui.nav.icons">oriel.ui.nav.icons</em></div>
-      <div data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em data-i18n-text-0="oriel.ui.nav.templates">oriel.ui.nav.templates</em></div>
-      <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em data-i18n-text-0="oriel.ui.nav.editor">oriel.ui.nav.editor</em></div>
+      <div data-go="modsettings"><img class="o-ico" src="../textures/icons/gear.png"><em data-i18n-text-0="oriel.ui.nav.settings">oriel.ui.nav.settings</em></div>
+      <div data-go="about"><img class="o-ico" src="../textures/icons/help.png"><em data-i18n-text-0="oriel.ui.nav.about">oriel.ui.nav.about</em></div>
       <i class="m-indicator" id="indicator"></i>
     </div>
   </div>
@@ -200,78 +185,76 @@
       <div class="sheen"></div>
       <canvas class="fx" data-fx="stars" data-rate="2" data-seed="11"></canvas>
       <div class="stats">
-        <div class="s"><span class="v" data-count="200">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.pixel_icons">oriel.ui.gallery.pixel_icons</span></div>
-        <div class="s"><span class="v" data-count="13">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.component_categories">oriel.ui.gallery.component_categories</span></div>
-        <div class="s"><span class="v" data-count="8">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.particle_presets">oriel.ui.gallery.particle_presets</span></div>
+        <div class="s"><span class="v" id="stat-icons" data-count="200">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.pixel_icons">oriel.ui.gallery.pixel_icons</span></div>
+        <div class="s"><span class="v" id="stat-templates" data-count="62">0</span><span class="k" data-i18n-text-0="oriel.ui.home.templates">oriel.ui.home.templates</span></div>
+        <div class="s"><span class="v" data-count="9">0</span><span class="k" data-i18n-text-0="oriel.ui.home.styles">oriel.ui.home.styles</span></div>
         <div class="s"><span class="v" data-count="6">0</span><span class="k" data-i18n-text-0="oriel.ui.gallery.build_target">oriel.ui.gallery.build_target</span></div>
       </div>
       <div class="pitch">
-        <div class="tag" data-i18n-text-0="oriel.ui.gallery.oriel_ui_0_2">oriel.ui.gallery.oriel_ui_0_2</div>
+        <div class="tag" data-i18n-text-0="oriel.ui.home.tag">oriel.ui.home.tag</div>
         <div class="o-h1" data-i18n-text-0="oriel.ui.gallery.next_generation">oriel.ui.gallery.next_generation<br><em data-i18n-text-0="oriel.ui.gallery.minecraft_ui_framework">oriel.ui.gallery.minecraft_ui_framework</em></div>
+        <div class="lede" data-i18n-text-0="oriel.ui.home.lede">oriel.ui.home.lede</div>
         <div class="actions">
           <div class="ore-btn hero m-ripple" data-go="inventory" data-zoom tabindex="0" data-i18n-text-1="oriel.ui.gallery.start_exploring"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.gallery.start_exploring</div>
           <div class="ore-btn secondary m-ripple" data-go="catalog" tabindex="0" data-i18n-text-1="oriel.ui.gallery.component_catalog"><img class="o-ico" src="../textures/icons/grid.png">oriel.ui.gallery.component_catalog</div>
-          <div class="ore-btn secondary m-ripple" data-demos tabindex="0" data-i18n-text-1="oriel.ui.gallery.demos"><img class="o-ico" src="../textures/icons/star.png">oriel.ui.gallery.demos</div>
+          <div class="ore-btn secondary m-ripple" data-community tabindex="0" data-i18n-text-1="oriel.ui.nav.community"><img class="o-ico" src="../textures/icons/users.png">oriel.ui.nav.community</div>
         </div>
       </div>
     </div>
 
-    <div class="card inv o-tile hot m-spot" tabindex="0" data-go="inventory" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/bag.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.inventory">oriel.ui.gallery.inventory</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb"><div class="floor"></div><entity player follow-mouse></entity></div>
-    </div>
-
-    <div class="side">
-    <div class="card forge o-tile hot m-spot" tabindex="0" data-go="forge" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/hammer.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.forge">oriel.ui.gallery.forge</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb"><canvas class="fx" data-fx="embers" data-rate="7" data-seed="2"></canvas><model block="minecraft:anvil"></model></div>
-    </div>
-
-    <div class="card music o-tile hot m-spot" tabindex="0" data-go="music" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/music.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.music_player">oriel.ui.gallery.music_player</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb">
-        <div class="spectrum"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="track"><b data-i18n-text-0="oriel.ui.gallery.sweden">oriel.ui.gallery.sweden</b><span data-i18n-text-0="oriel.ui.gallery.c418">oriel.ui.gallery.c418</span></div>
-        <div class="progress"><i></i></div>
-      </div>
-    </div>
-    </div>
-
-    <div class="card hud o-tile hot m-spot" tabindex="0" data-page="potions" title="oriel.ui.gallery.potion_hud_hint" data-i18n-title="oriel.ui.gallery.potion_hud_hint">
-      <div class="head"><img class="o-ico" src="../textures/icons/flask.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.potion_hud">oriel.ui.gallery.potion_hud</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb"><div class="effs">
-        <div class="e" style="--t: 70%"><i class="left"></i><img src="minecraft:textures/mob_effect/speed.png"><b data-i18n-text-0="oriel.ui.gallery.speed_ii">oriel.ui.gallery.speed_ii</b><span>1:30</span></div>
-        <div class="e" style="--t: 90%"><i class="left"></i><img src="minecraft:textures/mob_effect/strength.png"><b data-i18n-text-0="oriel.ui.gallery.strength">oriel.ui.gallery.strength</b><span>3:00</span></div>
-        <div class="e bad" style="--t: 20%"><i class="left"></i><img src="minecraft:textures/mob_effect/poison.png"><b data-i18n-text-0="oriel.ui.gallery.poison">oriel.ui.gallery.poison</b><span>0:12</span></div>
-        <div class="e" style="--t: 100%"><i class="left"></i><img src="minecraft:textures/mob_effect/night_vision.png"><b data-i18n-text-0="oriel.ui.gallery.night_vision">oriel.ui.gallery.night_vision</b><span>8:00</span></div>
-        <div class="e" style="--t: 45%"><i class="left"></i><img src="minecraft:textures/mob_effect/regeneration.png"><b data-i18n-text-0="oriel.ui.gallery.regeneration">oriel.ui.gallery.regeneration</b><span>0:45</span></div>
-        <div class="e" style="--t: 60%"><i class="left"></i><img src="minecraft:textures/mob_effect/haste.png"><b data-i18n-text-0="oriel.ui.gallery.haste_ii">oriel.ui.gallery.haste_ii</b><span>2:10</span></div>
-      </div></div>
-    </div>
-
-    <div class="card editor o-tile hot m-spot" tabindex="0" data-go="editor" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/layers.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.component_editor">oriel.ui.gallery.component_editor</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb"><div class="ed-tools"><i></i><i></i><i></i><i></i></div><div class="mock"><i class="a"></i><i class="b"></i><i class="c"></i></div><div class="ed-props"><i></i><i></i><i></i><i></i><i></i><b></b></div></div>
-    </div>
-
-    <div class="card settings o-tile hot m-spot" tabindex="0" data-go="settings" data-zoom>
-      <div class="head"><img class="o-ico" src="../textures/icons/gear.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.settings">oriel.ui.gallery.settings</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
-      <div class="thumb">
-        <div data-i18n-text-0="oriel.ui.gallery.vertical_sync">oriel.ui.gallery.vertical_sync<span class="ore-toggle on"></span></div>
-        <div data-i18n-text-0="oriel.ui.gallery.particle_effects">oriel.ui.gallery.particle_effects<span class="ore-toggle on"></span></div>
-        <div class="more" data-i18n-text-0="oriel.ui.gallery.ui_scale">oriel.ui.gallery.ui_scale<span class="mini-slider"><i></i></span></div>
-        <div class="more large" data-i18n-text-0="oriel.ui.gallery.mouse_sensitivity">oriel.ui.gallery.mouse_sensitivity<span class="mini-slider"><i style="width: 45%"></i></span></div>
-      </div>
-    </div>
-
     <div class="card kit o-tile hot m-spot" tabindex="0" data-go="catalog">
-      <div class="head"><img class="o-ico" src="../textures/icons/grid.png"><span class="label" data-i18n-text-0="oriel.ui.gallery.component_catalog">oriel.ui.gallery.component_catalog</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="head"><img class="o-ico" src="../textures/icons/grid.png"><span class="label" data-i18n-text-0="oriel.ui.home.kit">oriel.ui.home.kit</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb o-fit">
         <span class="ore-btn hero" data-i18n-text-0="oriel.ui.gallery.confirm">oriel.ui.gallery.confirm</span><span class="ore-btn secondary" data-i18n-text-0="oriel.ui.gallery.cancel">oriel.ui.gallery.cancel</span><span class="ore-btn destructive" data-i18n-text-0="oriel.ui.gallery.delete">oriel.ui.gallery.delete</span>
         <span class="o-chip on" data-i18n-text-0="oriel.ui.gallery.selected">oriel.ui.gallery.selected</span><span class="ore-toggle on"></span><span class="ore-toggle"></span>
         <div class="mini-meter"><i></i></div><span class="o-badge red">9</span><span class="o-chip" data-i18n-text-0="oriel.ui.gallery.chip">oriel.ui.gallery.chip</span>
         <span class="o-kbd" data-i18n-text-0="oriel.ui.gallery.ctrl">oriel.ui.gallery.ctrl</span><span class="o-badge">3</span><div class="mini-meter"><i style="width: 30%"></i></div>
         <span class="ore-btn" data-i18n-text-0="oriel.ui.gallery.common">oriel.ui.gallery.common</span><span class="o-chip on" data-i18n-text-0="oriel.ui.gallery.rare">oriel.ui.gallery.rare</span><span class="o-kbd" data-i18n-text-0="oriel.ui.gallery.esc">oriel.ui.gallery.esc</span>
+      </div>
+    </div>
+
+    <div class="card pick o-tile hot m-spot" id="pick" tabindex="0">
+      <div class="head"><img class="o-ico" src="../textures/icons/crown.png"><span class="label" data-i18n-text-0="oriel.ui.home.picks">oriel.ui.home.picks</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb" id="picks">
+        <div class="arrow prev" id="pick-prev"><img class="o-ico" src="../textures/icons/back.png"></div>
+        <div class="arrow next" id="pick-next"><img class="o-ico" src="../textures/icons/forward.png"></div>
+        <div class="dots" id="pick-dots"></div>
+      </div>
+    </div>
+
+    <div class="card cfg o-tile hot m-spot" tabindex="0" data-go="modsettings">
+      <div class="head"><img class="o-ico" src="../textures/icons/gear.png"><span class="label" data-i18n-text-0="oriel.ui.home.settings">oriel.ui.home.settings</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb">
+        <div data-i18n-text-0="oriel.ui.home.cfg.sounds">oriel.ui.home.cfg.sounds<span class="ore-toggle on"></span></div>
+        <div data-i18n-text-0="oriel.ui.home.cfg.volume">oriel.ui.home.cfg.volume<span class="mini-slider"><i></i></span></div>
+        <div data-i18n-text-0="oriel.ui.home.cfg.motion">oriel.ui.home.cfg.motion<span class="ore-toggle on"></span></div>
+      </div>
+    </div>
+
+    <div class="card ico o-tile hot m-spot" tabindex="0" data-go="icons">
+      <div class="head"><img class="o-ico" src="../textures/icons/star.png"><span class="label" data-i18n-text-0="oriel.ui.nav.icons">oriel.ui.nav.icons</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb">
+        <img class="o-ico" src="../textures/icons/heart.png"><img class="o-ico" src="../textures/icons/hammer.png"><img class="o-ico" src="../textures/icons/flask.png"><img class="o-ico" src="../textures/icons/music.png">
+        <img class="o-ico" src="../textures/icons/bow.png"><img class="o-ico" src="../textures/icons/gem.png"><img class="o-ico" src="../textures/icons/crown.png"><img class="o-ico" src="../textures/icons/compass.png">
+        <img class="o-ico" src="../textures/icons/campfire.png"><img class="o-ico" src="../textures/icons/chest.png"><img class="o-ico" src="../textures/icons/bell.png"><img class="o-ico" src="../textures/icons/coin.png">
+      </div>
+    </div>
+
+    <div class="card about o-tile hot m-spot" tabindex="0" data-go="about">
+      <div class="head"><img class="o-ico" src="../textures/icons/help.png"><span class="label" data-i18n-text-0="oriel.ui.home.about">oriel.ui.home.about</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
+      <div class="thumb">
+        <img src="../textures/ui/emblem.png">
+        <div class="who"><b data-i18n-text-0="oriel.ui.brand.name">oriel.ui.brand.name</b><span data-i18n-text-0="oriel.ui.home.about.by">oriel.ui.home.about.by</span></div>
+      </div>
+    </div>
+
+    <div class="card soon o-tile">
+      <div class="head"><img class="o-ico" src="../textures/icons/clock.png"><span class="label" data-i18n-text-0="oriel.ui.home.soon">oriel.ui.home.soon</span></div>
+      <div class="thumb">
+        <img class="o-ico spark" src="../textures/icons/sparkle.png">
+        <span class="t1" data-i18n-text-0="oriel.ui.home.soon.title">oriel.ui.home.soon.title</span>
+        <span class="t2" data-i18n-text-0="oriel.ui.home.soon.text">oriel.ui.home.soon.text</span>
+        <div class="ghost"><i></i><i></i><i></i></div>
       </div>
     </div>
   </div>
