@@ -23,6 +23,52 @@ final class CompiledSelector {
         boolean matches(Element element, MatchContext context);
     }
 
+    /** Primitive compounds need no per-predicate lambda dispatch or diagnostic wrapper. */
+    private static final class PrimitiveCompound implements Test {
+        private final String tag, source;
+        private final Selector.Simple[] simples;
+        private final int maximumWork;
+
+        PrimitiveCompound(Selector.Compound compound, String source) {
+            tag = compound.tag();
+            simples = compound.simples().clone();
+            this.source = source;
+            maximumWork = 1 + (tag == null ? 0 : 1) + simples.length;
+        }
+
+        @Override public boolean matches(Element element, MatchContext context) {
+            // These predicates cannot recursively spend matching work. Near the limit, retain exact step failures.
+            if (!context.hasPrimitiveWork(maximumWork)) return counted(element, context);
+            int used = 1;
+            try {
+                if (tag != null) {
+                    used++;
+                    if (!tag.equals(element.tagName())) return false;
+                }
+                for (Selector.Simple simple : simples) {
+                    used++;
+                    if (!simple.matches(element, context)) return false;
+                }
+                return true;
+            } finally {
+                context.recordPrimitiveWork(used);
+            }
+        }
+
+        private boolean counted(Element element, MatchContext context) {
+            context.step(source);
+            if (tag != null) {
+                context.step(source);
+                if (!tag.equals(element.tagName())) return false;
+            }
+            for (Selector.Simple simple : simples) {
+                context.step(source);
+                if (!simple.matches(element, context)) return false;
+            }
+            return true;
+        }
+    }
+
     private final Test[] compounds;
     private final char[] combinators;
     final int specificity;
@@ -36,14 +82,29 @@ final class CompiledSelector {
         for (int i = 0; i < compounds.length; i++) {
             Selector.Compound c = source.compounds[i];
             int position = i;
+            boolean primitive = trace == null;
+            if (c.tag() != null) weight += Selector.TYPE;
+            for (Selector.Simple simple : c.simples()) {
+                weight += weight(simple);
+                primitive &= switch (simple) {
+                    case Selector.IdSelector ignored -> true;
+                    case Selector.ClassSelector ignored -> true;
+                    case Selector.AttributeSelector ignored -> true;
+                    case Selector.PseudoClass ignored -> true;
+                    case Selector.Anchor ignored -> true;
+                    default -> false;
+                };
+            }
+            if (primitive) {
+                compounds[i] = new PrimitiveCompound(c, source.toString());
+                continue;
+            }
             List<Test> tests = new ArrayList<>();
             if (c.tag() != null) {
                 tests.add(traced((e, ctx) -> c.tag().equals(e.tagName()), trace, source, position, c.tag()));
-                weight += Selector.TYPE;
             }
             for (Selector.Simple simple : c.simples()) {
                 tests.add(traced(compileSimple(simple, trace), trace, source, position, trace == null ? null : simple.toString()));
-                weight += weight(simple);
             }
             Test[] program = tests.toArray(Test[]::new);
             compounds[i] = (e, ctx) -> {

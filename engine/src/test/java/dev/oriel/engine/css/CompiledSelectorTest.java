@@ -14,6 +14,35 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CompiledSelectorTest {
     @Test
+    void ordinaryAndTracedProgramsVisitTheSamePredicatesAndUseTheSameBudget() {
+        Document document = Document.parse(new TestHost(), "test:compiled-budget.html#pick",
+                "<main><p id=pick class=x data-v=on></p><p></p><div class=x></div></main>");
+        document.setHovered(document.querySelector("#pick"), true);
+        for (String text : List.of("p.x", "[data-v=on]:hover", ":scope > p", ".x + p",
+                "p:not(.off)", "main:has(> .x)", "p:nth-child(2 of .x)",
+                "#pick:target", "p.x[data-v=on]:hover", ":only-child", ":only-of-type",
+                ":is(p, div):not(.off):nth-child(2n of .x)")) {
+            Selector selector = SelectorParser.parse(text).getFirst();
+            CompiledSelector plain = CompiledSelector.compile(selector);
+            CompiledSelector traced = CompiledSelector.compile(selector, (s, c, p, e, matched) -> {});
+            for (Element element : document.querySelectorAll("*")) {
+                for (int limit = 0; limit <= 20; limit++) {
+                    var a = new Selector.MatchContext(document.documentElement(), SelectorAudit.Mode.NEW, limit);
+                    var b = new Selector.MatchContext(document.documentElement(), SelectorAudit.Mode.NEW, limit);
+                    Boolean expected = null;
+                    try { expected = traced.matches(element, b); }
+                    catch (IllegalArgumentException exhausted) { assertTrue(exhausted.getMessage().contains("work budget")); }
+                    if (expected == null) assertThrows(IllegalArgumentException.class, () -> plain.matches(element, a));
+                    else assertEquals(expected, plain.matches(element, a), text);
+                    assertEquals(b.workUsed(), a.workUsed(), text);
+                    assertEquals(b.interactionRead, a.interactionRead, text);
+                }
+            }
+        }
+        document.close();
+    }
+
+    @Test
     void targetOnlyDecodesAsciiHexadecimalEscapes() {
         for (String fragment : List.of("%４１", "%4", "%GG")) {
             Document document = Document.parse(new TestHost(), "test:target.html#" + fragment,

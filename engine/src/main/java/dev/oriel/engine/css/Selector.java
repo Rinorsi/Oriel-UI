@@ -178,6 +178,12 @@ final class Selector {
 
         long workUsed() { return work; }
 
+        /** Only primitive programs with a known maximum may batch their accounting. */
+        boolean hasPrimitiveWork(int maximum) { return maximum <= workLimit - work; }
+
+        /** Records exactly the evaluated primitive predicates after the upper bound was checked. */
+        void recordPrimitiveWork(int used) { work += used; }
+
         MatchContext fork(SelectorAudit.Mode mode) {
             MatchContext fork = new MatchContext(scope, mode, workLimit);
             fork.anchor = anchor;
