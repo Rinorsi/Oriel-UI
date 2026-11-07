@@ -1,5 +1,11 @@
 # 粒子与动画性能：开工前必读
 
+## D36 统一比较入口
+
+引擎 old/new 使用[统一 CPU 基准工具](d36-mcp-bench.md)：`node tools/bench/run.mjs --config <工作区配置> --manifest <冻结清单> --out <新输出目录>`。先用 --freeze 记录21页与资源摘要，构建提前经 gws 完成，工具自动进入工作区 bench-window。A/A 噪声底和交替 A/B 检查每页 p50/p95，过大噪声不能通过，不沿用旧25%容差。
+
+--synthetic 生成27种压力页，hover迁移仍需输入适配器；tools/bench/effects.mjs 比较已捕获15效果120帧，不执行捕获、不批准基线。独立样式/布局成本与实机 GPU/IME 不在默认 FrameBenchmark 输出中。配置、退出码与限制见上述手册。
+
 [制作流程](ui-workflow.md) · [脚本合同](scripting.md) · [验收](validation.md)
 
 这份规范适用于页面作者和 agent。保护上限不等于流畅预算：脚本没超时、strict 没报错，都不能证明游戏里不卡。先保留数量、种子、轨迹、进退场和交互，再优化执行方式；不能靠删特效或缩短播放伪装性能提升。
