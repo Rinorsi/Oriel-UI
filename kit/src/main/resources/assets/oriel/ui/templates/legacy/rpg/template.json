@@ -1,0 +1,35 @@
+{
+  "id": "rpg",
+  "group": "hud",
+  "author": "云诺羲",
+  "version": "v1.0",
+  "date": "2026-11-04",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/rpg/index.html",
+  "cover": "oriel:textures/ui/templates/rpg.png",
+  "locales": {
+    "zh_cn": {
+      "name": "RPG 战斗 HUD",
+      "description": "暗黑破坏神式的青铜底座：会晃动的血球与蓝球、技能冷却、Boss 血条、头像和任务追踪。",
+      "category": "旧版 / HUD",
+      "tags": [
+        "HUD",
+        "动作",
+        "暗黑"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "RPG Combat HUD",
+      "description": "A Diablo-style bronze base: sloshing health and mana orbs, skill cooldowns, a boss bar, a portrait and a quest tracker.",
+      "category": "Legacy / HUD",
+      "tags": [
+        "HUD",
+        "Action",
+        "Dark Fantasy"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

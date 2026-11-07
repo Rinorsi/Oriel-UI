@@ -1,0 +1,35 @@
+{
+  "id": "dungeon",
+  "group": "hud",
+  "author": "云诺羲",
+  "version": "v1.1",
+  "date": "2026-11-05",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/dungeon/index.html",
+  "cover": "oriel:textures/ui/templates/dungeon.png",
+  "locales": {
+    "zh_cn": {
+      "name": "暗黑地牢",
+      "description": "哥特风的回合战：火把光照、四人小队与骷髅对峙、压力值、崩溃时的「偏执」和旁白。",
+      "category": "旧版 / HUD",
+      "tags": [
+        "HUD",
+        "回合制",
+        "哥特"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Darkest Dungeon",
+      "description": "Gothic turn-based combat: torchlight, a party of four facing skeletons, stress, a \"Paranoid\" break and a narrator.",
+      "category": "Legacy / HUD",
+      "tags": [
+        "HUD",
+        "Turn-Based",
+        "Gothic"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

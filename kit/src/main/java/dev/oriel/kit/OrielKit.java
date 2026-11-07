@@ -68,6 +68,9 @@ public final class OrielKit {
         PageControllers.register(ICONS, IconsPreset::new);
         PageControllers.register(STYLES, () -> new StylesPreset(true));
         PageControllers.register(FORGE_STATION, ForgeStationPreset::new);
-        for (String look : StylesPreset.PAGES) PageControllers.register(page("styles/" + look), () -> new StylesPreset(false));
+        for (String look : StylesPreset.PAGES) {
+            PageControllers.register(page("styles/" + look), () -> new StylesPreset(false));
+            PageControllers.register(TemplateCatalog.page(look), () -> new StylesPreset(false));
+        }
     }
 }

@@ -1163,6 +1163,8 @@
     "demo/toast.html": "可交互 HUD 叠加层",
     "demo/hud.html": "标题卡淡入淡出叠加层"
   },
-  "pending": [],
+  "pending": [
+    "showcase/achievement.html"
+  ],
   "pendingNote": "已存在但还没有索引条目的页面（例如别人正在做的）。做完后加条目并从这里删除；测试会提醒，不会放过。"
 }

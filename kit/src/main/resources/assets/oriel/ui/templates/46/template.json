@@ -1,0 +1,33 @@
+{
+  "id": "46",
+  "slug": "furnace-process",
+  "group": "host",
+  "author": "云诺羲",
+  "version": "0.1.0-preview",
+  "date": "2026-11-07",
+  "sourceGroup": "G16",
+  "kind": "template",
+  "source": "official",
+  "entry": "46/index.html",
+  "cover": "oriel:ui/templates/46/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "熔炉与加工进度",
+      "description": "烧炼、机器加工、燃料显示",
+      "category": "游戏宿主 UI 原型",
+      "tags": [
+        "游戏宿主 UI 原型"
+      ],
+      "status": "代表原型，待游戏验收"
+    },
+    "en_us": {
+      "name": "Furnace progress",
+      "description": "Furnace and processing progress; real processing is supplied by the host mod.",
+      "category": "Game UI prototypes",
+      "tags": [
+        "Game UI prototypes"
+      ],
+      "status": "Prototype; in-game acceptance pending"
+    }
+  }
+}

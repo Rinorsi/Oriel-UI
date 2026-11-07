@@ -1,0 +1,35 @@
+{
+  "id": "scifi",
+  "group": "theme",
+  "author": "云诺羲",
+  "version": "v1.0",
+  "date": "2026-11-04",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/scifi/index.html",
+  "cover": "oriel:textures/ui/templates/scifi.png",
+  "locales": {
+    "zh_cn": {
+      "name": "未来科技",
+      "description": "落日沉入霓虹网格：切角玻璃面板、打字终端、闪烁的告警、分段能量环和滚动的舰队广播。",
+      "category": "旧版 / 主题",
+      "tags": [
+        "合成波",
+        "霓虹",
+        "玻璃"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Future Tech",
+      "description": "A sunset sinking into a neon grid: chamfered glass panels, a typing terminal, blinking alerts, a segmented energy ring and a scrolling fleet ticker.",
+      "category": "Legacy / Themes",
+      "tags": [
+        "Synthwave",
+        "Neon",
+        "Glass"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

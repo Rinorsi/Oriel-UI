@@ -38,6 +38,11 @@ public final class LocalPage {
 
     /** Reads {@code page} (a file below {@code root}); never throws for an unreadable or odd page, it falls back to the file name. */
     public static Info read(Path root, Path page) {
+        return read(root, page, "zh_cn");
+    }
+
+    /** A saved template's own localized metadata takes precedence over HTML fixture text. */
+    public static Info read(Path root, Path page, String language) {
         Path base = root.toAbsolutePath().normalize(), file = page.toAbsolutePath().normalize();
         String path = base.relativize(file).toString().replace('\\', '/');
         String head = head(file);
@@ -53,6 +58,21 @@ public final class LocalPage {
         String subtitle = meta(head, "oriel-subtitle");
         if (subtitle.isEmpty()) subtitle = meta(head, "description");
         Path dir = file.getParent() == null ? base : file.getParent();
+        Path manifest = dir.resolve("template.json");
+        try {
+            if (name.equals("index.html") && Files.isRegularFile(manifest) && !Files.isSymbolicLink(manifest)
+                    && manifest.toRealPath().startsWith(base.toRealPath()) && Files.size(manifest) <= 128 * 1024) {
+                var data = com.google.gson.JsonParser.parseString(Files.readString(manifest)).getAsJsonObject();
+                if (data.has("locales")) {
+                    var localized = TemplateCatalog.localized(data, language);
+                    String id = data.has("id") ? data.get("id").getAsString() : "";
+                    title = (id.matches("[0-9]{2}") ? id + " · " : "") + localized.name();
+                    subtitle = localized.category() + (localized.description().isEmpty() ? "" : " · " + localized.description());
+                }
+            }
+        } catch (IOException | RuntimeException ignored) {
+            // Personal folders may contain an incomplete edit; retain the ordinary HTML fallback.
+        }
         String cover = "";
         String declared = meta(head, "oriel-cover");
         if (!declared.isEmpty()) cover = png(base, dir.resolve(declared));

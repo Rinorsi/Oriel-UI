@@ -88,3 +88,5 @@ session.close();                  // 关闭玩家的界面
 - `session.patch(key, value)` 的作用与客户端的 `driver.patch` 一样。客户端像检查数据那样检查这个值（`client.maxDataDepth` 把它所在的对象计入深度），并丢弃会让页面数据超过 `client.maxDataChars` 的补丁。Oriel 0.7 或更早的客户端不能接收补丁：补丁在那里被丢弃，服务器日志里有警告。
 - 服务器发来的页面在沙箱里运行：没有 Java 访问、没有网络、没有文件，并有 CPU 和内存预算。它们能做什么、不能做什么见[安全](security.md)。
 - 服务器页面是否显示完全由玩家决定（`client.serverPages`），而且玩家在聊天或菜单里时页面会等待。不要假设 `open` 一返回页面就已在屏幕上。
+
+官方编号模板与旧版归档、元数据及保存副本规则见 [官方模板目录](templates.md)。

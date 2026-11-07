@@ -1,0 +1,33 @@
+{
+  "id": "36",
+  "slug": "payment-feedback",
+  "group": "events",
+  "author": "云诺羲",
+  "version": "0.1.0-preview",
+  "date": "2026-11-07",
+  "sourceGroup": "G44",
+  "kind": "template",
+  "source": "official",
+  "entry": "36/index.html",
+  "cover": "oriel:ui/templates/36/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "付款与投入反馈",
+      "description": "商店付款、材料捐献、任务交付",
+      "category": "事件动效与轨迹",
+      "tags": [
+        "事件动效与轨迹"
+      ],
+      "status": "代表原型，待游戏验收"
+    },
+    "en_us": {
+      "name": "Payment feedback",
+      "description": "Show payment, spending and resource input feedback.",
+      "category": "Events and motion",
+      "tags": [
+        "Events and motion"
+      ],
+      "status": "Prototype; in-game acceptance pending"
+    }
+  }
+}

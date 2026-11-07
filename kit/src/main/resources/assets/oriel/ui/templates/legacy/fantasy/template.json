@@ -1,0 +1,35 @@
+{
+  "id": "fantasy",
+  "group": "menu",
+  "author": "云诺羲",
+  "version": "v1.1",
+  "date": "2026-11-05",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/fantasy/index.html",
+  "cover": "oriel:textures/ui/templates/fantasy.png",
+  "locales": {
+    "zh_cn": {
+      "name": "奇幻任务",
+      "description": "皮面手札：拱窗里会转头的任务人、首字放大的任务说明、目标与奖励、蜡封和丝带。",
+      "category": "旧版 / 菜单",
+      "tags": [
+        "菜单",
+        "任务",
+        "羊皮纸"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Fantasy Quest",
+      "description": "A leather-bound journal: a quest giver in an arched window who turns to look at you, a quest text with a large initial, goals and rewards, a wax seal and a ribbon.",
+      "category": "Legacy / Menus",
+      "tags": [
+        "Menu",
+        "Quest",
+        "Parchment"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

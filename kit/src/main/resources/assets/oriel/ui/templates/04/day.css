@@ -1,0 +1,39 @@
+html,body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: transparent; font-family: oriel:pixel_12; font-size: 12px; --reduce: 0; }
+#viewport { position: absolute; left: 50%; top: 50%; margin-left: -320px; margin-top: -180px; width: 640px; height: 360px; transform-origin: 50% 50%; }
+#scene { position: absolute; inset: 0; }
+#hex { position: absolute; left: 253.3333px; top: 73.0199px; width: 133.3333px; height: 153.9601px; transform: scale(0); transform-origin: 50% 50%; }
+#hex-art { position: absolute; left: -33.3333px; top: -33.3333px; width: 200px; height: 220.625px; }
+#day-label { position: absolute; left: 44.1667px; top: 43.1468px; width: 46.6667px; height: 18.3333px; image-rendering: pixelated; }
+#number-window { position: absolute; left: 16.6667px; top: 60.8134px; width: 100px; height: 50px; overflow: hidden; }
+#number-window img { position: absolute; top: 4px; height: 51.3333px; image-rendering: pixelated; }
+#old { left: 22px; width: 60.6667px; }
+#new { left: 17.3333px; width: 70px; transform: translateY(50px); }
+#white-flash { position: absolute; inset: 10px; background: #fff; opacity: 0; clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); }
+.wing { position: absolute; top: 147.3333px; width: 0; height: 5.3333px; opacity: 0; }
+#wing-left { left: 63.3333px; }
+#wing-right { right: 63.3333px; }
+.wing i { position: absolute; left: 5.3333px; right: 5.3333px; top: 2.3333px; height: .6667px; background: #F8D868; opacity: .8; }
+.wing b,.wing em { position: absolute; top: .6667px; width: 4px; height: 4px; background: #F8D868; transform: rotate(45deg); box-shadow: 0 0 0 .6667px #000; }
+.wing b { left: 0; }
+.wing em { right: 0; }
+.tag { position: absolute; top: 160px; width: 57.3333px; height: 17.4635px; opacity: 0; }
+#tag-left { left: 63.3333px; }
+#tag-right { right: 63.3333px; }
+#caption-shade { position: absolute; left: 113.3333px; top: 233.6467px; width: 413.3333px; height: 68.6667px; background: linear-gradient(90deg,rgba(6,8,14,0),rgba(6,8,14,.74) 14%,rgba(6,8,14,.74) 86%,rgba(6,8,14,0)); opacity: 0; }
+#caption { position: absolute; left: 206.5455px; top: 240.9800px; width: 228.3636px; height: 17.4545px; opacity: 0; image-rendering: pixelated; }
+#facts { position: absolute; left: 225.3854px; top: 262.9800px; display: flex; gap: 10px; }
+#facts img { height: 15.6667px; opacity: 0; flex-shrink: 0; }
+#fact-0,#fact-2 { width: 54.4427px; }
+#fact-1 { width: 60.3438px; }
+#cross,#burst { position: absolute; left: 320px; top: 150px; width: 0; height: 0; pointer-events: none; }
+#cross { opacity: 0; }
+#cross i,#cross b { position: absolute; background: #FFF0B0; }
+#cross i { left: -120px; top: -3.6667px; width: 240px; height: 7.3333px; }
+#cross b { left: -3.6667px; top: -120px; width: 7.3333px; height: 240px; }
+#cross em { position: absolute; left: -7.3333px; top: -7.3333px; width: 14.6667px; height: 14.6667px; background: #fff; }
+.particle,.ember { position: absolute; left: 0; top: 0; opacity: 0; }
+#embers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hint { position: absolute; right: 12px; bottom: 6px; color: #ddd; text-shadow: 1px 1px 0 #111; }
+@media(max-width:560px) { #viewport { transform: scale(.6666667); } .wing i { height: 1.5px; } }
+html[data-motion=reduced] { --reduce: 1; }
+@media(prefers-reduced-motion:reduce) { html { --reduce: 1; } }

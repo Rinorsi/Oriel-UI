@@ -1,0 +1,35 @@
+{
+  "id": "military",
+  "group": "hud",
+  "author": "云诺羲",
+  "version": "v1.0",
+  "date": "2026-11-04",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/military/index.html",
+  "cover": "oriel:textures/ui/templates/military.png",
+  "locales": {
+    "zh_cn": {
+      "name": "现代军武",
+      "description": "战地式的冷色 HUD：平移的罗盘带、旋转扫描的雷达、开火扩散的准星、受击方向和依次滑入的击杀信息。",
+      "category": "旧版 / HUD",
+      "tags": [
+        "HUD",
+        "射击",
+        "科技"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Modern Military",
+      "description": "A cool-toned Battlefield-style HUD: a sliding compass strip, a sweeping radar, a crosshair that spreads when firing, hit direction and kill notices sliding in one by one.",
+      "category": "Legacy / HUD",
+      "tags": [
+        "HUD",
+        "Shooter",
+        "Tech"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

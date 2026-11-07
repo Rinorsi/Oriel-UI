@@ -1,0 +1,13 @@
+html,body { margin: 0; width: 100vw; height: 100vh; background: transparent; overflow: hidden; font-family: oriel:pixel_12; font-size: 12px; --reduce: 0; }
+#label { position: absolute; left: 24px; bottom: 21.3333px; height: 50px; width: 212px; opacity: 0; }
+#slot { position: absolute; left: 0; top: 0; width: 50px; height: 50px; transform-origin: 50% 100%; }
+#slot img { position: absolute; left: -4px; top: -4px; width: 58px; height: 58px; image-rendering: pixelated; }
+#flash { opacity: 0; }
+.copy { position: absolute; left: 60px; top: 0; }
+.caption { position: absolute; left: -1.3333px; top: 1.9375px; width: 48px; height: 17.3958px; }
+.place { position: absolute; left: 0; top: 21.3333px; width: 151.1111px; height: 28.3333px; image-rendering: pixelated; }
+#badge-fade { position: absolute; right: 26.6667px; top: 18.6667px; width: 32px; height: 36.9479px; opacity: 0; }
+#badge { width: 32px; height: 36.9479px; transform-origin: 100% 0%; }
+.hint { position: absolute; right: 12px; bottom: 4px; color: #ddd; text-shadow: 1px 1px 0 #111; }
+html[data-motion=reduced] { --reduce: 1; }
+@media(prefers-reduced-motion:reduce) { html { --reduce: 1; } }

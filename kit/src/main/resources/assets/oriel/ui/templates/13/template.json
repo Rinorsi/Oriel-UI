@@ -1,0 +1,33 @@
+{
+  "id": "13",
+  "slug": "subtitle-dialog",
+  "group": "information",
+  "author": "云诺羲",
+  "version": "0.1.0-preview",
+  "date": "2026-11-07",
+  "sourceGroup": "G04",
+  "kind": "template",
+  "source": "official",
+  "entry": "13/index.html",
+  "cover": "oriel:ui/templates/13/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "对话与说话人字幕",
+      "description": "NPC 对话、教程、剧情文字",
+      "category": "信息与任务交互",
+      "tags": [
+        "信息与任务交互"
+      ],
+      "status": "代表原型，待游戏验收"
+    },
+    "en_us": {
+      "name": "Dialogue subtitles",
+      "description": "NPC dialogue, tutorials and story subtitles.",
+      "category": "Information and tasks",
+      "tags": [
+        "Information and tasks"
+      ],
+      "status": "Prototype; in-game acceptance pending"
+    }
+  }
+}

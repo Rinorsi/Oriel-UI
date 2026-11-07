@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.oriel.kit.LocalPage;
+import dev.oriel.kit.TemplateCatalog;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.preset.StylesPreset;
 import dev.oriel.mod.client.OrielScreens;
@@ -66,7 +67,7 @@ public final class TemplateLibrary {
         String op = request.has("op") ? request.get("op").getAsString() : "";
         String id = request.has("id") ? request.get("id").getAsString() : "";
         Constants.LOG.debug("Oriel: template centre asks {} {}", op, id);
-        if (!op.equals("folder") && !op.equals("refresh") && !StylesPreset.PAGES.contains(id)) return false;
+        if (!op.equals("folder") && !op.equals("refresh") && !TemplateCatalog.ids().contains(id)) return false;
         switch (op) {
             case "fav" -> {
                 if (request.has("on") && request.get("on").getAsBoolean()) favorites.add(id);
@@ -101,14 +102,9 @@ public final class TemplateLibrary {
         if (dir == null) return;
         try {
             Files.createDirectories(dir);
-            Path page = dir.resolve(id + ".html");
-            if (!Files.exists(page)) {
-                String html = read("ui/styles/" + id + ".html").replace("../../textures/", "oriel:textures/");
-                Files.writeString(page, html, StandardCharsets.UTF_8);
-            }
-            Path css = dir.resolve("showcase.css");
-            if (!Files.exists(css)) Files.writeString(css, read("ui/styles/showcase.css"), StandardCharsets.UTF_8);
-            Constants.LOG.info("Oriel: saved template '{}' to {}", id, page);
+            if (!TemplateCatalog.numbered(id) && Files.exists(dir.resolve(id + ".html"))) return;
+            TemplateCatalog.saveCopy(dir, id, TemplateLibrary::readBytes);
+            Constants.LOG.info("Oriel: saved template '{}' to {}", id, dir.resolve(TemplateCatalog.savedPath(id)));
         } catch (IOException e) {
             Constants.LOG.warn("Oriel: could not save template '{}': {}", id, e.toString());
         }
@@ -123,10 +119,14 @@ public final class TemplateLibrary {
     }
 
     private static String read(String path) throws IOException {
+        return new String(readBytes(path), StandardCharsets.UTF_8);
+    }
+
+    private static byte[] readBytes(String path) throws IOException {
         var resource = Minecraft.getInstance().getResourceManager().getResource(Constants.id(path))
                 .orElseThrow(() -> new IOException("no " + path));
         try (InputStream in = resource.open()) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            return in.readAllBytes();
         }
     }
 
@@ -135,8 +135,16 @@ public final class TemplateLibrary {
         o.add("favorites", array(favorites));
         o.add("recent", array(recent));
         List<String> saved = new ArrayList<>();
-        if (dir != null) for (String id : StylesPreset.PAGES) if (Files.exists(dir.resolve(id + ".html"))) saved.add(id);
+        JsonObject paths = new JsonObject();
+        if (dir != null) for (String id : TemplateCatalog.ids()) {
+            String path = TemplateCatalog.savedPath(id);
+            if (Files.exists(dir.resolve(path))) { saved.add(id); paths.addProperty(id, path); }
+            else if (!TemplateCatalog.numbered(id) && Files.exists(dir.resolve(id + ".html"))) {
+                saved.add(id); paths.addProperty(id, id + ".html");
+            }
+        }
         o.add("saved", array(saved));
+        o.add("savedPaths", paths);
         o.add("pages", pages());
         o.addProperty("folder", dir == null ? "" : dir.toString());
         o.addProperty("namespace", NAMESPACE);
@@ -153,7 +161,7 @@ public final class TemplateLibrary {
         try (var walk = Files.walk(dir, 5)) {
             walk.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".html"))
                     .sorted().limit(300).forEach(p -> {
-                        LocalPage.Info info = LocalPage.read(dir, p);
+                        LocalPage.Info info = LocalPage.read(dir, p, Minecraft.getInstance().getLanguageManager().getSelected());
                         JsonObject page = new JsonObject();
                         page.addProperty("path", info.path());
                         page.addProperty("title", info.title());

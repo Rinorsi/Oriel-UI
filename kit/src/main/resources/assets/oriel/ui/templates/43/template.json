@@ -1,0 +1,33 @@
+{
+  "id": "43",
+  "slug": "weather-layer",
+  "group": "drawing",
+  "author": "云诺羲",
+  "version": "0.1.0-preview",
+  "date": "2026-11-07",
+  "sourceGroup": "G40",
+  "kind": "template",
+  "source": "official",
+  "entry": "43/index.html",
+  "cover": "oriel:ui/templates/43/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "雨雪与雷电主题",
+      "description": "天气信息卡、主题菜单、技能预览窗",
+      "category": "地图与局部绘制",
+      "tags": [
+        "地图与局部绘制"
+      ],
+      "status": "代表原型，待游戏验收"
+    },
+    "en_us": {
+      "name": "Weather layer",
+      "description": "Localized rain, snow and lightning effects.",
+      "category": "Maps and effects",
+      "tags": [
+        "Maps and effects"
+      ],
+      "status": "Prototype; in-game acceptance pending"
+    }
+  }
+}

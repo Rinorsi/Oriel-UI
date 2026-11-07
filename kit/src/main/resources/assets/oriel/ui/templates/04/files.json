@@ -1,0 +1,23 @@
+[
+  "README.md",
+  "SOURCES.md",
+  "art/caption.png",
+  "art/day-gold.png",
+  "art/day-gray.png",
+  "art/fact-0.png",
+  "art/fact-1.png",
+  "art/fact-2.png",
+  "art/hex-gold.png",
+  "art/hex-gray.png",
+  "art/new-gold.png",
+  "art/new-white.png",
+  "art/old.png",
+  "art/tag-0.png",
+  "art/tag-1.png",
+  "cover.png",
+  "day.css",
+  "day.js",
+  "files.json",
+  "index.html",
+  "template.json"
+]

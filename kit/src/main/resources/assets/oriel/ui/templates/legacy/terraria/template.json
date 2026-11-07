@@ -1,0 +1,35 @@
+{
+  "id": "terraria",
+  "group": "menu",
+  "author": "云诺羲",
+  "version": "v1.0",
+  "date": "2026-11-04",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/terraria/index.html",
+  "cover": "oriel:textures/ui/templates/terraria.png",
+  "locales": {
+    "zh_cn": {
+      "name": "泰拉瑞亚风",
+      "description": "半透明蓝色格子、金色热键、彩虹流动的稀有度名字、心与星、小地图，还有慢慢染红天空的血月。",
+      "category": "旧版 / 菜单",
+      "tags": [
+        "背包",
+        "像素",
+        "2D"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Terraria Style",
+      "description": "Translucent blue slots, gold hotkeys, rarity names flowing with rainbow colours, hearts and stars, a minimap, and a Blood Moon slowly reddening the sky.",
+      "category": "Legacy / Menus",
+      "tags": [
+        "Inventory",
+        "Pixel",
+        "2D"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+html,body { margin:0; width:100vw; height:100vh; overflow:hidden; background:transparent; font-family:minecraft:default; font-size:8px; --reduce:0; }
+#viewport { position:absolute; left:50%; top:50%; width:640px; height:360px; margin-left:-320px; margin-top:-180px; transform-origin:50% 50%; }
+#scene,#composition { position:absolute; left:0; top:0; width:640px; height:360px; }
+.layer { position:absolute; pointer-events:none; }
+.control { position:absolute; pointer-events:auto; cursor:pointer; box-sizing:border-box; }
+.art { position:absolute; image-rendering:pixelated; pointer-events:none; max-width:none; }
+.control:focus-visible { outline:1px solid #fff; outline-offset:2px; }
+.control[aria-disabled=true] { cursor:default; }
+.hint { position:absolute; right:8px; bottom:3px; color:#ddd; font-size:8px;  }
+@media(max-width:560px) { #viewport { transform:scale(.6666667); } }
+html[data-motion=reduced] { --reduce:1; }
+@media(prefers-reduced-motion:reduce) { html { --reduce:1; } }

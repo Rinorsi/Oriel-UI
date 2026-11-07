@@ -1,0 +1,436 @@
+[
+  {
+    "id": "01",
+    "entry": "01/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/01/cover.png"
+  },
+  {
+    "id": "02",
+    "entry": "02/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/02/cover.png"
+  },
+  {
+    "id": "03",
+    "entry": "03/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/03/cover.png"
+  },
+  {
+    "id": "04",
+    "entry": "04/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/04/cover.png"
+  },
+  {
+    "id": "05",
+    "entry": "05/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/05/cover.png"
+  },
+  {
+    "id": "06",
+    "entry": "06/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/06/cover.png"
+  },
+  {
+    "id": "07",
+    "entry": "07/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/07/cover.png"
+  },
+  {
+    "id": "08",
+    "entry": "08/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/08/cover.png"
+  },
+  {
+    "id": "09",
+    "entry": "09/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/09/cover.png"
+  },
+  {
+    "id": "10",
+    "entry": "10/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/10/cover.png"
+  },
+  {
+    "id": "11",
+    "entry": "11/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/11/cover.png"
+  },
+  {
+    "id": "12",
+    "entry": "12/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/12/cover.png"
+  },
+  {
+    "id": "13",
+    "entry": "13/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/13/cover.png"
+  },
+  {
+    "id": "14",
+    "entry": "14/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/14/cover.png"
+  },
+  {
+    "id": "15",
+    "entry": "15/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/15/cover.png"
+  },
+  {
+    "id": "16",
+    "entry": "16/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/16/cover.png"
+  },
+  {
+    "id": "17",
+    "entry": "17/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/17/cover.png"
+  },
+  {
+    "id": "18",
+    "entry": "18/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/18/cover.png"
+  },
+  {
+    "id": "19",
+    "entry": "19/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/19/cover.png"
+  },
+  {
+    "id": "20",
+    "entry": "20/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/20/cover.png"
+  },
+  {
+    "id": "21",
+    "entry": "21/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/21/cover.png"
+  },
+  {
+    "id": "22",
+    "entry": "22/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/22/cover.png"
+  },
+  {
+    "id": "23",
+    "entry": "23/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/23/cover.png"
+  },
+  {
+    "id": "24",
+    "entry": "24/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/24/cover.png"
+  },
+  {
+    "id": "25",
+    "entry": "25/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/25/cover.png"
+  },
+  {
+    "id": "26",
+    "entry": "26/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/26/cover.png"
+  },
+  {
+    "id": "27",
+    "entry": "27/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/27/cover.png"
+  },
+  {
+    "id": "28",
+    "entry": "28/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/28/cover.png"
+  },
+  {
+    "id": "29",
+    "entry": "29/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/29/cover.png"
+  },
+  {
+    "id": "30",
+    "entry": "30/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/30/cover.png"
+  },
+  {
+    "id": "31",
+    "entry": "31/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/31/cover.png"
+  },
+  {
+    "id": "32",
+    "entry": "32/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/32/cover.png"
+  },
+  {
+    "id": "33",
+    "entry": "33/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/33/cover.png"
+  },
+  {
+    "id": "34",
+    "entry": "34/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/34/cover.png"
+  },
+  {
+    "id": "35",
+    "entry": "35/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/35/cover.png"
+  },
+  {
+    "id": "36",
+    "entry": "36/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/36/cover.png"
+  },
+  {
+    "id": "37",
+    "entry": "37/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/37/cover.png"
+  },
+  {
+    "id": "38",
+    "entry": "38/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/38/cover.png"
+  },
+  {
+    "id": "39",
+    "entry": "39/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/39/cover.png"
+  },
+  {
+    "id": "40",
+    "entry": "40/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/40/cover.png"
+  },
+  {
+    "id": "41",
+    "entry": "41/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/41/cover.png"
+  },
+  {
+    "id": "42",
+    "entry": "42/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/42/cover.png"
+  },
+  {
+    "id": "43",
+    "entry": "43/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/43/cover.png"
+  },
+  {
+    "id": "44",
+    "entry": "44/index.html",
+    "source": "official",
+    "kind": "reference",
+    "cover": "oriel:textures/icons/layers.png"
+  },
+  {
+    "id": "45",
+    "entry": "45/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/45/cover.png"
+  },
+  {
+    "id": "46",
+    "entry": "46/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/46/cover.png"
+  },
+  {
+    "id": "47",
+    "entry": "47/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/47/cover.png"
+  },
+  {
+    "id": "48",
+    "entry": "48/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/48/cover.png"
+  },
+  {
+    "id": "49",
+    "entry": "49/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/49/cover.png"
+  },
+  {
+    "id": "50",
+    "entry": "50/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/50/cover.png"
+  },
+  {
+    "id": "51",
+    "entry": "51/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/51/cover.png"
+  },
+  {
+    "id": "52",
+    "entry": "52/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/52/cover.png"
+  },
+  {
+    "id": "53",
+    "entry": "53/index.html",
+    "source": "official",
+    "kind": "template",
+    "cover": "oriel:ui/templates/53/cover.png"
+  },
+  {
+    "id": "rpg",
+    "entry": "legacy/rpg/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/rpg.png"
+  },
+  {
+    "id": "mcdungeons",
+    "entry": "legacy/mcdungeons/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/mcdungeons.png"
+  },
+  {
+    "id": "military",
+    "entry": "legacy/military/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/military.png"
+  },
+  {
+    "id": "dungeon",
+    "entry": "legacy/dungeon/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/dungeon.png"
+  },
+  {
+    "id": "arcane",
+    "entry": "legacy/arcane/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/arcane.png"
+  },
+  {
+    "id": "fantasy",
+    "entry": "legacy/fantasy/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/fantasy.png"
+  },
+  {
+    "id": "terraria",
+    "entry": "legacy/terraria/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/terraria.png"
+  },
+  {
+    "id": "scifi",
+    "entry": "legacy/scifi/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/scifi.png"
+  },
+  {
+    "id": "xianxia",
+    "entry": "legacy/xianxia/index.html",
+    "source": "legacy",
+    "kind": "template",
+    "cover": "oriel:textures/ui/templates/xianxia.png"
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "id": "mcdungeons",
+  "group": "hud",
+  "author": "云诺羲",
+  "version": "v1.0",
+  "date": "2026-11-05",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/mcdungeons/index.html",
+  "cover": "oriel:textures/ui/templates/mcdungeons.png",
+  "locales": {
+    "zh_cn": {
+      "name": "方块地下城",
+      "description": "方块地下城式的俯视冒险：等距地砖与熔岩、圆角石板面板、生命条与治疗药水、1 2 3 神器冷却、灵魂和绿宝石。",
+      "category": "旧版 / HUD",
+      "tags": [
+        "HUD",
+        "等距",
+        "冒险"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Block Dungeons",
+      "description": "A Minecraft Dungeons-style top-down adventure: isometric tiles and lava, a rounded slate bar, health and a healing potion, artifact cooldowns on 1 2 3, souls and emeralds.",
+      "category": "Legacy / HUD",
+      "tags": [
+        "HUD",
+        "Isometric",
+        "Adventure"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

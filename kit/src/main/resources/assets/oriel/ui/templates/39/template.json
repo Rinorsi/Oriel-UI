@@ -1,0 +1,33 @@
+{
+  "id": "39",
+  "slug": "mission-map",
+  "group": "drawing",
+  "author": "云诺羲",
+  "version": "0.1.0-preview",
+  "date": "2026-11-07",
+  "sourceGroup": "G31",
+  "kind": "template",
+  "source": "official",
+  "entry": "39/index.html",
+  "cover": "oriel:ui/templates/39/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "任务选关与路线地图",
+      "description": "副本选择、任务路线、旅行规划",
+      "category": "地图与局部绘制",
+      "tags": [
+        "地图与局部绘制"
+      ],
+      "status": "代表原型，待游戏验收"
+    },
+    "en_us": {
+      "name": "Mission map",
+      "description": "Choose missions on a route map.",
+      "category": "Maps and effects",
+      "tags": [
+        "Maps and effects"
+      ],
+      "status": "Prototype; in-game acceptance pending"
+    }
+  }
+}

@@ -13,6 +13,7 @@ import dev.oriel.kit.LocalPage;
 import dev.oriel.kit.Lang;
 import dev.oriel.kit.OrielKit;
 import dev.oriel.kit.Shell;
+import dev.oriel.kit.TemplateCatalog;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -46,6 +47,8 @@ public final class StylesPreset implements PageControllers.Controller {
     private final boolean index;
     private Document doc;
     private final List<Template> templates = new ArrayList<>();
+    private final java.util.Map<String, String> categoryNames = new java.util.LinkedHashMap<>();
+    private final java.util.Map<String, String> savedPaths = new java.util.HashMap<>();
     private final Set<String> favorites = new LinkedHashSet<>(), saved = new LinkedHashSet<>();
     private final List<String> recent = new ArrayList<>();
     /** Pages found in the player's folder (paths below it, as the game lists them) and their cards. */
@@ -149,16 +152,28 @@ public final class StylesPreset implements PageControllers.Controller {
         int order = 0;
         for (Element e : doc.querySelectorAll(".tpl")) {
             String id = e.getAttribute("data-id");
-            List<String> tags = List.of(attr(e, "data-tags").split(","));
-            Template t = new Template(id, attr(e, "data-title"), attr(e, "data-author"), attr(e, "data-source"), attr(e, "data-group"),
-                    attr(e, "data-ver"), attr(e, "data-date"), tags, attr(e, "data-desc"), e, null, order++);
+            JsonObject meta = TemplateCatalog.metadata(id, doc.host()::loadText);
+            TemplateCatalog.Text text = TemplateCatalog.localized(meta, doc.host().language());
+            String group = str(meta, "group"), source = str(meta, "source");
+            categoryNames.putIfAbsent(group, text.category());
+            for (Element field : e.querySelectorAll("[data-template-field]")) {
+                Dom.text(field, field.getAttribute("data-template-field").equals("category") ? text.category() : text.status());
+            }
+            Template t = new Template(id, (source.equals("official") ? id + " · " : "") + text.name(),
+                    str(meta, "author"), source, group, str(meta, "version"), str(meta, "date"),
+                    text.tags(), text.description(), e, null, order++);
             templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));
+        }
+        for (Element label : doc.querySelectorAll("[data-template-group]")) {
+            String group = label.getAttribute("data-template-group");
+            Dom.text(label, categoryNames.getOrDefault(group, group));
         }
         buildTagbar();
         for (Element chip : tagbar.querySelectorAll("span")) chip.toggleClass("on", chip.getAttribute("data-tag").equals(tag));
         for (Element s : doc.querySelectorAll("#sort [data-sort]")) s.toggleClass("on", s.getAttribute("data-sort").equals(sort));
         for (Element item : doc.querySelectorAll("#side .item")) item.toggleClass("on", item.getAttribute("data-view").equals(view));
         for (Element item : doc.querySelectorAll("#side .item")) {
+            item.setAttribute("title", title(item.getAttribute("data-view")));
             Shell.activate(item, () -> {
                 view = item.getAttribute("data-view");
                 for (Element i : doc.querySelectorAll("#side .item")) i.toggleClass("on", i == item);
@@ -216,12 +231,15 @@ public final class StylesPreset implements PageControllers.Controller {
                 + "src=\"../textures/icons/heart.png\"></div><span class=\"saved-mark\"><img class=\"o-ico\" src=\"../textures/icons/check.png\">" + Lang.html(doc, "oriel.ui.styles.side.saved") + "</span>"
                 + "</div><div class=\"meta\"><b></b><div class=\"by\"><img src=\"../textures/ui/emblem.png\"><span></span><em></em></div>"
                 + "<div class=\"tags\"></div></div></div>");
-        Dom.query(card, "img.shot").setAttribute("src", "../textures/ui/templates/" + t.id + ".png");
+        Dom.query(card, "img.shot").setAttribute("data-cover", TemplateCatalog.cover(t.id));
+        Dom.query(card, "img.shot").setAttribute("loading", "lazy");
+        card.setAttribute("title", t.title + " · " + t.author + " · " + t.ver + " · " + t.desc);
         Element badge = Dom.query(card, ".badge");
         boolean official = t.source.equals("official");
-        Dom.text(badge, Lang.t(doc, official ? "oriel.ui.styles.badge.official" : "oriel.ui.styles.badge.community"));
+        Dom.text(badge, Lang.t(doc, official ? "oriel.ui.styles.badge.official" : t.source.equals("legacy") ? "oriel.ui.styles.badge.legacy" : "oriel.ui.styles.badge.community"));
         badge.toggleClass("official", official);
         Dom.text(Dom.query(card, ".meta b"), t.title);
+        Dom.query(card, ".by span").setAttribute("lang", "zh");
         Dom.text(Dom.query(card, ".by span"), t.author);
         Dom.text(Dom.query(card, ".by em"), t.ver);
         Element tags = Dom.query(card, ".tags");
@@ -307,7 +325,10 @@ public final class StylesPreset implements PageControllers.Controller {
         float[] port = list.getBoundingClientRect();
         int loaded = 0;
         boolean more = false;
-        for (Element card : pageCards) {
+        List<Element> covers = new ArrayList<>(pageCards);
+        for (Template t : templates) covers.add(t.card);
+        for (Element card : covers) {
+            if (card.parentNode() != grid) continue;
             Element img = Dom.query(card, "img.shot");
             String url = img == null ? null : img.getAttribute("data-cover");
             if (url == null || url.isEmpty()) continue;
@@ -342,6 +363,7 @@ public final class StylesPreset implements PageControllers.Controller {
         if (v.startsWith("group:")) return t.group.equals(v.substring(6));
         return switch (v) {
             case "official" -> t.source.equals("official");
+            case "legacy" -> t.source.equals("legacy");
             case "community" -> t.source.equals("community");
             case "fav" -> favorites.contains(t.id);
             case "saved" -> saved.contains(t.id);
@@ -362,9 +384,10 @@ public final class StylesPreset implements PageControllers.Controller {
 
     /** A view's title in the headline and the crumb: the sidebar's label, in full where that is shortened. */
     private String title(String view) {
+        if (view.startsWith("group:")) return categoryNames.getOrDefault(view.substring(6), view.substring(6));
         String v = view.startsWith("group:") ? view.substring(6) : view;
         return Lang.t(doc, "oriel.ui.styles.view." + (switch (v) {
-            case "official", "community", "fav", "saved", "recent", "pages", "demos", "guide", "hud", "menu", "theme" -> v;
+            case "official", "community", "fav", "saved", "recent", "pages", "demos", "guide", "hud", "menu", "theme", "legacy", "basic", "information", "data", "events", "drawing", "host" -> v;
             default -> "all";
         }) + ".title");
     }
@@ -380,8 +403,9 @@ public final class StylesPreset implements PageControllers.Controller {
         if (t == null) return;
         if (open != null) parkSpec(open);
         open = t;
-        Dom.byId(doc, "d-cover").setAttribute("src", "../textures/ui/templates/" + t.id + ".png");
+        Dom.byId(doc, "d-cover").setAttribute("src", TemplateCatalog.cover(t.id));
         Dom.text(Dom.byId(doc, "d-title"), t.title);
+        Dom.byId(doc, "d-author").setAttribute("lang", "zh");
         Dom.text(Dom.byId(doc, "d-author"), t.author);
         Dom.text(Dom.byId(doc, "d-ver"), t.ver + " · " + t.date);
         Dom.text(Dom.byId(doc, "d-desc"), t.desc);
@@ -422,7 +446,8 @@ public final class StylesPreset implements PageControllers.Controller {
     private void preview(Template t) {
         if (t == null) return;
         returnTo = t.id;
-        Shell.go(doc, OrielKit.page("styles/" + t.id), "forward");
+        rememberPlace();
+        Shell.go(doc, TemplateCatalog.page(t.id), "forward");
     }
 
     /** Saves a copy into the player's folder; a template already saved opens its copy instead. */
@@ -431,11 +456,11 @@ public final class StylesPreset implements PageControllers.Controller {
         if (saved.contains(t.id)) {
             returnTo = t.id;
             rememberPlace();
-            doc.navigate(namespace + ":" + t.id + ".html");
+            doc.navigate(namespace + ":" + savedPaths.getOrDefault(t.id, TemplateCatalog.savedPath(t.id)));
             return;
         }
         if (!send("save", t.id, false)) saved.add(t.id);
-        Dom.text(Dom.byId(doc, "d-note"), Lang.t(doc, "oriel.ui.styles.saved_to", folder + t.id + ".html"));
+        Dom.text(Dom.byId(doc, "d-note"), Lang.t(doc, "oriel.ui.styles.saved_to", folder + TemplateCatalog.savedPath(t.id)));
         render();
         refreshDetails();
     }
@@ -474,6 +499,10 @@ public final class StylesPreset implements PageControllers.Controller {
         JsonObject o = value.getAsJsonObject();
         if (o.has("favorites")) replace(favorites, o.getAsJsonArray("favorites"));
         if (o.has("saved")) replace(saved, o.getAsJsonArray("saved"));
+        if (o.has("savedPaths") && o.get("savedPaths").isJsonObject()) {
+            savedPaths.clear();
+            o.getAsJsonObject("savedPaths").entrySet().forEach(e -> savedPaths.put(e.getKey(), e.getValue().getAsString()));
+        }
         if (o.has("recent")) {
             recent.clear();
             for (JsonElement e : o.getAsJsonArray("recent")) recent.add(e.getAsString());

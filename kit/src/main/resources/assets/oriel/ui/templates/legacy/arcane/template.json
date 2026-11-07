@@ -1,0 +1,35 @@
+{
+  "id": "arcane",
+  "group": "menu",
+  "author": "云诺羲",
+  "version": "v1.0",
+  "date": "2026-11-04",
+  "source": "legacy",
+  "kind": "template",
+  "entry": "legacy/arcane/index.html",
+  "cover": "oriel:textures/ui/templates/arcane.png",
+  "locales": {
+    "zh_cn": {
+      "name": "魔法附魔",
+      "description": "附魔台长成法坛：两圈符文反向旋转，书悬浮自转，附魔选项悬停才显出名字。",
+      "category": "旧版 / 菜单",
+      "tags": [
+        "菜单",
+        "魔法",
+        "紫色"
+      ],
+      "status": "旧版风格模板"
+    },
+    "en_us": {
+      "name": "Arcane Enchanting",
+      "description": "The enchanting table as an altar: two rune rings turning against each other, a floating spinning book, and offers that only reveal their names on hover.",
+      "category": "Legacy / Menus",
+      "tags": [
+        "Menu",
+        "Magic",
+        "Purple"
+      ],
+      "status": "Legacy style template"
+    }
+  }
+}

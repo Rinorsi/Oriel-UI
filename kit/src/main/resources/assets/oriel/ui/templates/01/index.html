@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><title>01 · 成就与提示</title>
+<meta name="oriel-subtitle" content="透明背景 · R 重播 / 按住 E 跳过">
+<meta name="oriel-cover" content="cover.png">
+<link rel="stylesheet" href="oriel:ui/ore.css"><link rel="stylesheet" href="toast.css">
+</head><body>
+<div class="achievement cut" id="achievement">
+ <div class="surface cut"></div><div class="accent"></div>
+ <div class="medal"><div class="diamond"></div><item id="minecraft:diamond_pickaxe"></item></div>
+ <div class="copy"><h1>成就解锁!</h1><p>深渊的第一步</p></div><span class="xp">+50 XP</span>
+ <div class="shine-clip"><div class="shine-pair" id="shine-first"><i></i><b></b></div><div class="shine-pair thin" id="shine-second"><i></i><b></b></div></div>
+</div>
+<div class="achievement-fx" id="achievement-fx"><div class="cross" id="land-flash"><i></i><b></b><em></em></div><div id="particles"></div></div>
+<div class="tip cut" id="tip">
+ <div class="surface cut"></div><div class="accent"></div>
+ <span class="badge">提示</span><span>按下</span>
+ <span class="key"><span class="key-shadow"></span><span class="key-face" id="map-key-face"><span class="key-inner"><i class="key-gloss"></i></span><span class="key-label">M</span></span></span>
+ <span>打开地图</span>
+ <div class="shine-clip"><div class="shine-pair thin violet" id="shine-tip"><i></i><b></b></div></div>
+</div>
+<div class="skip-wrap" id="skip">
+ <div class="skip cut" id="skip-panel">
+  <div class="surface cut"></div><div class="accent"></div><span class="hold-label">按住</span>
+  <span class="key hold-key" id="hold-key"><span class="key-shadow"></span><span class="key-face" id="hold-key-face"><span class="key-inner"><i id="key-fill"></i><i class="key-gloss"></i></span><span class="key-label">E</span></span></span>
+  <strong id="skip-text">跳过</strong><div class="hold-track"><div id="hold-fill"></div></div>
+ </div>
+ <div class="cross completion" id="done-flash"><i></i><b></b><em></em></div>
+</div>
+<div class="replay">R 重播 · Esc 返回</div><script src="toast.js"></script>
+</body></html>

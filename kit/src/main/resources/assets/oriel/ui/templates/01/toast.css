@@ -1,0 +1,63 @@
+html { font-family: oriel:pixel_12; font-size: 12px; color: #f5f2ef; background: transparent; --reduce: 0; }
+body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: transparent; }
+.cut { clip-path: polygon(8px 0,100% 0,100% 100%,0 100%,0 8px); }
+.surface { position: absolute; inset: 1px; background: #2c2516; pointer-events: none; }
+.accent { position: absolute; top: 10px; bottom: 2px; left: 2px; width: 3px; background: #ffda5c; }
+.achievement,.achievement-fx { position: absolute; top: 22%; right: 4.2%; width: 272px; height: 60px; }
+.achievement { background: #4a4a52; overflow: hidden; opacity: 0; }
+.achievement-fx { pointer-events: none; }
+.medal { position: absolute; left: 12px; top: 6px; width: 48px; height: 48px; }
+.diamond { position: absolute; left: 8px; top: 8px; width: 30px; height: 30px; border: 2px solid #ffe58a; background: #111718; box-shadow: inset 0 0 0 2px #aa792b,0 0 4px #f7d35b; transform: rotate(45deg); }
+.medal item { position: absolute; left: 8px; top: 8px; width: 32px; height: 32px; }
+.copy { position: absolute; left: 70px; top: 6px; right: 6px; }
+h1 { margin: 0; font-size: 24px; font-weight: normal; line-height: 1; color: #ffdc5e; text-shadow: 1px 0 0 #ffdc5e,1px 2px 0 #6b4613; white-space: nowrap; }
+p { margin: 6px 0 0; font-size: 12px; line-height: 1; color: #f2eeea; }
+.xp { position: absolute; right: 10px; bottom: 8px; font-family: minecraft:default; font-size: 8px; color: #bd79ff; }
+.shine-clip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.shine-pair { position: absolute; top: -7px; bottom: -7px; left: -20%; width: 27px; opacity: 0; }
+.shine-pair i,.shine-pair b { position: absolute; top: 0; bottom: 0; width: 27px; background: #fff6c0; transform: skewX(-20deg); opacity: .3; }
+.shine-pair b { left: 40px; width: 8px; opacity: .24; }
+.shine-pair.thin i { width: 20px; opacity: .18; }
+.shine-pair.thin b { left: 30px; width: 6px; opacity: .144; }
+.shine-pair.violet i { background: #e8d0ff; opacity: .2; }
+.shine-pair.violet b { background: #e8d0ff; opacity: .16; }
+.tip { position: absolute; top: 41.5%; right: 4.2%; width: 244px; height: 46px; background: #5a4a78; display: flex; align-items: center; gap: 8px; padding: 0 12px; box-sizing: border-box; opacity: 0; }
+.tip .surface { background: #291e3c; }
+.tip .accent { background: #b274ff; }
+.tip > span { position: relative; flex-shrink: 0; }
+.badge { padding: 2px 4px; background: #b274ff; border-top: 1px solid #dab4ff; box-shadow: inset -1px -1px 0 #673698; }
+.key { position: relative; display: block; width: 26px; height: 28px; flex-shrink: 0; font-family: minecraft:default; font-size: 16px; color: #fff; }
+.key-face,.key-shadow { position: absolute; left: 0; top: 0; width: 26px; height: 26px; background: #000; clip-path: polygon(5px 0,100% 0,100% 21px,21px 100%,0 100%,0 5px); }
+.key-shadow { top: 3px; }
+.key-inner { position: absolute; inset: 2px; overflow: hidden; background: #3e3e42; clip-path: polygon(3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%,0 3px); }
+.key-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 0 #141414; }
+.key-gloss { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: #ffffff48; }
+#key-fill { position: absolute; inset: 0; background: #ffda5c; transform: scaleY(0); transform-origin: center bottom; }
+.hold-key.filled .key-label { color: #3a2200; text-shadow: none; }
+.skip-wrap { position: absolute; right: 4.2%; bottom: 13.7%; width: 166px; height: 40px; opacity: 0; }
+.skip { position: absolute; inset: 0; background: #4a4a52; display: flex; align-items: center; gap: 8px; padding: 0 12px; box-sizing: border-box; }
+.skip .surface { background: #121216; }
+.skip > span,.skip strong { position: relative; }
+.skip strong { font-size: 24px; font-weight: normal; line-height: 1; text-shadow: 1px 0 0 #fff,1px 1px 0 #151515; }
+.hold-label { color: #c8ccd4; }
+.hold-track { position: absolute; bottom: 2px; left: 4px; right: 2px; height: 3px; background: #202026; overflow: hidden; }
+#hold-fill { position: absolute; inset: 0; background: #ffda5c; transform: scaleX(0); transform-origin: left center; }
+.skip.done .accent,.skip.done #hold-fill,.skip.done #key-fill { background: #fff; }
+.skip.done strong { color: #ffda5c; text-shadow: 1px 0 0 #ffda5c,1px 1px 0 #2a1600; }
+.cross { position: absolute; left: 36px; top: 30px; width: 0; height: 0; opacity: 0; pointer-events: none; }
+.cross i,.cross b,.cross em { position: absolute; display: block; background: #fff0b0; }
+.cross i { left: -30px; top: -1.5px; width: 60px; height: 3px; }
+.cross b { left: -1.5px; top: -30px; width: 3px; height: 60px; }
+.cross em { left: -3px; top: -3px; width: 6px; height: 6px; background: #fff; }
+.cross.completion { left: 58px; top: 20px; }
+.cross.completion i,.cross.completion b { background: #fff; }
+.particle { position: absolute; left: 36px; top: 30px; opacity: 0; pointer-events: none; }
+.replay { position: absolute; left: 12px; bottom: 6px; color: #ddd9d4; text-shadow: 1px 1px 0 #151518; font-size: 12px; }
+@media(max-width:560px) {
+ .achievement,.achievement-fx { top: 19%; right: 12px; }
+ .tip { top: 47%; right: 12px; }
+ .skip-wrap { right: 12px; bottom: 12%; }
+ .replay { bottom: 4px; }
+}
+html[data-motion=reduced] { --reduce: 1; }
+@media(prefers-reduced-motion:reduce) { html { --reduce: 1; } }

@@ -1,0 +1,20 @@
+[
+  "README.md",
+  "SOURCES.md",
+  "art/diamond-0.png",
+  "art/diamond-1.png",
+  "art/diamond-winner.png",
+  "art/item-0.png",
+  "art/item-1.png",
+  "art/panel-0.png",
+  "art/panel-1.png",
+  "art/panel-winner.png",
+  "art/vs-badge.png",
+  "cover.png",
+  "files.json",
+  "fx-art-init.js",
+  "index.html",
+  "page.css",
+  "page.js",
+  "template.json"
+]
