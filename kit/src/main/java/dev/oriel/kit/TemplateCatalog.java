@@ -157,6 +157,16 @@ public final class TemplateCatalog {
         return null;
     }
 
+    /** What the template is made for, as shown: "Oriel 0.11+ · Minecraft 26.1+" (a part it does not ask for is left out). */
+    public static String fit(JsonObject metadata) {
+        if (!metadata.has("requires") || !metadata.get("requires").isJsonObject()) return "";
+        JsonObject requires = metadata.getAsJsonObject("requires");
+        List<String> parts = new ArrayList<>();
+        if (requires.has("oriel")) parts.add("Oriel " + Versions.describe(requires.get("oriel").getAsString()));
+        if (requires.has("minecraft")) parts.add("Minecraft " + Versions.describe(requires.get("minecraft").getAsString()));
+        return String.join(" · ", parts);
+    }
+
     public record Text(String name, String description, String category, List<String> tags, String status) {}
 
     private static String normalize(String language) {

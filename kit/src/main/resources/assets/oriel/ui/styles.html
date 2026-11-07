@@ -60,9 +60,12 @@
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent); opacity: 0; }
 .card:hover .cover .sheen { animation: sheen 700ms var(--m-out); }
 @keyframes sheen { from { left: -40%; opacity: 1; } to { left: 130%; opacity: 1; } }
-.badge { position: absolute; left: 4px; top: 4px; z-index: 2; padding: 1px 4px; color: #ffffff; background: rgba(20, 20, 24, 0.75);
+.badge { position: absolute; right: 4px; top: 4px; z-index: 2; padding: 1px 4px; color: #ffffff; background: rgba(20, 20, 24, 0.75);
     border: 1px solid rgba(255, 255, 255, 0.25); }
 .badge.official { display: none; }
+.stamp { position: absolute; left: 4px; top: 4px; z-index: 2; padding: 0 3px; font-size: 8px; color: rgba(255, 255, 255, 0.78); background: rgba(20, 20, 24, 0.55); }
+.stamp:empty { display: none; }
+.big .stamp { left: 6px; top: 6px; }
 .badge.locked { background: rgba(120, 70, 10, 0.9); border-color: #ffc46a; }
 .card.locked .shot { opacity: 0.45; }
 .badge.new { left: auto; right: 4px; background: #c4462c; border-color: #ff8a6a; }
@@ -241,7 +244,7 @@
         <div class="veil" id="veil"></div>
         <div class="drawer" id="drawer">
           <div class="dscroll" id="dscroll">
-            <div class="big"><img id="d-cover"><div class="ore-btn icon close" id="d-close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
+            <div class="big"><img id="d-cover"><span class="stamp" id="d-stamp"></span><div class="ore-btn icon close" id="d-close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
             <div class="head">
               <span class="dtitle o-h2" id="d-title"></span>
               <div class="by"><img id="d-avatar" src="../textures/ui/emblem.png"><span id="d-author"></span><em id="d-ver"></em></div>

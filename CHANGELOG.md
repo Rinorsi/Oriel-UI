@@ -7,6 +7,7 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (2026-11-08)
 
+- Templates: cards show what they are made for ("For Oriel 0.11+", from `requires`) instead of the template's own version, and the update date sits in the cover corner (month-day on the card, the whole date in the tooltip and the details).
 - Templates: each template.json may declare `requires` (`oriel`, `minecraft` ranges). A template the running library or game is too old for shows "Needs update" in the template centre and cannot be previewed or saved; a host that does not know its versions locks nothing. Hosts report them through `Host.libraryVersion()` / `gameVersion()`; the About page now shows the real version in game.
 
 - Checker: two new source rules, `duplicate-global-function` (a top-level function declared twice across the page's scripts) and `hidden-class-created-by-script` (a bare class hidden with display:none that a script writes into the page, with no rule that shows it). Bundled pages report them as info.

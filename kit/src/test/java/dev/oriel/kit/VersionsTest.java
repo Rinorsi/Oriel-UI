@@ -49,4 +49,15 @@ class VersionsTest {
             assertTrue(meta.has("requires") && meta.getAsJsonObject("requires").has("oriel"), id + " needs a requires.oriel");
         }
     }
+
+    @Test void aRangeIsShownTheWayAPlayerReadsIt() {
+        assertEquals("0.11+", Versions.describe(">=0.11.0"));
+        assertEquals("26.1+", Versions.describe(">=26.1"));
+        assertEquals("26.1.2+", Versions.describe(">=26.1.2"));
+        assertEquals(">=0.11.0 <0.12.0", Versions.describe(">=0.11.0 <0.12.0"));
+        assertEquals("", Versions.describe(null));
+        var meta = com.google.gson.JsonParser.parseString("{\"requires\":{\"oriel\":\">=0.11.0\",\"minecraft\":\">=26.1\"}}").getAsJsonObject();
+        assertEquals("Oriel 0.11+ · Minecraft 26.1+", TemplateCatalog.fit(meta));
+        assertEquals("", TemplateCatalog.fit(new com.google.gson.JsonObject()));
+    }
 }

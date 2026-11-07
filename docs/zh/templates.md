@@ -88,3 +88,5 @@ legacy/ 下保存 rpg、mcdungeons、military、dungeon、arcane、fantasy、ter
 ## 最低版本`requires`
 
 每个 `template.json` 可以写 `"requires": {"oriel": ">=0.11.0", "minecraft": ">=26.1"}`：库版本或游戏版本不满足时，模板中心里这张卡显示「需要更新」、封面变暗，详情里说明需要什么、当前是什么，预览和保存按钮不可用。范围写法：`>= > <= < =`，用空格或逗号分隔，全部满足才算满足；版本只读数字部分（`v0.11.0-preview` 读作 0.11.0），缺的位当 0。宿主不知道自己的版本（预览器、测试）时不会锁任何模板。现有模板都写了 `oriel >=0.11.0`、`minecraft >=26.1`；新增模板用到较新的库能力时，把下限提高即可。库版本取自模组加载器里的 oriel 模组版本。
+
+卡片右下写「适配 Oriel 0.11+」（取自 `requires.oriel`，详情里是「Oriel 0.11+ · Minecraft 26.1+」），封面左上角是更新日期（卡片上只写月-日，完整日期在悬停提示和详情封面里，取自 `template.json` 的 `date`）。模板自己的 `version` 字段不再显示，只留在文件里。

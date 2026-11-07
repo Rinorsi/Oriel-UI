@@ -43,7 +43,7 @@ public final class StylesPreset implements PageControllers.Controller {
     /** The sidebar groups the player has folded, kept while the game runs (the older looks start folded). */
     private static final Set<String> FOLDED = new LinkedHashSet<>(List.of("old"));
 
-    private record Template(String id, String title, String author, String source, String group, String ver, String date,
+    private record Template(String id, String title, String author, String source, String group, String fit, String date,
                             List<String> tags, String desc, Element spec, Element card, int order, TemplateCatalog.Unmet locked) {}
 
     private final boolean index;
@@ -166,9 +166,9 @@ public final class StylesPreset implements PageControllers.Controller {
             }
             TemplateCatalog.Unmet locked = TemplateCatalog.unmet(meta, doc.host().libraryVersion(), doc.host().gameVersion());
             Template t = new Template(id, text.name(),
-                    str(meta, "author"), source, group, str(meta, "version"), str(meta, "date"),
+                    str(meta, "author"), source, group, TemplateCatalog.fit(meta), str(meta, "date"),
                     tagsOf(id, source, text.tags()), text.description(), e, null, order++, locked);
-            templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order, t.locked));
+            templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.fit, t.date, t.tags, t.desc, t.spec, card(t), t.order, t.locked));
         }
         for (TemplateCatalog.Category c : TemplateCatalog.categories()) {
             categoryNames.put(c.key(), c.name(doc.host().language()));
@@ -242,13 +242,13 @@ public final class StylesPreset implements PageControllers.Controller {
     /** A template's card: its cover, badges, favourite, title, author and tags. */
     private Element card(Template t) {
         Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"shot\">"
-                + "<i class=\"sheen\"></i><span class=\"badge\"></span><div class=\"fav\" title=\"" + Lang.html(doc, "oriel.ui.styles.drawer.favorite") + "\"><img class=\"o-ico\" "
+                + "<i class=\"sheen\"></i><span class=\"badge\"></span><span class=\"stamp\"></span><div class=\"fav\" title=\"" + Lang.html(doc, "oriel.ui.styles.drawer.favorite") + "\"><img class=\"o-ico\" "
                 + "src=\"../textures/icons/heart.png\"></div><span class=\"saved-mark\"><img class=\"o-ico\" src=\"../textures/icons/check.png\">" + Lang.html(doc, "oriel.ui.styles.side.saved") + "</span>"
                 + "</div><div class=\"meta\"><b></b><div class=\"by\"><img class=\"av\"><span></span><em></em></div></div></div>");
         Dom.query(card, ".by img").setAttribute("src", TemplateCatalog.avatar(t.author));
         Dom.query(card, "img.shot").setAttribute("data-cover", TemplateCatalog.cover(t.id));
         Dom.query(card, "img.shot").setAttribute("loading", "lazy");
-        card.setAttribute("title", t.title + " · " + t.author + " · " + t.ver + " · " + t.desc);
+        card.setAttribute("title", t.title + " · " + t.author + " · " + t.fit + " · " + t.date + " · " + t.desc);
         Element badge = Dom.query(card, ".badge");
         boolean official = t.source.equals("official");
         Dom.text(badge, Lang.t(doc, official ? "oriel.ui.styles.badge.official" : t.source.equals("legacy") ? "oriel.ui.styles.badge.legacy" : "oriel.ui.styles.badge.community"));
@@ -262,7 +262,9 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.text(Dom.query(card, ".meta b"), t.title);
         Dom.query(card, ".by span").setAttribute("lang", "zh");
         Dom.text(Dom.query(card, ".by span"), t.author);
-        Dom.text(Dom.query(card, ".by em"), t.ver);
+        Dom.text(Dom.query(card, ".by em"), t.fit.isEmpty() ? "" : Lang.t(doc, "oriel.ui.styles.fit.short", t.fit.split(" · ")[0]));
+        // Month and day on the cover (the whole date is in the tooltip and the details): it sits over the picture, so it stays small.
+        Dom.text(Dom.query(card, ".stamp"), t.date.length() >= 10 ? t.date.substring(5) : t.date);
         Element fav = Dom.query(card, ".fav");
         Dom.onClick(fav, ev -> {
             ev.stopPropagation();
@@ -423,7 +425,8 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.byId(doc, "d-author").setAttribute("lang", "zh");
         Dom.text(Dom.byId(doc, "d-author"), t.author);
         Dom.byId(doc, "d-avatar").setAttribute("src", TemplateCatalog.avatar(t.author));
-        Dom.text(Dom.byId(doc, "d-ver"), t.ver);
+        Dom.text(Dom.byId(doc, "d-ver"), t.fit);
+        Dom.text(Dom.byId(doc, "d-stamp"), t.date);
         Dom.text(Dom.byId(doc, "d-desc"), t.desc);
         Dom.text(Dom.byId(doc, "d-note"), t.locked == null ? "" : Lang.t(doc, "oriel.ui.styles.drawer.locked", needs(t.locked), t.locked.have()));
         Dom.byId(doc, "d-open").toggleClass("disabled", t.locked != null);

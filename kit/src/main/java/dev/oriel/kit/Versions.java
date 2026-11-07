@@ -34,6 +34,23 @@ public final class Versions {
         return true;
     }
 
+    /**
+     * A range as a player reads it: {@code >=0.11.0} becomes {@code 0.11+} and {@code >=26.1.2} becomes {@code 26.1.2+}
+     * (trailing zero parts dropped, two parts kept); any other range is returned as written.
+     */
+    public static String describe(String range) {
+        if (range == null) return "";
+        String r = range.trim();
+        if (!r.startsWith(">=") || r.substring(2).matches(".*[\\s,<>=].*")) return r;
+        int[] v = parse(r.substring(2));
+        if (v == null) return r;
+        int n = v.length;
+        while (n > 2 && v[n - 1] == 0) n--;
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < n; i++) out.append(i == 0 ? "" : ".").append(v[i]);
+        return out.append('+').toString();
+    }
+
     /** The numeric parts of a version such as {@code 0.11.0}, {@code v26.1.2} or {@code 1.0-beta}; null when it has none. */
     static int[] parse(String text) {
         String s = text.trim();
