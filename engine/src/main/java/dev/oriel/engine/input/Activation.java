@@ -15,6 +15,7 @@ final class Activation {
 
     /** Runs the activation behaviour of the nearest element at or above {@code target} that has one. */
     static void run(Element target, Event event) {
+        if (InputEligibility.inert(target)) return;
         Element e = Dom.closest(target, Activation::hasBehaviour);
         if (e == null) return;
         Document doc = e.ownerDocument();

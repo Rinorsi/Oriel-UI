@@ -111,3 +111,5 @@ On a mismatch, the actual image and a diff (differing pixels in red) are written
 Tests that need Minecraft's assets are skipped when no jar is found. Page snapshots cover
 `src/test/resources/pages/*.html` and the demo UIs, and they are skipped while the engine still throws
 `UnsupportedOperationException`.
+
+Input diagnostics: actions accept trace-input on/off, why-no-click <selector>, and focus-info <selector>. JSONL is printed to stdout and excludes input text. See [input contract](../docs/zh/d36-input.md).

@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Input: add opt-in old/new/both routing experiments, bounded generation-aware text measurement, grapheme/caret fast paths and a conservative large-block hit grid. Keep old as the default pending all migration gates. Add explicit event/composition JSONL diagnostics, why-no-click/focus queries through preview actions and MCP, inert input exclusion, and opt-in spatial navigation actions; existing IME transactions and undo behavior remain shared.
+
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 
 - Images: opt-in `img loading=lazy` and `data-oriel-lazy` URL backgrounds share a document queue (three sources per 50ms by default, configurable on html), with half-viewport prefetch, fixed-size placeholders and cancellation of unstarted detached elements. Eager loading stays the default; loaded textures retain host-managed lifetimes. The preview checker warns on more than 24 image/background references without lazy loading.

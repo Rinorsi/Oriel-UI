@@ -2,10 +2,10 @@ package dev.oriel.preview;
 
 import org.junit.jupiter.api.Test;
 
-import javax.swing.JPanel;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.nio.file.Path;
+import javax.swing.JPanel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -13,6 +13,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Command-line options and key mapping. */
 class PreviewInputTest {
+    @Test
+    void parsesInputDiagnosticActionsAndRejectsMissingArguments() {
+        Actions.parse("trace-input on\npreedit 中文\npreedit\nwhy-no-click #name\nfocus-info #name\ntrace-input off");
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("trace-input yes"));
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("why-no-click"));
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("focus-info"));
+    }
+
     @Test
     void parsesOptions() {
         Preview.Options options = Preview.Options.parse("ui/menu.html", "--scale", "3", "--size", "320x200", "--snapshot", "out.png", "--frames", "5");

@@ -113,7 +113,7 @@ final class TextField {
         float wrap = multiline && element.box != null ? element.box.contentWidth() : Float.POSITIVE_INFINITY;
         ComputedStyle s = element.computedStyle();
         FontSpec font = FontSpec.of(s);
-        if (cached != null && cached.matches(text, masked, wrap, font, s)) return cached;
+        if (cached != null && cached.matches(text, masked, wrap, font, s, measure().generation())) return cached;
         return new TextLayout(text, masked, wrap, measure(), font, s);
     }
 
@@ -181,12 +181,14 @@ final class TextField {
     void preedit(String text, int caret, int focusStart, int focusEnd) {
         if (text == null || text.isEmpty()) {
             if (preedit == null) return;
+            element.ownerDocument().input().traceComposition("end", preedit.length());
             preedit = null;
             composedLayout = null;
             extend();
             scrollToCaret();
             return;
         }
+        element.ownerDocument().input().traceComposition(preedit == null ? "start" : "update", text.length());
         if (preedit == null) editor.select(editor.anchor(), editor.caret());
         preedit = text;
         preeditCaret = Math.max(0, Math.min(text.length(), caret));

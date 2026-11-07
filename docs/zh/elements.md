@@ -339,3 +339,5 @@ public interface PortraitState<T extends Entity> {   // OrielEntities.PortraitSt
 ## 提示与验收
 
 浏览器用同尺寸 PNG/色块替身并标记占位。预览器也不能证明 3D 正确。真实皮肤、装备、附魔光、槽位、实体朝向、裁剪深度与提示均须进游戏检查。
+
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。

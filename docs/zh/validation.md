@@ -182,3 +182,5 @@ HTML（含内联 `<style>`）、脚本、JSON 或混合变更仍整页重建，�
 实际验收记录版本/加载器/提交/资源/视口/动作/结果，放 daily；使用手册只留一般流程和已确认边界。
 
 mod-project 接入只验证资源复制与批准关卡，回执 gameVerified=false；需在下游游戏用回执 pageUrl 打开验证。oriel_game_preview 对此目标返回 DOWNSTREAM_GAME_REQUIRED。参数和路径限制见 [MCP 手册](mcp.md#下游模组目标mod-project)。
+
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。

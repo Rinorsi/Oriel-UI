@@ -6,6 +6,7 @@ import dev.oriel.engine.event.MouseEvent;
 import dev.oriel.engine.host.ReplacedContent;
 import dev.oriel.engine.html.HtmlParser;
 import dev.oriel.engine.html.HtmlSerializer;
+import dev.oriel.engine.input.InputEligibility;
 import dev.oriel.engine.layout.Box;
 import dev.oriel.engine.paint.Affine;
 import dev.oriel.engine.paint.Coordinates;
@@ -392,7 +393,7 @@ public class Element extends Node {
 
     /** Whether this element can take keyboard focus. */
     public boolean isFocusable() {
-        if (isDisabled()) return false;
+        if (isDisabled() || InputEligibility.inert(this)) return false;
         if (hasAttribute("tabindex")) return true;
         return switch (tagName) {
             case "button", "select", "textarea" -> true;
@@ -421,7 +422,7 @@ public class Element extends Node {
 
     /** Fires a synthetic click and, unless cancelled, its default action, as {@code HTMLElement.click()} does. */
     public void click() {
-        if (isDisabled()) return;
+        if (isDisabled() || InputEligibility.inert(this)) return;
         float[] r = paintedRect();
         float cx = r[0] + r[2] / 2, cy = r[1] + r[3] / 2;
         MouseEvent e = new MouseEvent("click", true, true, cx, cy, 0, 0, Modifiers.NONE, 1, null);
