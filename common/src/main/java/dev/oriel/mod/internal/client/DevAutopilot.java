@@ -198,6 +198,9 @@ public final class DevAutopilot {
                 check(Files.isRegularFile(screenshot), "smoke {} screenshot saved",
                         "smoke {} screenshot is missing", page);
             });
+            // The frame rate right after opening is the previous second, still partly the last page; this is the page at rest.
+            pause(100);
+            steps.add(() -> Constants.LOG.info("Oriel smoke page {} at rest: {} fps", page, mc.getFps()));
         }
         steps.add(() -> Constants.LOG.info("Oriel smoke finished: {} page errors", smokePageErrors));
     }
