@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1, "taskId": "replace-me", "owner": "replace-me",
+  "source": {"root": null, "sha": null, "missingReason": "Fill actual identity before reporting", "dirtyPaths": []},
+  "verification": [{"command": null, "cwd": null, "exitCode": null, "result": "NOT_RUN", "log": null, "coverage": [], "notCovered": []}],
+  "artifacts": [], "humanReview": {"status": "pending", "quote": null, "evidenceIds": []}, "nextStageAllowed": false
+}

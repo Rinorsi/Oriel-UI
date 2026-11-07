@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Agents: document task ownership, workflow modes, scheduling and evidence contracts; add copyable task, report, evidence, terminal-state and R10 templates.
+
 - Development: add tools/bench resource freezing, alternating independent A/A and A/B CPU frame comparisons, per-page p50/p95 noise verdicts, deterministic synthetic stress generators and a strict 15-effect captured-frame comparator. Existing timing/golden baselines remain unchanged; phase timings, hover input transitions and game measurements require separate evidence.
 
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
