@@ -42,7 +42,7 @@ public final class ModSettingsPreset implements PageControllers.Controller {
             + "{\"key\":\"client.uiSounds\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":true},"
             + "{\"key\":\"client.uiSoundVolume\",\"type\":\"number\",\"value\":1.0,\"default\":1.0,\"min\":0,\"max\":1,\"step\":0.05,\"live\":true},"
             + "{\"key\":\"client.reducedMotion\",\"type\":\"bool\",\"value\":false,\"default\":false,\"live\":true},"
-            + "{\"key\":\"client.shapeShader\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":false},"
+            + "{\"key\":\"client.shapeShader\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":true},"
             + "{\"key\":\"client.serverPages\",\"type\":\"choice\",\"value\":\"ALLOW\",\"default\":\"ALLOW\",\"options\":[\"ALLOW\",\"ASK\",\"BLOCK\"],\"live\":true},"
             + "{\"key\":\"client.webLinks\",\"type\":\"choice\",\"value\":\"ASK\",\"default\":\"ASK\",\"options\":[\"ASK\",\"BLOCK\"],\"live\":true},"
             + "{\"key\":\"client.typingNotice\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":true}]}";

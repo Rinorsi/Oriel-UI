@@ -30,7 +30,9 @@ class ModSettingsAndAboutTest {
     }
 
     @Test void restartOnlySettingsSayTheyNeedARestart() {
-        var doc = host.open(OrielKit.MODSETTINGS, new ModSettingsPreset());
+        var doc = host.open(OrielKit.MODSETTINGS, new ModSettingsPreset(), 640, 360,
+                "{\"settings\":{\"items\":[{\"key\":\"client.shapeShader\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":false},"
+                        + "{\"key\":\"client.uiSounds\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":true}]}}");
         assertEquals(1, doc.querySelectorAll(".item .n em").size());
         assertNotNull(doc.querySelector(".item[data-key=\"client.shapeShader\"] .n em"));
         doc.close();
