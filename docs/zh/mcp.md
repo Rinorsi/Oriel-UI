@@ -1,5 +1,7 @@
 # MCP 页面制作与接入
 
+版本化能力发现、JSONL读取、selector why-tree、黄金图独立审批与截图分页见[增量工具合同](d36-agent-tools.md)。协作任务按[编排规范](agent-orchestration.md)；默认迭代与正式交付仍分别遵循本文流程。
+
 ## 下游骨架：oriel_scaffold
 
 默认只读检测下游工程并返回接入清单；不执行 Gradle、不安装 jar、不修改构建、元数据或已有 Java。支持 Fabric、NeoForge 和常见 Stonecutter 源码结构。
@@ -155,7 +157,12 @@ fixture 是 oriel.data 初值，最多 64 KiB；场景 1–16 个，名称唯一
 | oriel_web_preview | action=start/status/stop，默认 start；start 用 projectId，其他用 sessionId | 本地 URL、sessionId、运行状态；打开的网页固定到一个快照 |
 | oriel_check | projectId；旧调用可用 target、strict | 项目模式强制严格检查及双尺寸场景，返回 revisionId、diagnostics、shots、覆盖/未覆盖项；旧 target 不生成验收记录 |
 | oriel_snapshot | projectId 或旧 page；可选 scene/actions、width=640、height=360、frames=60、boxes | PNG、日志与执行结果；最大 1920×1080、600 帧。项目模式 strict |
-| oriel_review | action=prepare/status/decide，默认 prepare；prepare 用 projectId、mode=web（缺省）或 screenshots；status 用 reviewId；decide 用 reviewId、decision=approved/rejected、quote | prepare 要求当前严格检查通过：web 返回固定版本验收页，screenshots 把检查截图作为图片直接返回给 Agent 转发给用户；status 返回用户决定及是否仍有效；decide 只用于 screenshots，必须逐字引用用户在聊天里的话 |
+| oriel_review | action=prepare/status/decide/page；prepare用projectId、mode；page用reviewId、offset、limit（1–12）；decide用reviewId、decision、quote | 当前严格检查后准备固定版本；screenshots首12图、pagination标记总数/下一页；全部索引/hash返回并交用户查看后才可代记批准；网页仍须本人点击 |
+| oriel_capabilities | contractVersion=1、profile可选 | 不构建，返回真实注册工具输入/输出合同与能力/限制，源码声明不冒充运行通过 |
+| oriel_build_status | 无 | 只读调度目录快照；owner/活性未知，不自动清锁 |
+| oriel_logs | sessionId/after/limit/levels可选 | 列本STATE会话或有界读MCP工具事件，明确dropped/truncated，不是引擎trace |
+| oriel_inspect | page/selector/element；frames/maxNodes可选 | 当前树R03 --why适配器及有界why-tree，保留原始explanations；未集成明确拒绝 |
+| oriel_baseline | propose/status/decide/promote，字段见增量合同 | 单独固定PNG候选审批；须匹配提供的浏览器oracle，普通页面批准不可复用 |
 | oriel_integrate | action=plan/apply，默认 plan；plan 用 reviewId；apply 用 planId；target=oriel-dev（缺省）、oriel-folder（folder 绝对路径）或 mod-project（参数见文末） | plan 给出目标清单和摘要；apply 校验批准、快照和目标冲突，再写入。失败恢复本次写入，遇并行变动保留并报冲突 |
 | oriel_game_preview | action=start/status/cancel，默认 start；start 用 projectId、scene=initial；其他用 jobId | start 立即返回作业，之后查询状态、日志和游戏回执；只管理自身进程 |
 | oriel_pages | 无 | kit 页面名与 PNG 图标名，保留原工具名 |

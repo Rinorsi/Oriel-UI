@@ -43,7 +43,29 @@ export async function webPreview({ action = 'start', projectId, sessionId }) {
   requireThat(response.ok, 'WEB_STOP_FAILED', '网页服务停止失败。');
   return { sessionId, stopped: true };
 }
-export async function review({ action = 'prepare', projectId, reviewId, mode = 'web', decision, quote }) {
+export function reviewPage(item, offset = 0, limit = 12) {
+  requireThat(item.mode === 'screenshots' && Array.isArray(item.shots), 'REVIEW_MODE', '仅截图验收支持分页。');
+  requireThat(Number.isInteger(offset) && offset >= 0 && offset < item.shots.length && Number.isInteger(limit) && limit >= 1 && limit <= 12, 'INVALID_PAGE', 'offset须在截图集合内，limit为1–12。');
+  const selected = item.shots.slice(offset, offset + limit);
+  for (const shot of selected) requireThat(fileHash(shot.image) === shot.hash, 'SNAPSHOT_CHANGED', '验收截图已变化或缺失，请重新prepare。');
+  const presented = new Set(item.presentedShotHashes || []);
+  const indices = new Set(item.presentedShotIndices || []);
+  for (const shot of selected) presented.add(shot.hash);
+  for (let i = offset; i < offset + selected.length; i++) indices.add(i);
+  item.presentedShotHashes = [...presented];
+  item.presentedShotIndices = [...indices];
+  saveRecord('reviews', item);
+  return { ...item, imagePaths: selected.map(shot => shot.image), agentMayApprove: false, pagination: { total: item.shots.length, offset, returned: selected.length,
+    remaining: item.shots.length - offset - selected.length, nextOffset: offset + selected.length < item.shots.length ? offset + selected.length : null,
+    complete: item.shots.every((shot, index) => indices.has(index) && presented.has(shot.hash)), unpresentedCount: item.shots.filter((shot, index) => !indices.has(index) || !presented.has(shot.hash)).length },
+    nextActions: ['逐页把截图原样交用户查看；未完整返回全部固定截图前不能记录批准。'] };
+}
+export async function review({ action = 'prepare', projectId, reviewId, mode = 'web', decision, quote, offset = 0, limit = 12 }) {
+  if (action === 'page') {
+    const item = loadRecord('reviews', reviewId);
+    assertCurrent(loadRecord('revisions', item.revisionId));
+    return reviewPage(item, offset, limit);
+  }
   if (action === 'status') {
     const item = loadRecord('reviews', reviewId);
     let current = true, blocked;
@@ -57,6 +79,7 @@ export async function review({ action = 'prepare', projectId, reviewId, mode = '
     requireThat(item.mode === 'screenshots', 'REVIEW_MODE', '只有 mode=screenshots 的验收可以在聊天里记录决定；网页验收必须由用户在网页上点击。');
     requireThat(item.decision === 'pending', 'REVIEW_CLOSED', '该验收已处理。');
     requireThat(['approved', 'rejected'].includes(decision), 'INVALID_DECISION', 'decision 为 approved 或 rejected。');
+    requireThat(decision !== 'approved' || item.shots.every((shot, index) => (item.presentedShotIndices || []).includes(index) && (item.presentedShotHashes || []).includes(shot.hash)), 'REVIEW_INCOMPLETE', '还有截图未返回，请先逐页调用oriel_review.page并交用户查看。');
     requireThat(typeof quote === 'string' && quote.trim().length > 0 && quote.length <= 2000, 'QUOTE_REQUIRED', '必须逐字引用用户在聊天里表达这个决定的那句话（不能为空，最长 2000 字）。');
     const revision = loadRecord('revisions', item.revisionId);
     assertCurrent(revision);
@@ -72,13 +95,13 @@ export async function review({ action = 'prepare', projectId, reviewId, mode = '
   assertCurrent(revision);
   const item = { id: id('review'), projectId, revisionId: revision.id, hash: revision.hash, decision: 'pending', kind: 'human', mode, createdAt: now() };
   if (mode === 'screenshots') {
-    const shots = (revision.check.shots || []).filter(shot => shot.passed && shot.image && fs.existsSync(shot.image))
+    requireThat((revision.check.shots || []).every(shot => shot.passed && shot.image && fs.existsSync(shot.image)), 'NO_SCREENSHOTS', '检查截图存在失败或缺失，请重新检查。');
+    const shots = (revision.check.shots || [])
       .map(shot => ({ scene: shot.scene, width: shot.width, height: shot.height, image: shot.image, hash: fileHash(shot.image) }));
     requireThat(shots.length > 0, 'NO_SCREENSHOTS', '当前版本的检查没有产生可用的截图。');
     item.shots = shots; item.shotHashes = shots.map(shot => shot.hash);
     saveRecord('reviews', item);
-    return { ...item, imagePaths: shots.map(shot => shot.image), agentMayApprove: false,
-      nextActions: ['把这些截图原样发给用户，等用户在聊天里明确同意或提出修改；同意后用 oriel_review.decide 逐字引用用户的话。'] };
+    return reviewPage(item, offset, limit);
   }
   saveRecord('reviews', item);
   const web = await startWeb(revision, item.id);

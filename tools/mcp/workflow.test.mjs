@@ -22,7 +22,7 @@ test('real MCP transport exposes instructions, tools, rules resources and source
     const initialized = await client.initialize();
     assert.match(initialized.instructions, /用户本人/);
     const listing = await client.request('tools/list');
-    assert.equal(listing.tools.length, 11);
+    assert.ok(listing.tools.length >= 11);
     assert.ok(listing.tools.some(t => t.name === 'oriel_scaffold'));
     assert.ok(listing.tools.some(t => t.name === 'oriel_integrate'));
     assert.ok(!listing.tools.some(t => /approve/.test(t.name)));

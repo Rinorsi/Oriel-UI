@@ -1,5 +1,7 @@
 # Oriel UI workflow MCP
 
+新增oriel_capabilities、oriel_build_status、oriel_logs、oriel_inspect、oriel_baseline及review分页，字段/限制见[增量合同](../../docs/zh/d36-agent-tools.md)。JSONL采集默认关闭，ORIEL_MCP_DIAGNOSTICS=1开启；只存MCP工具事件，不记录参数和输入，不代表引擎trace。存在工作区gws.sh时所有MCP Gradle调用均走调度器。
+
 下游首次接入：`oriel_scaffold` 只传 projectRoot 默认只读返回检测值、待补项和清单。补齐参数后 prepare=true 生成并严格检查固定骨架；通过截图验收、用户聊天批准后 apply=true + reviewId，只新建不存在的 HTML/Java，保留已有文件。详细字段与热更新模式见 [工具参数](../../docs/zh/mcp.md#下游骨架oriel_scaffold)。测试：`node --test tools/mcp/scaffold.test.mjs`，ORIEL_TEST_TMP 指向工作区临时目录；不访问真实下游工程。
 
 动画开工：`oriel_rules({topic:"performance"})` 读取权威性能规范；包括密集粒子、原生 fillQuad、清理与前后测量要求。

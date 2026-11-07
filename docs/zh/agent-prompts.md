@@ -1,5 +1,7 @@
 # Agent 调用提示词
 
+工具合同先查oriel_capabilities；协作所有权/模板见[编排规范](agent-orchestration.md)，日志/why-tree/截图分页和独立黄金审批见[增量合同](d36-agent-tools.md)。截图验收逐页交用户查看，不能把首12图当全部场景批准；页面批准不能批准黄金更新。
+
 本文件的三个二级标题对应 MCP prompts/get 的 workflow、revise、integrate；MCP 直接读取正文，避免维护两套提示词。完整阶段合同见 [制作流程](ui-workflow.md)，参数见 [MCP 手册](mcp.md)。
 
 ## workflow

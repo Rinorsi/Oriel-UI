@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- MCP: add versioned capability discovery, observational build-marker queries, bounded tool-event JSONL and readers, a selector why-tree adapter for the R03 CLI, separate fixed-PNG baseline approval with browser-reference comparison, and complete screenshot-review pagination. Route workspace builds through gws without duplicating console options; preserve existing tool receipts.
+
 - Benchmarks: default to chronological paired A/A and A/B relative differences with 95% Student-t intervals and explicit inconclusive verdicts; record external Java/Minecraft process hints at measurement boundaries without retaining command lines.
 
 - Agents: document task ownership, workflow modes, scheduling and evidence contracts; add copyable task, report, evidence, terminal-state and R10 templates.

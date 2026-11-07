@@ -3,6 +3,7 @@ import path from 'node:path';
 import { ROOT, sha, requireThat, fileHash, walk } from './core.mjs';
 
 export const topics = {
+  orchestration: 'agent-orchestration.md', 'agent-tools': 'd36-agent-tools.md', benchmark: 'd36-mcp-bench.md',
   performance: 'performance.md',
   principles: 'principles.md', replication: 'replication.md', upgrading: 'upgrading.md', quickref: 'page-rules.md', hotreload: 'hot-reload.md', showcase: 'showcase.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
   components: 'components.md', design: 'design.md', workflow: 'ui-workflow.md', integration: 'integration.md', validation: 'validation.md',
@@ -15,7 +16,7 @@ export function validateProfile(profile = {}) {
   return result;
 }
 export function instructions() {
-  return '先调用 oriel_rules（topic=quickref 是做页面前必读的十条硬规则：字体字号、尺寸、骨架、data-oriel-shell；topic=showcase 是示例页源码导览，做类似效果先读它），再按需读其他主题；按 workflow 提示制作共享 HTML/CSS/JS。网页与无头引擎检查通过后创建固定版本验收页，等待用户本人批准，禁止 Agent 代点批准。批准前不得启动任何游戏测试，包括工具自测和冒烟测试，也不得用 CLI 绕过。只有有效回执才能 plan/apply 接入游戏，随后检查游戏回执。资源或目标变化使旧批准失效。调用 oriel_status 获取下一步。';
+  return '先调用oriel_capabilities了解合同与限制，再读oriel_rules（quickref为页面必读规则，showcase为现成示例索引，orchestration为协作合同）。页面默认iterate：确认用户现有游戏的热更新来源，严格检查后保存并提供双尺寸截图，不自行启动或重启游戏。正式deliver仍须project/check、固定版本review与用户本人批准，禁止Agent代点或用CLI绕过；只有有效回执才能plan/apply，批准前不得为工具自测启动游戏。资源或目标变化使旧批准失效。黄金图须独立baseline审批，不能挪用页面批准。调用oriel_status获取正式交付下一步。';
 }
 export function prompt(name = 'workflow') {
   requireThat(['workflow', 'revise', 'integrate'].includes(name), 'UNKNOWN_PROMPT', '提示词不存在。');
@@ -24,7 +25,7 @@ export function prompt(name = 'workflow') {
 }
 export function rulesIdentity() {
   const files = [...Object.values(topics), 'agent-prompts.md', 'mcp.md'];
-  const implementation = ['oriel-preview.mjs', 'web-worker.mjs', 'game-worker.mjs', ...walk(path.join(ROOT, 'tools/mcp/lib')).map(file => 'lib/' + file)];
+  const implementation = ['oriel-preview.mjs', 'web-worker.mjs', 'game-worker.mjs', ...walk(path.join(ROOT, 'tools/mcp/lib')).map(file => 'lib/' + file), ...walk(path.join(ROOT, 'tools/mcp/schemas')).map(file => 'schemas/' + file)];
   return sha(JSON.stringify({ docs: files.map(file => [file, fs.existsSync(path.join(ROOT, 'docs/zh', file)) ? fs.readFileSync(path.join(ROOT, 'docs/zh', file), 'utf8') : '']), implementation: implementation.map(file => [file, fileHash(path.join(ROOT, 'tools/mcp', file))]) }));
 }
 export function rules({ topic = 'overview', feature, profile } = {}) {
