@@ -37,6 +37,7 @@ public final class LayoutEngine {
 
     /** Lays out the whole document against the current viewport. */
     public void layout() {
+        FlexGridCompare.Reference reference = FlexGridCompare.begin(document);
         Element html = document.documentElement();
         LayoutBox box = html == null ? null : new BoxTreeBuilder().build(html);
         root = box;
@@ -50,6 +51,7 @@ public final class LayoutEngine {
         box.y = box.marginTop;
         PositionedLayout.applyRelativeOffset(box, vw, vh);
         new PositionedLayout(pass).layoutOutOfFlow(box);
+        FlexGridCompare.verify(reference, box, document.url());
         blockMigration.overflow(box, LayoutEngine::overflow);
         root = blockMigration.finish(box);
     }

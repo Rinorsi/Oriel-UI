@@ -37,6 +37,8 @@ D36 引擎性能门禁见[统一 CPU 基准工具](d36-mcp-bench.md)：固定资
 
 动画、粒子或卡顿问题，开工先读 [粒子与动画性能规范](performance.md)。
 
+引擎开发者可查 [Flex / Grid 候选实现与求解诊断](d36-r08.md)：old/new/both 对拍与 why-size / why-position 日志。
+
 | 我要做 | 读这里 |
 |---|---|
 | 只有 jar，做一个自己的 mod 界面 | [只有 jar 时的最小 Fabric 工程](quickstart.md) |

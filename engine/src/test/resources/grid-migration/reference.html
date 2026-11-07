@@ -1,0 +1,16 @@
+<!doctype html>
+<style>
+body { margin: 0; }
+#baseline { display: grid; position: absolute; left: 0; top: 0; grid-template-columns: 40px 40px; align-items: baseline; }
+#a { height: 20px; margin-top: 2px; margin-bottom: 3px; background: #468; }
+#b { height: 10px; margin-bottom: 15px; background: #684; }
+#named { display: grid; position: absolute; left: 0; top: 60px; width: 120px; grid-template-columns: [left] 20px repeat(2, [cell] 30px [stop]) [right] 40px; grid-template-rows: 10px; }
+#c { grid-column: left / cell; background: #468; }
+#d { grid-column: cell / right; background: #684; }
+#e { grid-column: right / -1; background: #846; }
+#areas { display: grid; position: absolute; left: 0; top: 90px; grid-template-columns: 40px 40px; grid-template-rows: 10px; grid-template-areas: 'hero hero'; }
+#f { grid-area: hero; background: #468; }
+</style>
+<div id="baseline"><div id="a"></div><div id="b"></div></div>
+<div id="named"><div id="c"></div><div id="d"></div><div id="e"></div></div>
+<div id="areas"><div id="f"></div></div>

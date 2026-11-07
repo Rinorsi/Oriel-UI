@@ -21,6 +21,7 @@ public final class Preview {
     private static final String USAGE = """
             Usage: preview <page.html> [--scale N] [--size WxH] [--data data.json] [--snapshot out.png [--frames N] [--boxes selector]] [--narrate] [--strict]
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
+                   preview <page.html> --why-size [--why-position] [--frames N] [--size WxH]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
                    preview --check <dir or page.html> [--strict] [--lang language] [--report result.json]
                    preview <page.html> --why <selector> <element-query> [--frames N] [--size WxH]
@@ -131,6 +132,14 @@ public final class Preview {
     public static void main(String[] args) throws IOException {
         // The Ore presets' Java controllers attach to their pages as they load.
         OrielKit.register();
+        if (LayoutWhy.requested(args)) {
+            try { System.exit(LayoutWhy.run(args)); }
+            catch (IllegalArgumentException e) {
+                System.err.println(e.getMessage() + "\n" + USAGE);
+                System.exit(2);
+            }
+            return;
+        }
         if (args.length > 0 && args[0].equals("--check")) {
             System.setProperty("java.awt.headless", "true");
             try {
