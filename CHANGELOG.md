@@ -27,6 +27,7 @@ those entries as history, not as documentation of the current API.
 - Layout: add an opt-in Grid candidate with indexed intrinsic contributions, allocation-free occupancy checks, named-line metadata and first-baseline groups. Add headless preview --why-size/--why-position JSONL diagnostics for both solvers; legacy defaults stay unchanged.
 
 - Layout: add an opt-in Flex candidate with pass-local item reuse, intrinsic measurement reuse and independent-tree old/new/both comparison. Keep the legacy implementation as default; expose opt-in why-size/why-position JSONL traces without changing page CSS.
+- Scripting: opt-in WIP (-Doriel.ecosystem=new; default old) narrow HTML namespace and type probes for React 18 / Preact / anime, optional four-point Canvas and flat-square confetti bridges, pinned external ecosystem fixtures and regression scenarios. No browser networking, SVG/iframe implementation or relaxed sandbox limits; see docs/zh/ecosystem.md.
 
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 

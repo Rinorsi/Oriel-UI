@@ -36,7 +36,31 @@ class ScriptRedTeamTest {
             "document.constructor.constructor('return Packages')()"
     })
     void classReflectionProcessAndThreadAccessAreRejected(String attack) {
-        Page page = new TestHost().recordErrors().load("");
+        assertRejected(new TestHost().recordErrors().load(""), attack);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "HTMLInputElement.constructor('return Packages')()",
+            "HTMLIFrameElement.prototype.getClass().getClassLoader()",
+            "SVGElement.constructor('return java.lang.Runtime')()",
+            "document.createElementNS('https://hostile.invalid', 'iframe')",
+            "document.createElementNS('http://www.w3.org/2000/svg', 'script')"
+    })
+    void optionalEcosystemEntriesRemainSandboxed(String attack) {
+        String previous = System.getProperty("oriel.ecosystem");
+        Page page;
+        try {
+            System.setProperty("oriel.ecosystem", "new");
+            page = new TestHost().recordErrors().load("");
+        } finally {
+            if (previous == null) System.clearProperty("oriel.ecosystem");
+            else System.setProperty("oriel.ecosystem", previous);
+        }
+        assertRejected(page, attack);
+    }
+
+    private static void assertRejected(Page page, String attack) {
         page.run(attack);
         assertFalse(page.errors().isEmpty(), attack);
         assertTrue(page.host.sent.isEmpty());
