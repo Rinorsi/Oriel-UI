@@ -39,7 +39,8 @@ public final class SelectorPerformanceProbe {
                 if (i >= 10) samples[i - 10] = System.nanoTime() - start;
             }
             Arrays.sort(samples);
-            System.out.println(new Gson().toJson(Map.of("mode", SelectorAudit.mode().name(), "elements", count,
+            System.out.println(new Gson().toJson(Map.of("mode", SelectorAudit.mode().name(),
+                    "sourceSha", System.getProperty("oriel.benchSource", "unspecified"), "elements", count,
                     "rules", rules, "operation", operation, "medianMs", samples[7] / 1e6,
                     "p95Ms", samples[14] / 1e6, "rematched", document.styleEngine().rematched)));
         }

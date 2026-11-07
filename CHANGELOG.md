@@ -7,7 +7,7 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
-- Selectors: opt-in compiled matching and differential rule indexing (old/new/both, default old). The new path tracks conservative attribute and relative :has invalidation and caches nth(of) sibling ranks per pass. Add :target for the document URL fragment and explicit --why / oriel_inspect traces with declaration winners and work budgets. See docs/zh/selector-debug.md for limitations.
+- Selectors: opt-in compiled matching and differential rule indexing (old/new/both, default old). The new path tracks conservative attribute and relative :has invalidation, queries attribute buckets from the element's present attributes, and caches nth(of) sibling ranks per pass. Add :target for the document URL fragment and explicit --why / oriel_inspect traces with declaration winners and work budgets. See docs/zh/selector-debug.md for limitations.
 
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 

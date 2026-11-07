@@ -55,9 +55,9 @@ final class CompiledRuleIndex {
         if (id != null) test(ids.get(id), e, ctx, out);
         for (String c : e.classes()) test(classes.get(c), e, ctx, out);
         test(tags.get(e.tagName()), e, ctx, out);
-        // Attribute buckets are sparse; looking at indexed names avoids depending on a live attribute-map API.
-        for (var bucket : attributes.entrySet()) {
-            if (e.hasAttribute(bucket.getKey())) test(bucket.getValue(), e, ctx, out);
+        // Attribute names are normalized by the DOM. Visit present attributes, not every name in the stylesheet.
+        if (!attributes.isEmpty()) {
+            for (String name : e.attributes().keySet()) test(attributes.get(name), e, ctx, out);
         }
         test(universal, e, ctx, out);
         out.sort(RuleIndex.CASCADE_ORDER);
