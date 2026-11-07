@@ -284,6 +284,9 @@ public final class Preview {
      * {@code x,y wxh  tag#id.classes}. For finding what pushes a layout around without guessing.
      */
     private static void printBoxes(PageScene page, String selector) {
+        boolean trace = Boolean.getBoolean("oriel.layoutTrace");
+        boolean geometry = Boolean.getBoolean("oriel.layoutGeometry");
+        int whySizeRecords = 0;
         for (Element e : page.document().querySelectorAll(selector)) {
             float[] r = e.getBoundingClientRect();
             StringBuilder name = new StringBuilder(e.tagName());
@@ -291,6 +294,26 @@ public final class Preview {
             if (id != null) name.append('#').append(id);
             if (cls != null && !cls.isBlank()) name.append('.').append(String.join(".", cls.trim().split("\\s+")));
             System.out.printf("%6.1f,%6.1f %6.1fx%-6.1f %s%n", r[0], r[1], r[2], r[3], name);
+            if (trace) {
+                try {
+                    printLayoutRecord(page, "why-size", page.document().layoutEngine().whySize(e));
+                } catch (IllegalArgumentException ex) {
+                    printLayoutRecord(page, "why-size", java.util.Map.of("element", e.toString(), "error", ex.getMessage()));
+                }
+                whySizeRecords++;
+            }
         }
+        if (geometry) {
+            printLayoutRecord(page, "layout-geometry", page.document().layoutEngine().snapshot());
+        }
+        if (trace || geometry) {
+            printLayoutRecord(page, "layout-complete", java.util.Map.of("whySizeRecords", whySizeRecords,
+                    "geometryRecords", geometry ? 1 : 0));
+        }
+    }
+
+    private static void printLayoutRecord(PageScene page, String kind, Object data) {
+        System.out.println(new com.google.gson.Gson().toJson(java.util.Map.of("schemaVersion", 1, "kind", kind,
+                "page", page.document().url(), "data", data)));
     }
 }

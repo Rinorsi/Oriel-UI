@@ -1,6 +1,7 @@
 # MCP 页面制作与接入
 
 版本化能力发现、JSONL读取、selector why-tree、黄金图独立审批与截图分页见[增量工具合同](d36-agent-tools.md)。协作任务按[编排规范](agent-orchestration.md)；默认迭代与正式交付仍分别遵循本文流程。
+开发期 oriel_layout 的参数、JSONL 与限制见[布局尺寸诊断](d36-r06.md)。它不产生页面批准或游戏验收。
 
 ## 下游骨架：oriel_scaffold
 

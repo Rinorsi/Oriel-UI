@@ -65,3 +65,5 @@ beforeinput 可取消；取消或监听器替换 value 时不应用旧编辑计�
 MCP 可用 oriel_rules 的 topic=input 读取本页；坐标必须是有限数值，Java whyNoClick 查询会先刷新布局。
 
 字体宿主仍须通过既有资源重载流程触发布局与重绘；generation 只保护缓存，不会自行重排所有静态段落。命中网格数据每帧失效，合成基准的稳态重复查询收益不能等同于每帧一次查询或实机 FPS。
+
+与基础布局接缝：TextMeasure.generation() 同时反映显式 invalidate/fontsChanged 和 FontMetrics.generation() 变化，不等于宿主返回值。显式重载清除字符串与字形缓存；fontsChanged 可替换服务但保留 TextMeasure 身份。静态段落仍需宿主请求重排。

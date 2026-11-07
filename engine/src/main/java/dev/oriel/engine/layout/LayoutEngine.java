@@ -3,6 +3,7 @@ package dev.oriel.engine.layout;
 import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.input.Controls;
+import dev.oriel.engine.host.FontMetrics;
 
 /**
  * Builds the box tree from computed styles and lays it out: block, inline, flex, grid, absolute and fixed
@@ -16,9 +17,11 @@ public final class LayoutEngine {
     private final Document document;
     private TextMeasure text;
     private Box root;
+    private final BlockLayoutMigration blockMigration;
 
     public LayoutEngine(Document document) {
         this.document = document;
+        blockMigration = new BlockLayoutMigration(document);
     }
 
     /** The root box (for the html element), or null before the first layout or when the root is not rendered. */
@@ -40,14 +43,42 @@ public final class LayoutEngine {
         if (box == null) return;
 
         float vw = document.viewportWidth(), vh = document.viewportHeight();
-        LayoutPass pass = new LayoutPass(textMeasure(), vw, vh);
+        LayoutPass pass = blockMigration.pass(textMeasure(), vw, vh);
         float width = pass.blockLevelWidth(box, vw, vh);
         pass.layout(box, width, Float.NaN, vw, vh);
         box.x = box.marginLeft;
         box.y = box.marginTop;
         PositionedLayout.applyRelativeOffset(box, vw, vh);
         new PositionedLayout(pass).layoutOutOfFlow(box);
-        overflow(box);
+        blockMigration.overflow(box, LayoutEngine::overflow);
+        root = blockMigration.finish(box);
+    }
+
+    /** Captures current geometry without flushing or changing scroll offsets. */
+    public LayoutSnapshot snapshot() {
+        return blockMigration.snapshot(root);
+    }
+
+    /** Actual constraints recorded by the last committed layout; requires oriel.layoutTrace=true before loading. */
+    public java.util.Map<String, String> whySize(Element element) {
+        if (!blockMigration.trace) throw new IllegalStateException("Enable -Doriel.layoutTrace=true before loading the document");
+        if (element.ownerDocument() != document || !element.isConnected()) {
+            throw new IllegalArgumentException("Element is not in this document");
+        }
+        document.flushLayout();
+        java.util.Map<String, String> constraints = blockMigration.constraints(element.box);
+        if (constraints == null) {
+            throw new IllegalArgumentException("Element has no independently sized layout box: " + element);
+        }
+        return constraints;
+    }
+
+    /** A host whose font metrics changed calls this before the next frame. */
+    public void fontsChanged() {
+        FontMetrics fonts = document.host().fonts();
+        if (text != null) text.invalidate(fonts);
+        blockMigration.fontsChanged(fonts);
+        document.invalidateLayout();
     }
 
     /**

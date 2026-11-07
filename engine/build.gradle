@@ -16,6 +16,7 @@ if (project.hasProperty('oriel_release')) {
 tasks.named('test') {
     inputs.file(rootProject.file('docs/zh/css-reference.md')).withPropertyName('cssReference')
     inputs.property('updateDocs', providers.environmentVariable('ORIEL_UPDATE_DOCS').orElse(''))
+    systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('old'))
 }
 
 dependencies {

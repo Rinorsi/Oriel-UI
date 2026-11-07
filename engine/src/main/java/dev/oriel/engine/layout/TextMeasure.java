@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * How wide text is, for everyone who places glyphs: layout, painting, hit testing and form controls, so they agree.
@@ -25,16 +26,33 @@ public final class TextMeasure {
     /** Cached strings before the cache starts over; a page's words fit many times over. */
     private static final int MAX_CACHED = 8192;
 
-    private final FontMetrics fonts;
+    private FontMetrics fonts;
     private final Map<FontSpec, Map<String, Float>> widths = new HashMap<>();
     private int cached;
     private final InputBackend backend = InputBackend.configured();
-    private final MeasuredTextCache measured;
-    private long generation = Long.MIN_VALUE;
+    private MeasuredTextCache measured;
+    private long generation;
+    private long hostGeneration;
 
     public TextMeasure(FontMetrics fonts) {
         this.fonts = fonts;
         this.measured = backend == InputBackend.OLD ? null : new MeasuredTextCache(fonts);
+        this.hostGeneration = fonts.generation();
+    }
+
+    /** Discards measurements after a host font reload. Call LayoutEngine.fontsChanged to also request layout. */
+    public void invalidate() {
+        widths.clear();
+        cached = 0;
+        measured = backend == InputBackend.OLD ? null : new MeasuredTextCache(fonts);
+        hostGeneration = fonts.generation();
+        generation++;
+    }
+
+    /** Rebinds the host service without invalidating references held by painting and controls. */
+    void invalidate(FontMetrics replacement) {
+        fonts = Objects.requireNonNull(replacement);
+        invalidate();
     }
 
     public float glyphHeight(FontSpec font) {
@@ -55,11 +73,13 @@ public final class TextMeasure {
     }
 
     /** Font resource changes also invalidate text control layouts. */
-    public long generation() { return fonts.generation(); }
+    public long generation() {
+        if (hostGeneration != fonts.generation()) invalidate();
+        return generation;
+    }
 
     private float legacyWidth(String text, FontSpec font) {
-        long epoch = fonts.generation();
-        if (generation != epoch) { widths.clear(); cached = 0; generation = epoch; }
+        generation();
         Map<String, Float> forFont = widths.computeIfAbsent(font, f -> new HashMap<>());
         Float w = forFont.get(text);
         if (w == null) {

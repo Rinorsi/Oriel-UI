@@ -1,5 +1,7 @@
 # 检查与验收工具
 
+开发期布局 old/new/both、--boxes 的约束 JSON 输出与 oriel_layout MCP 参数见[布局尺寸诊断](d36-r06.md)。默认 old，不替代常规检查。
+
 下游骨架 `oriel_scaffold` 默认只读；prepare 使用 `oriel_check` 的严格引擎诊断与双尺寸截图，用户聊天批准后 apply 仅新建不存在的 HTML/Java。`node --test tools/mcp/scaffold.test.mjs` 用伪造工程覆盖检测、路径、批准及幂等；`ORIEL_TEST_TMP` 指向仓库外临时目录。Java 注册片段未据此证明下游编译或游戏可用，详见 [MCP 手册](mcp.md#下游骨架oriel_scaffold)。
 
 粒子/动画的性能验收见 [性能规范](performance.md)（MCP：`oriel_rules` 的 `topic=performance`）。strict 零诊断不等于帧率达标；保留同动作基线、离线与实机证据分开记录。

@@ -5,6 +5,7 @@ import { ROOT, sha, requireThat, fileHash, walk } from './core.mjs';
 export const topics = {
   orchestration: 'agent-orchestration.md', 'agent-tools': 'd36-agent-tools.md', benchmark: 'd36-mcp-bench.md',
   input: 'd36-input.md',
+  layout: 'd36-r06.md',
   performance: 'performance.md',
   principles: 'principles.md', replication: 'replication.md', upgrading: 'upgrading.md', quickref: 'page-rules.md', hotreload: 'hot-reload.md', showcase: 'showcase.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
   components: 'components.md', design: 'design.md', workflow: 'ui-workflow.md', integration: 'integration.md', validation: 'validation.md',
