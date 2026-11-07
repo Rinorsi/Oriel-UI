@@ -10,6 +10,7 @@ import { checkProject, snapshotRevision } from './lib/checks.mjs';
 import { webPreview, review } from './lib/web.mjs';
 import { integrate, gamePreview } from './lib/integration.mjs';
 import { scaffold } from './lib/scaffold.mjs';
+import { inspectPaint } from './lib/paint.mjs';
 
 initState();
 const string = { type: 'string' }, number = { type: 'integer' }, object = { type: 'object' };
@@ -31,6 +32,9 @@ function reviewResult(receipt) {
   return response;
 }
 const TOOLS = [
+  tool('oriel_paint', '只读导出无头预览的最后一帧绘制命令、效果边界与局部缓存计数；element 为标签子串，不是 CSS 选择器。返回最多 500 条，完整 JSON/JSONL/文本留工作区。不会启动游戏。',
+    { page: string, width: number, height: number, frames: number, element: string }, ['page'],
+    async args => { const receipt = await inspectPaint(args, pagePath); return result(receipt, !receipt.passed); }, true),
   tool('oriel_scaffold', '只读检测下游 Fabric/NeoForge/Stonecutter 工程并返回接入清单。prepare=true 在工作区生成并检查固定骨架；经 oriel_review 用户批准后 apply=true + reviewId 只新建 HTML/Java，不改已有文件或构建配置。', { projectRoot: string, loader: { ...string, enum: ['fabric', 'neoforge'] }, minecraft: string, modId: string, resourcesDir: string, javaDir: string, javaPackage: string, launchMode: { ...string, enum: ['gradle-inside', 'gradle-outside', 'jar'] }, prepare: { type: 'boolean' }, apply: { type: 'boolean' }, reviewId: string }, ['projectRoot'], args => scaffold(args)),
   tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
   tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {

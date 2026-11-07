@@ -1,5 +1,7 @@
 # 从需求、H5 原型到游戏界面
 
+排查绘制顺序与裁剪时可用只读 `oriel_paint`；参数及预览/GPU 边界见 [绘制检查](d36-paint.md)。它不替代页面检查、用户验收或接入批准。
+
 下游首次接入可先用 `oriel_scaffold` 只读输出清单；可选 prepare/check → 截图验收与用户聊天批准 → apply，仅新建示例 HTML/Java。参数与边界见 [MCP 手册](mcp.md#下游骨架oriel_scaffold)、[接入指南](integration.md#一步接入检测并生成最小骨架)。
 
 [入口](index.md) · [能力](capabilities.md) · [参数](css-guide.md) · [验收命令](validation.md) · **[做页面前先读：十条硬规则](page-rules.md)**
