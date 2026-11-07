@@ -2,11 +2,32 @@ package dev.oriel.engine.css;
 
 import dev.oriel.engine.host.ExtensionRegistry;
 import dev.oriel.engine.style.Prop;
+import dev.oriel.engine.style.ComputedStyle;
 
 import java.util.List;
 
 /** Registers optional property parsers at stable positions in the existing compatibility order. */
 public interface PropertySchema {
+    /** Metadata for an installed longhand, including components of list-valued properties. */
+    record Property(String name, boolean inherited, String initialValue, Prop.Interp interpolation,
+                    boolean affectsLayout, boolean affectsPaint) {}
+
+    static List<Property> properties() {
+        return Properties.all().stream().map(PropertySchema::describe).toList();
+    }
+
+    static Property named(String name) {
+        Longhand longhand = Properties.longhand(name);
+        return longhand == null ? null : describe(longhand);
+    }
+
+    private static Property describe(Longhand longhand) {
+        Prop property = longhand.prop == null ? longhand.group.prop : longhand.prop;
+        String initial = longhand.initial == null ? longhand.serialize(longhand.get(ComputedStyle.INITIAL))
+                : ComponentValue.text(longhand.initial.value);
+        return new Property(longhand.name, longhand.inherited(), initial, property.interpolation, property.affectsLayout, true);
+    }
+
     enum Phase { TEXT, TINT, MODEL, SHORTHANDS }
 
     void register(Phase phase);

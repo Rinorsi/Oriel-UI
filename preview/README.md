@@ -111,3 +111,5 @@ On a mismatch, the actual image and a diff (differing pixels in red) are written
 Tests that need Minecraft's assets are skipped when no jar is found. Page snapshots cover
 `src/test/resources/pages/*.html` and the demo UIs, and they are skipped while the engine still throws
 `UnsupportedOperationException`.
+
+属性解释：`--why-property width '#detail'` 输出层叠、继承、变量和当前采样值的 JSONL；支持 `::before/color`。详见 [实验层叠](../docs/zh/d36-r04.md)。

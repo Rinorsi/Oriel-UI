@@ -189,3 +189,5 @@ public final class ExampleController implements PageControllers.Controller {
 排查选择器时可调用 `oriel_inspect(page, selector, element)`，或预览器 `--why <selector> <element-query>`。参数、默认帧数、JSONL 字段和限制见 [选择器诊断](selector-debug.md)；查询不创建批准记录，也不启动游戏。
 
 > 先读 docs/zh/index.md、capabilities.md、ui-workflow.md，再查 CSS/元素/组件/脚本表。页面类型 ___，URL ___，业务字段合同 ___，MC/加载器 ___。只用已列能力，缺项明确边界，不猜 API。浏览器迭代，按四层验收，产物放 daily。能力变更同次更新 maintenance.md 指向的表。
+
+属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。

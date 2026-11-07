@@ -29,3 +29,5 @@
 下游模组首次接入先用 oriel_scaffold(projectRoot) 只读检测，按 missing/candidates 补信息（不要猜 Stonecutter 版本或启动方式）。工具给出依赖、元数据、打开和客户端命令片段。需要示例文件时传 prepare=true，在工作区生成并检查骨架；展示完整清单与截图，用户聊天同意后以 oriel_review.decide 逐字记录，再用原参数 apply=true 与 reviewId。仅新建不存在的 HTML/Java，已有文件跳过；不改 Gradle/元数据/已有 Java，不自动启动游戏。普通页面资源交付仍用下述 oriel_integrate。
 
 先调用 oriel_status 和 oriel_review.status，核对项目、reviewId、内容摘要、profile 和用户决定。未批准、被拒绝、检查失败或内容陈旧就停止接入并说明原因。调用 oriel_integrate.plan 查看写入清单与冲突，再使用返回的 planId 调用 apply。不得手工复制文件绕过失败的工具。mod-project 目标按回执代码在下游游戏验证；其余目标调用 oriel_game_preview.start 并轮询 status，核对实际 MC 版本、加载器、页面 URL、截图和诊断。成功复制不等于游戏验证通过；不要替用户执行真实世界数据修改。
+
+属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。

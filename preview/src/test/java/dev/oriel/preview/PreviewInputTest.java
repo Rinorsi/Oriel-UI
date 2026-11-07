@@ -14,6 +14,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Command-line options and key mapping. */
 class PreviewInputTest {
     @Test
+    void propertySummaryReportsValuesInsteadOfMissingSelectorCounts() {
+        String summary = Preview.explanationSummary(java.util.Map.of(
+                "kind", "cascade-explanation", "element", "div#a", "property", "width",
+                "baseValue", "12px", "usedValue", "14px"));
+        assertTrue(summary.contains("width"));
+        assertTrue(summary.contains("base=12px"));
+        assertTrue(summary.contains("used=14px"));
+        assertTrue(!summary.contains("candidates"));
+    }
+
+    @Test
     void selectorExplanationIsHeadlessAndNeedsTwoQueries() {
         var options = Preview.Options.parse("a.html", "--why", ".on", "#card", "--frames", "4");
         assertTrue(options.headless());
@@ -28,8 +39,8 @@ class PreviewInputTest {
     @Test
     void parsesOptions() {
         Preview.Options options = Preview.Options.parse("ui/menu.html", "--scale", "3", "--size", "320x200", "--snapshot", "out.png", "--frames", "5");
-        assertEquals(new Preview.Options(Path.of("ui/menu.html"), false, 3, 320, 200, null, Path.of("out.png"), 5, null, null, false, false, null, null, "zh_cn", null, null), options);
-        assertEquals(new Preview.Options(null, true, 2, 427, 240, null, null, 1, null, null, false, false, null, null, "zh_cn", null, null), Preview.Options.parse("--canvas-test"));
+        assertEquals(new Preview.Options(Path.of("ui/menu.html"), false, 3, 320, 200, null, Path.of("out.png"), 5, null, null, false, false, null, null, "zh_cn", null, null, false), options);
+        assertEquals(new Preview.Options(null, true, 2, 427, 240, null, null, 1, null, null, false, false, null, null, "zh_cn", null, null, false), Preview.Options.parse("--canvas-test"));
         assertTrue(Preview.Options.parse("a.html", "--narrate").narrate());
         assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("--canvas-test", "--narrate"));
         Preview.Options scripted = Preview.Options.parse("ui/menu.html", "--actions", "a.txt", "--snapshot", "shots/end.png");

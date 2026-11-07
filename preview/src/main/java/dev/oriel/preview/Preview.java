@@ -24,6 +24,7 @@ public final class Preview {
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
                    preview --check <dir or page.html> [--strict] [--lang language] [--report result.json]
                    preview <page.html> --why <selector> <element-query> [--frames N] [--size WxH]
+                   preview <page.html> --why-property <property> <element-query> [--frames N]
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
             --lang <language> selects a language such as zh_cn (default) or en_us; --check also accepts it.
@@ -33,12 +34,13 @@ public final class Preview {
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
                    Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background, String language,
-                   String why, String elementQuery) {
+                   String why, String elementQuery, boolean whyProperty) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
             String boxes = null;
             String language = "zh_cn";
             String why = null, elementQuery = null;
+            boolean whyProperty = false;
             Integer background = null;
             boolean canvasTest = false, narrate = false, strict = false;
             int scale = 2, width = CanvasTest.WIDTH, height = CanvasTest.HEIGHT, frames = 1;
@@ -56,6 +58,13 @@ public final class Preview {
                     case "--strict" -> strict = true;
                     case "--boxes" -> boxes = value(args, ++i, arg);
                     case "--why" -> {
+                        if (why != null) throw new IllegalArgumentException("Only one why query is allowed");
+                        why = value(args, ++i, arg);
+                        elementQuery = value(args, ++i, arg);
+                    }
+                    case "--why-property" -> {
+                        if (why != null) throw new IllegalArgumentException("Only one why query is allowed");
+                        whyProperty = true;
                         why = value(args, ++i, arg);
                         elementQuery = value(args, ++i, arg);
                     }
@@ -86,7 +95,7 @@ public final class Preview {
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language, why, elementQuery);
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language, why, elementQuery, whyProperty);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
@@ -165,11 +174,11 @@ public final class Preview {
                 if (elements.isEmpty()) throw new IllegalArgumentException("No element matches: " + options.elementQuery());
                 var gson = new com.google.gson.Gson();
                 for (Element element : elements) {
-                    var explanation = page.document().styleEngine().explainSelectors(element, options.why());
+                    var explanation = options.whyProperty()
+                            ? page.document().styleEngine().explainProperty(element, options.why())
+                            : page.document().styleEngine().explainSelectors(element, options.why());
                     System.out.println(gson.toJson(explanation));
-                    System.err.println("Selector explanation for " + element + ": candidates old="
-                            + explanation.get("candidateCountOld") + " new=" + explanation.get("candidateCountNew")
-                            + "; inspect queryResults.trace and declarationWinners in JSONL");
+                    System.err.println(explanationSummary(explanation));
                 }
             } catch (IllegalArgumentException | IllegalStateException failure) {
                 System.err.println(failure.getMessage());
@@ -235,6 +244,17 @@ public final class Preview {
             }
         }
         return Check.run(java.nio.file.Path.of(args[1]), language, strict, report);
+    }
+
+    static String explanationSummary(java.util.Map<String, Object> explanation) {
+        if ("cascade-explanation".equals(explanation.get("kind"))) {
+            return "Property explanation for " + explanation.get("element") + " " + explanation.get("property")
+                    + ": base=" + explanation.get("baseValue") + " used=" + explanation.get("usedValue")
+                    + "; inspect declarations, inheritedFrom and variableExpansion in JSONL";
+        }
+        return "Selector explanation for " + explanation.get("element") + ": candidates old="
+                + explanation.get("candidateCountOld") + " new=" + explanation.get("candidateCountNew")
+                + "; inspect queryResults.trace and declarationWinners in JSONL";
     }
 
     /** With {@code --strict}, a run that otherwise passed fails with 3 when the page had warnings or errors. */

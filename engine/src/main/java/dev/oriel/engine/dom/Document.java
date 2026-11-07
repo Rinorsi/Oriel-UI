@@ -537,7 +537,7 @@ public final class Document extends Node {
      */
     public int selectorVersion() { return selectorVersion; }
 
-    public void invalidateStyle() { styleDirty = true; }
+    public void invalidateStyle() { styleEngine.allInvalidated(); styleDirty = true; }
     public void invalidateLayout() { layoutDirty = true; }
     public void invalidateStacking() { stackingVersion++; }
     public boolean needsLayout() { return layoutDirty; }
@@ -747,6 +747,7 @@ public final class Document extends Node {
         // controls draw them).
         boolean selectors = styleEngine.matchingReads(element, name);
         if (selectors) styleEngine.attributeInvalidated(element, name);
+        else if (styleEngine.readsAttribute(name)) styleEngine.valueInvalidated(element, name);
         invalidate(selectors, selectors || styleEngine.readsAttribute(name), layout);
         repaint = true;
         if (!readyState.equals("loading")) ElementExpansion.attributeChanged(this, element, name);
@@ -795,6 +796,8 @@ public final class Document extends Node {
         if (element != null && (!element.isConnected() || element.ownerDocument() != this)) return;
         Element old = focused;
         focused = element;
+        styleEngine.valueInvalidated(old, "@focus");
+        styleEngine.valueInvalidated(element, "@focus");
         input.focusChanged(old, element);
         if (old != null) {
             old.focused = false;
@@ -813,6 +816,7 @@ public final class Document extends Node {
     public void setHovered(Element element, boolean hovered) {
         if (element.hovered != hovered) {
             element.hovered = hovered;
+            styleEngine.valueInvalidated(element, "@hover");
             styleDirty = true;
         }
     }
@@ -821,6 +825,7 @@ public final class Document extends Node {
     public void setActive(Element element, boolean active) {
         if (element.active != active) {
             element.active = active;
+            styleEngine.valueInvalidated(element, "@active");
             styleDirty = true;
         }
     }

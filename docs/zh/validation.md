@@ -195,3 +195,5 @@ mod-project 接入只验证资源复制与批准关卡，回执 gameVerified=fal
 
 
 `--why <selector> <element-query>` 与 MCP `oriel_inspect` 的字段、退出码、预算边界见 [选择器诊断](selector-debug.md)。`both` 返回旧匹配路径，不验证 `new` 增量失效；另做 old/new 动态 computed style 对照。
+
+属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。

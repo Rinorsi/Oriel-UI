@@ -55,6 +55,11 @@ public final class StyleEngine {
     private final Document document;
     private final Host host;
     private final Cascade cascade;
+    private final CascadeAudit.Mode cascadeMode = CascadeAudit.mode();
+    private final Set<Element> dirtyPaths = Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+    private boolean pendingValues, selective;
+    private int lastGeneration = -1, passGeneration;
+    int visited;
     private final List<Entry> matched = new ArrayList<>();
     /** Scratch for {@link #computeUsed}, which runs while a restyle's {@link #matched} is still in use. */
     private final List<Entry> usedMatches = new ArrayList<>();
@@ -103,13 +108,41 @@ public final class StyleEngine {
         return SelectorDiagnostics.explain(index, element, selector);
     }
 
+    /** Explains one longhand/custom property, optionally prefixed by a pseudo-element such as ::before/color. */
+    public Map<String, Object> explainProperty(Element element, String property) {
+        if (element.ownerDocument() != document || !element.isConnected()) {
+            throw new IllegalArgumentException("Cascade inspection requires a connected element in this document");
+        }
+        document.flushStyle();
+        return CascadeDiagnostics.explain(index, element, property);
+    }
+
     /** Called immediately before Document increments selectorVersion for a connected attribute mutation. */
     public void attributeInvalidated(Element element, String attribute) {
+        if (index != null && index.dependencies != null) {
+            pendingAttributeChanges++;
+            valueInvalidated(element, attribute);
+            return;
+        }
         if (index == null || index.invalidation == null) return;
         pendingAttributeChanges++;
         if (pendingFullRematch) return;
         if (affectedMatches == null) affectedMatches = Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         pendingFullRematch = !index.invalidation.mark(element, attribute, affectedMatches);
+    }
+
+    /** Value-only or interaction mutation; connected DOM hooks call this before the next batched restyle. */
+    public void valueInvalidated(Element element, String dependency) {
+        if (index == null || index.dependencies == null || element == null || !element.isConnected()) return;
+        pendingValues = true;
+        if (affectedMatches == null) affectedMatches = Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        affectedMatches.add(element); // Inline declarations and attr() can change even without selector reads.
+        pendingFullRematch |= !index.dependencies.mark(element, dependency, affectedMatches);
+    }
+
+    /** An unclassified host invalidation must not reuse the local-mutation work list. */
+    public void allInvalidated() {
+        if (cascadeMode != CascadeAudit.Mode.OLD) pendingFullRematch = true;
     }
 
     /**
@@ -128,7 +161,7 @@ public final class StyleEngine {
         MediaQuery.Environment env = new MediaQuery.Environment(document.viewportWidth(), document.viewportHeight(),
                 document.devicePixelRatio(), host.prefersReducedMotion());
         boolean selectorsChanged = sources == null || document.selectorVersion() != styledVersion;
-        boolean incremental = sources != null && index != null && index.invalidation != null
+        boolean incremental = sources != null && index != null && (index.invalidation != null || index.dependencies != null)
                 && !pendingFullRematch && pendingAttributeChanges > 0
                 && styledVersion + pendingAttributeChanges == document.selectorVersion();
         styledVersion = document.selectorVersion();
@@ -149,20 +182,74 @@ public final class StyleEngine {
         }
         sources = found;
         rematched = 0;
+        visited = 0;
+        selective = cascadeMode != CascadeAudit.Mode.OLD && pendingValues && !pendingFullRematch
+                && !rematchAll && generation == lastGeneration;
+        passGeneration = generation;
+        if (selective && affectedMatches != null) {
+            for (Element affected : affectedMatches) {
+                for (Element at = affected; at != null && dirtyPaths.add(at); at = at.parentElement()) { }
+            }
+        }
         cascade.newPass();
         try {
-            restyle(root, null, null, new MatchContext(root));
+            restyle(root, null, null, new MatchContext(root), false);
+            if (cascadeMode == CascadeAudit.Mode.BOTH) {
+                Cascade reference = new Cascade(d -> {}, CascadeAudit.Mode.OLD);
+                reference.environment(host, env.width(), env.height(), env.guiScale());
+                auditTree(root, null, null, reference, new MatchContext(root, SelectorAudit.Mode.OLD));
+            }
         } finally {
+            lastGeneration = generation;
+            pendingValues = false;
+            dirtyPaths.clear();
             pendingAttributeChanges = 0;
             pendingFullRematch = false;
             if (affectedMatches != null) affectedMatches.clear();
         }
     }
 
-    private void restyle(Element el, ComputedStyle parent, ComputedStyle container, MatchContext mc) {
+    /** Full old recomputation after an incremental pass detects missed invalidations as well as value differences. */
+    private void auditTree(Element element, ComputedStyle parent, ComputedStyle container, Cascade reference, MatchContext context) {
+        List<Entry> entries = new ArrayList<>();
+        index.matchReference(element, context, entries);
+        float rem = parent == null ? dev.oriel.engine.host.ExtensionRegistry.compatibility().defaultSize() : rootFontSize;
+        ComputedStyle expected = reference.compute(element, parent, container, rem, entries, PseudoElement.NONE,
+                ElementState.of(element).inline, null);
+        CascadeAudit.compare(element, PseudoElement.NONE, expected, element.baseStyle);
+        for (PseudoElement pseudo : PseudoElement.values()) {
+            if (pseudo == PseudoElement.NONE) continue;
+            ComputedStyle actual = switch (pseudo) {
+                case BEFORE -> element.beforeBaseStyle;
+                case AFTER -> element.afterBaseStyle;
+                case PLACEHOLDER -> element.placeholderStyle;
+                case FIRST_LETTER -> element.firstLetterStyle;
+                default -> null;
+            };
+            ComputedStyle wanted = null;
+            if (pseudo != PseudoElement.PLACEHOLDER || element.isTextControl()) {
+                for (Entry entry : entries) {
+                    if (entry.selector().pseudoElement != pseudo) continue;
+                    wanted = reference.compute(element, expected, expected, rem, entries, pseudo, null, null);
+                    if (wanted.content == ComputedStyle.LIST_MARKER) wanted.content = wanted.listStyleType.marker;
+                    if ((pseudo == PseudoElement.BEFORE || pseudo == PseudoElement.AFTER) && wanted.content == null) wanted = null;
+                    break;
+                }
+            }
+            CascadeAudit.compare(element, pseudo, wanted, actual);
+        }
+        ComputedStyle childContainer = expected.display == Display.CONTENTS ? container : expected;
+        for (int i = 0; i < element.childCount(); i++) {
+            if (element.childAt(i) instanceof Element child) auditTree(child, expected, childContainer, reference, context);
+        }
+    }
+
+    private void restyle(Element el, ComputedStyle parent, ComputedStyle container, MatchContext mc, boolean parentChanged) {
+        if (selective && generation == passGeneration && !parentChanged && !dirtyPaths.contains(el)) return;
+        visited++;
         ElementState state = ElementState.of(el);
         matched.clear();
-        boolean rematch = rematchAll || !state.matchesSurviveInteraction()
+        boolean rematch = rematchAll || (selective ? !state.hasMatches() : !state.matchesSurviveInteraction())
                 || affectedMatches != null && affectedMatches.contains(el);
         boolean sameMatches = true;
         if (rematch) {
@@ -171,7 +258,7 @@ public final class StyleEngine {
             index.match(el, mc, matched);
             sameMatches = state.updateMatches(matched, mc.interactionRead);
         }
-        ComputedStyle old = el.baseStyle, oldBefore = el.beforeBaseStyle, oldAfter = el.afterBaseStyle;
+        ComputedStyle old = el.baseStyle, oldBefore = el.beforeBaseStyle, oldAfter = el.afterBaseStyle, oldUsed = el.style;
         ComputedStyle base = old;
         if (old == null || !sameMatches || !state.sameInputs(parent, container, generation)) {
             if (!rematch) state.matchesInto(matched);
@@ -201,7 +288,8 @@ public final class StyleEngine {
         animations.styleChanged(el, PseudoElement.AFTER, oldAfter, el.afterBaseStyle);
         ComputedStyle childContainer = base.display == Display.CONTENTS ? container : base;
         for (int i = 0, n = el.childCount(); i < n; i++) {
-            if (el.childAt(i) instanceof Element child) restyle(child, base, childContainer, mc);
+            if (el.childAt(i) instanceof Element child) restyle(child, base, childContainer, mc,
+                    old != base || oldUsed != el.style || parentChanged && base.display == Display.CONTENTS);
         }
     }
 

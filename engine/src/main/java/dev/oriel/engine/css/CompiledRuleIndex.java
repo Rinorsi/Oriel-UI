@@ -16,9 +16,13 @@ final class CompiledRuleIndex {
     private final List<Candidate> universal = new ArrayList<>();
 
     void add(Selector selector, List<Decl> declarations, boolean userAgent, int order) {
-        CompiledSelector program = selector.compiled();
-        long key = (userAgent ? 0L : 1L) << 61 | (long) program.specificity << 31 | order;
-        Candidate candidate = new Candidate(program, new RuleIndex.Entry(selector, declarations, userAgent, key));
+        long key = (userAgent ? 0L : 1L) << 61 | (long) selector.specificity << 31 | order;
+        add(new RuleIndex.Entry(selector, declarations, userAgent, key));
+    }
+
+    void add(RuleIndex.Entry entry) {
+        Selector selector = entry.selector();
+        Candidate candidate = new Candidate(selector.compiled(), entry);
         Selector.Compound subject = selector.subject();
         Map<String, List<Candidate>> bucket = null;
         String name = null;

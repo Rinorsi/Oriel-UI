@@ -48,6 +48,10 @@ final class Cascade {
     private final Map<VarKey, Object> varValues = new HashMap<>();
     private final Map<VarText, Object> varTexts = new HashMap<>();
     private final Consumer<Diagnostic> diagnostics;
+    private final CascadeAudit.Mode mode;
+    private final Cascade oracle;
+    private final long[] priorities = new long[LONGHANDS.size()];
+    private final Map<String, Long> customPriorities = new HashMap<>();
     private static final Object INVALID = new Object();
 
     Cascade() {
@@ -55,7 +59,13 @@ final class Cascade {
     }
 
     Cascade(Consumer<Diagnostic> diagnostics) {
+        this(diagnostics, CascadeAudit.mode());
+    }
+
+    Cascade(Consumer<Diagnostic> diagnostics, CascadeAudit.Mode mode) {
         this.diagnostics = diagnostics;
+        this.mode = mode;
+        this.oracle = mode == CascadeAudit.Mode.BOTH ? new Cascade(d -> {}, CascadeAudit.Mode.OLD) : null;
     }
 
     /** A declaration under one set of custom properties, both by identity (the maps are immutable). */
@@ -76,12 +86,14 @@ final class Cascade {
 
     void environment(Host host, float viewportWidth, float viewportHeight, float devicePixelRatio) {
         ctx.environment(host, viewportWidth, viewportHeight, devicePixelRatio);
+        if (oracle != null) oracle.environment(host, viewportWidth, viewportHeight, devicePixelRatio);
     }
 
     /** Starts a restyle pass: forgets cached var() substitutions. */
     void newPass() {
         varValues.clear();
         varTexts.clear();
+        if (oracle != null) oracle.newPass();
     }
 
     /** Whether the last computation read element attributes ({@code attr()}), which selectors do not track. */
@@ -112,11 +124,18 @@ final class Cascade {
                           List<Entry> matched, PseudoElement pseudo, List<Decl> inline, ComputedStyle own) {
         clear();
         for (Longhand l : WITH_INITIAL) win(l.initial);
-        for (Entry e : matched) if (e.selector().pseudoElement == pseudo) put(e.decls(), false);
-        if (inline != null) put(inline, false);
-        for (Entry e : matched) if (e.selector().pseudoElement == pseudo && !e.userAgent()) put(e.decls(), true);
-        if (inline != null) put(inline, true);
-        for (Entry e : matched) if (e.selector().pseudoElement == pseudo && e.userAgent()) put(e.decls(), true);
+        if (mode == CascadeAudit.Mode.OLD) {
+            for (Entry e : matched) if (e.selector().pseudoElement == pseudo) put(e.decls(), false);
+            if (inline != null) put(inline, false);
+            for (Entry e : matched) if (e.selector().pseudoElement == pseudo && !e.userAgent()) put(e.decls(), true);
+            if (inline != null) put(inline, true);
+            for (Entry e : matched) if (e.selector().pseudoElement == pseudo && e.userAgent()) put(e.decls(), true);
+        } else {
+            for (Entry e : matched) {
+                if (e.selector().pseudoElement == pseudo) ranked(e.decls(), e.userAgent(), false, e.layerRank());
+            }
+            if (inline != null) ranked(inline, false, true, Integer.MAX_VALUE);
+        }
         ComputedStyle s = computeWinners(element, parent, ComputedStyle.inheritFrom(parent), rem, own);
         boolean outOfFlow = s.position.isOutOfFlow();
         if (container != null && (container.display.isFlex() || container.display.isGrid()) && !outOfFlow) {
@@ -124,6 +143,8 @@ final class Cascade {
             s.display = s.display.blockified();
         }
         if (container == null || outOfFlow) s.display = s.display.blockified();
+        if (oracle != null) CascadeAudit.compare(element, pseudo,
+                oracle.compute(element, parent, container, rem, matched, pseudo, inline, own), s);
         return s;
     }
 
@@ -138,13 +159,20 @@ final class Cascade {
         for (Decl d : decls) {
             if (d.property != null) props.add(d.property.prop != null ? d.property.prop : d.property.group.prop);
         }
-        return computeWinners(element, parent, base.copy(), rem, null);
+        ComputedStyle result = computeWinners(element, parent, base.copy(), rem, null);
+        if (oracle != null) CascadeAudit.compare(element, PseudoElement.NONE,
+                oracle.apply(element, parent, rem, base, decls, new HashSet<>()), result);
+        return result;
     }
 
     private void clear() {
-        for (int i = 0; i < declaredCount; i++) winners[declared[i]] = null;
+        for (int i = 0; i < declaredCount; i++) {
+            winners[declared[i]] = null;
+            priorities[declared[i]] = 0;
+        }
         declaredCount = 0;
         customWinners.clear();
+        customPriorities.clear();
         ctx.attributeRead = false;
         inheritedExplicitly = false;
     }
@@ -162,6 +190,28 @@ final class Cascade {
             if (d.isCustom()) customWinners.put(d.customName, d);
             else win(d);
         }
+    }
+
+    /** One forward scan; rank dominates the specificity/source ordering supplied by the rule index. */
+    private void ranked(List<Decl> declarations, boolean userAgent, boolean inline, int layer) {
+        for (int i = 0; i < declarations.size(); i++) {
+            Decl d = declarations.get(i);
+            long rank = priority(d.important, userAgent, inline, layer);
+            if (d.isCustom()) {
+                if (rank >= customPriorities.getOrDefault(d.customName, 0L)) {
+                    customPriorities.put(d.customName, rank);
+                    customWinners.put(d.customName, d);
+                }
+            } else if (rank >= priorities[d.property.id]) {
+                priorities[d.property.id] = rank;
+                win(d);
+            }
+        }
+    }
+
+    static long priority(boolean important, boolean userAgent, boolean inline, int layer) {
+        int origin = important ? (userAgent ? 6 : inline ? 5 : 4) : inline ? 3 : userAgent ? 1 : 2;
+        return ((long) origin << 32) | (important ? Integer.MAX_VALUE - layer : layer);
     }
 
     private ComputedStyle computeWinners(Element element, ComputedStyle parent, ComputedStyle s, float rem,

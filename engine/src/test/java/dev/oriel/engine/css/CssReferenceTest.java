@@ -297,6 +297,7 @@ class CssReferenceTest {
         }
         out.append("其中 `float`、表格布局（`display: table`）、`position: sticky`（按 `relative` 处理并提示）、CSS 嵌套、`@layer` 的层级顺序目前都没有或只是近似；")
                 .append("表格请用 `display: grid`，内联 SVG 请用 `<img>`、渐变或边框代替（引擎会按元素给出建议）。\n");
+        out.append("\n显式实验真实层序、属性 schema 与 --why-property 见 [实验层叠](d36-r04.md)；本表探测默认模式。\n");
         return out.toString();
     }
 

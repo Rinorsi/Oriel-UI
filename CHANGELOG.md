@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- CSS: add opt-in old/new/both cascade ranking, dependency-path invalidation with full-reference computed-field checks, read-only installed-property metadata, and explicit cascade explanations through --why-property / oriel_inspect. Real nested cascade layers are separately opt-in; defaults remain legacy pending performance acceptance. Typed custom properties and true revert-layer remain unsupported. See docs/zh/d36-r04.md.
+
 - Selectors: opt-in compiled matching and differential rule indexing (old/new/both, default old). The new path tracks conservative attribute and relative :has invalidation, queries attribute buckets from the element's present attributes, directly evaluates primitive compound predicates with exact work accounting, and caches nth(of) sibling ranks per pass. Add :target for the document URL fragment and explicit --why / oriel_inspect traces with declaration winners and work budgets. See docs/zh/selector-debug.md for limitations.
 
 - Development: add tools/bench resource freezing, alternating independent A/A and A/B CPU frame comparisons, per-page p50/p95 noise verdicts, deterministic synthetic stress generators and a strict 15-effect captured-frame comparator. Existing timing/golden baselines remain unchanged; phase timings, hover input transitions and game measurements require separate evidence.

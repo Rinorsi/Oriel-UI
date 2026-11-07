@@ -105,7 +105,9 @@ class SelectorInvalidationTest {
             page.query("#d").setAttribute("class", "on");
             page.doc.flushStyle();
             assertEquals(0xFFFF0000, page.style("#p").color);
-            assertEquals(page.doc.querySelectorAll("*").size(), page.doc.styleEngine().rematched);
+            if (CascadeAudit.mode() == CascadeAudit.Mode.OLD) {
+                assertEquals(page.doc.querySelectorAll("*").size(), page.doc.styleEngine().rematched);
+            } else assertTrue(page.doc.styleEngine().rematched < page.doc.querySelectorAll("*").size());
             page.query("#p").setAttribute("class", "on");
             page.query("section").appendChild(page.doc.createElement("p"));
             page.doc.flushStyle();

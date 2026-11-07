@@ -14,7 +14,7 @@ preview page.html --why '.card.on[data-ready]' '#card' --frames 60 --size 640x36
 
 `--why` 后是两个独立参数：要解释的 CSS 选择器和定位元素的查询。默认加载后推进 1 帧，`--frames` 可调整；每帧 16ms。只运行无头预览，不开窗口/游戏；不能与 `--canvas-test`、`--actions`、`--snapshot` 混用。定位查询按 DOM 顺序返回后代，不包含查询根本身；无元素或非法选择器退出 2。解释中的 `:scope` 与样式规则一致，指向文档根，不是 `Element.matches` 的当前元素。
 
-MCP `oriel_inspect`：page、selector、element 三个字符串必填；可选 frames 默认为 1，范围 1–600。例：page=path/page.html，selector=.card.on，element=#card，frames=60。返回 passed、exitCode、explanations 和原始 output；加载失败、预算超限、无元素均不算通过。工具不创建批准记录，不接入游戏。
+MCP `oriel_inspect`：page、element 必填；selector 与 property 必须且只能指定一个。property 用法见 [属性解释](d36-r04.md)。可选 frames 默认为 1，范围 1–600。例：page=path/page.html，selector=.card.on，element=#card，frames=60。返回 passed、exitCode、explanations 和原始 output；加载失败、预算超限、无元素均不算通过。工具不创建批准记录，不接入游戏。
 
 Java：`document.styleEngine().explainSelectors(element, selector)` 返回 `Map<String,Object>`；元素必须连接在该文档中。调用会先刷新待处理样式，再以编译匹配器独立探测。
 

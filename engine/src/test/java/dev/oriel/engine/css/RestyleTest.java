@@ -35,7 +35,7 @@ class RestyleTest {
         a.setAttribute("data-state", "open");
         page.frame();
         assertEquals(RED, page.style("#a").color);
-        assertEquals(SelectorAudit.mode() == SelectorAudit.Mode.NEW ? 1 : elements(page), rematched(page),
+        assertEquals(SelectorAudit.mode() == SelectorAudit.Mode.NEW || CascadeAudit.mode() != CascadeAudit.Mode.OLD ? 1 : elements(page), rematched(page),
                 "compiled subject-only attributes rematch the changed element; legacy keeps the full pass");
     }
 
@@ -56,7 +56,8 @@ class RestyleTest {
         page.frame();
         assertEquals(Length.px(3), page.style("#x").paddingTop);
         assertEquals(RED, page.style("#x").color, "the matched rules still apply");
-        assertEquals(2, rematched(page), "the element whose inline style changed, and the hovered one");
+        assertEquals(CascadeAudit.mode() == CascadeAudit.Mode.OLD ? 2 : 1, rematched(page),
+                "the new dependency path does not rematch unchanged hover state");
     }
 
     @Test

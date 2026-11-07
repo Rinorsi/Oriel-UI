@@ -11,6 +11,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /** Command line options of the previewer. */
 class PreviewOptionsTest {
     @Test
+    void cascadeExplanationDoesNotReinterpretAnExistingSelector() {
+        var property = Preview.Options.parse("page.html", "--why-property", "::before/color", "#a");
+        assertTrue(property.whyProperty());
+        assertEquals("::before/color", property.why());
+        assertFalse(Preview.Options.parse("page.html", "--why", "property:focus", "#a").whyProperty());
+        assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("page.html",
+                "--why", "div", "#a", "--why-property", "color", "#a"));
+    }
+    @Test
     void languageCanBeSelectedWithoutChangingTheChineseDefault() {
         assertEquals("zh_cn", Preview.Options.parse("page.html").language());
         assertEquals("en_us", Preview.Options.parse("page.html", "--lang", "en_us").language());

@@ -51,6 +51,9 @@ class GalleryPresetTest {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
         frame(doc, clock, 2000);
         var canvas = doc.querySelector(".stage canvas[data-fx=stars]");
+        // The wall-clock callback budget may defer this RAF while the migration oracle is running.
+        for (int i = 0; i < 10 && canvas.getAttribute("width") == null; i++) frame(doc, clock, 16);
+        assertTrue(canvas.getAttribute("width") != null, "the queued particle callback eventually runs");
         assertTrue(Integer.parseInt(canvas.getAttribute("width")) > 100, "the canvas takes its box's width");
     }
 }

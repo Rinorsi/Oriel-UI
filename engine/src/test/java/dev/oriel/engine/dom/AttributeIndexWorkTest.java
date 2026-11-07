@@ -9,8 +9,10 @@ class AttributeIndexWorkTest {
     @Test
     void absentAttributeBucketsDoNotReadEveryIndexedAttribute() {
         String saved = System.getProperty("oriel.selector");
+        String cascade = System.getProperty("oriel.cascade");
         try {
             System.setProperty("oriel.selector", "new");
+            System.setProperty("oriel.cascade", "new"); // Count production reads, not the both-mode full oracle.
             StringBuilder html = new StringBuilder("<style>");
             for (int i = 0; i < 500; i++) html.append("[data-unused-").append(i).append("]{color:red}");
             Document document = Document.parse(new TestHost(), "test:attribute-index.html",
@@ -35,6 +37,8 @@ class AttributeIndexWorkTest {
         } finally {
             if (saved == null) System.clearProperty("oriel.selector");
             else System.setProperty("oriel.selector", saved);
+            if (cascade == null) System.clearProperty("oriel.cascade");
+            else System.setProperty("oriel.cascade", cascade);
         }
     }
 

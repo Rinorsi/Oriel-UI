@@ -12,7 +12,7 @@
 | 项 | 实际行为与建议 |
 |---|---|
 | position:sticky | 按 relative 处理并给诊断；固定标题放滚动区域外 |
-| @layer | 内容压平，无真实 cascade layer 顺序；不用它隔离主题优先级 |
+| @layer | 默认压平；显式实验真实层序、限制和诊断见 [实验层叠](d36-r04.md) |
 | content:counter()/counters() | 能被接受但输出空文本；不是计数器支持。编号由控制器/模板明确生成 |
 | word-break:keep-all / anywhere | 当前分别映射 normal / break-word，不保证浏览器 CJK 语义 |
 | border-radius 椭圆双半径 | 第二轴半径被丢弃；使用单半径，不承诺椭圆角等价 |
@@ -467,4 +467,4 @@ new/both 只供引擎维护验收，不表示已获游戏或浏览器等价验�
 其中 `float`、表格布局（`display: table`）、`position: sticky`（按 `relative` 处理并提示）、CSS 嵌套、`@layer` 的层级顺序目前都没有或只是近似；表格请用 `display: grid`，内联 SVG 请用 `<img>`、渐变或边框代替（引擎会按元素给出建议）。
 
 
-:target 的 URL 片段语义、new 模式增量失效范围与 --why 诊断见 [选择器诊断](selector-debug.md)。Shadow DOM、@layer、@scope、容器查询仍未支持。
+:target 的 URL 片段语义、new 模式增量失效范围与 --why 诊断见 [选择器诊断](selector-debug.md)。属性 schema、独立 cascade 开关和显式实验 @layer 见 [实验层叠](d36-r04.md)；Shadow DOM、@scope、容器查询仍未支持。上表层序近似描述默认模式。

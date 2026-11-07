@@ -57,6 +57,8 @@ final class ElementState {
         return matched != null && !matchReadInteraction;
     }
 
+    boolean hasMatches() { return matched != null; }
+
     /** Records this pass's matches; returns whether they are the rules that matched last time. */
     boolean updateMatches(List<Entry> now, boolean readInteraction) {
         matchReadInteraction = readInteraction;

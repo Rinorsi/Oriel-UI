@@ -54,16 +54,22 @@ final class SelectorDiagnostics {
         result.put("elapsedHistogramNs", Map.of("lt1000", histogram[0], "lt10000", histogram[1],
                 "lt100000", histogram[2], "lt1000000", histogram[3], "gte1000000", histogram[4]));
         Map<String, Object> winners = new LinkedHashMap<>();
+        List<RuleIndex.Entry> normalOrder = new ArrayList<>(matched);
+        normalOrder.sort(java.util.Comparator.comparing((RuleIndex.Entry entry) -> !entry.userAgent())
+                .thenComparingInt(RuleIndex.Entry::layerRank).thenComparingLong(RuleIndex.Entry::key));
+        List<RuleIndex.Entry> importantOrder = new ArrayList<>(matched);
+        importantOrder.sort(java.util.Comparator.comparingInt(RuleIndex.Entry::layerRank).reversed()
+                .thenComparingLong(RuleIndex.Entry::key));
         for (PseudoElement pseudo : PseudoElement.values()) {
             Map<String, Object> properties = new LinkedHashMap<>();
             List<Decl> inline = pseudo == PseudoElement.NONE ? ElementState.of(element).inline : null;
-            for (RuleIndex.Entry entry : matched) if (entry.selector().pseudoElement == pseudo) put(properties, entry, false);
+            for (RuleIndex.Entry entry : normalOrder) if (entry.selector().pseudoElement == pseudo) put(properties, entry, false);
             putInline(properties, inline, false);
-            for (RuleIndex.Entry entry : matched) {
+            for (RuleIndex.Entry entry : importantOrder) {
                 if (entry.selector().pseudoElement == pseudo && !entry.userAgent()) put(properties, entry, true);
             }
             putInline(properties, inline, true);
-            for (RuleIndex.Entry entry : matched) {
+            for (RuleIndex.Entry entry : importantOrder) {
                 if (entry.selector().pseudoElement == pseudo && entry.userAgent()) put(properties, entry, true);
             }
             if (!properties.isEmpty()) winners.put(pseudo.name(), properties);

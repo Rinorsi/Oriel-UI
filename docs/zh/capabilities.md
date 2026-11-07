@@ -92,7 +92,7 @@ filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不�
 | CSS 3D、perspective、rotateY、matrix3d | 不支持 | 用原生 3D 元素；普通卡片用 2D transform |
 | sticky | 解析后按 relative，提示近似 | 固定标题放滚动区域外 |
 | table、float、多栏布局 | 不支持对应布局 | Grid/Flex |
-| @layer 真正层级、CSS 嵌套 | layer 压平；嵌套不支持 | 显式选择器顺序和命名空间 |
+| @layer 真正层级、CSS 嵌套 | 默认 layer 压平；[实验层序](d36-r04.md)须显式开启；CSS 选择器嵌套不支持 | 显式选择器顺序和命名空间 |
 | @font-face、网络字体 | 不支持 | MC font JSON + 本地字体资源 |
 | SVG、video、audio、iframe、WebGL | 不作为浏览器平台提供 | PNG/原生模型；声音走 `oriel.playSound` |
 | fetch、XHR、WebSocket、Java 直调、任意文件读写 | 脚本不提供 | 命名消息由宿主处理 |

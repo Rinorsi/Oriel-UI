@@ -15,11 +15,13 @@ import java.util.function.Predicate;
 /**
  * A parsed stylesheet: style rules with expanded declarations, {@code @media} blocks, {@code @import}s (loaded by
  * the style engine) and {@code @keyframes}. {@code @supports} is decided while parsing, {@code @layer} blocks are
- * flattened (layer order is not modelled), and other at-rules ({@code @font-face}, {@code @page}...) are skipped.
+ * flattened by default (experimental layer order is opt-in), and other at-rules ({@code @font-face}, {@code @page}...) are skipped.
  * Everything not taken as written is reported as a {@link Diagnostic}.
  */
 final class Stylesheet {
-    sealed interface Rule permits StyleRule, MediaRule, ImportRule, KeyframesRule {}
+    sealed interface Rule permits StyleRule, MediaRule, ImportRule, KeyframesRule, LayerRule {}
+
+    record LayerRule(List<String> names, List<Rule> rules) implements Rule {}
 
     /** A style rule; each selector of its list is matched separately (they may differ in specificity). */
     record StyleRule(List<Selector> selectors, List<Decl> decls) implements Rule {}
@@ -78,7 +80,16 @@ final class Stylesheet {
                         else if (r.block() != null && condition.test(null)) out.addAll(nested(r));
                     }
                     case "layer" -> {
-                        if (r.block() != null) {
+                        if (Boolean.getBoolean("oriel.css.layers") && CascadeAudit.mode() != CascadeAudit.Mode.OLD) {
+                            List<String> names = layerNames(r.prelude());
+                            if (names == null || r.block() != null && names.size() > 1
+                                    || r.block() == null && names.isEmpty()) {
+                                warn(r.line(), r.column(), "invalid-layer", "Invalid @layer name or statement",
+                                        "use @layer base, theme; or @layer base { ... }");
+                            } else {
+                                out.add(new LayerRule(names, r.block() == null ? null : nested(r)));
+                            }
+                        } else if (r.block() != null) {
                             note(r.line(), r.column(), "layer-flattened", "@layer is flattened: layer order is not modelled",
                                     "its rules cascade in source order with the rest");
                             out.addAll(nested(r));
@@ -105,6 +116,28 @@ final class Stylesheet {
 
         private List<Rule> nested(CssParser.Rule r) {
             return rules(CssParser.parseRules(r.block().body(), false), false);
+        }
+
+        private static List<String> layerNames(List<ComponentValue> values) {
+            if (values.isEmpty()) return List.of();
+            List<String> names = new ArrayList<>();
+            for (List<ComponentValue> part : ValueReader.splitCommas(values)) {
+                StringBuilder name = new StringBuilder();
+                boolean ident = true;
+                for (ComponentValue value : part) {
+                    if (value instanceof Token t && t.is(Type.WHITESPACE)) continue;
+                    if (!(value instanceof Token t)) return null;
+                    if (ident ? !t.is(Type.IDENT) : !t.isDelim('.')) return null;
+                    if (ident && t.value.contains(".")) return null; // Escaped dots need a separate name representation.
+                    if (ident && (t.isIdent("initial") || t.isIdent("inherit") || t.isIdent("unset")
+                            || t.isIdent("revert") || t.isIdent("revert-layer") || t.isIdent("default"))) return null;
+                    name.append(t.value);
+                    ident = !ident;
+                }
+                if (ident) return null;
+                names.add(name.toString());
+            }
+            return names;
         }
 
         private void styleRule(CssParser.Rule r, List<Rule> out) {
@@ -137,6 +170,11 @@ final class Stylesheet {
                 }
                 List<Decl> expanded = Decl.expand(d, url, host);
                 String value = ComponentValue.text(d.value());
+                if (Boolean.getBoolean("oriel.css.layers") && value.trim().equalsIgnoreCase("revert-layer")) {
+                    warn(d.line(), d.column(), "unsupported-revert-layer",
+                            "revert-layer still computes as unset; layer rollback is not implemented",
+                            "use an explicit declaration in the desired layer");
+                }
                 if (expanded == null) {
                     warn(d.line(), d.column(), Suggestions.knownProperty(d.name()) ? "invalid-value" : "unknown-property",
                             "Invalid declaration '" + d.name() + ": " + value + "'", Suggestions.forDeclaration(d.name(), d.value()));

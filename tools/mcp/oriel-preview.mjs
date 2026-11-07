@@ -31,12 +31,13 @@ function reviewResult(receipt) {
   return response;
 }
 const TOOLS = [
-  tool('oriel_inspect', '加载指定页面，解释 selector 对 element 匹配到的元素为何生效或失败；返回候选数、逐谓词轨迹、声明赢家和预算。只读诊断，不批准页面，不启动游戏。', { page: string, selector: string, element: string, frames: number }, ['page', 'selector', 'element'], async args => {
+  tool('oriel_inspect', '加载指定页面：selector 解释选择器；property 解释属性的层叠输赢、继承、变量展开与当前动画值。二选一。只读诊断，不批准页面，不启动游戏。', { page: string, selector: string, property: string, element: string, frames: number }, ['page', 'element'], async args => {
     const frames = args.frames ?? 1;
     requireThat(frames > 0 && frames <= 600, 'INVALID_FRAMES', 'frames 必须在 1–600 之间。');
-    const r = await preview([pagePath(args.page), '--why', args.selector, args.element, '--frames', String(frames)]);
+    requireThat(Boolean(args.selector) !== Boolean(args.property), 'INVALID_INSPECT', 'selector 与 property 必须且只能指定一个。');
+    const r = await preview([pagePath(args.page), args.property ? '--why-property' : '--why', args.property ?? args.selector, args.element, '--frames', String(frames)]);
     const explanations = r.output.split(/\r?\n/).filter(line => line.startsWith('{')).flatMap(line => {
-      try { const value = JSON.parse(line); return value.kind === 'selector-explanation' ? [value] : []; } catch { return []; }
+      try { const value = JSON.parse(line); return ['selector-explanation', 'cascade-explanation'].includes(value.kind) ? [value] : []; } catch { return []; }
     });
     return result({ passed: r.code === 0 && explanations.length > 0, exitCode: r.code, explanations, output: r.output }, r.code !== 0 || explanations.length === 0);
   }),

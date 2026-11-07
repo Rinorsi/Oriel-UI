@@ -29,7 +29,12 @@ final class RuleIndex {
      * One selector of a style rule. {@code key} orders entries by origin, then specificity, then source order, so
      * sorting matched entries by key gives the cascade order of normal declarations.
      */
-    record Entry(Selector selector, List<Decl> decls, boolean userAgent, long key) {}
+    record Entry(Selector selector, List<Decl> decls, boolean userAgent, long key, CascadeLayers.Layer layer) {
+        Entry(Selector selector, List<Decl> decls, boolean userAgent, long key) {
+            this(selector, decls, userAgent, key, null);
+        }
+        int layerRank() { return layer == null ? Integer.MAX_VALUE : layer.rank; }
+    }
 
     static final Comparator<Entry> CASCADE_ORDER = Comparator.comparingLong(Entry::key);
     private static final int MAX_IMPORT_DEPTH = 8;
@@ -37,14 +42,18 @@ final class RuleIndex {
     private final Map<String, List<Entry>> byId = new HashMap<>(), byClass = new HashMap<>(), byTag = new HashMap<>();
     private final List<Entry> universal = new ArrayList<>();
     final Map<String, KeyframesRule> keyframes = new HashMap<>();
+    private record LayeredKeyframes(KeyframesRule rule, boolean userAgent, CascadeLayers.Layer layer) {}
+    private final List<LayeredKeyframes> layeredKeyframes = new ArrayList<>();
     /** The attributes the rules' selectors read: changes to others cannot change which rules match. */
     final Set<String> attributes = new HashSet<>();
     private final MediaQuery.Environment env;
     private final Function<String, Stylesheet> imports;
     private int order;
+    private final CascadeLayers authorLayers = new CascadeLayers(), uaLayers = new CascadeLayers();
     private final SelectorAudit.Mode mode = SelectorAudit.mode();
     private final CompiledRuleIndex compiled = mode == SelectorAudit.Mode.OLD ? null : new CompiledRuleIndex();
     final SelectorInvalidation invalidation = mode == SelectorAudit.Mode.NEW ? new SelectorInvalidation() : null;
+    final StyleDependencies dependencies = CascadeAudit.mode() == CascadeAudit.Mode.OLD ? null : new StyleDependencies();
 
     private RuleIndex(MediaQuery.Environment env, Function<String, Stylesheet> imports) {
         this.env = env;
@@ -60,36 +69,59 @@ final class RuleIndex {
         RuleIndex index = new RuleIndex(env, imports);
         index.add(userAgent, true, new HashSet<>());
         for (Source s : author) if (s.media().matches(env)) index.add(s.sheet(), false, new HashSet<>());
+        index.authorLayers.finish();
+        index.uaLayers.finish();
+        Map<String, Long> keyframePriority = new HashMap<>();
+        for (LayeredKeyframes candidate : index.layeredKeyframes) {
+            long rank = Cascade.priority(false, candidate.userAgent(), false,
+                    candidate.layer() == null ? Integer.MAX_VALUE : candidate.layer().rank);
+            if (rank >= keyframePriority.getOrDefault(candidate.rule().name(), 0L)) {
+                index.keyframes.put(candidate.rule().name(), candidate.rule());
+                keyframePriority.put(candidate.rule().name(), rank);
+            }
+        }
         return index;
     }
 
     private void add(Stylesheet sheet, boolean userAgent, Set<String> importChain) {
         if (!importChain.add(sheet.url == null ? "" : sheet.url) || importChain.size() > MAX_IMPORT_DEPTH) return;
-        add(sheet, sheet.rules, userAgent, importChain);
+        add(sheet, sheet.rules, userAgent, importChain, null);
         importChain.remove(sheet.url == null ? "" : sheet.url);
     }
 
-    private void add(Stylesheet sheet, List<Stylesheet.Rule> rules, boolean userAgent, Set<String> importChain) {
+    private void add(Stylesheet sheet, List<Stylesheet.Rule> rules, boolean userAgent, Set<String> importChain, CascadeLayers.Layer layer) {
         for (Stylesheet.Rule rule : rules) {
             switch (rule) {
                 case StyleRule r -> {
                     int position = order++;
                     for (Selector s : r.selectors()) {
                         long key = (userAgent ? 0L : 1L) << 61 | (long) s.specificity << 31 | position;
-                        bucket(s).add(new Entry(s, r.decls(), userAgent, key));
-                        if (compiled != null) compiled.add(s, r.decls(), userAgent, position);
+                        Entry entry = new Entry(s, r.decls(), userAgent, key, layer);
+                        bucket(s).add(entry);
+                        if (compiled != null) compiled.add(entry);
                         if (invalidation != null) invalidation.add(s);
+                        if (dependencies != null) dependencies.add(s);
                         s.attributesRead(attributes);
                     }
                 }
                 case MediaRule m -> {
-                    if (m.media().matches(env)) add(sheet, m.rules(), userAgent, importChain);
+                    if (m.media().matches(env)) add(sheet, m.rules(), userAgent, importChain, layer);
                 }
                 case ImportRule i -> {
                     Stylesheet imported = i.media().matches(env) ? imports.apply(i.url()) : null;
                     if (imported != null) add(imported, userAgent, importChain);
                 }
-                case KeyframesRule k -> keyframes.put(k.name(), k);
+                case KeyframesRule k -> layeredKeyframes.add(new LayeredKeyframes(k, userAgent, layer));
+                case Stylesheet.LayerRule l -> {
+                    CascadeLayers tree = userAgent ? uaLayers : authorLayers;
+                    CascadeLayers.Layer parent = layer == null ? tree.root : layer;
+                    CascadeLayers.Layer target = null;
+                    for (String name : l.names()) target = tree.register(parent, name);
+                    if (l.rules() != null) {
+                        if (target == null) target = tree.register(parent, "");
+                        add(sheet, l.rules(), userAgent, importChain, target);
+                    }
+                }
             }
         }
     }
@@ -135,6 +167,16 @@ final class RuleIndex {
             counts.merge(compiled.get(i), -1, Integer::sum);
         }
         return counts.values().stream().allMatch(count -> count == 0);
+    }
+
+    /** Allocated only by an explicit inspection request, never by restyle. */
+    void matchReference(Element element, Selector.MatchContext context, List<Entry> out) {
+        String id = element.getAttribute("id");
+        if (id != null) test(byId.get(id), element, context, out);
+        for (String c : element.classes()) test(byClass.get(c), element, context, out);
+        test(byTag.get(element.tagName()), element, context, out);
+        test(universal, element, context, out);
+        out.sort(CASCADE_ORDER);
     }
 
     /** Allocated only by an explicit inspection request, never by restyle. */
