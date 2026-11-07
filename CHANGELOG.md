@@ -7,7 +7,7 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
-- Scripting: opt-in WIP (-Doriel.ecosystem=new; default old) narrow HTML namespace and type probes for React 18 / Preact / anime, optional four-point Canvas and flat-square confetti bridges, pinned external ecosystem fixtures and regression scenarios. No browser networking, SVG/iframe implementation or relaxed sandbox limits; see docs/zh/ecosystem.md.
+- Scripting: opt-in WIP (-Doriel.ecosystem=new; default old) on-demand HTML namespace and type probes for React 18 / Preact / anime, optional four-point Canvas and flat-square confetti bridges, pinned external ecosystem fixtures and regression scenarios. Unused probes and namespace members allocate no feature slots/accessors; pre-existing and detached input wrappers acquire their type on first probe. No browser networking, SVG/iframe implementation or relaxed sandbox limits; see docs/zh/ecosystem.md.
 
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 

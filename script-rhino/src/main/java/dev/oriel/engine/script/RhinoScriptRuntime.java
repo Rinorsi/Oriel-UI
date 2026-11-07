@@ -39,6 +39,7 @@ final class RhinoScriptRuntime implements ScriptRuntime {
     private static final int INLINE_HANDLER_CACHE = 256;
 
     final Document document;
+    final boolean ecosystem;
     final Limits limits;
     final ScriptableObject global;
     final Js js;
@@ -67,7 +68,14 @@ final class RhinoScriptRuntime implements ScriptRuntime {
     private RhinoScriptRuntime(Document document, Context cx) {
         this.document = document;
         this.limits = document.limits();
-        global = cx.initSafeStandardObjects();
+        String mode = System.getProperty("oriel.ecosystem", "old");
+        ecosystem = switch (mode) {
+            case "old" -> false;
+            case "new" -> true;
+            default -> throw new IllegalArgumentException("Unknown oriel.ecosystem mode: " + mode + "; use old or new");
+        };
+        global = ecosystem ? (dev.oriel.shadow.rhino.ScriptableObject) cx.initSafeStandardObjects(new EcosystemScope(this))
+                : cx.initSafeStandardObjects();
         Builtins.install(global, document);
         js = new Js(this);
         events = new EventBindings(this);

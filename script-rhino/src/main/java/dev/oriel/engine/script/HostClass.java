@@ -20,10 +20,19 @@ final class HostClass<T> {
     private final Class<T> type;
 
     HostClass(RhinoScriptRuntime rt, String name, Class<T> type, HostClass<?> parent, Function<Args, T> factory) {
+        this(rt, name, type, parent, factory, null);
+    }
+
+    HostClass(RhinoScriptRuntime rt, String name, Class<T> type, HostClass<?> parent, Function<Args, T> factory,
+              ScriptableObject suppliedPrototype) {
         this.rt = rt;
         this.name = name;
         this.type = type;
-        prototype = (ScriptableObject) Context.getCurrentContext().newObject(rt.global);
+        prototype = suppliedPrototype != null ? suppliedPrototype : (ScriptableObject) Context.getCurrentContext().newObject(rt.global);
+        if (suppliedPrototype != null) {
+            prototype.setParentScope(rt.global);
+            prototype.setPrototype(ScriptableObject.getObjectPrototype(rt.global));
+        }
         constructor = new LambdaConstructor(rt.global, name, 0, LambdaConstructor.CONSTRUCTOR_NEW, (cx, scope, args) -> {
             if (factory == null) throw Js.typeError("Illegal constructor");
             return (Scriptable) rt.js.toJs(factory.apply(new Args(args)));

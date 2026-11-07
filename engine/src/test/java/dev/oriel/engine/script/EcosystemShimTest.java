@@ -28,6 +28,13 @@ class EcosystemShimTest extends EcosystemModeTestSupport {
     }
 
     @Test
+    void diagnosticsRequireAllAdvertisedAnimeTypeProbes() throws IOException {
+        Page page = page();
+        page.run("delete window.HTMLCollection");
+        assertEquals("false", page.eval("String(OrielShims.capabilities().animeTypeProbes)"));
+    }
+
+    @Test
     void roundedConcaveAndCrossedPathsFillWithoutChangingNativeContract() throws IOException {
         Page page = page();
         page.run("ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(6,0); ctx.lineTo(2,2); ctx.lineTo(0,6); ctx.fill();");

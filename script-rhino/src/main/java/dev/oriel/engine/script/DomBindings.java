@@ -13,9 +13,7 @@ import dev.oriel.engine.event.Event;
 import dev.oriel.engine.event.EventListener;
 import dev.oriel.engine.html.HtmlParser;
 import dev.oriel.shadow.rhino.Callable;
-import dev.oriel.shadow.rhino.Context;
 import dev.oriel.shadow.rhino.Scriptable;
-import dev.oriel.shadow.rhino.ScriptableObject;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,39 +43,30 @@ final class DomBindings {
 
     DomBindings(RhinoScriptRuntime rt) {
         this.rt = rt;
-        String mode = System.getProperty("oriel.ecosystem", "old");
-        ecosystem = switch (mode) {
-            case "old" -> false;
-            case "new" -> true;
-            default -> throw new IllegalArgumentException("Unknown oriel.ecosystem mode: " + mode + "; use old or new");
-        };
+        ecosystem = rt.ecosystem;
         node = new HostClass<>(rt, "Node", Node.class, null, null).expose("Node");
         defineNode(node.members());
-        element = new HostClass<>(rt, "Element", Element.class, node, null).expose("Element", "HTMLElement");
+        element = new HostClass<>(rt, "Element", Element.class, node, null,
+                ecosystem ? new EcosystemScope.Prototype(this, "namespaceURI") : null).expose("Element", "HTMLElement");
         defineElement(element.members());
-        // Detection-only types: no iframe, SVG or live collection objects exist in this DOM.
-        // Allocate prototypes only when a library actually probes them, not on ordinary page loads.
-        if (ecosystem) installEcosystemTypes();
         text = new HostClass<>(rt, "Text", Text.class, node, null).expose("Text");
         text.members()
                 .prop("data", Text::data, (t, v) -> t.setData(Js.str(v)))
                 .prop("nodeValue", Text::data, (t, v) -> t.setData(Js.str(v)))
                 .get("length", t -> t.data().length());
-        document = new HostClass<>(rt, "Document", Document.class, node, null).expose("Document");
+        document = new HostClass<>(rt, "Document", Document.class, node, null,
+                ecosystem ? new EcosystemScope.Prototype(this, "createElementNS") : null).expose("Document");
         defineDocument(document.members());
         fragment = new HostClass<>(rt, "DocumentFragment", DocumentFragment.class, node, null).expose("DocumentFragment");
     }
 
-    private void installEcosystemTypes() {
-        for (String name : List.of("HTMLInputElement", "HTMLIFrameElement", "SVGElement", "NodeList", "HTMLCollection")) {
-            rt.global.defineProperty(Context.getCurrentContext(), name, self -> {
-                // Rhino's value defineProperty uses put(), which cannot replace a getter without a setter.
-                rt.global.delete(name);
-                if (name.equals("HTMLInputElement")) inputClass().expose(name);
-                else new HostClass<>(rt, name, Object.class, null, null).expose(name);
-                return Js.property(rt.global, name);
-            }, null, ScriptableObject.DONTENUM);
-        }
+    void exposeType(String name) {
+        if (name.equals("HTMLInputElement")) inputClass().expose(name);
+        else new HostClass<>(rt, name, Object.class, null, null).expose(name);
+    }
+
+    Scriptable inputPrototype(Scriptable fallback) {
+        return input == null ? fallback : input.prototype;
     }
 
     /** The member table of the Element prototype, for bindings that add element members (canvas). */
@@ -89,7 +78,9 @@ final class DomBindings {
     HostObject wrap(Node n) {
         if (n.scriptWrapper instanceof HostObject w) return w;
         HostObject w = switch (n) {
-            case Element e -> ecosystem && e.tagName().equals("input") ? inputClass().wrap(e) : element.wrap(e);
+            case Element e -> ecosystem && e.tagName().equals("input")
+                    ? input == null ? new EcosystemScope.Input(rt.global, element.prototype, e) : input.wrap(e)
+                    : element.wrap(e);
             case Text t -> text.wrap(t);
             case Document d -> document.wrap(d);
             case DocumentFragment f -> fragment.wrap(f);
@@ -160,7 +151,6 @@ final class DomBindings {
     }
 
     private void defineElement(Members<Element> m) {
-        if (ecosystem) m.get("namespaceURI", e -> "http://www.w3.org/1999/xhtml");
         m.get("tagName", Element::nodeName)
                 .get("localName", Element::tagName)
                 .prop("id", Element::id, (e, v) -> e.setAttribute("id", Js.str(v)))
@@ -242,8 +232,13 @@ final class DomBindings {
                 .method("createElement", (d, a) -> d.createElement(a.str(0)))
                 .method("createTextNode", (d, a) -> d.createTextNode(a.str(0)))
                 .method("createDocumentFragment", (d, a) -> d.createDocumentFragment());
-        if (ecosystem) {
-            m.method("createElementNS", (d, a) -> {
+    }
+
+    void installMember(String member) {
+        if (member.equals("namespaceURI")) {
+            element.members().get("namespaceURI", e -> "http://www.w3.org/1999/xhtml");
+        } else if (member.equals("createElementNS")) {
+            document.members().method("createElementNS", (d, a) -> {
                     String namespace = a.isNullish(0) ? null : a.str(0);
                     if (namespace != null && !namespace.isEmpty() && !namespace.equals("http://www.w3.org/1999/xhtml")) {
                         throw Js.typeError("NotSupportedError: createElementNS only supports HTML; use HTML/Canvas instead of SVG (docs/zh/ecosystem.md)");

@@ -49,6 +49,8 @@ node tools/ecosystem/prepare-marked.mjs --libs <准备结果中的vendor目录> 
 | `SVGElement` | anime 的类型探测；本引擎没有 SVG 实例，不把 HTML 假装成 SVG。 |
 | `NodeList` / `HTMLCollection` | 只提供探测构造器；现有集合继续为 Array 快照，不匹配这两个类型。anime 通过其 Array 分支处理。 |
 
+惰性安装：开启 new 不会预注册探测构造器的 getter / 属性槽，也不预建 HTMLInputElement 类。全局名称首次读取（包括显式取其属性描述符）才物化该构造器，in 检查不物化；namespaceURI 与 createElementNS 各自在首次访问时安装。没有使用这些名字的页面不分配这些功能的构造器 / 方法 / getter / 属性槽；原来的全局与两个原型对象由支持缺失名称解析的同数量对象替换，不额外建一套对象图。原生 own-property 枚举只列出已经物化的属性，故不能用枚举缺少名称判定兼容性。先建树或克隆的 input wrapper 在第一次 HTMLInputElement 探测后同步采用该原型（含已脱离文档的输入）；此前保留 Element 原型，不把这段惰性阶段宣称完整浏览器对象模型。删除或覆盖全局名称不会被隐式恢复。shim 仍只在显式引用脚本后可用，仅 quadContext / squareConfetti 调用时改相应 Canvas，不在页面初始化自动安装。
+
 上述构造器不能 `new`，会抛 `TypeError: Illegal constructor`；没有引入 Java 反射、文件、网络或新的预算。`navigator`、`matchMedia`、ResizeObserver、IntersectionObserver 未因生态实验加入：尚无仅补这些 API 即可运行目标库的证据，不能用空实现伪装支持。
 
 ## 可选官方桥接
@@ -69,7 +71,7 @@ fire({particleCount:24, ticks:60, origin:{x:0.5,y:0.8}});
 - `OrielShims.quadContext(canvas)` 只为该画布上下文添加 beginPath / moveTo / lineTo / closePath / fill；不修改全局原型。只接受一条四点路径，非有限坐标、第五点、多子路径、Path2D / fill-rule 参数会报错。不能作为通用 Canvas polyfill。
 - 四点凸形调用一次原生 fillQuad；舍入产生的凹形和交叉形分解成最多两次原生三角填充（用重复顶点的凸四边形表示）。没有脚本逐扫描线绘制，保留 confetti 的顶点和运动；原生 fillQuad 仍拒绝凹形。
 - 导入不启动循环；rAF 沿用宿主帧时钟和取消机制，不包第二层计时器。创建多个 confetti 实例会各有其任务，应复用同一个实例，重播前 reset。
-- 显式调用 `OrielShims.capabilities()` 返回机器可读对象（version、htmlNamespace、reactIframeProbe、animeTypeProbes、canvas、confetti）；在页面中显式调用 `console.log(JSON.stringify(...))` 取一行 JSON 诊断；CLI 标准输出和 MCP oriel_snapshot 的 output 保留这行日志（宿主带日志级别前缀）。默认不输出日志。它说明桥接范围，不是第三方库认证结果。
+- 显式调用 `OrielShims.capabilities()` 返回机器可读对象（version、htmlNamespace、reactIframeProbe、animeTypeProbes、canvas、confetti）；在页面中显式调用 `console.log(JSON.stringify(...))` 取一行 JSON 诊断；CLI 标准输出和 MCP oriel_snapshot 的 output 保留这行日志（宿主带日志级别前缀）。显式调用此诊断会访问并物化相应的惰性类型；默认不调用、不输出日志。它说明桥接范围，不是第三方库认证结果。
 
 ## 已知阻断与替代
 
