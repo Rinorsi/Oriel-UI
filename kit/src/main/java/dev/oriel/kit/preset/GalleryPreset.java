@@ -54,7 +54,7 @@ public final class GalleryPreset implements PageControllers.Controller {
     private void picks() {
         Element stage = doc.getElementById("picks");
         if (stage == null) return;
-        Element anchor = Dom.byId(doc, "pick-prev");
+        Element anchor = Dom.byId(doc, "pick-end");
         Element dotBar = Dom.byId(doc, "pick-dots");
         for (String id : PICKS) {
             JsonObject meta;
@@ -65,11 +65,16 @@ public final class GalleryPreset implements PageControllers.Controller {
             }
             TemplateCatalog.Text text = TemplateCatalog.localized(meta, doc.host().language());
             String author = meta.has("author") ? meta.get("author").getAsString() : "";
-            Element slide = Dom.html(doc, "<div class=\"slide\"><img><div class=\"cap\"><b></b><span></span></div></div>");
-            slide.querySelector("img").setAttribute("src", TemplateCatalog.cover(id));
+            Element slide = Dom.html(doc, "<div class=\"slide\"><img class=\"shot\"><div class=\"cap\"><b></b><p></p><em class=\"chip\"></em>"
+                    + "<div class=\"by\"><img><span></span><img class=\"o-ico go\"></div></div></div>");
+            slide.querySelector("img.shot").setAttribute("src", TemplateCatalog.cover(id));
             Dom.text(slide.querySelector("b"), text.name());
             slide.querySelector("b").setAttribute("title", text.name());
-            Element by = slide.querySelector("span");
+            Dom.text(slide.querySelector("p"), text.description());
+            Dom.text(slide.querySelector("em.chip"), text.category());
+            slide.querySelector(".by img.go").setAttribute("src", "../textures/icons/forward.png");
+            slide.querySelector(".by img").setAttribute("src", TemplateCatalog.avatar(author));
+            Element by = slide.querySelector(".by span");
             by.setAttribute("lang", "zh");
             Dom.text(by, author);
             by.setAttribute("title", author);
