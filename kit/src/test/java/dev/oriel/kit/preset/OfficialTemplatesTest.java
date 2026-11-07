@@ -47,4 +47,36 @@ class OfficialTemplatesTest {
         assertEquals(11, back.querySelectorAll("#grid .card").size());
         back.close();
     }
+
+    @Test void aTemplateTheLibraryIsTooOldForIsMarkedAndCannotBeOpened() {
+        KitHost host = new KitHost();
+        host.libraryVersion = "0.10.0";
+        host.gameVersion = "26.1.2";
+        StylesPreset.startAt("official");
+        var doc = host.open(OrielKit.STYLES, new StylesPreset(true), 640, 360);
+        var cards = doc.querySelectorAll("#grid .card");
+        assertEquals(56, cards.size());
+        assertTrue(cards.stream().allMatch(c -> c.hasClass("locked")), "every packaged template asks for 0.11");
+        cards.get(0).click();
+        assertTrue(doc.getElementById("d-note").textContent().contains(">=0.11.0"));
+        assertTrue(doc.getElementById("d-note").textContent().contains("0.10.0"));
+        assertTrue(doc.getElementById("d-open").hasClass("disabled"));
+        int before = host.navigations.size();
+        doc.getElementById("d-open").click();
+        for (int i = 1; i <= 40; i++) doc.frame(60 + i * 16);
+        assertEquals(before, host.navigations.size(), "a locked template does not open");
+        doc.close();
+    }
+
+    @Test void aHostThatKnowsItsVersionOrNotLocksNothingItMeets() {
+        for (String version : new String[] {null, "0.11.0", "0.11.5"}) {
+            KitHost host = new KitHost();
+            host.libraryVersion = version;
+            host.gameVersion = version == null ? null : "26.1.2";
+            StylesPreset.startAt("official");
+            var doc = host.open(OrielKit.STYLES, new StylesPreset(true), 640, 360);
+            assertTrue(doc.querySelectorAll("#grid .card").stream().noneMatch(c -> c.hasClass("locked")), String.valueOf(version));
+            doc.close();
+        }
+    }
 }

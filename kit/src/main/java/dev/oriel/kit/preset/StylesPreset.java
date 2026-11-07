@@ -44,7 +44,7 @@ public final class StylesPreset implements PageControllers.Controller {
     private static final Set<String> FOLDED = new LinkedHashSet<>(List.of("old"));
 
     private record Template(String id, String title, String author, String source, String group, String ver, String date,
-                            List<String> tags, String desc, Element spec, Element card, int order) {}
+                            List<String> tags, String desc, Element spec, Element card, int order, TemplateCatalog.Unmet locked) {}
 
     private final boolean index;
     private Document doc;
@@ -164,10 +164,11 @@ public final class StylesPreset implements PageControllers.Controller {
             for (Element field : e.querySelectorAll("[data-template-field]")) {
                 Dom.text(field, field.getAttribute("data-template-field").equals("category") ? text.category() : text.status());
             }
+            TemplateCatalog.Unmet locked = TemplateCatalog.unmet(meta, doc.host().libraryVersion(), doc.host().gameVersion());
             Template t = new Template(id, text.name(),
                     str(meta, "author"), source, group, str(meta, "version"), str(meta, "date"),
-                    tagsOf(id, source, text.tags()), text.description(), e, null, order++);
-            templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));
+                    tagsOf(id, source, text.tags()), text.description(), e, null, order++, locked);
+            templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order, t.locked));
         }
         for (TemplateCatalog.Category c : TemplateCatalog.categories()) {
             categoryNames.put(c.key(), c.name(doc.host().language()));
@@ -252,6 +253,12 @@ public final class StylesPreset implements PageControllers.Controller {
         boolean official = t.source.equals("official");
         Dom.text(badge, Lang.t(doc, official ? "oriel.ui.styles.badge.official" : t.source.equals("legacy") ? "oriel.ui.styles.badge.legacy" : "oriel.ui.styles.badge.community"));
         badge.toggleClass("official", official);
+        if (t.locked != null) {
+            Dom.text(badge, Lang.t(doc, "oriel.ui.styles.badge.locked"));
+            badge.toggleClass("official", false);
+            badge.addClass("locked");
+            card.addClass("locked");
+        }
         Dom.text(Dom.query(card, ".meta b"), t.title);
         Dom.query(card, ".by span").setAttribute("lang", "zh");
         Dom.text(Dom.query(card, ".by span"), t.author);
@@ -402,6 +409,11 @@ public final class StylesPreset implements PageControllers.Controller {
 
     // ---- Details ----
 
+    /** "Oriel >=0.12.0": what a locked template asks for. */
+    private static String needs(TemplateCatalog.Unmet u) {
+        return (u.what().equals("minecraft") ? "Minecraft " : "Oriel ") + u.range();
+    }
+
     private void openDetails(Template t) {
         if (t == null) return;
         if (open != null) parkSpec(open);
@@ -413,7 +425,9 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.byId(doc, "d-avatar").setAttribute("src", TemplateCatalog.avatar(t.author));
         Dom.text(Dom.byId(doc, "d-ver"), t.ver);
         Dom.text(Dom.byId(doc, "d-desc"), t.desc);
-        Dom.text(Dom.byId(doc, "d-note"), "");
+        Dom.text(Dom.byId(doc, "d-note"), t.locked == null ? "" : Lang.t(doc, "oriel.ui.styles.drawer.locked", needs(t.locked), t.locked.have()));
+        Dom.byId(doc, "d-open").toggleClass("disabled", t.locked != null);
+        Dom.byId(doc, "d-save").toggleClass("disabled", t.locked != null);
         Element tagList = Dom.byId(doc, "d-tags");
         tagList.removeAllChildren();
         for (String name : t.tags) {
@@ -482,7 +496,7 @@ public final class StylesPreset implements PageControllers.Controller {
     }
 
     private void preview(Template t) {
-        if (t == null) return;
+        if (t == null || t.locked != null) return;
         returnTo = t.id;
         rememberPlace();
         Shell.go(doc, TemplateCatalog.page(t.id), "forward");
@@ -490,7 +504,7 @@ public final class StylesPreset implements PageControllers.Controller {
 
     /** Saves a copy into the player's folder; a template already saved opens its copy instead. */
     private void save(Template t) {
-        if (t == null) return;
+        if (t == null || t.locked != null) return;
         if (saved.contains(t.id)) {
             returnTo = t.id;
             rememberPlace();

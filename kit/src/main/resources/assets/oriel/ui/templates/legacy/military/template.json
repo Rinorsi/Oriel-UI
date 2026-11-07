@@ -4,6 +4,10 @@
   "author": "云诺羲",
   "version": "v1.0",
   "date": "2026-11-04",
+  "requires": {
+    "oriel": ">=0.11.0",
+    "minecraft": ">=26.1"
+  },
   "source": "legacy",
   "kind": "template",
   "entry": "legacy/military/index.html",

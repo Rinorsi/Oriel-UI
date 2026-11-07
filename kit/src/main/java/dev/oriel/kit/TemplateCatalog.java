@@ -138,6 +138,25 @@ public final class TemplateCatalog {
         return JsonParser.parseString(json).getAsJsonObject();
     }
 
+    /** What a template needs and the host does not have: the thing ("oriel" or "minecraft"), the range it asks for, and what runs. */
+    public record Unmet(String what, String range, String have) {}
+
+    /**
+     * The first requirement of the template's {@code requires} ({@code {"oriel": ">=0.11.0", "minecraft": ">=26.1"}}) that
+     * the given versions do not meet, or null when it can be used. A version the host does not know never fails.
+     */
+    public static Unmet unmet(JsonObject metadata, String oriel, String minecraft) {
+        if (!metadata.has("requires") || !metadata.get("requires").isJsonObject()) return null;
+        JsonObject requires = metadata.getAsJsonObject("requires");
+        String[][] checks = {{"oriel", oriel}, {"minecraft", minecraft}};
+        for (String[] check : checks) {
+            if (!requires.has(check[0]) || !requires.get(check[0]).isJsonPrimitive()) continue;
+            String range = requires.get(check[0]).getAsString();
+            if (!Versions.satisfies(check[1], range)) return new Unmet(check[0], range, check[1]);
+        }
+        return null;
+    }
+
     public record Text(String name, String description, String category, List<String> tags, String status) {}
 
     private static String normalize(String language) {

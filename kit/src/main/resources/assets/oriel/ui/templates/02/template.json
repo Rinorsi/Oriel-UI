@@ -5,6 +5,10 @@
   "author": "云诺羲",
   "version": "0.1.0-preview",
   "date": "2026-11-07",
+  "requires": {
+    "oriel": ">=0.11.0",
+    "minecraft": ">=26.1"
+  },
   "sourceGroup": "G06",
   "kind": "template",
   "source": "official",

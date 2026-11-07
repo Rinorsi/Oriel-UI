@@ -2421,5 +2421,7 @@
   "oriel.ui.about.new.3": "Buttons, tabs and switches now have UI sounds.",
   "oriel.ui.about.new.4": "Images in long lists load as you scroll, so scrolling is smoother.",
   "oriel.ui.about.new.5": "The engine now runs on new implementations. Pages look the same, and problems are easier to trace.",
-  "oriel.ui.about.new.6": "Fixed scroll boxes stretching their parent, and the editor tabs being squeezed."
+  "oriel.ui.about.new.6": "Fixed scroll boxes stretching their parent, and the editor tabs being squeezed.",
+  "oriel.ui.styles.badge.locked": "Needs update",
+  "oriel.ui.styles.drawer.locked": "This template needs %s; you have %s. Update to preview or save it."
 }

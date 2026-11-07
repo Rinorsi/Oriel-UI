@@ -130,6 +130,12 @@ public interface Host {
         return locale.equalsIgnoreCase(language().replace('-', '_')) ? translation(key) : null;
     }
 
+    /** The version of the library running this page (for example "0.11.0"), or null when the host does not know it. */
+    default String libraryVersion() { return null; }
+
+    /** The game version (for example "26.1.2"), or null when the host does not know it. */
+    default String gameVersion() { return null; }
+
     /** Whether the user asked for reduced motion ({@code prefers-reduced-motion: reduce}). */
     default boolean prefersReducedMotion() { return false; }
 

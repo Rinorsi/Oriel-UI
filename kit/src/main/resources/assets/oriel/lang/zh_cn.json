@@ -2421,5 +2421,7 @@
   "oriel.ui.about.new.3": "按钮、标签页和开关有了界面提示音。",
   "oriel.ui.about.new.4": "长列表里的图片按需加载，滚动更顺。",
   "oriel.ui.about.new.5": "引擎换用新的实现，页面显示不变，出问题更容易查。",
-  "oriel.ui.about.new.6": "修复了滚动框撑高外层、编辑器标签被挤压的问题。"
+  "oriel.ui.about.new.6": "修复了滚动框撑高外层、编辑器标签被挤压的问题。",
+  "oriel.ui.styles.badge.locked": "需要更新",
+  "oriel.ui.styles.drawer.locked": "这个模板需要 %s，当前是 %s。更新后才能预览和保存。"
 }

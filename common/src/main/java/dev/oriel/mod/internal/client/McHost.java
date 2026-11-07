@@ -227,6 +227,24 @@ public final class McHost implements Host {
     }
 
     @Override
+    public String libraryVersion() {
+        return versionOf("oriel");
+    }
+
+    @Override
+    public String gameVersion() {
+        return versionOf("minecraft");
+    }
+
+    private static String versionOf(String modId) {
+        try {
+            return dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion(modId);
+        } catch (RuntimeException e) {
+            return null; // not a mod the loader lists: no version to check against
+        }
+    }
+
+    @Override
     public boolean prefersReducedMotion() {
         return OrielConfig.CLIENT_REDUCED_MOTION.get();
     }

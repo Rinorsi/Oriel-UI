@@ -4,6 +4,10 @@
   "author": "云诺羲",
   "version": "v1.1",
   "date": "2026-11-05",
+  "requires": {
+    "oriel": ">=0.11.0",
+    "minecraft": ">=26.1"
+  },
   "source": "legacy",
   "kind": "template",
   "entry": "legacy/dungeon/index.html",

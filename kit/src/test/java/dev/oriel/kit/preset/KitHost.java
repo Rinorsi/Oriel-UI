@@ -47,6 +47,10 @@ final class KitHost implements Host {
     String language = "zh_cn";
 
     @Override public String language() { return language; }
+    /** What the host says it runs; null (the default) means unknown, which never locks a template. */
+    String libraryVersion, gameVersion;
+    @Override public String libraryVersion() { return libraryVersion; }
+    @Override public String gameVersion() { return gameVersion; }
     /** What {@link #send} answers: false is a page with no server (the previewer), true one that has one. */
     boolean acceptSends;
 
