@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Benchmarks: default to chronological paired A/A and A/B relative differences with 95% Student-t intervals and explicit inconclusive verdicts; record external Java/Minecraft process hints at measurement boundaries without retaining command lines.
+
 - Agents: document task ownership, workflow modes, scheduling and evidence contracts; add copyable task, report, evidence, terminal-state and R10 templates.
 
 - Development: add tools/bench resource freezing, alternating independent A/A and A/B CPU frame comparisons, per-page p50/p95 noise verdicts, deterministic synthetic stress generators and a strict 15-effect captured-frame comparator. Existing timing/golden baselines remain unchanged; phase timings, hover input transitions and game measurements require separate evidence.

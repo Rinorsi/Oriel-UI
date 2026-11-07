@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { read, write, check, hash, tree, freeze, verify, compare, markdown, execute, environment } from './core.mjs';
 import { generate } from './synthetic.mjs';
+import { externalJava } from './noise.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
@@ -65,10 +66,10 @@ async function measure(config, frozen, directory) {
   }));
   const fingerprint = () => Object.fromEntries(['old', 'new'].map(name => [name, (config[name].artifacts ?? [path.join(config[name].root, 'preview/build/install/preview/lib')]).map(tree)]));
   const plan = [];
-  for (const labels of [['aa0', 'aa1'], ['old', 'new']]) for (let round = 0; round < rounds; round++) {
+  for (let round = 0; round < rounds; round++) for (const labels of [['aa0', 'aa1'], ['old', 'new']]) {
     for (const label of round % 2 ? [...labels].reverse() : labels) plan.push({ label, round });
   }
-  const samples = [], started = Date.now();
+  const samples = [], processObservations = [], started = Date.now();
   write(path.join(directory, 'run-identity.json'), { schemaVersion: 1, config, frozen, binaries, environment: environment(), plan });
   try {
     for (let index = 0; index < plan.length; index++) {
@@ -79,22 +80,28 @@ async function measure(config, frozen, directory) {
       const part = path.join(directory, String(index).padStart(2, '0') + '-' + item.label);
       fs.mkdirSync(part);
       const { command, output } = adapter(variant, config, part);
+      processObservations.push({ ...externalJava(), sampleIndex: index, boundary: 'before' });
       console.log(`${index + 1}/${plan.length} ${item.label} round ${item.round + 1}`);
+      const startedAt = new Date().toISOString();
       await execute(command, { cwd: variant.root, env: { ...config.env, ...variant.env }, log: path.join(part, 'command.log'), timeout: Math.min(config.timeoutMs ?? 120000, 20 * 60_000 - (Date.now() - started)) });
+      const finishedAt = new Date().toISOString();
+      processObservations.push({ ...externalJava(), sampleIndex: index, boundary: 'after' });
       const report = read(output);
-      const sample = { ...item, command, report, reportHash: hash(fs.readFileSync(output)) };
+      const sample = { ...item, order: index, startedAt, finishedAt, command, report, reportHash: hash(fs.readFileSync(output)) };
       samples.push(sample);
       write(path.join(part, 'sample.json'), sample);
     }
     verify(config, frozen);
     check(JSON.stringify(fingerprint()) === JSON.stringify(binaries), 'Engine artifacts changed during measurement');
-    const report = { ...compare(samples, frozen.identity.pages, config.maxNoise ?? .05), manifestHash: frozen.identityHash, binaries, samples };
+    const detected = processObservations.some(o => o.processes.length > 0), unavailableProbes = processObservations.filter(o => o.status !== 'available').length;
+    const interference = { detected: detected ? true : unavailableProbes === processObservations.length ? null : false, status: detected ? 'detected' : unavailableProbes ? 'partially-observed' : 'clear-at-boundaries', coverage: 'before and after each measured process; transient processes between boundaries may be missed', unavailableProbes, observations: processObservations };
+    const report = { ...compare(samples, frozen.identity.pages, config.maxNoise ?? .05), manifestHash: frozen.identityHash, binaries, samples, interference };
     write(path.join(directory, 'comparison.json'), report);
     fs.writeFileSync(path.join(directory, 'comparison.md'), markdown(report), { flag: 'wx' });
     console.log(report.verdict + ': ' + path.join(directory, 'comparison.md'));
     process.exitCode = report.verdict === 'PASS' ? 0 : report.verdict === 'FAIL' ? 1 : 2;
   } catch (error) {
-    write(path.join(directory, 'failure.json'), { result: 'ERROR', message: error.message, completedSamples: samples.length });
+    write(path.join(directory, 'failure.json'), { result: 'ERROR', message: error.message, completedSamples: samples.length, processObservations });
     throw error;
   }
 }

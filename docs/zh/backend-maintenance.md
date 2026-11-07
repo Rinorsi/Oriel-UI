@@ -2,7 +2,7 @@
 
 ## D36 交替基准工具
 
-新增[统一 CPU 比较入口](d36-mcp-bench.md)：先经工作区 gws.sh 构建 old/new 的 :preview:installDist，再用 tools/bench/run.mjs 冻结资源并自动获取 bench-window。新清单显式记录 kit 21页相对旧20页增加 forge_station；不覆盖旧时间基线、不采用旧25%容差。每页 p50/p95 按交替外轮中位数和 A/A 噪声判定；高噪声结果为 INCONCLUSIVE。完整命令与适配器合同见链接。
+新增[统一 CPU 比较入口](d36-mcp-bench.md)：先经工作区 gws.sh 构建 old/new 的 :preview:installDist，再用 tools/bench/run.mjs 冻结资源并自动获取 bench-window。新清单记录21页相对旧20页增加forge_station；旧基线不变，不用旧25%容差。默认按同时间序列逐轮配对相对差、A/A噪声底与95% Student-t置信区间判定，区间重叠或高噪声为INCONCLUSIVE；每个测量进程前后记录外部java/Minecraft提示，不能据此杀进程。完整合同见链接。
 
 FrameBenchmark 暂不导出样式/布局独立耗时，27组合中的 hover状态迁移、15效果实际捕获及 GPU/IME 仍需阶段补充，不能拿整页CPU结果宣告全部R10通过。
 
