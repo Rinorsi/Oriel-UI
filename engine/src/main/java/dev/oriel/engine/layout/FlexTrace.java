@@ -1,23 +1,12 @@
 package dev.oriel.engine.layout;
 
 import com.google.gson.JsonObject;
-import dev.oriel.engine.host.Host;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-
 /** Explicit developer diagnostics. No events or buffers are allocated when tracing is disabled. */
 final class FlexTrace {
     private final String query;
-    private final Path output;
 
     private FlexTrace(String query) {
         this.query = query;
-        String file = System.getProperty("oriel.layout.traceFile");
-        output = file == null ? null : Path.of(file);
     }
 
     static FlexTrace configured() {
@@ -61,15 +50,7 @@ final class FlexTrace {
         event.addProperty("reason", position ? "Final flex-relative offsets after gap, auto margins and alignment"
                 : frozen ? "Frozen target: inflexible item, balanced iteration or selected min/max violation"
                 : "Distributing remaining free space");
-        String json = event.toString();
-        if (output == null) container.element.ownerDocument().host().log(Host.LogLevel.DEBUG, json);
-        else {
-            try {
-                Files.writeString(output, json + "\n", StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Cannot append flex trace to " + output, e);
-            }
-        }
+        LayoutTraceSink.emit(container, event);
     }
 
     private static void number(JsonObject event, String key, float value) {

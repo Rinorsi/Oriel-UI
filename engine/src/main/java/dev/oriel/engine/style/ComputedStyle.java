@@ -323,6 +323,8 @@ public final class ComputedStyle implements Cloneable {
                 && same(flexShrink, o.flexShrink) && flexBasis.equals(o.flexBasis) && order == o.order
                 && rowGap.equals(o.rowGap) && columnGap.equals(o.columnGap)
                 && gridTemplateColumns.equals(o.gridTemplateColumns) && gridTemplateRows.equals(o.gridTemplateRows)
+                && GridTemplate.sameNames(gridTemplateColumns, o.gridTemplateColumns)
+                && GridTemplate.sameNames(gridTemplateRows, o.gridTemplateRows)
                 && Objects.equals(gridTemplateAreas, o.gridTemplateAreas)
                 && gridAutoColumns.equals(o.gridAutoColumns) && gridAutoRows.equals(o.gridAutoRows)
                 && gridAutoFlow == o.gridAutoFlow && gridColumnStart.equals(o.gridColumnStart)

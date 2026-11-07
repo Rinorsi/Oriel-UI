@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Layout: add an opt-in Grid candidate with indexed intrinsic contributions, allocation-free occupancy checks, named-line metadata and first-baseline groups. Add headless preview --why-size/--why-position JSONL diagnostics for both solvers; legacy defaults stay unchanged.
+
 - Layout: add an opt-in Flex candidate with pass-local item reuse, intrinsic measurement reuse and independent-tree old/new/both comparison. Keep the legacy implementation as default; expose opt-in why-size/why-position JSONL traces without changing page CSS.
 
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.

@@ -5,6 +5,7 @@ import dev.oriel.engine.css.ComponentValue.Block;
 import dev.oriel.engine.css.ComponentValue.Func;
 import dev.oriel.engine.css.Token.Type;
 import dev.oriel.engine.style.GridLine;
+import dev.oriel.engine.style.GridTemplate;
 import dev.oriel.engine.style.GridTrack;
 import dev.oriel.engine.style.Length;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 
 /**
  * Grid values: track lists ({@code grid-template-columns/rows}, {@code grid-auto-*}), {@code grid-template-areas}
- * and placement lines. Line names ({@code [name]}) are accepted and ignored; integer {@code repeat()}s are expanded.
+ * and placement lines. Line names ({@code [name]}) are retained as additive metadata; integer {@code repeat()}s are expanded.
  */
 final class Grids {
     private static final Map<String, Length> TRACK_KEYWORDS = Map.of(
@@ -28,25 +29,34 @@ final class Grids {
     /** A track list, optionally with {@code repeat()}; null if empty or malformed. */
     static List<GridTrack> tracks(ValueReader r, ValueContext ctx, boolean allowRepeat) {
         List<GridTrack> out = new ArrayList<>();
+        List<List<String>> names = new ArrayList<>();
+        names.add(List.of());
         while (!r.atEnd()) {
             if (r.peek() instanceof Block b && b.open() == '[') {
                 r.next();
+                var group = new ArrayList<>(names.getLast());
+                names.set(names.size() - 1, group);
+                for (ComponentValue value : b.body()) {
+                    if (value instanceof Token token && token.is(Type.IDENT)) group.add(token.value);
+                }
                 continue;
             }
             Func repeat = allowRepeat ? r.function("repeat") : null;
             if (repeat != null) {
-                if (!repeat(repeat, ctx, out)) return null;
+                if (!repeat(repeat, ctx, out, names)) return null;
                 continue;
             }
             GridTrack t = track(r, ctx);
             if (t == null) return null;
             out.add(t);
+            names.add(List.of());
         }
-        return out.isEmpty() ? null : List.copyOf(out);
+        if (out.isEmpty()) return null;
+        return names.stream().anyMatch(group -> !group.isEmpty()) ? new GridTemplate(out, names) : List.copyOf(out);
     }
 
     /** {@code repeat(<count> | auto-fill | auto-fit, <tracks>)}: integer counts are expanded into {@code out}. */
-    private static boolean repeat(Func f, ValueContext ctx, List<GridTrack> out) {
+    private static boolean repeat(Func f, ValueContext ctx, List<GridTrack> out, List<List<String>> names) {
         List<List<ComponentValue>> args = ValueReader.splitCommas(f.args());
         if (args.size() != 2) return false;
         ValueReader countReader = new ValueReader(args.get(0));
@@ -54,9 +64,17 @@ final class Grids {
         Integer count = auto == null ? Numeric.integer(countReader, ctx) : null;
         List<GridTrack> tracks = tracks(new ValueReader(args.get(1)), ctx, false);
         if (!countReader.atEnd() || tracks == null || (auto == null && (count == null || count < 1))) return false;
-        if (auto != null) out.add(new GridTrack.Repeat(auto, 0, tracks, List.of()));
+        if (auto != null) {
+            var repeatNames = new ArrayList<List<String>>();
+            for (int i = 0; i <= tracks.size(); i++) repeatNames.add(GridTemplate.namesAt(tracks, i));
+            out.add(new GridTrack.Repeat(auto, 0, tracks, tracks instanceof GridTemplate ? List.copyOf(repeatNames) : List.of()));
+            names.add(List.of());
+        }
         else if ((long) count * tracks.size() + out.size() > Limits.current().maxGridTracks()) return false;
-        else for (int i = 0; i < count; i++) out.addAll(tracks);
+        else for (int i = 0; i < count; i++) {
+            out.addAll(tracks);
+            GridTemplate.appendNames(names, tracks);
+        }
         return true;
     }
 

@@ -28,7 +28,7 @@
 
 动画、粒子或卡顿问题，开工先读 [粒子与动画性能规范](performance.md)。
 
-引擎开发者可查 [Flex 布局迁移与求解诊断](d36-r08.md)：old/new/both 对拍与 why-size / why-position 日志。
+引擎开发者可查 [Flex / Grid 候选实现与求解诊断](d36-r08.md)：old/new/both 对拍与 why-size / why-position 日志。
 
 | 我要做 | 读这里 |
 |---|---|

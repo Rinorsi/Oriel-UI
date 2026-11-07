@@ -157,8 +157,8 @@ class FlexMigrationTest {
             for (String log : host.logs) {
                 if (!log.contains("\"context\":\"flex\"")) continue;
                 var event = com.google.gson.JsonParser.parseString(log.substring(log.indexOf('{'))).getAsJsonObject();
-                assertEquals(1, event.get("schema").getAsInt());
-                assertTrue(event.has("baseSize"));
+                assertEquals(1, event.get("schemaVersion").getAsInt());
+                assertTrue(event.getAsJsonObject("data").has("baseSize"));
             }
         } finally {
             restore(before);

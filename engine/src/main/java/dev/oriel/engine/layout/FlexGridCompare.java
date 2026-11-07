@@ -23,7 +23,8 @@ final class FlexGridCompare {
     record Reference(Box root, Map<Element, Box> principals) {}
 
     static Reference begin(Document document) {
-        if (!"both".equals(System.getProperty("oriel.layout.flex"))) return null;
+        if (!"both".equals(System.getProperty("oriel.layout.flex"))
+                && !"both".equals(System.getProperty("oriel.layout.grid"))) return null;
         Element html = document.documentElement();
         if (html == null) return null;
         REFERENCE.set(true);

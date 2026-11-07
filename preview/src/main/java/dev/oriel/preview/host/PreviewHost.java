@@ -196,6 +196,10 @@ public final class PreviewHost implements Host {
     private final List<Diagnostic> diagnosticRecords = new java.util.ArrayList<>();
     private final List<String> runtimeErrors = new java.util.ArrayList<>();
     private boolean quiet;
+    private java.io.PrintStream logOutput = System.out;
+
+    /** Keeps JSONL diagnostic stdout separate from ordinary host messages. */
+    public void logTo(java.io.PrintStream output) { logOutput = java.util.Objects.requireNonNull(output); }
 
     @Override
     public float[] spriteSize(String id) {
@@ -250,14 +254,14 @@ public final class PreviewHost implements Host {
     @Override
     public void log(LogLevel level, String message) {
         if (quiet && level != LogLevel.ERROR) return;
-        System.out.println("[oriel " + level.name().toLowerCase() + "] " + message);
+        logOutput.println("[oriel " + level.name().toLowerCase() + "] " + message);
     }
 
     @Override
     public void reportError(String message, Throwable error) {
         runtimeErrors.add(message + ": " + error);
         log(LogLevel.ERROR, message);
-        error.printStackTrace(System.out);
+        error.printStackTrace(logOutput);
     }
 
     @Override

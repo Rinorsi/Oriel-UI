@@ -36,7 +36,7 @@ public final class FlexPageBenchmark {
                 for (int index = 0; index < modes.length; index++) {
                     int slot = round % 2 == 0 ? index : modes.length - 1 - index;
                     String mode = modes[slot];
-                    System.setProperty("oriel.layout.flex", mode);
+                    System.setProperty("oriel.layout." + (args.length > 3 ? args[3] : "flex"), mode);
                     JsonObject result = measure(page, jar);
                     result.addProperty("page", root.relativize(page).toString().replace((char) 92, '/'));
                     result.addProperty("mode", mode);
