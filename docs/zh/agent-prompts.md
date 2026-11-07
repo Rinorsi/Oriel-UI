@@ -20,6 +20,8 @@
 
 ## revise
 
+规则未生效时可用 `oriel_inspect(page, selector, element)` 查询候选规则、失败谓词与声明赢家；默认推进 1 帧，可传 frames（1–600）。它只做无头诊断，不创建批准记录，不代替检查、截图或用户验收，详见 [选择器诊断](selector-debug.md)。
+
 先调用 oriel_status 读取原项目与验收状态，再调用 oriel_rules 查询本次修改涉及的能力。修改共享源文件，保留未知业务数据。修改后重新 oriel_check、oriel_snapshot，并用 oriel_review.prepare 创建新版本。不得使用旧版批准安装新版页面；旧回执只能追踪原版本。向用户说明可见改动与需要重新验收的场景。
 
 ## integrate

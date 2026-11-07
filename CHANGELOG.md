@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Selectors: opt-in compiled matching and differential rule indexing (old/new/both, default old). The new path tracks conservative attribute and relative :has invalidation and caches nth(of) sibling ranks per pass. Add :target for the document URL fragment and explicit --why / oriel_inspect traces with declaration winners and work budgets. See docs/zh/selector-debug.md for limitations.
+
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 
 - Images: opt-in `img loading=lazy` and `data-oriel-lazy` URL backgrounds share a document queue (three sources per 50ms by default, configurable on html), with half-viewport prefetch, fixed-size placeholders and cancellation of unstarted detached elements. Eager loading stays the default; loaded textures retain host-managed lifetimes. The preview checker warns on more than 24 image/background references without lazy loading.

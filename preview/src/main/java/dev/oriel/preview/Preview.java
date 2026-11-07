@@ -23,6 +23,7 @@ public final class Preview {
                    preview <page.html> --actions actions.txt [--out dir] [--snapshot out.png] [--scale N] [--size WxH] [--narrate]
                    preview --canvas-test [--scale N] [--size WxH] [--snapshot out.png]
                    preview --check <dir or page.html> [--strict] [--lang language] [--report result.json]
+                   preview <page.html> --why <selector> <element-query> [--frames N] [--size WxH]
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
             --lang <language> selects a language such as zh_cn (default) or en_us; --check also accepts it.
@@ -31,11 +32,13 @@ public final class Preview {
 
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
-                   Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background, String language) {
+                   Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background, String language,
+                   String why, String elementQuery) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
             String boxes = null;
             String language = "zh_cn";
+            String why = null, elementQuery = null;
             Integer background = null;
             boolean canvasTest = false, narrate = false, strict = false;
             int scale = 2, width = CanvasTest.WIDTH, height = CanvasTest.HEIGHT, frames = 1;
@@ -52,6 +55,10 @@ public final class Preview {
                     case "--narrate" -> narrate = true;
                     case "--strict" -> strict = true;
                     case "--boxes" -> boxes = value(args, ++i, arg);
+                    case "--why" -> {
+                        why = value(args, ++i, arg);
+                        elementQuery = value(args, ++i, arg);
+                    }
                     case "--lang" -> language = value(args, ++i, arg);
                     case "--background" -> {
                         String color = value(args, ++i, arg);
@@ -73,15 +80,18 @@ public final class Preview {
                 }
             }
             if (canvasTest == (page != null)) throw new IllegalArgumentException("Give either a page or --canvas-test");
+            if (why != null && (canvasTest || actions != null || snapshot != null)) {
+                throw new IllegalArgumentException("--why requires a page and cannot be combined with actions or snapshot");
+            }
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language);
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language, why, elementQuery);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
         boolean headless() {
-            return snapshot != null || actions != null;
+            return snapshot != null || actions != null || why != null;
         }
 
         /** Where {@code shot} actions write: {@code --out}, else beside the snapshot, else the working directory. */
@@ -133,17 +143,44 @@ public final class Preview {
         if (options.headless()) System.setProperty("java.awt.headless", "true");
 
         Optional<Path> jar = MinecraftAssets.findClientJar();
-        System.out.println(jar.map(j -> "Minecraft assets: " + j).orElse("No Minecraft " + MinecraftAssets.MINECRAFT_VERSION
+        (options.why() == null ? System.out : System.err).println(jar.map(j -> "Minecraft assets: " + j).orElse("No Minecraft " + MinecraftAssets.MINECRAFT_VERSION
                 + " jar found (set -D" + MinecraftAssets.JAR_PROPERTY + " or " + MinecraftAssets.JAR_ENV + "); using a fallback font"));
         Optional<Path> pack = options.canvasTest() ? Optional.empty() : PreviewHost.packRoot(options.page());
         MinecraftAssets assets = MinecraftAssets.openForPage(pack.stream().toList(), jar);
         MinecraftFont font = new MinecraftFont(assets);
         PreviewHost host = new PreviewHost(assets, font);
+        if (options.why() != null) host.quiet(true);
         host.setLanguage(options.language());
         Scene scene = options.canvasTest() ? new CanvasTest(host) : new PageScene(host, PreviewHost.pageUrl(options.page()),
                 options.data() == null ? null : Files.readString(options.data()),
                 new Viewport(options.width(), options.height(), options.scale()));
         if (options.narrate()) ((PageScene) scene).narrateTo(System.out);
+        if (options.why() != null) {
+            PageScene page = (PageScene) scene;
+            int code = 0;
+            try {
+                for (int i = 0; i < options.frames(); i++) page.frame(i * 16.0, options.width(), options.height(), options.scale());
+                if (page.error() != null) throw new IllegalStateException("Page failed", page.error());
+                var elements = page.document().querySelectorAll(options.elementQuery());
+                if (elements.isEmpty()) throw new IllegalArgumentException("No element matches: " + options.elementQuery());
+                var gson = new com.google.gson.Gson();
+                for (Element element : elements) {
+                    var explanation = page.document().styleEngine().explainSelectors(element, options.why());
+                    System.out.println(gson.toJson(explanation));
+                    System.err.println("Selector explanation for " + element + ": candidates old="
+                            + explanation.get("candidateCountOld") + " new=" + explanation.get("candidateCountNew")
+                            + "; inspect queryResults.trace and declarationWinners in JSONL");
+                }
+            } catch (IllegalArgumentException | IllegalStateException failure) {
+                System.err.println(failure.getMessage());
+                code = 2;
+            } finally {
+                if (page.document() != null) page.document().close();
+                assets.close();
+            }
+            System.exit(strict(code, host, options));
+            return;
+        }
 
         if (options.actions() != null) {
             int code = actions((PageScene) scene, new FrameRenderer(assets, font, options.background()), options);

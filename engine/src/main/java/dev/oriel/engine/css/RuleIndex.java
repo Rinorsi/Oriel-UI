@@ -42,6 +42,9 @@ final class RuleIndex {
     private final MediaQuery.Environment env;
     private final Function<String, Stylesheet> imports;
     private int order;
+    private final SelectorAudit.Mode mode = SelectorAudit.mode();
+    private final CompiledRuleIndex compiled = mode == SelectorAudit.Mode.OLD ? null : new CompiledRuleIndex();
+    final SelectorInvalidation invalidation = mode == SelectorAudit.Mode.NEW ? new SelectorInvalidation() : null;
 
     private RuleIndex(MediaQuery.Environment env, Function<String, Stylesheet> imports) {
         this.env = env;
@@ -74,6 +77,8 @@ final class RuleIndex {
                     for (Selector s : r.selectors()) {
                         long key = (userAgent ? 0L : 1L) << 61 | (long) s.specificity << 31 | position;
                         bucket(s).add(new Entry(s, r.decls(), userAgent, key));
+                        if (compiled != null) compiled.add(s, r.decls(), userAgent, position);
+                        if (invalidation != null) invalidation.add(s);
                         s.attributesRead(attributes);
                     }
                 }
@@ -99,12 +104,47 @@ final class RuleIndex {
 
     /** Appends the entries whose selector matches {@code e} (ignoring pseudo-elements), in cascade order. */
     void match(Element e, MatchContext ctx, List<Entry> out) {
+        if (mode == SelectorAudit.Mode.NEW) {
+            compiled.match(e, ctx, out);
+            return;
+        }
+        List<Entry> alternate = mode == SelectorAudit.Mode.BOTH ? new ArrayList<>(out) : null;
         String id = e.getAttribute("id");
         if (id != null) test(byId.get(id), e, ctx, out);
         for (String c : e.classes()) test(byClass.get(c), e, ctx, out);
         test(byTag.get(e.tagName()), e, ctx, out);
         test(universal, e, ctx, out);
         out.sort(CASCADE_ORDER);
+        if (alternate != null) {
+            compiled.match(e, ctx.fork(SelectorAudit.Mode.NEW), alternate);
+            boolean equal = sameMatches(out, alternate);
+            SelectorAudit.compare("index", e, equal,
+                    "\"oldCount\":" + out.size() + ",\"newCount\":" + alternate.size(),
+                    equal ? null : out + " vs " + alternate);
+        }
+    }
+
+    private static boolean sameMatches(List<Entry> legacy, List<Entry> compiled) {
+        if (legacy.size() != compiled.size()) return false;
+        // Selectors of the same rule have identical declarations. Their relative bucket visitation order is
+        // immaterial, but multiplicity, pseudo-elements and cascade keys must still agree exactly.
+        Map<Entry, Integer> counts = new HashMap<>();
+        for (int i = 0; i < legacy.size(); i++) {
+            if (legacy.get(i).key != compiled.get(i).key) return false;
+            counts.merge(legacy.get(i), 1, Integer::sum);
+            counts.merge(compiled.get(i), -1, Integer::sum);
+        }
+        return counts.values().stream().allMatch(count -> count == 0);
+    }
+
+    /** Allocated only by an explicit inspection request, never by restyle. */
+    List<Entry> inspectionEntries() {
+        List<Entry> entries = new ArrayList<>(universal);
+        for (List<Entry> bucket : byId.values()) entries.addAll(bucket);
+        for (List<Entry> bucket : byClass.values()) entries.addAll(bucket);
+        for (List<Entry> bucket : byTag.values()) entries.addAll(bucket);
+        entries.sort(CASCADE_ORDER);
+        return entries;
     }
 
     private static void test(List<Entry> entries, Element e, MatchContext ctx, List<Entry> out) {

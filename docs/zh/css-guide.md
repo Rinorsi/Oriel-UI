@@ -404,13 +404,29 @@
 
 ## 选择器
 
+### 选择器实现与迁移开关
+
+页面语法保持不变。默认使用旧匹配器；新编译器复用阶段 2 的选择器 AST 和基础 DOM/状态谓词，独立编译逻辑伪类、相对关系和规则候选索引。它不是另一个 CSS 文本解析器。
+
+| 项 | 合同 |
+|---|---|
+| specificity | ID、类/属性/伪类、类型三级；:is/:not/:has 取参数最大值，:where 为零，:nth-child(of S) 增加 S 最大值 |
+| 相对 :has | 从当前元素锚定后代、子代、相邻或后续兄弟，可继续组合；禁止嵌套 :has |
+| 查询作用域/顺序 | :scope 为查询根；querySelectorAll 只返回根的后代，按 DOM 顺序去重，祖先匹配可越过查询根；matches 的 :scope 为当前元素 |
+| 复杂度 | 沿用 maxSelectorParts（默认 256，含嵌套参数）与 DOM 限额；新匹配器按每层关系去重候选，避免组合回溯指数增长；实验新实现另按匹配上下文限制 compound/simple 求值次数为 maxNodes × maxSelectorParts（默认 25,600,000），避免嵌套 nth 等重复求值失控；不是毫秒预算，旧实现无此运行时门禁，both 对每次隔离比较独立计数 |
+| 错误 | 语法与编译前预算仍由解析层检查；样式规则生成带来源的 invalid-selector 诊断，DOM 查询抛 IllegalArgumentException；新实现超出运行时求值预算时报告 selector-budget（页面 URL，位置未知为 0）并抛异常，不返回伪造的未匹配；:is/:where 沿用宽容列表语义 |
+
+JVM 参数 oriel.selector 的允许值为 old（默认）、new（实验）、both（双跑并返回旧结果）。未知值立即报错。both 比较匹配布尔值、specificity 和规则命中集合/重数/层叠 key；同规则等 key 的选择器访问顺序不作为差异。交互读取标记可因求值路径不同而变化，不能当作逐字段等价判断；失效行为由现有样式回归验证。开关在匹配上下文和索引创建时读取，必须在 JVM 启动前设置，不能在已加载页面中热切换。
+
+new/both 只供引擎维护验收，不表示已获游戏或浏览器等价验收。命令和审计输出见[验收工具](validation.md#选择器迁移双跑)。没有新增 @scope、命名空间或未列出的伪类支持。
+
 ### 基本形式
 
 `*` ✅　`div` ✅　`.a` ✅　`#a` ✅　`[a]` ✅　`[a=b]` ✅　`[a~=b]` ✅　`[a|=b]` ✅　`[a^=b]` ✅　`[a$=b]` ✅　`[a*=b]` ✅　`[a=b i]` ✅　`a b` ✅　`a > b` ✅　`a + b` ✅　`a ~ b` ✅　`a, b` ✅　`a.b#c[d]:hover` ✅　`&.a` ❌　`ns|a` ❌
 
 ### 伪类
 
-`:hover` ✅　`:active` ✅　`:focus` ✅　`:focus-visible` ✅　`:focus-within` ✅　`:checked` ✅　`:disabled` ✅　`:enabled` ✅　`:empty` ✅　`:root` ✅　`:first-child` ✅　`:last-child` ✅　`:only-child` ✅　`:first-of-type` ✅　`:last-of-type` ✅　`:only-of-type` ✅　`:placeholder-shown` ✅　`:open` ✅　`:scope` ✅　`:any-link` ✅　`:link` ✅　`:visited` ❌　`:target` ❌　`:read-only` ❌　`:read-write` ❌　`:required` ❌　`:optional` ❌　`:valid` ❌　`:invalid` ❌　`:indeterminate` ❌　`:default` ❌　`:in-range` ❌　`:out-of-range` ❌　`:host` ❌　`:lang(zh)` ❌　`:dir(ltr)` ❌　`:not(.a)` ✅　`:is(.a, .b)` ✅　`:where(.a)` ✅　`:has(> .a)` ✅　`:nth-child(2n+1)` ✅　`:nth-last-child(2)` ✅　`:nth-of-type(odd)` ✅　`:nth-last-of-type(even)` ✅　`:nth-child(2n of .a)` ✅
+`:hover` ✅　`:active` ✅　`:focus` ✅　`:focus-visible` ✅　`:focus-within` ✅　`:checked` ✅　`:disabled` ✅　`:enabled` ✅　`:empty` ✅　`:root` ✅　`:first-child` ✅　`:last-child` ✅　`:only-child` ✅　`:first-of-type` ✅　`:last-of-type` ✅　`:only-of-type` ✅　`:placeholder-shown` ✅　`:open` ✅　`:scope` ✅　`:any-link` ✅　`:link` ✅　`:visited` ❌　`:target` ✅　`:read-only` ❌　`:read-write` ❌　`:required` ❌　`:optional` ❌　`:valid` ❌　`:invalid` ❌　`:indeterminate` ❌　`:default` ❌　`:in-range` ❌　`:out-of-range` ❌　`:host` ❌　`:lang(zh)` ❌　`:dir(ltr)` ❌　`:not(.a)` ✅　`:is(.a, .b)` ✅　`:where(.a)` ✅　`:has(> .a)` ✅　`:nth-child(2n+1)` ✅　`:nth-last-child(2)` ✅　`:nth-of-type(odd)` ✅　`:nth-last-of-type(even)` ✅　`:nth-child(2n of .a)` ✅
 
 ### 伪元素
 
@@ -449,3 +465,6 @@
 （以下名字在候选里，但引擎其实支持：`writing-mode`、`scrollbar-color`）
 
 其中 `float`、表格布局（`display: table`）、`position: sticky`（按 `relative` 处理并提示）、CSS 嵌套、`@layer` 的层级顺序目前都没有或只是近似；表格请用 `display: grid`，内联 SVG 请用 `<img>`、渐变或边框代替（引擎会按元素给出建议）。
+
+
+:target 的 URL 片段语义、new 模式增量失效范围与 --why 诊断见 [选择器诊断](selector-debug.md)。Shadow DOM、@layer、@scope、容器查询仍未支持。

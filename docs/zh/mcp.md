@@ -236,3 +236,6 @@ node --test tools/mcp/workflow.test.mjs
 plan 和 apply 回执的 guidance 包含 openCode、registration、hotReload、projectType。见 [接入指南](integration.md) 和 [热更新](hot-reload.md)。只写资源，不改 Java、Gradle 或元数据，不安装 jar。
 
 同一 plan 只可 apply 一次，重复返回 STALE_PLAN；新建 plan 可以幂等重复安装。计划后目标变化返回 TARGET_CONFLICT，沿用原子写入及回滚，不安装包外文件。gameVerified=false，必须在下游游戏验证；oriel_game_preview 对此目标返回 DOWNSTREAM_GAME_REQUIRED，不启动本库独立客户端。
+
+
+oriel_inspect：必填 page、selector、element 字符串；frames 默认为 1（1–600）。无头加载页面并返回逐谓词原因、候选数、声明赢家、耗时直方图和工作预算，不启动游戏、不产生批准。返回 passed、exitCode、explanations、output。参数、错误与限制见 [选择器诊断](selector-debug.md)。

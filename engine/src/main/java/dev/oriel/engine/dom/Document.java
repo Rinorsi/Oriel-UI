@@ -746,6 +746,7 @@ public final class Document extends Node {
         // Restyle only for attributes a style or sheet collection can read; repaint for any (replaced content and
         // controls draw them).
         boolean selectors = styleEngine.matchingReads(element, name);
+        if (selectors) styleEngine.attributeInvalidated(element, name);
         invalidate(selectors, selectors || styleEngine.readsAttribute(name), layout);
         repaint = true;
         if (!readyState.equals("loading")) ElementExpansion.attributeChanged(this, element, name);

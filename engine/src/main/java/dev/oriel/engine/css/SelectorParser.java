@@ -102,6 +102,7 @@ final class SelectorParser {
     }
 
     private Selector complex(boolean relative, int[] budget) {
+        int start = pos;
         List<Compound> compounds = new ArrayList<>();
         StringBuilder combinators = new StringBuilder();
         pseudo = PseudoElement.NONE;
@@ -120,7 +121,8 @@ final class SelectorParser {
             if (c == 0 && !ws) throw error("Unexpected " + peek().text());
             combinators.append(c == 0 ? ' ' : c);
         }
-        return new Selector(compounds.toArray(Compound[]::new), combinators.toString().toCharArray(), pseudo);
+        return new Selector(compounds.toArray(Compound[]::new), combinators.toString().toCharArray(), pseudo,
+                ComponentValue.text(in.subList(start, pos)));
     }
 
     /** Consumes {@code > + ~} (and surrounding whitespace); returns 0 when there is none. */

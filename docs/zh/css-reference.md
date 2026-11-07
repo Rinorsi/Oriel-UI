@@ -347,7 +347,7 @@
 
 ### 伪类
 
-`:hover` ✅　`:active` ✅　`:focus` ✅　`:focus-visible` ✅　`:focus-within` ✅　`:checked` ✅　`:disabled` ✅　`:enabled` ✅　`:empty` ✅　`:root` ✅　`:first-child` ✅　`:last-child` ✅　`:only-child` ✅　`:first-of-type` ✅　`:last-of-type` ✅　`:only-of-type` ✅　`:placeholder-shown` ✅　`:open` ✅　`:scope` ✅　`:any-link` ✅　`:link` ✅　`:visited` ❌　`:target` ❌　`:read-only` ❌　`:read-write` ❌　`:required` ❌　`:optional` ❌　`:valid` ❌　`:invalid` ❌　`:indeterminate` ❌　`:default` ❌　`:in-range` ❌　`:out-of-range` ❌　`:host` ❌　`:lang(zh)` ❌　`:dir(ltr)` ❌　`:not(.a)` ✅　`:is(.a, .b)` ✅　`:where(.a)` ✅　`:has(> .a)` ✅　`:nth-child(2n+1)` ✅　`:nth-last-child(2)` ✅　`:nth-of-type(odd)` ✅　`:nth-last-of-type(even)` ✅　`:nth-child(2n of .a)` ✅
+`:hover` ✅　`:active` ✅　`:focus` ✅　`:focus-visible` ✅　`:focus-within` ✅　`:checked` ✅　`:disabled` ✅　`:enabled` ✅　`:empty` ✅　`:root` ✅　`:first-child` ✅　`:last-child` ✅　`:only-child` ✅　`:first-of-type` ✅　`:last-of-type` ✅　`:only-of-type` ✅　`:placeholder-shown` ✅　`:open` ✅　`:scope` ✅　`:any-link` ✅　`:link` ✅　`:visited` ❌　`:target` ✅　`:read-only` ❌　`:read-write` ❌　`:required` ❌　`:optional` ❌　`:valid` ❌　`:invalid` ❌　`:indeterminate` ❌　`:default` ❌　`:in-range` ❌　`:out-of-range` ❌　`:host` ❌　`:lang(zh)` ❌　`:dir(ltr)` ❌　`:not(.a)` ✅　`:is(.a, .b)` ✅　`:where(.a)` ✅　`:has(> .a)` ✅　`:nth-child(2n+1)` ✅　`:nth-last-child(2)` ✅　`:nth-of-type(odd)` ✅　`:nth-last-of-type(even)` ✅　`:nth-child(2n of .a)` ✅
 
 ### 伪元素
 

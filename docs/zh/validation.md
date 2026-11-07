@@ -182,3 +182,16 @@ HTML（含内联 `<style>`）、脚本、JSON 或混合变更仍整页重建，�
 实际验收记录版本/加载器/提交/资源/视口/动作/结果，放 daily；使用手册只留一般流程和已确认边界。
 
 mod-project 接入只验证资源复制与批准关卡，回执 gameVerified=false；需在下游游戏用回执 pageUrl 打开验证。oriel_game_preview 对此目标返回 DOWNSTREAM_GAME_REQUIRED。参数和路径限制见 [MCP 手册](mcp.md#下游模组目标mod-project)。
+
+## 选择器迁移双跑
+
+维护者在当前 shell 设置 `JAVA_TOOL_OPTIONS='-Doriel.selector=both -Doriel.selector.audit=<工作区绝对路径>/selector-%p.jsonl'`，再运行 `:engine:test :kit:test :preview:test :preview:checkUi`。`old` 是默认实现，`new` 是实验实现，`both` 执行独立匹配与规则候选索引并在差异时抛异常；不改变解析器开关 `oriel.parser`。完成后清除当前 shell 的 `JAVA_TOOL_OPTIONS`，不要改系统环境变量。
+
+审计文件为 UTF-8 JSONL，按进程创建，`%p` 替换为 PID；父目录须预先存在。每行包含 `kind`（selector/index）、`equal`、旧新匹配/优先级或命中数量、`count`（这组字段实际比较次数）。合计 count，不用文件行数冒充双跑次数。正常 JVM 关闭时写完，强制终止的文件不能当完整证据。写入失败报错；无 audit 参数时仍比较并在差异时报错。
+
+双跑及审计会增加耗时和分配，不用其数值评价运行时性能。现有 `StylePerformanceTest` 门限保持不变，分别在 old/new 下运行；完整 both 回归可通过临时 Gradle init 脚本仅排除该类，将它单独在 old/new 核验。
+
+预览黄金断言可选 `-Doriel.snapshotCapture=<工作区绝对目录>` 保存每帧实际图；仍执行原黄金断言，不重写黄金。分别运行 old/new，逐 RGBA 比较这些帧；默认不输出额外图片。通过 `JAVA_TOOL_OPTIONS` 传给测试 JVM。图像、日志与性能数据放仓库外 daily 目录。默认切换须等 Lead 验收，双跑退出码零不自动切换。
+
+
+`--why <selector> <element-query>` 与 MCP `oriel_inspect` 的字段、退出码、预算边界见 [选择器诊断](selector-debug.md)。`both` 返回旧匹配路径，不验证 `new` 增量失效；另做 old/new 动态 computed style 对照。

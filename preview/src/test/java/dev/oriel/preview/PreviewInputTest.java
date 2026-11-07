@@ -14,10 +14,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Command-line options and key mapping. */
 class PreviewInputTest {
     @Test
+    void selectorExplanationIsHeadlessAndNeedsTwoQueries() {
+        var options = Preview.Options.parse("a.html", "--why", ".on", "#card", "--frames", "4");
+        assertTrue(options.headless());
+        assertEquals(".on", options.why());
+        assertEquals("#card", options.elementQuery());
+        assertEquals(4, options.frames());
+        assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("a.html", "--why", ".on"));
+        assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("--canvas-test", "--why", ".on", "#card"));
+        assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("a.html", "--why", ".on", "#card", "--snapshot", "out.png"));
+    }
+
+    @Test
     void parsesOptions() {
         Preview.Options options = Preview.Options.parse("ui/menu.html", "--scale", "3", "--size", "320x200", "--snapshot", "out.png", "--frames", "5");
-        assertEquals(new Preview.Options(Path.of("ui/menu.html"), false, 3, 320, 200, null, Path.of("out.png"), 5, null, null, false, false, null, null, "zh_cn"), options);
-        assertEquals(new Preview.Options(null, true, 2, 427, 240, null, null, 1, null, null, false, false, null, null, "zh_cn"), Preview.Options.parse("--canvas-test"));
+        assertEquals(new Preview.Options(Path.of("ui/menu.html"), false, 3, 320, 200, null, Path.of("out.png"), 5, null, null, false, false, null, null, "zh_cn", null, null), options);
+        assertEquals(new Preview.Options(null, true, 2, 427, 240, null, null, 1, null, null, false, false, null, null, "zh_cn", null, null), Preview.Options.parse("--canvas-test"));
         assertTrue(Preview.Options.parse("a.html", "--narrate").narrate());
         assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("--canvas-test", "--narrate"));
         Preview.Options scripted = Preview.Options.parse("ui/menu.html", "--actions", "a.txt", "--snapshot", "shots/end.png");

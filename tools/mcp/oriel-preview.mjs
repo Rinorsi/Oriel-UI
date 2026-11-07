@@ -31,6 +31,15 @@ function reviewResult(receipt) {
   return response;
 }
 const TOOLS = [
+  tool('oriel_inspect', '加载指定页面，解释 selector 对 element 匹配到的元素为何生效或失败；返回候选数、逐谓词轨迹、声明赢家和预算。只读诊断，不批准页面，不启动游戏。', { page: string, selector: string, element: string, frames: number }, ['page', 'selector', 'element'], async args => {
+    const frames = args.frames ?? 1;
+    requireThat(frames > 0 && frames <= 600, 'INVALID_FRAMES', 'frames 必须在 1–600 之间。');
+    const r = await preview([pagePath(args.page), '--why', args.selector, args.element, '--frames', String(frames)]);
+    const explanations = r.output.split(/\r?\n/).filter(line => line.startsWith('{')).flatMap(line => {
+      try { const value = JSON.parse(line); return value.kind === 'selector-explanation' ? [value] : []; } catch { return []; }
+    });
+    return result({ passed: r.code === 0 && explanations.length > 0, exitCode: r.code, explanations, output: r.output }, r.code !== 0 || explanations.length === 0);
+  }),
   tool('oriel_scaffold', '只读检测下游 Fabric/NeoForge/Stonecutter 工程并返回接入清单。prepare=true 在工作区生成并检查固定骨架；经 oriel_review 用户批准后 apply=true + reviewId 只新建 HTML/Java，不改已有文件或构建配置。', { projectRoot: string, loader: { ...string, enum: ['fabric', 'neoforge'] }, minecraft: string, modId: string, resourcesDir: string, javaDir: string, javaPackage: string, launchMode: { ...string, enum: ['gradle-inside', 'gradle-outside', 'jar'] }, prepare: { type: 'boolean' }, apply: { type: 'boolean' }, reviewId: string }, ['projectRoot'], args => scaffold(args)),
   tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
   tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {

@@ -31,6 +31,8 @@ Agent 从 [调用提示词](agent-prompts.md) 开始；工具连接和完整参�
 
 ## 1. 先写页面合同
 
+浏览器约束仍以 [CSS 选择器合同](css-guide.md#选择器实现与迁移开关) 为准。引擎维护者的实验匹配器开关不作为页面依赖，也不替代网页批准或游戏验收。
+
 每个新页面先列以下内容，放业务说明或使用文档。不要先做依赖浏览器专有 API 的成品，再研究迁移。
 
 | 内容 | 物品组件编辑器示例 |
@@ -183,5 +185,7 @@ public final class ExampleController implements PageControllers.Controller {
 - 能力变化同次同步 [维护映射](maintenance.md)，报告实际运行的验证。
 
 ## 给下一位 agent 的任务模板
+
+排查选择器时可调用 `oriel_inspect(page, selector, element)`，或预览器 `--why <selector> <element-query>`。参数、默认帧数、JSONL 字段和限制见 [选择器诊断](selector-debug.md)；查询不创建批准记录，也不启动游戏。
 
 > 先读 docs/zh/index.md、capabilities.md、ui-workflow.md，再查 CSS/元素/组件/脚本表。页面类型 ___，URL ___，业务字段合同 ___，MC/加载器 ___。只用已列能力，缺项明确边界，不猜 API。浏览器迭代，按四层验收，产物放 daily。能力变更同次更新 maintenance.md 指向的表。

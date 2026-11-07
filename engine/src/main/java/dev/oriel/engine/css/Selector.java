@@ -5,6 +5,8 @@ import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.Node;
 import dev.oriel.engine.dom.PseudoElement;
 import dev.oriel.engine.dom.Text;
+import dev.oriel.engine.Limits;
+import dev.oriel.engine.diag.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,14 +28,28 @@ final class Selector {
     /** Packed (a, b, c) specificity: {@code a << 20 | b << 10 | c}. Packed values compare correctly as ints. */
     final int specificity;
     final PseudoElement pseudoElement;
+    private final String source;
+    private volatile CompiledSelector compiled;
 
-    Selector(Compound[] compounds, char[] combinators, PseudoElement pseudoElement) {
+    CompiledSelector compiled() {
+        CompiledSelector program = compiled;
+        if (program == null) compiled = program = CompiledSelector.compile(this);
+        return program;
+    }
+
+    Selector(Compound[] compounds, char[] combinators, PseudoElement pseudoElement, String source) {
         this.compounds = compounds;
         this.combinators = combinators;
         this.pseudoElement = pseudoElement;
+        this.source = source;
         int s = pseudoElement == PseudoElement.NONE ? 0 : TYPE;
         for (Compound c : compounds) s += c.specificity();
         this.specificity = s;
+    }
+
+    @Override
+    public String toString() {
+        return source;
     }
 
     /** Specificity units: an id, a class-like selector (class, attribute, pseudo-class), a type selector. */
@@ -55,6 +71,19 @@ final class Selector {
 
     /** Whether {@code element} matches, ignoring the pseudo-element (the caller decides what that applies to). */
     boolean matches(Element element, MatchContext ctx) {
+        if (ctx.mode == SelectorAudit.Mode.NEW) return compiled().matches(element, ctx);
+        if (ctx.mode == SelectorAudit.Mode.BOTH) {
+            MatchContext oldContext = ctx.fork(SelectorAudit.Mode.OLD);
+            MatchContext newContext = ctx.fork(SelectorAudit.Mode.NEW);
+            boolean oldResult = matches(element, oldContext);
+            boolean newResult = compiled().matches(element, newContext);
+            ctx.interactionRead |= oldContext.interactionRead;
+            boolean equal = oldResult == newResult && specificity == compiled().specificity;
+            SelectorAudit.compare("selector", element, equal,
+                    "\"old\":" + oldResult + ",\"new\":" + newResult
+                            + ",\"specificityOld\":" + specificity + ",\"specificityNew\":" + compiled().specificity, equal ? null : source);
+            return oldResult;
+        }
         return matchAt(element, compounds.length - 1, ctx) == MATCHED;
     }
 
@@ -108,6 +137,9 @@ final class Selector {
      */
     static final class MatchContext {
         final Element scope;
+        final SelectorAudit.Mode mode;
+        final long workLimit;
+        private long work;
         Element anchor;
         /** Set when a selector read hover, active or focus state; the style engine resets it per element. */
         boolean interactionRead;
@@ -115,7 +147,41 @@ final class Selector {
         private final IdentityHashMap<Element, Integer> positions = new IdentityHashMap<>();
 
         MatchContext(Element scope) {
+            this(scope, SelectorAudit.mode());
+        }
+
+        MatchContext(Element scope, SelectorAudit.Mode mode) {
+            this(scope, mode, workLimit(scope));
+        }
+
+        private static long workLimit(Element scope) {
+            Limits limits = scope != null && scope.ownerDocument() != null ? scope.ownerDocument().limits() : Limits.current();
+            return (long) limits.maxNodes() * limits.maxSelectorParts();
+        }
+
+        MatchContext(Element scope, SelectorAudit.Mode mode, long workLimit) {
             this.scope = scope;
+            this.mode = mode;
+            this.workLimit = workLimit;
+        }
+
+        void step(String selector) {
+            if (++work <= workLimit) return;
+            String message = "Selector work budget exceeded (" + workLimit + "): " + selector;
+            if (scope != null && scope.ownerDocument() != null) {
+                Document document = scope.ownerDocument();
+                document.diagnostics().report(new Diagnostic(Diagnostic.Severity.ERROR, "selector-budget", document.url(), 0,
+                        message, "Simplify nested functional selectors or split the query"));
+            }
+            throw new IllegalArgumentException(message);
+        }
+
+        long workUsed() { return work; }
+
+        MatchContext fork(SelectorAudit.Mode mode) {
+            MatchContext fork = new MatchContext(scope, mode, workLimit);
+            fork.anchor = anchor;
+            return fork;
         }
 
         /** The element children of {@code e}'s parent, or null without a parent. */
@@ -146,6 +212,16 @@ final class Selector {
     static final class Siblings {
         final Element[] elements;
         private int[] ofType, ofTypeFromEnd;
+        private IdentityHashMap<Object, FilteredPositions> filters;
+
+        FilteredPositions filtered(Object program) {
+            return filters == null ? null : filters.get(program);
+        }
+
+        void filtered(Object program, FilteredPositions positions) {
+            if (filters == null) filters = new IdentityHashMap<>();
+            filters.put(program, positions);
+        }
 
         Siblings(Element[] elements) {
             this.elements = elements;
@@ -164,6 +240,9 @@ final class Selector {
             return fromEnd ? ofTypeFromEnd[i] : ofType[i];
         }
     }
+
+    /** Filter ranks live only for one immutable-DOM matching pass; state reads are replayed on cache hits. */
+    record FilteredPositions(int[] positions, int total, boolean interactionRead) {}
 
     /** A compound selector: an optional type selector plus simple selectors, all of which must match. */
     record Compound(String tag, String id, String firstClass, Simple[] simples) {
@@ -261,7 +340,7 @@ final class Selector {
         CHECKED(false, "checked", "selected", "disabled", "type"), DISABLED(false, "disabled"),
         ENABLED(false, "disabled"), EMPTY, ROOT, FIRST_CHILD, LAST_CHILD, ONLY_CHILD, FIRST_OF_TYPE, LAST_OF_TYPE,
         ONLY_OF_TYPE, PLACEHOLDER_SHOWN(false, "placeholder", "value", "type"), OPEN(false, "open"), SCOPE,
-        ANY_LINK(false, "href");
+        ANY_LINK(false, "href"), TARGET(false, "id");
 
         /** Reads interaction state (hover, active, focus), which changes without the DOM changing. */
         private final boolean interaction;
@@ -309,10 +388,44 @@ final class Selector {
                 case OPEN -> (e.tagName().equals("details") || e.tagName().equals("dialog")) && e.hasAttribute("open");
                 case SCOPE -> e == ctx.scope;
                 case ANY_LINK -> e.tagName().equals("a") && e.hasAttribute("href");
+                case TARGET -> {
+                    String url = e.ownerDocument() == null ? null : e.ownerDocument().url();
+                    String fragment = targetFragment(url);
+                    yield fragment != null && !fragment.isEmpty() && fragment.equals(e.id());
+                }
             };
         }
 
         @Override public int specificity() { return CLASS; }
+
+        private static String targetFragment(String url) {
+            int hash = url == null ? -1 : url.indexOf('#');
+            if (hash < 0) return null;
+            String fragment = url.substring(hash + 1);
+            if (fragment.indexOf('%') < 0) return fragment;
+            StringBuilder decoded = new StringBuilder();
+            java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+            for (int i = 0; i < fragment.length();) {
+                bytes.reset();
+                while (i + 2 < fragment.length() && fragment.charAt(i) == '%') {
+                    int high = hexDigit(fragment.charAt(i + 1));
+                    int low = hexDigit(fragment.charAt(i + 2));
+                    if (high < 0 || low < 0) break;
+                    bytes.write(high * 16 + low);
+                    i += 3;
+                }
+                if (bytes.size() > 0) decoded.append(bytes.toString(java.nio.charset.StandardCharsets.UTF_8));
+                else decoded.append(fragment.charAt(i++));
+            }
+            return decoded.toString();
+        }
+
+        private static int hexDigit(char value) {
+            if (value >= '0' && value <= '9') return value - '0';
+            if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+            if (value >= 'A' && value <= 'F') return value - 'A' + 10;
+            return -1;
+        }
 
         private static boolean isEmpty(Element e) {
             for (int i = 0, n = e.childCount(); i < n; i++) {

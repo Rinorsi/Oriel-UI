@@ -21,6 +21,8 @@ public final class Snapshots {
     private Snapshots() {}
 
     public static void assertMatches(String name, BufferedImage actual) {
+        String capture = System.getProperty("oriel.snapshotCapture");
+        if (capture != null) write(actual, Path.of(capture).resolve(name + ".png"));
         Path golden = Path.of(System.getProperty("oriel.goldens", "src/test/snapshots"), name + ".png");
         Path out = Path.of(System.getProperty("oriel.snapshots", "build/snapshots"));
         if (Boolean.getBoolean("oriel.updateSnapshots")) {

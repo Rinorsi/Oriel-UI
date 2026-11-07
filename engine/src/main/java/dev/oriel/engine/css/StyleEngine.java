@@ -62,6 +62,9 @@ public final class StyleEngine {
     private List<Source> sources;
     /** The {@link Document#selectorVersion} the last restyle ran at (and {@link #sources} were collected at). */
     private int styledVersion;
+    private int pendingAttributeChanges;
+    private boolean pendingFullRematch;
+    private Set<Element> affectedMatches;
     /** Every element matches again this pass: something selectors read, or the rules, changed. */
     private boolean rematchAll;
     /** Elements matched against the rules in the last restyle, for tests. */
@@ -91,6 +94,24 @@ public final class StyleEngine {
         document.invalidateStyle();
     }
 
+    /** Explicit, allocation-heavy selector inspection; never enabled by ordinary restyling. */
+    public Map<String, Object> explainSelectors(Element element, String selector) {
+        if (element.ownerDocument() != document || !element.isConnected()) {
+            throw new IllegalArgumentException("Selector inspection requires a connected element in this document");
+        }
+        document.flushStyle();
+        return SelectorDiagnostics.explain(index, element, selector);
+    }
+
+    /** Called immediately before Document increments selectorVersion for a connected attribute mutation. */
+    public void attributeInvalidated(Element element, String attribute) {
+        if (index == null || index.invalidation == null) return;
+        pendingAttributeChanges++;
+        if (pendingFullRematch) return;
+        if (affectedMatches == null) affectedMatches = Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        pendingFullRematch = !index.invalidation.mark(element, attribute, affectedMatches);
+    }
+
     /**
      * Recomputes styles for the whole document. For each element: sets {@code baseStyle}, calls
      * {@code document.animations().styleChanged(element, oldBase, newBase)} which sets {@code element.style},
@@ -107,15 +128,18 @@ public final class StyleEngine {
         MediaQuery.Environment env = new MediaQuery.Environment(document.viewportWidth(), document.viewportHeight(),
                 document.devicePixelRatio(), host.prefersReducedMotion());
         boolean selectorsChanged = sources == null || document.selectorVersion() != styledVersion;
+        boolean incremental = sources != null && index != null && index.invalidation != null
+                && !pendingFullRematch && pendingAttributeChanges > 0
+                && styledVersion + pendingAttributeChanges == document.selectorVersion();
         styledVersion = document.selectorVersion();
         List<Source> found = sources;
-        if (selectorsChanged) {
+        if (selectorsChanged && !incremental) {
             found = new ArrayList<>();
             Map<String, Stylesheet> usedStyles = new HashMap<>();
             collectSheets(document, found, usedStyles);
             styleSheets = usedStyles;
         }
-        rematchAll = selectorsChanged;
+        rematchAll = selectorsChanged && !incremental;
         if (index == null || !env.equals(environment) || !found.equals(sources)) {
             index = RuleIndex.build(USER_AGENT, found, env, this::loadSheet);
             environment = env;
@@ -126,13 +150,20 @@ public final class StyleEngine {
         sources = found;
         rematched = 0;
         cascade.newPass();
-        restyle(root, null, null, new MatchContext(root));
+        try {
+            restyle(root, null, null, new MatchContext(root));
+        } finally {
+            pendingAttributeChanges = 0;
+            pendingFullRematch = false;
+            if (affectedMatches != null) affectedMatches.clear();
+        }
     }
 
     private void restyle(Element el, ComputedStyle parent, ComputedStyle container, MatchContext mc) {
         ElementState state = ElementState.of(el);
         matched.clear();
-        boolean rematch = rematchAll || !state.matchesSurviveInteraction();
+        boolean rematch = rematchAll || !state.matchesSurviveInteraction()
+                || affectedMatches != null && affectedMatches.contains(el);
         boolean sameMatches = true;
         if (rematch) {
             rematched++;

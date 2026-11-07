@@ -35,7 +35,8 @@ class RestyleTest {
         a.setAttribute("data-state", "open");
         page.frame();
         assertEquals(RED, page.style("#a").color);
-        assertEquals(elements(page), rematched(page), "an attribute a selector reads matches everything again");
+        assertEquals(SelectorAudit.mode() == SelectorAudit.Mode.NEW ? 1 : elements(page), rematched(page),
+                "compiled subject-only attributes rematch the changed element; legacy keeps the full pass");
     }
 
     @Test
