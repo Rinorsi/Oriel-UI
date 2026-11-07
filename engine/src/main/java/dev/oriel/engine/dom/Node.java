@@ -2,6 +2,7 @@ package dev.oriel.engine.dom;
 
 import dev.oriel.engine.event.Event;
 import dev.oriel.engine.event.EventListener;
+import dev.oriel.engine.input.InputBackend;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -352,7 +353,13 @@ public abstract class Node {
         Event.Access.begin(event, this);
         try {
             Document doc = doc();
-            if (doc.handles(event.type)) propagate(event, doc.scripts() != null ? inlineHandlerName(event.type) : null);
+            if (doc.handles(event.type)) {
+                String inline = doc.scripts() != null ? inlineHandlerName(event.type) : null;
+                if (doc.input().backend() == InputBackend.OLD) propagate(event, inline);
+                else doc.input().eventRoute().dispatch(this, event, inline,
+                        doc.input().backend() == InputBackend.BOTH);
+            }
+            doc.input().traceEvent(event, "complete");
         } finally {
             Event.Access.end(event);
         }
@@ -387,17 +394,31 @@ public abstract class Node {
     }
 
     private void invoke(Event event, boolean capturePhase) {
+        doc().input().traceEvent(event, capturePhase ? "capture-listeners" : "bubble-listeners");
         List<Listener> list = listeners == null ? null : listeners.get(event.type);
         if (list == null) return;
         for (Listener l : list) {
             if (event.immediatePropagationStopped()) return;
-            if (l.capture != capturePhase || l.removed) continue;
-            if (l.once) remove(event.type, l);
-            try {
-                l.listener.handleEvent(event);
-            } catch (RuntimeException ex) {
-                doc().reportError("Error in '" + event.type + "' listener", ex);
-            }
+            invokeListener(event, capturePhase, l);
+        }
+    }
+
+    private void invokeIndexed(Event event, boolean capturePhase) {
+        doc().input().traceEvent(event, capturePhase ? "capture-listeners" : "bubble-listeners");
+        List<Listener> list = listeners == null ? null : listeners.get(event.type);
+        if (list == null) return;
+        // Listener lists are replaced, never mutated: an index walk keeps the same dispatch snapshot.
+        for (int i = 0; i < list.size() && !event.immediatePropagationStopped(); i++)
+            invokeListener(event, capturePhase, list.get(i));
+    }
+
+    private void invokeListener(Event event, boolean capturePhase, Listener listener) {
+        if (listener.capture != capturePhase || listener.removed) return;
+        if (listener.once) remove(event.type, listener);
+        try {
+            listener.listener.handleEvent(event);
+        } catch (RuntimeException ex) {
+            doc().reportError("Error in '" + event.type + "' listener", ex);
         }
     }
 
@@ -410,5 +431,12 @@ public abstract class Node {
         } catch (RuntimeException ex) {
             ownerDocument.reportError("Error in " + attribute + " handler", ex);
         }
+    }
+
+    /** Internal bridge used by the migration router; listener storage remains owned by each node. */
+    public static final class EventAccess {
+        private EventAccess() {}
+        public static void invoke(Node node, Event event, boolean capture) { node.invokeIndexed(event, capture); }
+        public static void inline(Node node, Event event, String attribute) { node.invokeInlineHandler(event, attribute); }
     }
 }

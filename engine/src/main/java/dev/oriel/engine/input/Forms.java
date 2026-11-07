@@ -18,7 +18,7 @@ final class Forms {
 
     /** True for a text control the user can type into. */
     static boolean isEditable(Element e) {
-        return e.isTextControl() && !e.hasAttribute("readonly") && !e.isDisabled();
+        return e.isTextControl() && !e.hasAttribute("readonly") && !e.isDisabled() && !InputEligibility.inert(e);
     }
 
     /** Push buttons: {@code <button>} and input types submit, reset, button and image. */

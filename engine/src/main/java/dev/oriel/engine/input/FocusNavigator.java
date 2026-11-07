@@ -1,9 +1,9 @@
 package dev.oriel.engine.input;
 
 import dev.oriel.engine.dom.Document;
-import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.Element.ScrollAlign;
 import dev.oriel.engine.dom.Element.ScrollBehavior;
+import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.style.Visibility;
 
 import java.util.ArrayList;
@@ -21,6 +21,10 @@ final class FocusNavigator {
     private boolean autofocusDone;
     /** True while a pointer press moves focus. */
     private boolean byPointer;
+    private String source = "initial";
+    private boolean byKeyboard;
+
+    String source() { return source; }
 
     FocusNavigator(Document document) {
         this.document = document;
@@ -38,6 +42,24 @@ final class FocusNavigator {
      * group).
      */
     List<Element> order() {
+        if (document.input().backend() == InputBackend.OLD) return legacyOrder();
+        List<Element> result = new ArrayList<>();
+        document.forEachElement(e -> {
+            if (e.isFocusable() && e.tabIndex() >= 0 && isNavigable(e) && isRadioTabStop(e)) result.add(e);
+        });
+        result.sort((a, b) -> {
+            int left = a.tabIndex(), right = b.tabIndex();
+            if (left == right) return 0;
+            if (left == 0) return 1;
+            if (right == 0) return -1;
+            return Integer.compare(left, right);
+        });
+        if (document.input().backend() == InputBackend.BOTH && !result.equals(legacyOrder()))
+            throw new IllegalStateException("input focus order differs");
+        return result;
+    }
+
+    private List<Element> legacyOrder() {
         List<Element> positive = new ArrayList<>(), zero = new ArrayList<>();
         document.forEachElement(e -> {
             if (e.isFocusable() && e.tabIndex() >= 0 && isNavigable(e) && isRadioTabStop(e)) {
@@ -64,11 +86,14 @@ final class FocusNavigator {
     /** Focuses an element by keyboard, making focus visible. */
     void focusByKeyboard(Element e) {
         setVisible(true);
-        document.setFocus(e);
+        source = "keyboard";
+        byKeyboard = true;
+        try { document.setFocus(e); } finally { byKeyboard = false; }
     }
 
     /** Focuses an element (or blurs, for null) because of a pointer press. */
     void focusByPointer(Element e) {
+        source = "pointer";
         setVisible(false);
         byPointer = true;
         try {
@@ -80,6 +105,7 @@ final class FocusNavigator {
 
     /** Focus moved to {@code e} (by keyboard, script or pointer): scrolls it into view unless the pointer did it. */
     void focusChanged(Element e) {
+        if (!byPointer && !byKeyboard) source = "programmatic";
         if (e != null && !byPointer) e.scrollIntoView(ScrollAlign.NEAREST, ScrollAlign.NEAREST, ScrollBehavior.INSTANT);
     }
 
@@ -99,7 +125,39 @@ final class FocusNavigator {
     }
 
     private static boolean isNavigable(Element e) {
-        return e.box != null && (e.style == null || e.style.visibility == Visibility.VISIBLE);
+        return !InputEligibility.inert(e) && e.box != null && (e.style == null || e.style.visibility == Visibility.VISIBLE);
+    }
+
+    /** Geometric navigation is an explicit host action, never an implicit override of text editing keys. */
+    boolean spatial(String direction) {
+        int dx = 0, dy = 0;
+        switch (direction) {
+            case "left" -> dx = -1;
+            case "right" -> dx = 1;
+            case "up" -> dy = -1;
+            case "down" -> dy = 1;
+            default -> throw new IllegalArgumentException("navigation direction must be left, right, up or down");
+        }
+        Element current = document.focusedElement();
+        if (current == null || !isNavigable(current)) return move(false);
+        float[] from = current.getBoundingClientRect();
+        double cx = from[0] + from[2] / 2, cy = from[1] + from[3] / 2;
+        Element best = null;
+        double score = Double.POSITIVE_INFINITY;
+        for (Element e : order()) {
+            if (e == current) continue;
+            float[] r = e.getBoundingClientRect();
+            double x = r[0] + r[2] / 2 - cx, y = r[1] + r[3] / 2 - cy;
+            double forward = x * dx + y * dy;
+            if (forward <= 0) continue;
+            double lateral = x * dy - y * dx;
+            double candidate = forward * forward + lateral * lateral * 4;
+            if (candidate < score) { best = e; score = candidate; }
+        }
+        if (best == null) return false;
+        focusByKeyboard(best);
+        source = "navigation-action";
+        return true;
     }
 
     private static boolean isRadioTabStop(Element e) {

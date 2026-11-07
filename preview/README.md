@@ -113,3 +113,4 @@ Tests that need Minecraft's assets are skipped when no jar is found. Page snapsh
 `UnsupportedOperationException`.
 
 属性解释：`--why-property width '#detail'` 输出层叠、继承、变量和当前采样值的 JSONL；支持 `::before/color`。详见 [实验层叠](../docs/zh/d36-r04.md)。
+Input diagnostics: actions accept trace-input on/off, why-no-click <selector>, and focus-info <selector>. JSONL is printed to stdout and excludes input text. See [input contract](../docs/zh/d36-input.md).

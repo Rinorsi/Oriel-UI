@@ -4,6 +4,7 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.dom.Node;
 import dev.oriel.engine.event.Event;
+import dev.oriel.engine.event.EventRoute;
 import dev.oriel.engine.event.KeyboardEvent;
 import dev.oriel.engine.event.Modifiers;
 import dev.oriel.engine.event.MouseEvent;
@@ -14,7 +15,10 @@ import dev.oriel.engine.paint.HitResult;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Turns host input into DOM events and default actions: hover/active/focus state, click synthesis, wheel and
@@ -35,6 +39,11 @@ public final class InputHandler {
     public static final float WHEEL_NOTCH = 24;
 
     private final Document document;
+    private final InputBackend backend = InputBackend.configured();
+    private EventRoute eventRoute;
+    private Consumer<String> trace;
+    private HitGrid hitGrid;
+    private Map<String, String> navigationKeys = Map.of();
     private final Pointer pointer;
     private final Scroller scroller;
     private final FocusNavigator focus;
@@ -54,6 +63,43 @@ public final class InputHandler {
         this.scroller = new Scroller();
         this.focus = new FocusNavigator(document);
         this.narration = new Narration(document, pointer, focus);
+    }
+
+    public InputBackend backend() { return backend; }
+
+    public EventRoute eventRoute() {
+        if (eventRoute == null) eventRoute = new EventRoute();
+        return eventRoute;
+    }
+
+    /** Opt-in streaming JSONL, no retained text, key values or password contents. Null disables collection. */
+    public void setTrace(Consumer<String> sink) { trace = sink; }
+
+    public void traceEvent(Event event, String stage) {
+        if (trace != null) trace.accept(InputDiagnostics.event(event, stage));
+    }
+
+    public String whyNoClick(Element element, float x, float y) {
+        return InputDiagnostics.whyNoClick(document, element, x, y);
+    }
+
+    public String explainFocus(Element element) {
+        return InputDiagnostics.focus(document, element, focus.visible(), focus.source());
+    }
+
+    /** Opt-in navigation action for host gamepad bindings; native text/range/select keys keep precedence. */
+    public boolean navigate(String direction) {
+        return document.guard(() -> focus.spatial(direction));
+    }
+
+    public void setNavigationKeys(Map<String, String> keys) {
+        for (String direction : keys.values()) if (!Set.of("left", "right", "up", "down").contains(direction))
+            throw new IllegalArgumentException("navigation direction must be left, right, up or down");
+        navigationKeys = Map.copyOf(keys);
+    }
+
+    void traceComposition(String state, int length) {
+        if (trace != null) trace.accept(InputDiagnostics.composition(document.focusedElement(), state, length));
     }
 
     // ---- Pointer ----
@@ -109,12 +155,14 @@ public final class InputHandler {
             MouseEvent down = pointer.fire("mousedown", target, button, clicks, null);
             if (button == 2) pointer.fire("contextmenu", target, button, clicks, null);
             if (button == 0 && !down.defaultPrevented()) pressDefault(target, hit, clicks);
+            traceEvent(down, down.defaultPrevented() ? "default-prevented" : button == 0 ? "default-performed" : "no-default");
             return true;
         });
     }
 
     /** Default action of a primary mousedown: focus (or blur), then the control's own press behaviour. */
     private void pressDefault(Element target, HitResult hit, int clicks) {
+        if (InputEligibility.inert(target)) return;
         focus.focusByPointer(Dom.closest(target, Element::isFocusable));
         if (target.isDisabled() || target.box == null) return;
         float[] at = Dom.local(target.box, hit, pointer.x, pointer.y);
@@ -151,6 +199,7 @@ public final class InputHandler {
             if (clickTarget != null && !clickTarget.isDisabled()) {
                 MouseEvent click = pointer.fire("click", clickTarget, button, pointer.clicks(), null);
                 if (!click.defaultPrevented()) Activation.run(clickTarget, click);
+                traceEvent(click, click.defaultPrevented() ? "default-prevented" : "default-performed");
                 if (pointer.clicks() == 2) pointer.fire("dblclick", clickTarget, button, 2, null);
             }
             if (drag != null) trackHover(); // the capture ended: hover follows the pointer again
@@ -177,8 +226,11 @@ public final class InputHandler {
             boolean overPopup = overPopup(x, y);
             Element target = target(hitTest(x, y, overPopup), overPopup);
             if (target == null) return false;
-            if (pointer.dispatch(new WheelEvent(x, y, pointer.buttons(), mods, dx, dy), target).defaultPrevented()) return true;
+            WheelEvent wheel = pointer.dispatch(new WheelEvent(x, y, pointer.buttons(), mods, dx, dy), target);
+            if (wheel.defaultPrevented()) { traceEvent(wheel, "default-prevented"); return true; }
+            if (InputEligibility.inert(target)) { traceEvent(wheel, "inert"); return false; }
             boolean scrolled = scroller.wheel(target, dx, dy);
+            traceEvent(wheel, scrolled ? "default-performed" : "no-scroll-room");
             if (scrolled) trackHover();
             return scrolled;
         });
@@ -205,7 +257,26 @@ public final class InputHandler {
     /** Hit tests a point, except while a drag holds the pointer or the open dropdown covers it (null then). */
     private HitResult hitTest(float x, float y, boolean overPopup) {
         if (pointer.captured() != null || overPopup) return null;
-        return document.painter().hitTest(x, y);
+        return hit(x, y);
+    }
+
+    /** Shared geometry query for the input migration backend. */
+    public HitResult hit(float x, float y) {
+        if (backend == InputBackend.OLD) return document.painter().hitTest(x, y);
+        if (hitGrid == null) hitGrid = new HitGrid(document);
+        HitResult result = hitGrid.hit(x, y);
+        if (backend == InputBackend.BOTH) {
+            HitResult old = document.painter().hitTest(x, y);
+            if (!sameHit(result, old)) throw new IllegalStateException("input hit differs at x=" + x + " y=" + y
+                    + " old=" + (old == null ? null : old.element()) + " new=" + (result == null ? null : result.element()));
+        }
+        return result;
+    }
+
+    private static boolean sameHit(HitResult a, HitResult b) {
+        return a == b || a != null && b != null && a.element() == b.element() && a.box() == b.box()
+                && Float.compare(a.localX(), b.localX()) == 0 && Float.compare(a.localY(), b.localY()) == 0
+                && Objects.equals(a.scrollbar(), b.scrollbar()) && a.text() == b.text() && a.textOffset() == b.textOffset();
     }
 
     /**
@@ -213,9 +284,9 @@ public final class InputHandler {
      * ({@code overPopup}), else the hit.
      */
     private Element target(HitResult hit, boolean overPopup) {
-        if (pointer.captured() != null) return pointer.captured();
-        if (overPopup) return popup.select();
-        return hit == null ? null : hit.element();
+        Element result = pointer.captured() != null ? pointer.captured()
+                : overPopup ? popup.select() : hit == null ? null : hit.element();
+        return InputEligibility.inert(result) ? null : result;
     }
 
     // ---- Keyboard ----
@@ -232,11 +303,15 @@ public final class InputHandler {
             if (popup != null && popupKey(key)) return true;
             Element target = keyTarget();
             if (target == null) return false;
-            if (!target.dispatchEvent(new KeyboardEvent("keydown", key, code, repeat, mods))) {
+            KeyboardEvent event = new KeyboardEvent("keydown", key, code, repeat, mods);
+            if (!target.dispatchEvent(event)) {
+                traceEvent(event, "default-prevented");
                 suppressChar = key.codePointCount(0, key.length()) == 1;
                 return true;
             }
-            return keyDefault(document.focusedElement(), key, mods, repeat);
+            boolean handled = keyDefault(document.focusedElement(), key, mods, repeat);
+            traceEvent(event, handled ? "default-performed" : "unhandled");
+            return handled;
         });
     }
 
@@ -310,7 +385,7 @@ public final class InputHandler {
     /** Default actions of an uncancelled keydown on the focused element (or with nothing focused). */
     private boolean keyDefault(Element el, String key, Modifiers mods, boolean repeat) {
         if (key.equals("Tab")) return focus.move(mods.shift());
-        if (el == null) return false;
+        if (el == null || InputEligibility.inert(el)) return false;
         if (el.isTextControl()) return TextField.of(el).keyDown(key, mods);
         if (el.isDisabled()) return false;
         if (el.tagName().equals("select")) {
@@ -321,6 +396,8 @@ public final class InputHandler {
         }
         if (el.inputType().equals("range")) return RangeControl.of(el).keyDown(key);
         if (el.inputType().equals("radio") && radioArrow(el, key)) return true;
+        String direction = navigationKeys.get(key);
+        if (direction != null && !mods.ctrl() && !mods.alt() && !mods.meta()) return focus.spatial(direction);
         boolean pushable = Forms.isButton(el) || Forms.isDetailsSummary(el);
         boolean activate = switch (key) {
             case "Enter" -> pushable || el.tagName().equals("a") && el.hasAttribute("href");
@@ -348,13 +425,16 @@ public final class InputHandler {
 
     /** The focused element's text field, or null when no text control has focus. */
     private TextField focusedField() {
-        return TextField.ifText(document.focusedElement());
+        Element element = document.focusedElement();
+        return InputEligibility.inert(element) ? null : TextField.ifText(element);
     }
 
     private Element keyTarget() {
         Element focused = document.focusedElement();
+        if (InputEligibility.inert(focused)) { document.setFocus(null); focused = null; }
         if (focused != null) return focused;
-        return document.body() != null ? document.body() : document.documentElement();
+        Element fallback = document.body() != null ? document.body() : document.documentElement();
+        return InputEligibility.inert(fallback) ? null : fallback;
     }
 
     // ---- Select dropdown ----
@@ -422,6 +502,16 @@ public final class InputHandler {
         scroller.forget(node);
         turntables.removeIf(t -> node.contains(t.element()));
         if (popup != null && node.contains(popup.select())) popup = null;
+    }
+
+    /** Attribute changes can invalidate an ongoing gesture without a new pointer event. */
+    public void inertChanged() {
+        if (InputEligibility.inert(pointer.captured())) {
+            Drag drag = pointer.releaseCapture();
+            if (drag != null) drag.end();
+        }
+        if (InputEligibility.inert(pointer.hoverTarget())) pointer.hover(null);
+        if (popup != null && InputEligibility.inert(popup.select())) popup = null;
     }
 
     /**

@@ -35,7 +35,7 @@ export function registerProject(args) {
 export function validateActions(actions) {
   requireThat(Array.isArray(actions) && actions.length <= 100, 'INVALID_ACTIONS', '动作应为不超过 100 条的数组。');
   for (const action of actions) {
-    requireThat(typeof action === 'string' && action.length < 2000 && !/[\r\n]/.test(action) && /^(wait|move|click|wheel|key|type)\s+\S/.test(action), 'INVALID_ACTION', '只支持 wait/move/click/wheel/key/type，每条动作占一行。');
+    requireThat(typeof action === 'string' && action.length < 2000 && !/[\r\n]/.test(action) && (/^(wait|move|click|wheel|key|type|why-no-click|focus-info)\s+\S/.test(action) || /^preedit(?:\s+.*)?$/.test(action) || /^trace-input (on|off)$/.test(action)), 'INVALID_ACTION', '只支持 wait/move/click/wheel/key/type/preedit/why-no-click/focus-info 和 trace-input on/off，每条动作占一行。');
     if (action.startsWith('wait ')) requireThat(/^wait [0-9]+$/.test(action) && Number(action.slice(5)) <= 600, 'INVALID_WAIT', '等待不超过 600 帧。');
   }
 }

@@ -7,6 +7,7 @@ import dev.oriel.engine.layout.TextMeasure;
 import dev.oriel.engine.style.ComputedStyle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,6 +37,10 @@ final class TextLayout {
     private final float wrapWidth, letterSpacing, wordSpacing;
     private final FontSpec font;
     private final List<Line> lines = new ArrayList<>();
+    private final InputBackend backend = InputBackend.configured();
+    private final long fontGeneration;
+    private Carets[] carets;
+    private record Carets(int[] offsets, float[] midpoints, boolean monotonic) {}
 
     /**
      * @param wrapWidth the width to wrap paragraphs at, or {@code Float.POSITIVE_INFINITY} for a single line (newlines
@@ -46,6 +51,7 @@ final class TextLayout {
         this.masked = masked;
         this.wrapWidth = wrapWidth;
         this.font = font;
+        this.fontGeneration = measure.generation();
         this.letterSpacing = s.letterSpacing;
         this.wordSpacing = s.wordSpacing;
         boolean multiline = wrapWidth != Float.POSITIVE_INFINITY;
@@ -60,9 +66,9 @@ final class TextLayout {
     }
 
     /** True when this layout was built from the same inputs (so it can be reused). */
-    boolean matches(String text, boolean masked, float wrapWidth, FontSpec font, ComputedStyle s) {
+    boolean matches(String text, boolean masked, float wrapWidth, FontSpec font, ComputedStyle s, long generation) {
         return this.text.equals(text) && this.masked == masked && this.wrapWidth == wrapWidth && this.font.equals(font)
-                && letterSpacing == s.letterSpacing && wordSpacing == s.wordSpacing;
+                && letterSpacing == s.letterSpacing && wordSpacing == s.wordSpacing && fontGeneration == generation;
     }
 
     int lineCount() { return lines.size(); }
@@ -76,6 +82,21 @@ final class TextLayout {
 
     /** The line showing the caret at {@code offset}. At a soft wrap the caret belongs to the start of the next line. */
     int lineOf(int offset) {
+        if (backend != InputBackend.OLD) {
+            int lo = 0, hi = lines.size();
+            while (lo < hi) {
+                int mid = (lo + hi) >>> 1;
+                if (lines.get(mid).start <= offset) lo = mid + 1; else hi = mid;
+            }
+            int result = Math.max(0, lo - 1);
+            if (backend == InputBackend.BOTH && result != legacyLineOf(offset))
+                throw new IllegalStateException("input visual line differs at offset=" + offset);
+            return result;
+        }
+        return legacyLineOf(offset);
+    }
+
+    private int legacyLineOf(int offset) {
         int i = lines.size() - 1;
         while (i > 0 && lines.get(i).start > offset) i--;
         return i;
@@ -88,6 +109,43 @@ final class TextLayout {
 
     /** The caret offset nearest to {@code x} on {@code line}. */
     int offsetAt(int line, float x) {
+        int index = Math.clamp(line, 0, lines.size() - 1);
+        if (backend == InputBackend.OLD) return legacyOffsetAt(index, x);
+        if (carets == null) carets = new Carets[lines.size()];
+        Carets c = carets[index];
+        if (c == null) carets[index] = c = indexCarets(index);
+        if (!c.monotonic) return legacyOffsetAt(index, x);
+        int lo = 0, hi = c.midpoints.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (x < c.midpoints[mid]) hi = mid; else lo = mid + 1;
+        }
+        int result = c.offsets[lo];
+        if (backend == InputBackend.BOTH && result != legacyOffsetAt(index, x))
+            throw new IllegalStateException("input caret differs at line=" + index + " x=" + x);
+        return result;
+    }
+
+    private Carets indexCarets(int index) {
+        Line line = lines.get(index);
+        int last = caretEnd(line), count = 0;
+        int[] offsets = new int[last - line.start + 1];
+        float[] midpoints = new float[last - line.start];
+        boolean monotonic = true;
+        float previous = Float.NEGATIVE_INFINITY;
+        for (int o = line.start; o < last; o = next(o)) {
+            int n = Math.min(last, next(o));
+            float midpoint = (line.xs[o - line.start] + line.xs[n - line.start]) / 2;
+            if (!Float.isFinite(midpoint) || midpoint < previous) monotonic = false;
+            offsets[count] = o;
+            midpoints[count++] = midpoint;
+            previous = midpoint;
+        }
+        offsets[count] = last;
+        return new Carets(Arrays.copyOf(offsets, count + 1), Arrays.copyOf(midpoints, count), monotonic);
+    }
+
+    private int legacyOffsetAt(int line, float x) {
         Line l = lines.get(Math.max(0, Math.min(lines.size() - 1, line)));
         int last = caretEnd(l);
         for (int o = l.start; o < last; o = next(o)) {

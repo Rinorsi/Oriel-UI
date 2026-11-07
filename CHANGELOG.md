@@ -19,7 +19,8 @@ those entries as history, not as documentation of the current API.
 
 - Agents: document task ownership, workflow modes, scheduling and evidence contracts; add copyable task, report, evidence, terminal-state and R10 templates.
 
-- Development: add tools/bench resource freezing, alternating independent A/A and A/B CPU frame comparisons, per-page p50/p95 noise verdicts, deterministic synthetic stress generators and a strict 15-effect captured-frame comparator. Existing timing/golden baselines remain unchanged; phase timings, hover input transitions and game measurements require separate evidence.
+
+- Input: add opt-in old/new/both routing experiments, bounded generation-aware text measurement, grapheme/caret fast paths and a conservative large-block hit grid. Keep old as the default pending all migration gates. Add explicit event/composition JSONL diagnostics, why-no-click/focus queries through preview actions and MCP, inert input exclusion, and opt-in spatial navigation actions; existing IME transactions and undo behavior remain shared.
 
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 

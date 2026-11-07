@@ -2,6 +2,8 @@ package dev.oriel.engine.layout;
 
 import dev.oriel.engine.host.FontMetrics;
 import dev.oriel.engine.host.FontSpec;
+import dev.oriel.engine.input.InputBackend;
+import dev.oriel.engine.input.MeasuredTextCache;
 import dev.oriel.engine.style.ComputedStyle;
 
 import java.util.ArrayList;
@@ -26,9 +28,13 @@ public final class TextMeasure {
     private final FontMetrics fonts;
     private final Map<FontSpec, Map<String, Float>> widths = new HashMap<>();
     private int cached;
+    private final InputBackend backend = InputBackend.configured();
+    private final MeasuredTextCache measured;
+    private long generation = Long.MIN_VALUE;
 
     public TextMeasure(FontMetrics fonts) {
         this.fonts = fonts;
+        this.measured = backend == InputBackend.OLD ? null : new MeasuredTextCache(fonts);
     }
 
     public float glyphHeight(FontSpec font) {
@@ -41,6 +47,19 @@ public final class TextMeasure {
 
     /** The host's width of {@code text}, without spacing. Cached. */
     public float width(String text, FontSpec font) {
+        if (backend == InputBackend.OLD) return legacyWidth(text, font);
+        float result = measured.width(text, font);
+        if (backend == InputBackend.BOTH && Float.compare(result, legacyWidth(text, font)) != 0)
+            throw new IllegalStateException("input measurement differs: font=" + font + " UTF16Length=" + text.length());
+        return result;
+    }
+
+    /** Font resource changes also invalidate text control layouts. */
+    public long generation() { return fonts.generation(); }
+
+    private float legacyWidth(String text, FontSpec font) {
+        long epoch = fonts.generation();
+        if (generation != epoch) { widths.clear(); cached = 0; generation = epoch; }
         Map<String, Float> forFont = widths.computeIfAbsent(font, f -> new HashMap<>());
         Float w = forFont.get(text);
         if (w == null) {
@@ -72,7 +91,10 @@ public final class TextMeasure {
 
     /** How far one code point advances the pen in {@code s}: its glyph's advance plus spacing. */
     public float advance(int codePoint, FontSpec font, ComputedStyle s) {
-        float w = fonts.charWidth(codePoint, font) + s.letterSpacing;
+        float advance = backend == InputBackend.OLD ? fonts.charWidth(codePoint, font) : measured.advance(codePoint, font);
+        if (backend == InputBackend.BOTH && Float.compare(advance, fonts.charWidth(codePoint, font)) != 0)
+            throw new IllegalStateException("input glyph measurement differs: font=" + font + " codePoint=" + codePoint);
+        float w = advance + s.letterSpacing;
         return isWordSeparator(codePoint) ? w + s.wordSpacing : w;
     }
 

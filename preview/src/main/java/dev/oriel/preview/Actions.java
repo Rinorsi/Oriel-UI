@@ -4,7 +4,6 @@ import dev.oriel.engine.dom.Document;
 import dev.oriel.engine.dom.Element;
 import dev.oriel.engine.event.Modifiers;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -13,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import javax.imageio.ImageIO;
 
 /**
  * A script of input for a page, run headless ({@code --actions <file>}): one action a line; lines starting with
@@ -64,6 +64,8 @@ final class Actions {
             case "key" -> n == 1 ? null : "key takes one key, like Enter, ArrowDown, a or Shift+Tab";
             case "type" -> n > 0 ? null : "type takes text";
             case "preedit" -> null;
+            case "trace-input" -> n == 1 && (s.rest.equals("on") || s.rest.equals("off")) ? null : "trace-input takes on or off";
+            case "why-no-click", "focus-info" -> n > 0 ? null : s.action + " takes a selector";
             case "shot" -> n == 1 ? null : "shot takes a file name (without .png)";
             default -> "unknown action '" + s.action + "'";
         };
@@ -148,6 +150,17 @@ final class Actions {
                     String text = s.rest == null ? "" : s.rest;
                     scene.input(in -> in.preedit(text.isEmpty() ? null : text, text.length(), 0, text.length()));
                     frames(1);
+                }
+                case "trace-input" -> scene.document().input().setTrace(s.rest.equals("on") ? out::println : null);
+                case "why-no-click", "focus-info" -> {
+                    Document doc = scene.document();
+                    Element element = doc.querySelector(s.rest);
+                    if (element == null) throw new IllegalStateException("no element matches " + s.rest);
+                    if (s.action.equals("focus-info")) out.println(doc.input().explainFocus(element));
+                    else {
+                        float[] rect = element.getBoundingClientRect();
+                        out.println(doc.input().whyNoClick(element, rect[0] + rect[2] / 2, rect[1] + rect[3] / 2));
+                    }
                 }
                 case "shot" -> {
                     Path file = shots.resolve(args.getFirst() + ".png");

@@ -4,15 +4,16 @@ import dev.oriel.engine.Limits;
 import dev.oriel.engine.anim.AnimationEngine;
 import dev.oriel.engine.css.Selectors;
 import dev.oriel.engine.css.StyleEngine;
+import dev.oriel.engine.diag.Diagnostics;
 import dev.oriel.engine.event.CustomEvent;
 import dev.oriel.engine.event.Event;
 import dev.oriel.engine.event.FocusEvent;
-import dev.oriel.engine.diag.Diagnostics;
 import dev.oriel.engine.host.Host;
 import dev.oriel.engine.host.PageControllers;
 import dev.oriel.engine.host.ReplacedContent;
 import dev.oriel.engine.html.HtmlParser;
 import dev.oriel.engine.html.UnsupportedElements;
+import dev.oriel.engine.input.InputEligibility;
 import dev.oriel.engine.input.InputHandler;
 import dev.oriel.engine.layout.LayoutEngine;
 import dev.oriel.engine.paint.Canvas;
@@ -82,6 +83,8 @@ public final class Document extends Node {
     /** A layout ran (perhaps in a script's flush) whose follow-up work waits for the next frame. */
     private boolean laidOut;
     private int stackingVersion;
+    private long inputGeometryVersion;
+    public long inputGeometryVersion() { return inputGeometryVersion; }
     /** Listeners plus inline {@code on*} handlers in this document, by lower-case event type. */
     private final Map<String, int[]> handlers = new HashMap<>();
     private int domVersion, selectorVersion;
@@ -338,6 +341,7 @@ public final class Document extends Node {
      * layout (scroll clamping, autofocus, re-targeting hover), which may fire events.
      */
     public void frame(double nowMs) {
+        inputGeometryVersion++;
         if (error != null || closed) return;
         checkSlowFrames();
         long start = clock.getAsLong();
@@ -393,6 +397,7 @@ public final class Document extends Node {
 
     private void updateStyle() {
         if (!styleDirty) return;
+        inputGeometryVersion++;
         styleDirty = false;
         styleEngine.restyle();
     }
@@ -469,6 +474,7 @@ public final class Document extends Node {
 
     /** Something painted changed that restyle and relayout do not track (a scroll offset, canvas pixels). */
     public void invalidatePaint() {
+        inputGeometryVersion++;
         repaint = true;
     }
 
@@ -537,9 +543,9 @@ public final class Document extends Node {
      */
     public int selectorVersion() { return selectorVersion; }
 
-    public void invalidateStyle() { styleEngine.allInvalidated(); styleDirty = true; }
-    public void invalidateLayout() { layoutDirty = true; }
-    public void invalidateStacking() { stackingVersion++; }
+    public void invalidateStyle() { styleEngine.allInvalidated(); styleDirty = true; inputGeometryVersion++; }
+    public void invalidateLayout() { layoutDirty = true; inputGeometryVersion++; }
+    public void invalidateStacking() { stackingVersion++; inputGeometryVersion++; }
     public boolean needsLayout() { return layoutDirty; }
 
     /** A tree change: marks style dirty, and layout too when {@code layout}. */
@@ -552,6 +558,7 @@ public final class Document extends Node {
      * and marks style and/or layout dirty.
      */
     private void invalidate(boolean selectors, boolean style, boolean layout) {
+        inputGeometryVersion++;
         domVersion++;
         if (selectors) selectorVersion++;
         styleDirty |= style;
@@ -733,6 +740,10 @@ public final class Document extends Node {
      * then); other layout changes come from the restyle.
      */
     void attributeChanged(Element element, String name) {
+        if (name.equals("inert")) {
+            if (focused != null && InputEligibility.inert(focused)) setFocus(null);
+            input.inertChanged();
+        }
         if (element.replaced != null) element.replaced.attributeChanged(name); // also a canvas outside the document
         if (!element.isConnected()) return;
         if (name.equals("loading") || name.equals("data-oriel-lazy")) lazyImages.track(element);
@@ -793,7 +804,8 @@ public final class Document extends Node {
     /** Moves focus, firing blur/focusout on the old element and focus/focusin on the new one. */
     public void setFocus(Element element) {
         if (element == focused) return;
-        if (element != null && (!element.isConnected() || element.ownerDocument() != this)) return;
+        if (element != null && (!element.isConnected() || element.ownerDocument() != this
+                || InputEligibility.inert(element))) return;
         Element old = focused;
         focused = element;
         styleEngine.valueInvalidated(old, "@focus");

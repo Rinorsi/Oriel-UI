@@ -8,6 +8,9 @@ package dev.oriel.engine.host;
  * (half-leading) and draws text with its top-left at the glyph box origin.
  */
 public interface FontMetrics {
+    /** Monotonic provider epoch. Hosts with mutable font resources increment it when advances change. */
+    default long generation() { return 0; }
+
     /** Advance width of {@code text} in px, without letter spacing. */
     float width(String text, FontSpec font);
 

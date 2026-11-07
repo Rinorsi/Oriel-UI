@@ -2,10 +2,10 @@ package dev.oriel.preview;
 
 import org.junit.jupiter.api.Test;
 
-import javax.swing.JPanel;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.nio.file.Path;
+import javax.swing.JPanel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,6 +34,14 @@ class PreviewInputTest {
         assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("a.html", "--why", ".on"));
         assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("--canvas-test", "--why", ".on", "#card"));
         assertThrows(IllegalArgumentException.class, () -> Preview.Options.parse("a.html", "--why", ".on", "#card", "--snapshot", "out.png"));
+    }
+
+    @Test
+    void parsesInputDiagnosticActionsAndRejectsMissingArguments() {
+        Actions.parse("trace-input on\npreedit 中文\npreedit\nwhy-no-click #name\nfocus-info #name\ntrace-input off");
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("trace-input yes"));
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("why-no-click"));
+        assertThrows(IllegalArgumentException.class, () -> Actions.parse("focus-info"));
     }
 
     @Test

@@ -248,3 +248,5 @@ plan 和 apply 回执的 guidance 包含 openCode、registration、hotReload、p
 oriel_inspect：必填 page、element 字符串，selector/property 二选一；frames 默认为 1（1–600）。无头加载页面并返回逐谓词原因、候选数、声明赢家、耗时直方图和工作预算，不启动游戏、不产生批准。返回 passed、exitCode、explanations、output。参数、错误与限制见 [选择器诊断](selector-debug.md)。
 
 属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。
+
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
