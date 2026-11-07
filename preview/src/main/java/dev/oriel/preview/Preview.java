@@ -29,16 +29,20 @@ public final class Preview {
             The GUI size defaults to 427x240 (1280x720 at GUI scale 3), the scale to 2.
             --background <opaque CSS color> replaces the world backdrop in windows, snapshots and actions.
             --lang <language> selects a language such as zh_cn (default) or en_us; --check also accepts it.
+            --paint-trace <file.json> exports the last snapshot's paint commands and cache counters.
+            --paint-element <substring> filters exported element labels; requires --paint-trace.
             Diagnostics (CSS the engine did not take as written) go to stderr; with --strict a warning fails the run
             (exit code 3).""";
 
     /** Command line options. Sizes are GUI px. */
     record Options(Path page, boolean canvasTest, int scale, int width, int height, Path data, Path snapshot, int frames,
                    Path actions, Path out, boolean narrate, boolean strict, String boxes, Integer background, String language,
-                   String why, String elementQuery, boolean whyProperty) {
+                   String why, String elementQuery, boolean whyProperty, Path paintTrace, String paintElement) {
         static Options parse(String... args) {
             Path page = null, data = null, snapshot = null, actions = null, out = null;
             String boxes = null;
+            Path paintTrace = null;
+            String paintElement = null;
             String language = "zh_cn";
             String why = null, elementQuery = null;
             boolean whyProperty = false;
@@ -69,6 +73,8 @@ public final class Preview {
                         why = value(args, ++i, arg);
                         elementQuery = value(args, ++i, arg);
                     }
+                    case "--paint-trace" -> paintTrace = Path.of(value(args, ++i, arg));
+                    case "--paint-element" -> paintElement = value(args, ++i, arg);
                     case "--lang" -> language = value(args, ++i, arg);
                     case "--background" -> {
                         String color = value(args, ++i, arg);
@@ -96,7 +102,11 @@ public final class Preview {
             if ((actions != null || narrate) && canvasTest) {
                 throw new IllegalArgumentException((narrate ? "--narrate" : "--actions") + " needs a page");
             }
-            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language, why, elementQuery, whyProperty);
+            if (paintTrace != null && (snapshot == null || canvasTest || actions != null)) {
+                throw new IllegalArgumentException("--paint-trace requires a page snapshot without --actions");
+            }
+            if (paintElement != null && paintTrace == null) throw new IllegalArgumentException("--paint-element requires --paint-trace");
+            return new Options(page, canvasTest, scale, width, height, data, snapshot, frames, actions, out, narrate, strict, boxes, background, language, why, elementQuery, whyProperty, paintTrace, paintElement);
         }
 
         /** Runs without a window: a snapshot or a script of actions. */
@@ -277,6 +287,9 @@ public final class Preview {
 
     /** Renders {@code frames} frames 16 ms apart and writes the last; exits non-zero if the page failed. */
     private static int snapshot(Scene scene, FrameRenderer renderer, Options options) throws IOException {
+        if (options.paintTrace() != null && scene instanceof PageScene page && page.document() != null) {
+            page.document().painter().trace(true);
+        }
         BufferedImage image = null;
         for (int i = 0; i < options.frames(); i++) {
             image = renderer.render(scene, options.width() * options.scale(), options.height() * options.scale(),
@@ -285,6 +298,19 @@ public final class Preview {
         ImageIO.write(image, "png", options.snapshot().toFile());
         System.out.println("Wrote " + options.snapshot().toAbsolutePath());
         if (options.boxes() != null && scene instanceof PageScene page) printBoxes(page, options.boxes());
+        if (options.paintTrace() != null && scene instanceof PageScene page && scene.error() == null) {
+            var painter = page.document().painter();
+            var trace = painter.lastDisplayList();
+            com.google.gson.JsonObject report = new com.google.gson.JsonObject();
+            report.addProperty("page", page.url());
+            report.addProperty("mode", painter.mode().name().toLowerCase(java.util.Locale.ROOT));
+            report.add("cache", new com.google.gson.Gson().toJsonTree(painter.cacheStatistics()));
+            report.add("display", new com.google.gson.Gson().toJsonTree(trace.statistics()));
+            report.add("commands", com.google.gson.JsonParser.parseString(trace.json(options.paintElement())));
+            Files.writeString(options.paintTrace(), new com.google.gson.Gson().toJson(report));
+            Files.writeString(Path.of(options.paintTrace() + ".jsonl"), trace.jsonLines(options.paintElement()));
+            Files.writeString(Path.of(options.paintTrace() + ".txt"), trace.text(options.paintElement()));
+        }
         return scene.error() == null ? 0 : 1;
     }
 

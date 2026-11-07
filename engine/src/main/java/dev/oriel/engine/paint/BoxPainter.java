@@ -84,9 +84,10 @@ final class BoxPainter implements StackingOrder.Visitor {
 
     @Override
     public boolean enterContext(Box box, ComputedStyle style, float x, float y, Affine transform) {
+        traceElement(box.element);
         // Overshooting easings can push animated opacity outside 0..1.
         float opacity = Math.min(1, style.opacity);
-        if (!(opacity > 0)) return false;
+        if (!(opacity > 0)) { skipped("opacity <= 0"); return false; }
         canvas.save();
         if (depth == dpStack.length) {
             dpStack = Arrays.copyOf(dpStack, depth * 2);
@@ -119,6 +120,7 @@ final class BoxPainter implements StackingOrder.Visitor {
         Group group = groups[--depth];
         groups[depth] = null;
         if (group != null) {
+            traceElement(group.box.element);
             masks(group);
             ComputedStyle s = group.style;
             canvas.endGroup(Math.min(1, s.opacity), s.filter, s.mixBlendMode);
@@ -188,6 +190,7 @@ final class BoxPainter implements StackingOrder.Visitor {
      */
     @Override
     public boolean pushClip(Box clipper, float x, float y, float width, float height) {
+        traceElement(clipper.element);
         if (!pushClip(x, y, width, height)) return false;
         if (clips == roundedClips.length) {
             roundedClips = Arrays.copyOf(roundedClips, clips * 2);
@@ -236,7 +239,11 @@ final class BoxPainter implements StackingOrder.Visitor {
 
     @Override
     public void box(Box box, ComputedStyle s, float x, float y) {
-        if (s.visibility != Visibility.VISIBLE || box.kind == Box.Kind.ANONYMOUS) return;
+        traceElement(box.element);
+        if (s.visibility != Visibility.VISIBLE || box.kind == Box.Kind.ANONYMOUS) {
+            skipped(s.visibility != Visibility.VISIBLE ? "visibility hidden" : "anonymous box has no decorations");
+            return;
+        }
         Geometry g = geometry.box(box, s, x, y, dp);
         decorations(s, g);
         if (Backgrounds.clipsToText(s)) textBackground(g, s, sink -> StackingOrder.textRuns(box, x, y, sink));
@@ -253,6 +260,7 @@ final class BoxPainter implements StackingOrder.Visitor {
 
     @Override
     public void inlineBox(Box block, Fragment.InlineBox fragment, ComputedStyle s, float x, float y) {
+        traceElement(fragment.box().element);
         if (s.visibility != Visibility.VISIBLE) return;
         Geometry g = geometry.fragment(fragment, s, x, y, dp);
         decorations(s, g);
@@ -282,6 +290,27 @@ final class BoxPainter implements StackingOrder.Visitor {
 
     /** Outer shadows, background, inset shadows and border (CSS paints the first shadow on top). */
     private void decorations(ComputedStyle s, Geometry g) {
+        if (painter.mode() == Painter.Mode.OLD || !DecorationCache.eligible(s, g)) {
+            decorationsDirect(s, g);
+            return;
+        }
+        DisplayList cached = painter.decorations.find(s, g, dp);
+        if (cached != null && painter.mode() == Painter.Mode.NEW) {
+            cached.replay(canvas);
+            return;
+        }
+        Canvas target = canvas;
+        DisplayList.Recorder recorder = new DisplayList.Recorder(target);
+        canvas = recorder;
+        try { decorationsDirect(s, g); }
+        finally { canvas = target; }
+        DisplayList fresh = recorder.finish();
+        if (cached != null) cached.assertEquivalent(fresh, painter.document().url() + " " + g.element.tagName()
+                + "#" + g.element.getAttribute("id"));
+        else painter.decorations.put(s, g, dp, fresh);
+    }
+
+    private void decorationsDirect(ComputedStyle s, Geometry g) {
         canvas.crispShapes(s.shapeRendering == ShapeRendering.CRISP_EDGES);
         paintShadows(g, s.boxShadow, false, BackgroundLayer.Box.BORDER_BOX);
         backgrounds.paint(canvas, batch, g, s, dp, false);
@@ -323,7 +352,7 @@ final class BoxPainter implements StackingOrder.Visitor {
         float x0 = snap(ox), y0 = snap(oy);
         float width = snap(ox + w) - x0, height = snap(oy + h) - y0;
         if (width <= 0 || height <= 0 || overflows && !pushClip(cx, cy, cw, ch)) return;
-        content.paint(canvas, x0, y0, width, height);
+        DisplayList.nativePaint(canvas, content, x0, y0, width, height);
         if (overflows) popClip();
     }
 
@@ -331,6 +360,7 @@ final class BoxPainter implements StackingOrder.Visitor {
 
     @Override
     public void textRun(Box block, Fragment.TextRun run, float x, float y) {
+        traceElement(run.styleSource() != null ? run.styleSource() : block.element);
         ComputedStyle s = StackingOrder.styleOf(run);
         if (s.visibility != Visibility.VISIBLE || run.text().isEmpty()) return;
         TextPainter.draw(canvas, run.text(), run.spaced(), x + run.x(), y + run.y(), s.font(), s, s.color, dp);
@@ -340,6 +370,7 @@ final class BoxPainter implements StackingOrder.Visitor {
 
     @Override
     public void after(Box box, ComputedStyle s, float x, float y) {
+        traceElement(box.element);
         if (s.visibility != Visibility.VISIBLE) return;
         if (box.isScrollContainer()) {
             scrollbar(box, s, x, y, true);
@@ -383,5 +414,15 @@ final class BoxPainter implements StackingOrder.Visitor {
         if (Colors.isTransparent(argb)) return;
         float x0 = snap(x), y0 = snap(y);
         canvas.fillRect(x0, y0, snap(x + w) - x0, snap(y + h) - y0, argb);
+    }
+
+    private void traceElement(Element element) {
+        if (canvas instanceof DisplayList.Recorder recorder) {
+            recorder.element(element == null ? "<anonymous>" : element.tagName() + "#" + element.getAttribute("id"));
+        }
+    }
+
+    private void skipped(String reason) {
+        if (canvas instanceof DisplayList.Recorder recorder) recorder.skipped(reason);
     }
 }

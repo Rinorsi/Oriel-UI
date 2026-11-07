@@ -18,20 +18,22 @@ import java.util.Locale;
  *       {@code save()}/{@code restore()}.</li>
  *   <li>Rectangles: {@code fillRect}, {@code strokeRect}, {@code clearRect}. Coordinates are canvas pixels and edges
  *       snap to whole pixels (no antialiasing, no transforms).</li>
- *   <li>Oriel extension: {@code fillQuad} fills a convex quadrilateral without script-side scanlines.</li>
+ *   <li>Oriel extensions: {@code fillQuad} and capped {@code strokeLine}, without script-side scanlines.</li>
  *   <li>Pixels: {@code getImageData}, {@code putImageData} (which replaces, ignoring {@code globalAlpha}, as in
  *       browsers), and {@code drawImage} of another canvas (nearest-neighbour scaling).</li>
  * </ul>
- * Fills composite source-over. Not supported: text, paths, transforms, gradients and patterns, and drawing images
+ * Fills default to source-over; lighter and screen are explicit options. Not supported: text, general paths,
+ * transforms, gradients and patterns, and drawing images
  * other than canvases. A canvas that is not in the document is drawn on all the same; it is disposed with the
  * document.
  */
 public final class Context2D {
-    private record State(int fill, int stroke, float lineWidth, float alpha) {}
+    private record State(int fill, int stroke, float lineWidth, float alpha, String composite) {}
 
     private final Element element;
     private int fill = Colors.BLACK, stroke = Colors.BLACK;
     private float lineWidth = 1, alpha = 1;
+    private String composite = "source-over";
     private final Deque<State> saved = new ArrayDeque<>();
     private int[] scratch = new int[0];
     private int[] sourceRow = new int[0], sampleX = new int[0], sampledRow = new int[0];
@@ -54,6 +56,15 @@ public final class Context2D {
     public String strokeStyle() { return serialize(stroke); }
     public float lineWidth() { return lineWidth; }
     public float globalAlpha() { return alpha; }
+    public String globalCompositeOperation() { return composite; }
+
+    /** Narrow compositing subset; unsupported modes are rejected instead of silently losing an effect. */
+    public void setGlobalCompositeOperation(String operation) {
+        if (!"source-over".equals(operation) && !"lighter".equals(operation) && !"screen".equals(operation)) {
+            throw new IllegalArgumentException("Canvas composite supports source-over, lighter or screen: " + operation);
+        }
+        composite = operation;
+    }
 
     /** Sets the fill colour from CSS; values that are not colours are ignored, as in browsers. */
     public void setFillStyle(String css) {
@@ -77,7 +88,7 @@ public final class Context2D {
     }
 
     public void save() {
-        saved.push(new State(fill, stroke, lineWidth, alpha));
+        saved.push(new State(fill, stroke, lineWidth, alpha, composite));
     }
 
     public void restore() {
@@ -87,6 +98,7 @@ public final class Context2D {
         stroke = s.stroke;
         lineWidth = s.lineWidth;
         alpha = s.alpha;
+        composite = s.composite;
     }
 
     // ---- Rectangles ----
@@ -96,8 +108,54 @@ public final class Context2D {
     }
 
     /**
+     * Oriel's narrow line primitive: pixel-centre coverage, no antialiasing, butt/round/square caps.
+     * A covered pixel is composited once, including the joins between the body and caps.
+     */
+    public void strokeLine(double x0, double y0, double x1, double y1, String cap) {
+        if (!"butt".equals(cap) && !"round".equals(cap) && !"square".equals(cap)) {
+            throw new IllegalArgumentException("strokeLine cap must be butt, round or square: " + cap);
+        }
+        double vx = x1 - x0, vy = y1 - y0, length2 = vx * vx + vy * vy;
+        if (!Double.isFinite(x0) || !Double.isFinite(y0) || !Double.isFinite(x1) || !Double.isFinite(y1)
+                || !Double.isFinite(length2)) throw new IllegalArgumentException("strokeLine requires finite coordinates and length");
+        if (length2 == 0 && !cap.equals("round")) return;
+        CanvasContent content = content();
+        if (content == null) return;
+        PixelSurface surface = content.surface();
+        double half = lineWidth / 2.0, half2 = half * half;
+        double margin = cap.equals("square") ? half * Math.sqrt(2) : half;
+        int left = Math.max(0, (int) Math.floor(Math.min(x0, x1) - margin));
+        int right = Math.min(surface.width(), (int) Math.ceil(Math.max(x0, x1) + margin));
+        int top = Math.max(0, (int) Math.floor(Math.min(y0, y1) - margin));
+        int bottom = Math.min(surface.height(), (int) Math.ceil(Math.max(y0, y1) + margin));
+        if (right <= left || bottom <= top) return;
+        int color = Colors.withAlphaFactor(stroke, alpha);
+        if (Colors.isTransparent(color)) return;
+        int[] row = scratch(right - left);
+        double extension = length2 == 0 ? 0 : half / Math.sqrt(length2);
+        boolean painted = false;
+        for (int y = top; y < bottom; y++) {
+            surface.getPixels(left, y, right - left, 1, row);
+            boolean changed = false;
+            for (int x = left; x < right; x++) {
+                double px = x + .5 - x0, py = y + .5 - y0;
+                double t = length2 == 0 ? 0 : (px * vx + py * vy) / length2;
+                if (cap.equals("butt") && (t < 0 || t >= 1)) continue;
+                if (cap.equals("square") && (t < -extension || t >= 1 + extension)) continue;
+                if (cap.equals("round")) t = Math.clamp(t, 0, 1);
+                double dx = px - t * vx, dy = py - t * vy;
+                if (dx * dx + dy * dy > half2) continue;
+                row[x - left] = composite(color, row[x - left]);
+                changed = true;
+            }
+            if (changed) { surface.setPixels(left, y, right - left, 1, row); painted = true; }
+        }
+        if (painted) content.changed();
+    }
+
+    /**
      * Oriel extension: fills a convex quadrilateral with vertices in perimeter order, using pixel-centre
-     * scanlines and source-over. Either winding is accepted; a collinear quad draws nothing.
+     * scanlines and the current composite operation. Either winding is accepted; a collinear quad draws nothing.
      * Throws for non-finite, concave or self-crossing input rather than silently drawing the wrong shape.
      */
     public void fillQuad(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
@@ -135,11 +193,11 @@ public final class Context2D {
             int l = Math.max(0, Math.round((float) left));
             int r = Math.min(surface.width(), Math.round((float) left + (float) (right - left)));
             if (r <= l) continue;
-            if (Colors.alpha(color) == 255) surface.fillRect(l, rowY, r - l, 1, color);
+            if (Colors.alpha(color) == 255 && composite.equals("source-over")) surface.fillRect(l, rowY, r - l, 1, color);
             else {
                 int[] row = scratch(r - l);
                 surface.getPixels(l, rowY, r - l, 1, row);
-                for (int i = 0; i < r - l; i++) row[i] = over(color, row[i]);
+                for (int i = 0; i < r - l; i++) row[i] = composite(color, row[i]);
                 surface.setPixels(l, rowY, r - l, 1, row);
             }
             painted = true;
@@ -287,7 +345,7 @@ public final class Context2D {
             if (width <= 0) continue;
             surface.getPixels(dest[0] + firstSample, y, width, 1, row);
             for (int i = 0; i < width; i++) {
-                row[i] = over(sampledRow[firstSample + i], row[i]);
+                row[i] = composite(sampledRow[firstSample + i], row[i]);
             }
             surface.setPixels(dest[0] + firstSample, y, width, 1, row);
         }
@@ -309,13 +367,13 @@ public final class Context2D {
         PixelSurface surface = content.surface();
         int[] r = pixelRect(surface, x0, y0, x1, y1);
         if (r == null) return;
-        if (Colors.alpha(color) == 255) {
+        if (Colors.alpha(color) == 255 && composite.equals("source-over")) {
             surface.fillRect(r[0], r[1], r[2], r[3], color);
         } else {
             int[] row = scratch(r[2]);
             for (int y = r[1]; y < r[1] + r[3]; y++) {
                 surface.getPixels(r[0], y, r[2], 1, row);
-                for (int i = 0; i < r[2]; i++) row[i] = over(color, row[i]);
+                for (int i = 0; i < r[2]; i++) row[i] = composite(color, row[i]);
                 surface.setPixels(r[0], y, r[2], 1, row);
             }
         }
@@ -344,6 +402,26 @@ public final class Context2D {
         int g = (Colors.green(src) * sa + Colors.green(dst) * da) / a;
         int b = (Colors.blue(src) * sa + Colors.blue(dst) * da) / a;
         return a << 24 | r << 16 | g << 8 | b;
+    }
+
+    private int composite(int src, int dst) {
+        if (composite.equals("source-over")) return over(src, dst);
+        int sa = Colors.alpha(src), da = Colors.alpha(dst);
+        if (sa == 0) return dst;
+        if (da == 0) return src;
+        boolean lighter = composite.equals("lighter");
+        double a = lighter ? Math.min(255, sa + da) : sa + da - sa * da / 255.0;
+        int r = channel(Colors.red(src), Colors.red(dst), sa, da, a, lighter);
+        int g = channel(Colors.green(src), Colors.green(dst), sa, da, a, lighter);
+        int b = channel(Colors.blue(src), Colors.blue(dst), sa, da, a, lighter);
+        return (int) Math.round(a) << 24 | r << 16 | g << 8 | b;
+    }
+
+    private static int channel(int s, int d, int sa, int da, double alpha, boolean lighter) {
+        double value = lighter ? s * sa + d * da
+                : s * sa * (1 - da / 255.0) + d * da * (1 - sa / 255.0)
+                    + (255 - (255 - s) * (255 - d) / 255.0) * sa * da / 255.0;
+        return Math.min(255, (int) Math.round(value / alpha));
     }
 
     private int[] scratch(int length) {

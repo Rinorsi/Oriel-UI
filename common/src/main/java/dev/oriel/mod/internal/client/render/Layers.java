@@ -95,6 +95,8 @@ public final class Layers {
     public static final int TILE = 64;
     /** Frames a target may go unused before it is freed. */
     private static final int KEEP_FRAMES = 300;
+    private static final long RETAINED_BYTES = 64L * 1024 * 1024;
+    private static final boolean BOUNDED_RETENTION = !System.getProperty("oriel.paintMode", "old").equals("old");
 
     /** A GUI render state and the GUI renderer that draws it. */
     static final class Layer {
@@ -140,6 +142,15 @@ public final class Layers {
                 }
             }
             free.clear();
+            if (BOUNDED_RETENTION && drawn) {
+                for (RenderTarget t : dev.oriel.engine.paint.LayerRetention.evict(targets, RETAINED_BYTES,
+                        target -> (target.getDepthTexture() != null ? 8L : 4L) * target.width * target.height,
+                        target -> lastUsed.getOrDefault(target, frame))) {
+                    targets.remove(t);
+                    lastUsed.remove(t);
+                    t.destroyBuffers();
+                }
+            }
             free.addAll(targets);
             drawn = false;
         }
@@ -185,7 +196,8 @@ public final class Layers {
     public static String describe() {
         long bytes = 0;
         for (RenderTarget t : targets) bytes += (t.getDepthTexture() != null ? 8L : 4L) * t.width * t.height;
-        return targets.size() + " targets, " + Math.round(bytes / 1048576.0 * 10) / 10.0 + " MB";
+        return targets.size() + " targets, " + Math.round(bytes / 1048576.0 * 10) / 10.0 + " MB"
+                + (Boolean.getBoolean("oriel.paintMetrics") ? ", canvas=" + McSurface.statistics() : "");
     }
 
     /** {@code t} has been read for the last time this frame: the next {@link #target} can have it. */

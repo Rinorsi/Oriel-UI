@@ -16,6 +16,9 @@ import net.minecraft.resources.Identifier;
  */
 public final class McSurface implements PixelSurface {
     private static int nextId;
+    private static final boolean METRICS = Boolean.getBoolean("oriel.paintMetrics");
+    private static long liveBytes, uploadedBytes, uploads;
+    private final long allocatedBytes;
     /** The canvas textures alive now: registered at run time, so no resource pack knows them. */
     private static final java.util.Set<Identifier> LIVE = new java.util.HashSet<>();
 
@@ -26,10 +29,18 @@ public final class McSurface implements PixelSurface {
     private int dirtyTop = Integer.MAX_VALUE, dirtyBottom;
 
     public McSurface(int width, int height) {
+        allocatedBytes = (long) width * height * 4;
         pixels = new NativeImage(width, height, true);
         texture = new DynamicTexture(() -> "Oriel " + id, pixels); // uploads the cleared image
         Minecraft.getInstance().getTextureManager().register(id, texture);
         LIVE.add(id);
+        if (METRICS) liveBytes += allocatedBytes;
+    }
+
+    /** Actual dirty-row submissions; initial DynamicTexture allocation is not an upload() call. */
+    public static java.util.Map<String, Long> statistics() {
+        return java.util.Map.of("enabled", METRICS ? 1L : 0L, "liveTextureBytes", liveBytes,
+                "dirtyRowUploadBytes", uploadedBytes, "dirtyRowUploads", uploads);
     }
 
     /** Whether {@code texture} is a live canvas's pixels (drawn as is, not looked up in the resource packs). */
@@ -84,12 +95,13 @@ public final class McSurface implements PixelSurface {
         //RenderSystem.getDevice().createCommandEncoder().writeToTexture(texture.getTexture(), pixels, 0, 0, 0, dirtyTop, width(), rows, 0, dirtyTop);
         dirtyTop = Integer.MAX_VALUE;
         dirtyBottom = 0;
+        if (METRICS) { uploadedBytes += (long) rowBytes * rows; uploads++; }
     }
 
     /** Releases the texture, which frees the image too. */
     @Override
     public void dispose() {
-        LIVE.remove(id);
+        if (LIVE.remove(id) && METRICS) liveBytes -= allocatedBytes;
         Minecraft.getInstance().getTextureManager().release(id);
     }
 

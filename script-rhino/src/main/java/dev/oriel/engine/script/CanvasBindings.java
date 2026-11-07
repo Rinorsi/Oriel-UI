@@ -35,6 +35,10 @@ final class CanvasBindings {
                 .prop("strokeStyle", Context2D::strokeStyle, (c, v) -> c.setStrokeStyle(Js.str(v)))
                 .prop("lineWidth", Context2D::lineWidth, (c, v) -> c.setLineWidth((float) Js.num(v)))
                 .prop("globalAlpha", Context2D::globalAlpha, (c, v) -> c.setGlobalAlpha((float) Js.num(v)))
+                .prop("globalCompositeOperation", Context2D::globalCompositeOperation, (c, v) -> {
+                    try { c.setGlobalCompositeOperation(Js.str(v)); }
+                    catch (IllegalArgumentException e) { throw Js.typeError(e.getMessage()); }
+                })
                 .action("save", (c, a) -> c.save())
                 .action("restore", (c, a) -> c.restore())
                 .action("fillRect", (c, a) -> c.fillRect(f(a, 0), f(a, 1), f(a, 2), f(a, 3)))
@@ -48,6 +52,13 @@ final class CanvasBindings {
                     }
                 })
                 .action("strokeRect", (c, a) -> c.strokeRect(f(a, 0), f(a, 1), f(a, 2), f(a, 3)))
+                .action("strokeLine", (c, a) -> {
+                    if (a.length() < 4 || a.length() > 5) throw Js.typeError("strokeLine takes four coordinates and an optional cap");
+                    try {
+                        c.strokeLine(a.num(0, Double.NaN), a.num(1, Double.NaN), a.num(2, Double.NaN), a.num(3, Double.NaN),
+                                a.length() == 5 ? a.str(4) : "butt");
+                    } catch (IllegalArgumentException e) { throw Js.typeError(e.getMessage()); }
+                })
                 .action("clearRect", (c, a) -> c.clearRect(f(a, 0), f(a, 1), f(a, 2), f(a, 3)))
                 .method("createImageData", (c, a) -> a.get(0) instanceof Scriptable like
                         ? imageData(intProperty(like, "width"), intProperty(like, "height"))

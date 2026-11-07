@@ -115,3 +115,4 @@ filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不�
 这些是使用边界。开发计划、分支合并状态和问题处置记录放工作区；能力真正合入后必须同时更新本页与字段参考，规则见 [维护约定](maintenance.md)。
 
 输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
+绘制诊断与窄扩展：提供实验渐变装饰缓存、DisplayList 导出，以及 Canvas strokeLine 和 source-over/lighter/screen 子集；限制见 [绘制检查](d36-paint.md)。不代表通用 Canvas 路径、连续 clip-path 动画或原生物品 Sheen 已完成。

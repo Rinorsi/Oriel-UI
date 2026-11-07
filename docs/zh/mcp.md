@@ -251,3 +251,4 @@ oriel_inspect：必填 page、element 字符串，selector/property 二选一；
 属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。
 
 输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
+oriel_paint：只读无头绘制命令导出；page 必填，width/height/frames/element 可选，默认 640×360、2 帧，返回最多 500 条和完整报告路径。不启动游戏、不构成交付批准。完整合同见 [绘制检查](d36-paint.md)。

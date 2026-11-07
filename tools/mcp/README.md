@@ -14,4 +14,6 @@ client.mjs 是真实 stdio 协议客户端，用于不支持动态工具挂载�
 
 下游模组资源接入：oriel_integrate 的 target=mod-project，projectRoot 为工程绝对路径，可指定 modId/resourcesDir/pageName。只安装已检查且用户批准的资源；回执给出 Java 打开代码与热更新指引，不改工程代码，不启动下游游戏。完整参数与限制见 [MCP 手册](../../docs/zh/mcp.md#下游模组目标mod-project)。
 
-选择器诊断：oriel_inspect 的 page、selector、element 必填，frames 可选。返回候选规则、逐谓词轨迹、声明赢家和预算；不产生验收批准、不启动游戏。CLI 与字段见 [选择器诊断](../../docs/zh/selector-debug.md)。
+选择器诊断：oriel_inspect 的 page、element 必填，selector/property 二选一，frames/maxNodes 可选。返回候选规则、逐谓词轨迹、声明赢家和预算；不产生验收批准、不启动游戏。CLI 与字段见 [选择器诊断](../../docs/zh/selector-debug.md)。
+
+绘制诊断新增 oriel_paint（page，width/height/frames/element 可选）：复用无头预览，输出命令和缓存计数，不启动游戏。详见 [参数与限制](../../docs/zh/d36-paint.md)。

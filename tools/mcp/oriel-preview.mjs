@@ -15,6 +15,7 @@ import { capabilities, buildStatus } from './lib/contracts.mjs';
 import { diagnosticSink, logs } from './lib/diagnostics.mjs';
 import { inspect } from './lib/inspect.mjs';
 import { baseline } from './lib/baselines.mjs';
+import { inspectPaint } from './lib/paint.mjs';
 
 initState();
 const diagnostics = process.env.ORIEL_MCP_DIAGNOSTICS === '1' ? diagnosticSink() : null;
@@ -46,6 +47,9 @@ const TOOLS = [
   tool('oriel_logs', '只读列出本STATE的MCP JSONL诊断会话，或按sessionId/after/limit分页读取。采集默认关闭，ORIEL_MCP_DIAGNOSTICS=1开启。不读取任意文件，不代表引擎追踪。', { sessionId: string, after: number, limit: number, levels: { type: 'array', items: string } }, [], args => ({ ...logs(args), currentSessionId: diagnostics?.sessionId ?? null, recordingEnabled: diagnostics !== null }), true),
   tool('oriel_inspect', '只读解释当前预览器选择器或属性层叠证据，selector/property二选一，保留explanations并增加有界why-tree。需先集成R03，不切换工作树、不推测布局原因。', { page: string, selector: string, property: string, element: string, frames: number, maxNodes: number }, ['page','element'], async args => { const value = await inspect(args, pagePath); return result(value, !value.passed); }, true),
   tool('oriel_baseline', '独立黄金PNG候选审批：propose/status返回旧新图与零容差差异；decide逐字代记用户决定；promote只安装获准且匹配固定浏览器oracle的候选，页面批准不能复用。candidate/oracle为本STATE内相对路径。', { action: { ...string, enum: ['propose','status','decide','promote'] }, proposalId: string, baseline: string, candidate: string, oracle: string, reason: string, decision: { ...string, enum: ['approved','rejected'] }, quote: string }, [], args => reviewResult(baseline(args)), false, true),
+  tool('oriel_paint', '只读导出无头预览的最后一帧绘制命令、效果边界与局部缓存计数；element 为标签子串，不是 CSS 选择器。返回最多 500 条，完整 JSON/JSONL/文本留工作区。不会启动游戏。',
+    { page: string, width: number, height: number, frames: number, element: string }, ['page'],
+    async args => { const receipt = await inspectPaint(args, pagePath); return result(receipt, !receipt.passed); }, true),
   tool('oriel_scaffold', '只读检测下游 Fabric/NeoForge/Stonecutter 工程并返回接入清单。prepare=true 在工作区生成并检查固定骨架；经 oriel_review 用户批准后 apply=true + reviewId 只新建 HTML/Java，不改已有文件或构建配置。', { projectRoot: string, loader: { ...string, enum: ['fabric', 'neoforge'] }, minecraft: string, modId: string, resourcesDir: string, javaDir: string, javaPackage: string, launchMode: { ...string, enum: ['gradle-inside', 'gradle-outside', 'jar'] }, prepare: { type: 'boolean' }, apply: { type: 'boolean' }, reviewId: string }, ['projectRoot'], args => scaffold(args)),
   tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
   tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {
