@@ -17,15 +17,22 @@ final class LayoutPass {
     final TextMeasure text;
     final float viewportWidth, viewportHeight;
     final InlineLayout inline = new InlineLayout(this);
-    private final BlockLayout block = new BlockLayout(this);
+    private final FormattingContext block;
+    private final LayoutConstraints trace;
     private final FlexLayout flex = new FlexLayout(this);
     private final GridLayout grid = new GridLayout(this);
     private final LeafLayout leaf = new LeafLayout(this);
 
     LayoutPass(TextMeasure text, float viewportWidth, float viewportHeight) {
+        this(text, viewportWidth, viewportHeight, false, null);
+    }
+
+    LayoutPass(TextMeasure text, float viewportWidth, float viewportHeight, boolean modern, LayoutConstraints trace) {
         this.text = text;
         this.viewportWidth = viewportWidth;
         this.viewportHeight = viewportHeight;
+        block = modern ? new FlowLayout(this) : new BlockLayout(this);
+        this.trace = trace;
     }
 
     private FormattingContext formattingContext(LayoutBox box) {
@@ -146,6 +153,12 @@ final class LayoutPass {
             used = definite;
         }
         boolean minHeightWon = used > autoHeight;
+        if (trace != null && !measure) {
+            trace.record(box, width, height, heightDefinite, cbWidth, cbHeight,
+                    contentWidth, contentHeight, percentHeight, autoHeight, used, ratioDependent,
+                    imposed ? "parent-assigned" : Float.isNaN(definite) ? "content-with-min-max"
+                            : ratioDependent ? "ratio-with-content-minimum" : "resolved-height");
+        }
         return new LayoutResult(used, content.firstBaseline(), content.lastBaseline(), content.top(),
                 minHeightWon ? MarginSet.EMPTY : content.bottom(), content.collapsesThrough() && used == 0);
     }

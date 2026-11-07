@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Add experimental block-flow/overflow old/new/both verification (default old), immutable diagnostic geometry, optional sizing constraints, explicit font-measurement invalidation, a fixed-row range calculator, and the development-only oriel_layout preview probe. Inline/positioning/incremental layout and full R06 gates remain separate work.
+
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 
 - Images: opt-in `img loading=lazy` and `data-oriel-lazy` URL backgrounds share a document queue (three sources per 50ms by default, configurable on html), with half-viewport prefetch, fixed-size placeholders and cancellation of unstarted detached elements. Eager loading stays the default; loaded textures retain host-managed lifetimes. The preview checker warns on more than 24 image/background references without lazy loading.

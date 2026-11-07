@@ -6,6 +6,7 @@ import { createInterface } from 'node:readline';
 import { ROOT, STATE, KIT, initState, requireThat, WorkflowError, preview, id } from './lib/core.mjs';
 import { instructions, topics, rules, prompt } from './lib/rules.mjs';
 import { registerProject, projectStatus, freeze, validateActions } from './lib/projects.mjs';
+import { layoutProbeOptions, layoutProbeRecords } from './lib/layout-probe.mjs';
 import { checkProject, snapshotRevision } from './lib/checks.mjs';
 import { webPreview, review } from './lib/web.mjs';
 import { integrate, gamePreview } from './lib/integration.mjs';
@@ -43,6 +44,21 @@ const TOOLS = [
     if (args.projectId) { const check = await checkProject(args); return result(check, !check.passed); }
     const r = await preview(['--check', pagePath(args.target), ...(args.strict ? ['--strict'] : [])]);
     return result({ passed: r.code === 0, exitCode: r.code, output: r.output, note: '旧 target 模式不产生可批准的项目验收。' }, r.code !== 0);
+  }),
+  tool('oriel_layout', '开发期布局探针：读取真实尺寸约束，可选导出当前盒树几何。new/both 仅替换块流与溢出；不代表完整 R06 验收。', {
+    page: string, selector: string, backend: { ...string, enum: ['old', 'new', 'both'] }, geometry: { type: 'boolean' },
+    width: number, height: number, frames: number,
+  }, ['page'], async args => {
+    const directory = path.join(STATE, 'jobs', id('layout')); fs.mkdirSync(directory);
+    const image = path.join(directory, 'page.png');
+    const probe = layoutProbeOptions(args, pagePath(args.page), image, process.env.JAVA_TOOL_OPTIONS || '');
+    const r = await preview(probe.command, probe.env);
+    if (r.code !== 0) return result({ passed: false, exitCode: r.code, output: r.output }, true);
+    const records = layoutProbeRecords(r.output, args.geometry === true);
+    const jsonl = path.join(directory, 'layout.jsonl');
+    fs.writeFileSync(jsonl, records.map(record => JSON.stringify(record)).join('\n') + '\n');
+    const passed = records.every(record => !record.data?.error);
+    return result({ passed, exitCode: r.code, records, jsonl, image: fs.existsSync(image) ? image : null }, !passed);
   }),
   tool('oriel_snapshot', '真实 Oriel 引擎截图。可执行已声明场景/动作并查看元素盒子。原生 3D 为占位，不能代替游戏验证。', {
     projectId: string, page: string, scene: string, width: number, height: number, frames: number, actions: { type: 'array', items: string }, boxes: string,

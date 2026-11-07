@@ -1,5 +1,7 @@
 # Oriel previewer
 
+开发期布局开关、--boxes 的 why-size/几何 JSON 输出见[布局迁移诊断](../docs/zh/d36-r06.md)。
+
 > 中文参数、工作区输出位置、外部页面资源根、MCP 与验收范围见 [验收工具](../docs/zh/validation.md)。临时页要同时提供其引用的 Oriel assets；仅把 kit 放进 Java classpath 不等于加载资源包。截图/动作输出显式指定仓库外 daily，勿在仓库根按 Ctrl+S 留截图。
 
 Renders a Oriel page in a window without launching Minecraft. It uses the engine, Java2D, and Minecraft's own font

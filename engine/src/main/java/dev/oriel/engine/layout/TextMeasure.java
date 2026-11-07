@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * How wide text is, for everyone who places glyphs: layout, painting, hit testing and form controls, so they agree.
@@ -23,13 +24,30 @@ public final class TextMeasure {
     /** Cached strings before the cache starts over; a page's words fit many times over. */
     private static final int MAX_CACHED = 8192;
 
-    private final FontMetrics fonts;
+    private FontMetrics fonts;
     private final Map<FontSpec, Map<String, Float>> widths = new HashMap<>();
     private int cached;
+    private long generation;
 
     public TextMeasure(FontMetrics fonts) {
         this.fonts = fonts;
     }
+
+    /** Discards measurements after a host font reload. Call LayoutEngine.fontsChanged to also request layout. */
+    public void invalidate() {
+        widths.clear();
+        cached = 0;
+        generation++;
+    }
+
+    /** Rebinds the host service without invalidating references held by painting and controls. */
+    void invalidate(FontMetrics replacement) {
+        fonts = Objects.requireNonNull(replacement);
+        invalidate();
+    }
+
+    /** Font measurement generation, incremented only on explicit invalidation. */
+    public long generation() { return generation; }
 
     public float glyphHeight(FontSpec font) {
         return fonts.glyphHeight(font);

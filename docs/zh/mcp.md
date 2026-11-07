@@ -1,5 +1,7 @@
 # MCP 页面制作与接入
 
+开发期 oriel_layout 的参数、JSONL 与限制见[布局尺寸诊断](d36-r06.md)。它不产生页面批准或游戏验收。
+
 ## 下游骨架：oriel_scaffold
 
 默认只读检测下游工程并返回接入清单；不执行 Gradle、不安装 jar、不修改构建、元数据或已有 Java。支持 Fabric、NeoForge 和常见 Stonecutter 源码结构。
