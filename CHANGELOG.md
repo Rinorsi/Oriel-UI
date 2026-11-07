@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Settings: add the local mod-settings host for seven player preferences, typed validation and live state replies. Save/reset uses atomic, comment-preserving properties updates; server sessions, privileged keys, malformed and oversized requests are refused. Existing startup fallback behavior and public client/server APIs remain unchanged.
+
 - Add experimental block-flow/overflow old/new/both verification (default old), immutable diagnostic geometry, optional sizing constraints, explicit font-measurement invalidation, a fixed-row range calculator, and the development-only oriel_layout preview probe. Inline/positioning/incremental layout and full R06 gates remain separate work.
 
 - CSS: add opt-in old/new/both cascade ranking, dependency-path invalidation with full-reference computed-field checks, read-only installed-property metadata, and explicit cascade explanations through --why-property / oriel_inspect. Real nested cascade layers are separately opt-in; defaults remain legacy pending performance acceptance. Typed custom properties and true revert-layer remain unsupported. See docs/zh/d36-r04.md.

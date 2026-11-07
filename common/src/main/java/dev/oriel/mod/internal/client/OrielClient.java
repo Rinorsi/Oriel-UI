@@ -78,6 +78,7 @@ public final class OrielClient {
         });
         // The template centre's favourites, recently viewed and saved copies (config/oriel/).
         TemplateLibrary.init();
+        ModSettings.init();
     }
 
     public static void sendToServer(CustomPacketPayload payload) {

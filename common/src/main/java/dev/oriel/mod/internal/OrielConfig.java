@@ -9,9 +9,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -126,7 +128,7 @@ public final class OrielConfig {
     }
 
     /** Reads {@code file}, then appends every key it lacks with its default and comment. Never throws. */
-    public static void load(Path file) {
+    public static synchronized void load(Path file) {
         Properties p = new Properties();
         try {
             if (Files.exists(file)) {
@@ -152,6 +154,107 @@ public final class OrielConfig {
 
     private static final String HEADER = comment("Oriel settings, read when the game starts. A missing or invalid value "
             + "falls back to its default with a warning in the log. Delete a line to get its default back.") + "\n";
+
+    /**
+     * Validates and atomically persists a batch before publishing its values. Invalid values leave both the file
+     * and current settings unchanged and return a diagnostic; write failures throw without publishing. Loading
+     * retains its separate fallback-to-default policy. Callers must enforce their own key allowlist.
+     */
+    public static synchronized @Nullable String update(Path file, Map<String, String> changes) throws IOException {
+        Map<String, String> checked = new LinkedHashMap<>();
+        for (var change : changes.entrySet()) {
+            Setting<?> setting = SETTINGS.get(change.getKey());
+            if (setting == null) return "unknown key " + change.getKey();
+            try {
+                checked.put(setting.key, setting.checkedText(change.getValue()));
+            } catch (RuntimeException e) {
+                return setting.key + ": " + (e.getMessage() == null ? "is not valid" : e.getMessage());
+            }
+        }
+        if (checked.isEmpty()) return null;
+        persist(file, checked);
+        checked.forEach((key, raw) -> SETTINGS.get(key).set(raw));
+        return null;
+    }
+
+    /** Rewrites only changed logical properties, preserving comments, unrelated text and line endings. */
+    private static void persist(Path file, Map<String, String> changes) throws IOException {
+        Path target = file.toAbsolutePath().normalize();
+        String original = Files.exists(target) ? Files.readString(target, StandardCharsets.UTF_8) : "";
+        String newline = original.contains("\r\n") ? "\r\n" : original.contains("\n") ? "\n"
+                : original.contains("\r") ? "\r" : "\n";
+        Map<String, String> missing = new LinkedHashMap<>(changes);
+        StringBuilder out = new StringBuilder();
+        StringBuilder logical = new StringBuilder();
+        for (String line : original.split("(?<=\n)|(?<=\r)(?!\n)", -1)) {
+            if (line.isEmpty()) continue;
+            String body = line.replaceFirst("[\r\n]+$", "");
+            String trimmed = body.replaceFirst("^[ \\t\\f]+", "");
+            boolean comment = logical.isEmpty() && (trimmed.isEmpty() || trimmed.startsWith("#") || trimmed.startsWith("!"));
+            logical.append(line);
+            int slashes = 0;
+            for (int i = body.length() - 1; i >= 0 && body.charAt(i) == '\\'; i--) slashes++;
+            if (!comment && slashes % 2 != 0) continue;
+            replaceProperty(logical.toString(), line.substring(body.length()), changes, missing, out);
+            logical.setLength(0);
+        }
+        if (!logical.isEmpty() && !replaceProperty(logical.toString(), "", changes, missing, out) && !missing.isEmpty()) {
+            // A trailing continuation at EOF must end on an empty natural line before an appended key.
+            if (out.charAt(out.length() - 1) != '\n' && out.charAt(out.length() - 1) != '\r') out.append(newline);
+            out.append(newline);
+        }
+        for (var entry : missing.entrySet()) {
+            if (!out.isEmpty() && out.charAt(out.length() - 1) != '\n' && out.charAt(out.length() - 1) != '\r') out.append(newline);
+            out.append(propertyText(entry.getKey(), entry.getValue())).append(newline);
+        }
+        Files.createDirectories(target.getParent());
+        Path temporary = Files.createTempFile(target.getParent(), ".oriel-settings-", ".tmp");
+        try {
+            Files.writeString(temporary, out, StandardCharsets.UTF_8);
+            // An unsupported atomic replacement is an explicit save failure, never a partial/truncated file.
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    private static boolean replaceProperty(String logical, String ending, Map<String, String> changes,
+                                           Map<String, String> missing, StringBuilder out) throws IOException {
+        Properties property = new Properties();
+        try {
+            property.load(new StringReader(logical));
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Cannot preserve malformed properties entry", e);
+        }
+        String key = property.stringPropertyNames().stream().findFirst().orElse(null);
+        if (key != null && changes.containsKey(key)) {
+            out.append(propertyText(key, changes.get(key))).append(ending);
+            missing.remove(key);
+            return true;
+        }
+        out.append(logical);
+        return false;
+    }
+
+    private static String propertyText(String key, String value) {
+        return escapeProperty(key) + '=' + escapeProperty(value);
+    }
+
+    private static String escapeProperty(String value) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            switch (c) {
+                case '\n' -> out.append("\\n");
+                case '\r' -> out.append("\\r");
+                case '\t' -> out.append("\\t");
+                case '\f' -> out.append("\\f");
+                case '\\', ' ', '=', ':', '#', '!' -> out.append('\\').append(c);
+                default -> out.append(c);
+            }
+        }
+        return out.toString();
+    }
 
     /**
      * Sets every setting from {@code p}, its default where {@code p} lacks it or has a bad value, installs the
@@ -239,6 +342,10 @@ public final class OrielConfig {
 
         public T defaultValue() {
             return def;
+        }
+
+        private String checkedText(String raw) {
+            return format.apply(parse.apply(raw.strip()));
         }
 
         /** Sets the value from text (the default for null); returns why the text was refused, or null. */
