@@ -11,6 +11,7 @@ import java.util.List;
 import static dev.oriel.kit.preset.KitHost.click;
 import static dev.oriel.kit.preset.KitHost.frame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The launcher: tiles open their presets, the theme switches, particles run. */
@@ -54,7 +55,8 @@ class GalleryPresetTest {
         var slides = doc.querySelectorAll("#picks .slide");
         assertEquals(GalleryPreset.PICKS.size(), slides.size());
         assertTrue(slides.get(0).hasClass("on"));
-        assertTrue(slides.get(0).querySelector(".cap b").textContent().contains("·"), "the title shows");
+        assertFalse(slides.get(0).querySelector(".cap b").textContent().isBlank(), "the title shows");
+        assertFalse(Character.isDigit(slides.get(0).querySelector(".cap b").textContent().charAt(0)), "and carries no number");
         assertEquals("云诺羲", slides.get(0).querySelector(".cap span").textContent(), "the author shows");
         click(doc, "#pick-next", 0, Modifiers.NONE, clock);
         assertTrue(slides.get(1).hasClass("on"));

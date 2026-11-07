@@ -1,1 +1,0 @@
-function back(){location.href='oriel:ui/styles.html';}document.getElementById('back').addEventListener('click',back);document.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();back();}});

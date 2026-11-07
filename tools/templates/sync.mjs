@@ -19,12 +19,12 @@ for(const {dir,t}of entries){
  for(const k of ['name','description','category'])if(!text[k])throw Error(dir+' missing '+k+' in all locales');
  text.tags=choices.map(v=>v.tags).find(v=>Array.isArray(v)&&v.length)||[text.category];
  catalog.push({id:t.id,entry:t.entry,source:t.source,kind:t.kind,cover:t.cover,...(t.page?{page:t.page}:{})});
- const title=(t.source==='official'?t.id+' · ':'')+text.name;
+ const title=text.name;
  const tag='<div class="tpl" data-id="'+t.id+'" data-title="'+esc(title)+'" data-author="'+esc(t.author)+'" data-source="'+t.source+'" data-group="'+t.group+'" data-ver="'+t.version+'" data-date="'+t.date+'" data-tags="'+esc(text.tags.join(','))+'" data-desc="'+esc(text.description)+'">';
  if(t.source==='official')cards.push(tag+'</div>');
  else html=html.replace(new RegExp('<div class="tpl" data-id="'+t.id+'"[^>]*>'),tag+'<p class="template-category" data-template-field="category"></p>');
  fs.copyFileSync(base+'/SOURCES.md',base+'/'+dir+'/SOURCES.md');
- const description=['# '+(t.source==='official'?t.id+' · ':'')+text.name,'','- 作者 / 制作者：'+t.author,'- 版本：'+t.version,'- 分类：'+text.category,'- 介绍：'+text.description,'- 入口：oriel:ui/templates/'+t.entry,'','## 模板自带语言','','名称、介绍、分类、标签与状态只编辑本目录 template.json 的 locales。当前语言无对应内容时按英文 → 中文 → 其他已有语言回退；空字段同样回退。玩家示例名不属于作者字段。','',...Object.entries(t.locales).flatMap(([l,v])=>['### '+l,'','- Name / 名称：'+v.name,'- Description / 介绍：'+v.description,'- Category / 分类：'+v.category,'- Status / 状态：'+(v.status||''),'']),'修改后运行 node tools/templates/sync.mjs，同步只生成目录索引和文件清单，不会覆盖本文件夹的 template.json。','版权与素材来源见 SOURCES.md；目录归属不代表已完成游戏验收。',''].join(nl);
+ const description=['# '+text.name,'','- 作者 / 制作者：'+t.author,'- 版本：'+t.version,'- 分类：'+text.category,'- 介绍：'+text.description,'- 入口：oriel:ui/templates/'+t.entry,'','## 模板自带语言','','名称、介绍、分类、标签与状态只编辑本目录 template.json 的 locales。当前语言无对应内容时按英文 → 中文 → 其他已有语言回退；空字段同样回退。玩家示例名不属于作者字段。','',...Object.entries(t.locales).flatMap(([l,v])=>['### '+l,'','- Name / 名称：'+v.name,'- Description / 介绍：'+v.description,'- Category / 分类：'+v.category,'- Status / 状态：'+(v.status||''),'']),'修改后运行 node tools/templates/sync.mjs，同步只生成目录索引和文件清单，不会覆盖本文件夹的 template.json。','版权与素材来源见 SOURCES.md；目录归属不代表已完成游戏验收。',''].join(nl);
  fs.writeFileSync(base+'/'+dir+'/README.md',description);
  fs.writeFileSync(base+'/'+dir+'/files.json',JSON.stringify([...new Set([...files(base+'/'+dir),'files.json'])].sort(),null,2)+nl);
 }
@@ -36,5 +36,5 @@ html=html.slice(0,a)+start+nl+cards.join(nl)+nl+end+html.slice(b);
 html=html.replace(/<span data-i18n="oriel.ui.styles.group.([^"]+)">[^<]*<\/span>/g,'<span data-template-group="$1"></span>');
 fs.writeFileSync(file,html);
 fs.writeFileSync(base+'/catalog.json',JSON.stringify(catalog,null,2)+nl);
-fs.writeFileSync(base+'/README.md',['# 官方模板源码','','01—53 同层编号（52原型与44背景参考），旧版在 legacy/。每个 template.json 是该模板的元数据编辑入口，locales 自带中英文名称、介绍、分类；作者为云诺羲。当前语言 → 英文 → 中文 → 其他已有语言。','','catalog.json 仅为自动生成的顺序与路径索引；不要在索引修改名称。执行 node tools/templates/sync.mjs 更新索引、说明及文件清单，不写全局语言文件。','','源码在仓库与长期 archive 备份中，不受 daily 清理。',...entries.map(({dir,t})=>'- ['+t.id+' · '+(t.locales.zh_cn||t.locales.en_us||Object.values(t.locales)[0]).name+']('+dir+'/README.md)'),''].join(nl));
+fs.writeFileSync(base+'/README.md',['# 官方模板源码','','官方模板按编号放目录（编号只是目录名，界面里不显示），旧版在 legacy/。每个 template.json 是该模板的元数据编辑入口，locales 自带中英文名称、介绍、分类；作者为云诺羲。当前语言 → 英文 → 中文 → 其他已有语言。','','catalog.json 仅为自动生成的顺序与路径索引；不要在索引修改名称。执行 node tools/templates/sync.mjs 更新索引、说明及文件清单，不写全局语言文件。','','源码在仓库与长期 archive 备份中，不受 daily 清理。',...entries.map(({dir,t})=>'- ['+t.id+' · '+(t.locales.zh_cn||t.locales.en_us||Object.values(t.locales)[0]).name+']('+dir+'/README.md)'),''].join(nl));
 console.log('Synced '+entries.length+' self-contained manifests; global language files unchanged');

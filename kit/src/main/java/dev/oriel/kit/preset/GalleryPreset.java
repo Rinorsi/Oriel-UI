@@ -67,8 +67,8 @@ public final class GalleryPreset implements PageControllers.Controller {
             String author = meta.has("author") ? meta.get("author").getAsString() : "";
             Element slide = Dom.html(doc, "<div class=\"slide\"><img><div class=\"cap\"><b></b><span></span></div></div>");
             slide.querySelector("img").setAttribute("src", TemplateCatalog.cover(id));
-            Dom.text(slide.querySelector("b"), id + " · " + text.name());
-            slide.querySelector("b").setAttribute("title", id + " · " + text.name());
+            Dom.text(slide.querySelector("b"), text.name());
+            slide.querySelector("b").setAttribute("title", text.name());
             Element by = slide.querySelector("span");
             by.setAttribute("lang", "zh");
             Dom.text(by, author);

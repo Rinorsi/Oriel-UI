@@ -301,13 +301,6 @@
     "cover": "oriel:ui/templates/43/cover.png"
   },
   {
-    "id": "44",
-    "entry": "44/index.html",
-    "source": "official",
-    "kind": "reference",
-    "cover": "oriel:textures/icons/layers.png"
-  },
-  {
     "id": "45",
     "entry": "45/index.html",
     "source": "official",

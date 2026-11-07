@@ -164,7 +164,7 @@ public final class StylesPreset implements PageControllers.Controller {
             for (Element field : e.querySelectorAll("[data-template-field]")) {
                 Dom.text(field, field.getAttribute("data-template-field").equals("category") ? text.category() : text.status());
             }
-            Template t = new Template(id, (source.equals("official") ? id + " · " : "") + text.name(),
+            Template t = new Template(id, text.name(),
                     str(meta, "author"), source, group, str(meta, "version"), str(meta, "date"),
                     tagsOf(id, source, text.tags()), text.description(), e, null, order++);
             templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));

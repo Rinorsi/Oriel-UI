@@ -22,14 +22,15 @@ class TemplateCatalogTest {
         }
     }
 
-    @Test void allNumbersIncluding44HavePackagedContent() throws Exception {
-        assertEquals(IntStream.rangeClosed(1, 57).mapToObj(i -> String.format("%02d", i)).toList(),
-                TemplateCatalog.ids().subList(0, 57));
-        assertEquals(68, TemplateCatalog.ids().size());
+    @Test void everyListedTemplateHasPackagedContent() throws Exception {
+        assertEquals(IntStream.rangeClosed(1, 57).filter(i -> i != 44).mapToObj(i -> String.format("%02d", i)).toList(),
+                TemplateCatalog.ids().subList(0, 56));
+        assertEquals(67, TemplateCatalog.ids().size());
         for (String id : TemplateCatalog.ids()) assertTrue(read(TemplateCatalog.page(id).substring(6)).length > 100);
         assertFalse(TemplateCatalog.numbered("xianxia"));
-        assertEquals("oriel:ui/templates/44/index.html", TemplateCatalog.page("44"));
-        assertThrows(IllegalArgumentException.class, () -> TemplateCatalog.page("../44"));
+        assertEquals("oriel:ui/templates/45/index.html", TemplateCatalog.page("45"));
+        assertThrows(IllegalArgumentException.class, () -> TemplateCatalog.page("44"), "the background reference is not in the library");
+        assertThrows(IllegalArgumentException.class, () -> TemplateCatalog.page("../45"));
     }
 
     @Test void saveCopiesEveryFileAndPreservesUserEdits() throws Exception {

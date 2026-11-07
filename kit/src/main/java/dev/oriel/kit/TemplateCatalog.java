@@ -18,7 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.function.Function;
 
-/** Packaged template identities. Numbered entries keep their original numbers, including reference 44. */
+/** Packaged template identities. The numbers are folder names only; the library shows names, never numbers. */
 public final class TemplateCatalog {
     private static final String ROOT = "ui/templates/";
     private static final List<JsonObject> ENTRIES = load();
