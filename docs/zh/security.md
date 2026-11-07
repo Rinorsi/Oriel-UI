@@ -71,6 +71,12 @@
 
 客户端允许页面做什么：
 
+可在模组设置页修改的项：`client.uiSounds`、`client.uiSoundVolume`、`client.reducedMotion`、`client.typingNotice`、`client.serverPages`、`client.webLinks`、`client.shapeShader`。保存成功后立即更新内存并原子替换 `config/oriel.properties`，保留注释与其他键的顺序；恢复默认只改这七项。音量控件步长为 0.05，宿主接受范围内的有限数值，不钳制非法值。`shapeShader` 每帧读取，不需重启；减少动效是否被页面脚本遵守取决于页面实现。文件保存失败或值不合法时保留原值并记录诊断。
+
+设置页的内部宿主协议：仅本地 `OrielKit.page("modsettings")` 页面接入，服务器会话不会得到设置数据或写入处理器。页面通过 `OrielKit.CHANNEL` 发送 `{"op":"set","key":"client.uiSounds","value":"false"}` 或 `{"op":"reset"}`；页面控件的值统一发送字符串，由对应 Setting 解析；宿主也接受类型相符的 JSON 布尔值或数值，选项为字符串（`ALLOW`/`ASK`/`BLOCK`，网页链接仅 `ASK`/`BLOCK`，解析不区分大小写）。未知操作忽略，未知键、缺省/null/错误类型的值拒绝；不开放限额、调试或强制关闭设置。请求为最多三个字段的扁平对象，紧凑 JSON 不超过 1024 字符，沿用按界面跨重载的 `client.messageBurst` / `client.messagesPerSecond` 限速。
+
+加载及每次已送达请求后，宿主以 `driver.patch("settings", state)` 完整替换 `settings` 子字段（不覆盖其他页面数据）。`state.items` 的每项为 `{key,type,value,default,min,max,step,options,live}`，`type` 为 `bool`/`number`/`choice`；当前七项 `live` 均为 `true`，非数字项的 `min/max/step` 为 null，非选项项的 `options` 为 `[]`，选项值使用大写枚举名。拒绝后的回执仍含原值；重复设置是幂等的，重载后重发当前内存状态。此协议是内部页面合同，纯 Java 回归与三版本编译/API 检查和游戏里的声音、动效、着色器验收须分别验证。
+
 | 键 | 缺省 | 范围 | 含义 |
 |---|---|---|---|
 | `client.serverPages` | `allow` | `allow`、`ask`、`block` | 服务器打开的页面是否显示。`ask` 每次访问问一次。 |
