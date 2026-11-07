@@ -26,6 +26,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Post-layout authoring diagnostics, shared by check, snapshots and action previews. */
 final class PageLint {
@@ -70,11 +72,90 @@ final class PageLint {
             out.add("images-without-lazy", firstImage, "同页图片/背景图共 " + imageCount + " 处，超过 24 处且没有懒加载",
                     "列表图片添加 loading=\"lazy\"，URL 背景图所在元素添加 data-oriel-lazy；显式设置 width/height 预留空间。");
         }
+        sources(doc, host, out);
         return out.finish();
     }
 
     static void report(Document doc, PreviewHost host) {
         for (Diagnostic d : run(doc, host)) doc.diagnostics().report(d);
+    }
+
+    // ---- Page sources: scripts and style sheets, read as text ----
+
+    private static final Pattern GLOBAL_FUNCTION = Pattern.compile("(?m)^(?:async\\s+)?function\\s*\\*?\\s*([A-Za-z_$][\\w$]*)\\s*\\(");
+    private static final Pattern BARE_CLASS_RULE = Pattern.compile("(?:^|[};])\\s*\\.([A-Za-z_][\\w-]*)\\s*\\{([^}]*)}");
+    private static final Pattern DISPLAY_NONE = Pattern.compile("display\\s*:\\s*none");
+    private static final Pattern DISPLAY_ANY = Pattern.compile("display\\s*:\\s*(?!none)[a-z-]+");
+    /** Names that are meant to hide things when a script adds them. */
+    private static final Pattern HIDING_NAME = Pattern.compile("(?i).*(hid|none|off|collaps|closed|inactive|invisible|empty|disabled).*");
+
+    private record Source(Element owner, String text) {}
+
+    /** Two checks over the page's own scripts and style sheets; the text is what the author wrote, not the DOM. */
+    private static void sources(Document doc, PreviewHost host, Findings out) {
+        List<Source> scripts = new ArrayList<>(), styles = new ArrayList<>();
+        for (Element e : doc.querySelectorAll("script, style, link")) {
+            switch (e.tagName()) {
+                case "script" -> {
+                    String type = e.getAttribute("type");
+                    if (type != null && !type.isBlank() && !type.contains("javascript") && !type.equals("module")) continue;
+                    String src = e.getAttribute("src");
+                    String text = src != null && !src.isBlank() ? host.loadText(host.resolveUrl(doc.url(), src)) : e.textContent();
+                    if (text != null) scripts.add(new Source(e, text));
+                }
+                case "style" -> styles.add(new Source(e, e.textContent()));
+                default -> {
+                    String rel = e.getAttribute("rel"), href = e.getAttribute("href");
+                    if (rel != null && rel.contains("stylesheet") && href != null) {
+                        String text = host.loadText(host.resolveUrl(doc.url(), href));
+                        if (text != null) styles.add(new Source(e, text));
+                    }
+                }
+            }
+        }
+        // The same top-level function declared twice: the later one silently replaces the earlier.
+        Map<String, Integer> declared = new LinkedHashMap<>();
+        for (Source script : scripts) {
+            Matcher m = GLOBAL_FUNCTION.matcher(script.text());
+            while (m.find()) {
+                String name = m.group(1);
+                if (declared.merge(name, 1, Integer::sum) == 2) {
+                    out.add("duplicate-global-function", script.owner(), name,
+                            "全局函数 " + name + "() 在页面脚本里被声明了不止一次，后面的会悄悄覆盖前面的",
+                            "先在已加载的脚本里搜索现成的 " + name + "，只留一份定义；需要不同行为就换名字或传参数。");
+                }
+            }
+        }
+        // A bare class hidden for good by one rule, yet written into the page by a script: its elements never show.
+        for (Source style : styles) {
+            Matcher m = BARE_CLASS_RULE.matcher(style.text());
+            while (m.find()) {
+                String name = m.group(1);
+                if (!DISPLAY_NONE.matcher(m.group(2)).find() || HIDING_NAME.matcher(name).matches()) continue;
+                if (shownElsewhere(styles, name) || !createdByScript(scripts, name)) continue;
+                out.add("hidden-class-created-by-script", style.owner(), "." + name,
+                        "样式 ." + name + " 设了 display:none，页面脚本却会生成带这个类的元素，它们永远看不见",
+                        "给它一条显示规则（例如 ." + name + ".on 或父级限定的 display），或改名/删掉隐藏规则。");
+            }
+        }
+    }
+
+    /** Some other rule mentioning the class sets a display other than none, so the class can be shown. */
+    private static boolean shownElsewhere(List<Source> styles, String name) {
+        Pattern rule = Pattern.compile("([^{}]*\\." + Pattern.quote(name) + "(?![\\w-])[^{}]*)\\{([^}]*)}");
+        for (Source style : styles) {
+            Matcher m = rule.matcher(style.text());
+            while (m.find()) if (DISPLAY_ANY.matcher(m.group(2)).find()) return true;
+        }
+        return false;
+    }
+
+    /** The class written into markup by a script: class="..." inside a string, or an assignment to className. */
+    private static boolean createdByScript(List<Source> scripts, String name) {
+        String token = "(?<![\\w-])" + Pattern.quote(name) + "(?![\\w-])";
+        Pattern created = Pattern.compile("(?:class\\s*=\\s*[\\\\\"']?[^\\\\\"'>]*|className\\s*\\+?=\\s*[\\\\\"'`][^\\\\\"'`]*)" + token);
+        for (Source script : scripts) if (created.matcher(script.text()).find()) return true;
+        return false;
     }
 
     /** Existing library visuals are reviewed separately; never exempt external pages by namespace alone. */

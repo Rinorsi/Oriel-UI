@@ -5,7 +5,13 @@ Oriel UI was forked. Names in those entries (`VellumPages`, `VellumSession`, `ve
 the upstream's; in this fork they are `OrielPages`, `OrielSession`, `oriel.data`, `/oriel` and `oriel.properties` (the handbook in `docs/zh` is authoritative). Treat
 those entries as history, not as documentation of the current API.
 
-## 0.11.0 (in development)
+## 0.11.0 (2026-11-08)
+
+- Checker: two new source rules, `duplicate-global-function` (a top-level function declared twice across the page's scripts) and `hidden-class-created-by-script` (a bare class hidden with display:none that a script writes into the page, with no rule that shows it). Bundled pages report them as info.
+- Showcase: the About page now has a short "What's new" list for players.
+
+- Engine defaults (2026-11-08): the new implementations are now the default for selectors, cascade, input, block layout, paint and the scripting ecosystem bindings (`-Doriel.selector|cascade|inputBackend|layout.block|paintMode|ecosystem=old` returns to the previous implementation; tag `engine-before-new-default` marks the last build with old defaults). This supersedes every "default old" remark in the entries below. Flex and grid have no separate new implementation, so nothing changed for them. Pure-descendant selectors of three or more parts no longer allocate while matching.
+- Development: the autopilot smoke run now screenshots every tab of the showcase window and logs each page's frame rate at rest; `-Pautopilot=templates` opens every template in turn and logs the same.
 
 - Kit pages: the home page is rebuilt around the pitch, the component library, the community's picks (a carousel with title and author), the mod's settings, the icons, the mod's information and a "coming soon" tile; the main tabs are now Home, Community, Components, Icons, Settings, About. New pages: mod settings (writes the player-facing client settings back through the game) and about (author links to copy, other mods, the Ore UI and beyond statement). The template centre loses its stacked rows (crumb, hints, tag chips, sub-headline, footer): one toolbar row over the grid, a collapsible sidebar with short categories (`templates/categories.json`), details with the actions pinned at the bottom, author avatars kept with the templates (`templates/avatars`), and the inventory, settings, potion HUD and component editor pages as official templates (54–57).
 - Settings: add the local mod-settings host for seven player preferences, typed validation and live state replies. Save/reset uses atomic, comment-preserving properties updates; server sessions, privileged keys, malformed and oversized requests are refused. Existing startup fallback behavior and public client/server APIs remain unchanged.

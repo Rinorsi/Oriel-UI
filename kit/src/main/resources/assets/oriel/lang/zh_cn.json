@@ -2414,5 +2414,12 @@
   "oriel.ui.modsettings.opt.ASK": "询问",
   "oriel.ui.modsettings.opt.BLOCK": "禁止",
   "oriel.ui.styles.side.old": "旧版",
-  "oriel.ui.styles.drawer.details": "详细信息"
+  "oriel.ui.styles.drawer.details": "详细信息",
+  "oriel.ui.about.new.title": "更新内容 · 0.11",
+  "oriel.ui.about.new.1": "全新的首页和社区模板中心：56 个官方模板，可预览、收藏、一键保存。",
+  "oriel.ui.about.new.2": "新增「设置」页：界面音效、音量、减少动效等，改动立即保存。",
+  "oriel.ui.about.new.3": "按钮、标签页和开关有了界面提示音。",
+  "oriel.ui.about.new.4": "长列表里的图片按需加载，滚动更顺。",
+  "oriel.ui.about.new.5": "引擎换用新的实现，页面显示不变，出问题更容易查。",
+  "oriel.ui.about.new.6": "修复了滚动框撑高外层、编辑器标签被挤压的问题。"
 }

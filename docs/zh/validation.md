@@ -1,6 +1,6 @@
 # 检查与验收工具
 
-开发期布局 old/new/both、--boxes 的约束 JSON 输出与 oriel_layout MCP 参数见[布局尺寸诊断](d36-r06.md)。默认 old，不替代常规检查。
+开发期布局 old/new/both、--boxes 的约束 JSON 输出与 oriel_layout MCP 参数见[布局尺寸诊断](d36-r06.md)。默认 new，旧实现用 old 回退；不替代常规检查。
 
 下游骨架 `oriel_scaffold` 默认只读；prepare 使用 `oriel_check` 的严格引擎诊断与双尺寸截图，用户聊天批准后 apply 仅新建不存在的 HTML/Java。`node --test tools/mcp/scaffold.test.mjs` 用伪造工程覆盖检测、路径、批准及幂等；`ORIEL_TEST_TMP` 指向仓库外临时目录。Java 注册片段未据此证明下游编译或游戏可用，详见 [MCP 手册](mcp.md#下游骨架oriel_scaffold)。
 
@@ -61,6 +61,8 @@ CI 对全部 kit 页面分别执行默认语言（zh_cn）和 en_us 的严格检
 | flex-content-clipped | flex 行子项发生收缩且内容被切。图标、角标用 flex:none / min-width，文本区单独收缩并设置省略号和提示。已完整显示或已使用省略号的文本不会报此项。 |
 | image-too-large | 页面 img 或计算样式背景、边框、遮罩引用的 PNG 宽或高 >2048px，或文件 >1 MiB。按显示尺寸缩图、压缩；支持资源命名空间与页面旁文件，同一 URL 去重，只读 PNG 文件头与文件大小，不解码整图。 |
 | images-without-lazy | 同页非 canvas/sprite/data 的 img 引用与 URL 背景层合计 >24 处，且这些源完全没有 `loading=lazy` / `data-oriel-lazy`。含隐藏和视口外元素，重复 URL 按使用处计数；渐变不计。给列表图启用懒加载并预留宽高，配置见[性能规范](performance.md#列表图片懒加载)。 |
+| duplicate-global-function | 页面的脚本（内联与 src）里，同一个顶格的 `function 名字(` 声明了不止一次，后面的会悄悄覆盖前面的。先在已加载的脚本里搜现成的，只留一份定义；需要不同行为就换名字。嵌套函数、`const f = function` 不算。 |
+| hidden-class-created-by-script | 样式里有一条单独的 `.类名 { display:none }`，页面脚本却用 `class="…"` 或 `className=` 把这个类写进页面，而且没有任何别的规则给它设过非 none 的 display，于是这些元素永远看不见（`classList.add` 当作切换，不算；名字里带 hid / off / empty 等的当作本来就是隐藏用的）。给它加一条显示规则，或改名。 |
 
 每个规则、每个视口最多显示前 5 处，超出另报一条总数汇总；结构化报告保留 code/source/line/column/suggestion。文本规则跳过隐藏、完全不可见、尚未稳定的入场动画、循环动画及旋转/斜切内容；已结束的入场动画、轴向缩放/平移仍检查。非 nowrap、多行裁剪、复杂遮挡不在 text-clipped 的覆盖范围内。动态生成节点没有原始行号时用元素标识定位。离线字体和数据必须与目标页面匹配。
 

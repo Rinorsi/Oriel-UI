@@ -4,7 +4,7 @@
 
 ## 唯一源码入口
 
-kit/src/main/resources/assets/oriel/ui/templates/ 下的 01/、02/……53/ 为同层目录。打开每项 README.md 即可看到真实名称、介绍、分类、版本、作者；index.html、CSS、JS、art/ 是实际运行源码。每项 template.json 是元数据编辑入口，locales 自带名称、介绍、分类、标签与状态。catalog.json 只保存顺序和资源路径。node tools/templates/sync.mjs 根据每项文件生成索引、README 与 files.json，不覆盖 template.json，也不读写全局语言文件。
+kit/src/main/resources/assets/oriel/ui/templates/ 下的 01/、02/…… 数字目录（没有 44）和 legacy/ 为同层目录；编号只是目录名，界面里不显示。打开每项 README.md 即可看到真实名称、介绍、分类、版本、作者；index.html、CSS、JS、art/ 是实际运行源码。每项 template.json 是元数据编辑入口，locales 自带名称、介绍、分类、标签与状态。catalog.json 只保存顺序和资源路径。node tools/templates/sync.mjs 根据每项文件生成索引、README 与 files.json，不覆盖 template.json，也不读写全局语言文件。
 
 | 编号 | 分类 |
 |---|---|
@@ -26,7 +26,7 @@ legacy/ 下保存 rpg、mcdungeons、military、dungeon、arcane、fantasy、ter
 
 ## 预览、复制与保存
 
-编号页可直接打开 oriel:ui/templates/09/index.html。模板中心按 01—53 声明顺序排列；切换名称排序仍保持编号顺序。旧版单独筛选；所有模板可按分类、关键词和收藏检索。封面按视口分批读取，打开列表不一次加载全部素材。
+编号页可直接打开 oriel:ui/templates/09/index.html。模板中心按声明顺序排列；切换名称排序仍保持编号顺序。旧版单独筛选；所有模板可按分类、关键词和收藏检索。封面按视口分批读取，打开列表不一次加载全部素材。
 
 「保存副本」将编号页面的 HTML、CSS、JS、素材和元数据按 files.json 整体复制到 config/oriel/my-pages/templates/NN/。先写临时目录，全部成功后再移入目标；已有目录不会覆盖。保存后在「我的页面」编辑副本；官方源不随个人修改改变。旧版新副本保存在 templates/legacy/<id>/，同样包含自身元数据与封面；已有 id.html + showcase.css 副本继续可打开，不覆盖用户修改。
 

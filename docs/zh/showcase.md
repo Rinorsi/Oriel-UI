@@ -8,8 +8,8 @@ Showcase 是 Oriel 的**主参考库**：8 个整页示例 + 4 个基础演示�
 
 | 内容 | 源码 | 游戏里看 |
 |---|---|---|
-| 8 个展示页 + 共用样式 | `common/src/main/resources/assets/oriel/oriel/showcase/`（`*.html`、`showcase.css`） | 模板中心 → 演示；`/oriel showcase <页面>` |
-| 4 个基础演示、标题卡、toast、箱子 | `common/src/main/resources/assets/oriel/oriel/demo/` | 模板中心 → 演示；`/oriel showcase layout\|animation\|livedata\|forms\|titlecard\|toast\|chest` |
+| 8 个展示页 + 共用样式 | `common/src/main/resources/assets/oriel/oriel/showcase/`（`*.html`、`showcase.css`） | 模板中心 → 旧版 → 演示；`/oriel showcase <页面>` |
+| 4 个基础演示、标题卡、toast、箱子 | `common/src/main/resources/assets/oriel/oriel/demo/` | 模板中心 → 旧版 → 演示；`/oriel showcase layout\|animation\|livedata\|forms\|titlecard\|toast\|chest` |
 | 生物图鉴的游戏数据 | `common/src/main/java/dev/oriel/mod/internal/client/showcase/Mobdex.java` | 同上 |
 | 发布 jar 里 | `assets/oriel/oriel/showcase/`、`assets/oriel/oriel/demo/`（解压即可读） | |
 

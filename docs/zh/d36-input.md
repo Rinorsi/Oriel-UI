@@ -6,7 +6,7 @@
 
 ## 后端开关
 
-JVM 属性 `-Doriel.inputBackend=old|new|both` 在文档、测量器、编辑器创建时读取，**缺省 old**。非法值抛出 IllegalArgumentException。同一文档生命周期内不要修改属性。游戏需要重启才能更换 Java 实现；保存 HTML 不会替换后端。
+JVM 属性 `-Doriel.inputBackend=old|new|both` 在文档、测量器、编辑器创建时读取，**缺省 new**（旧实现用 `old` 回退）。非法值抛出 IllegalArgumentException。同一文档生命周期内不要修改属性。游戏需要重启才能更换 Java 实现；保存 HTML 不会替换后端。
 
 - old 保留原事件路径、焦点排序、字素和线性光标查询、文本宽度缓存。
 - new 使用可重入事件路径缓冲、稳定焦点排序、ASCII 字素快路径、行和光标二分索引、双预算测量缓存、大块布局的保守命中网格。IME 事务、文本撤销和控件默认动作仍复用既有实现；不能把此阶段写成全部输入代码已独立重写。

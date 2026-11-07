@@ -93,7 +93,7 @@ Rhino 实现了 ES2015 的大部分和后续版本的不少内容。Oriel 用补
 
 ## DOM
 
-生态兼容补充（WIP，宿主 -Doriel.ecosystem=new，默认 old）：HTML `createElementNS` / `namespaceURI`、`HTMLInputElement` 与检测构造器，以及可选 `oriel:ui/oriel-shims.js`，详见 [前端库兼容合同](ecosystem.md)。集合仍为 Array 快照，没有 SVG / iframe 实现。
+生态兼容补充（默认开启；宿主 -Doriel.ecosystem=old 可关闭）：HTML `createElementNS` / `namespaceURI`、`HTMLInputElement` 与检测构造器，以及可选 `oriel:ui/oriel-shims.js`，详见 [前端库兼容合同](ecosystem.md)。集合仍为 Array 快照，没有 SVG / iframe 实现。
 
 同一个节点每次拿到的都是同一个对象（`document.getElementById('a') === list.firstElementChild`）。`childNodes`、`children`、`querySelectorAll()`、`getElementsByClassName()` 这类列表返回真正的**数组快照**，文档变化时不会更新，也不是 live 的 HTMLCollection。
 

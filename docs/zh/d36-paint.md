@@ -1,10 +1,10 @@
 # 绘制命令检查与实验缓存
 
-本页描述 0.11.0 的绘制诊断与窄扩展。默认绘制仍走旧路径；实验缓存不代表整个绘制引擎已替换，也不代表真实 GPU 验收通过。
+本页描述 0.11.0 的绘制诊断与窄扩展。默认绘制已走新路径；实验缓存不代表整个绘制引擎已替换，也不代表真实 GPU 验收通过。
 
 ## 绘制模式
 
-启动 JVM 时使用 -Doriel.paintMode=old|new|both，缺省 old；其他值立即报错。Java 宿主也可使用 document.painter().mode(Painter.Mode.NEW)，仅影响该文档。
+启动 JVM 时使用 -Doriel.paintMode=old|new|both，缺省 new（`old` 回到旧绘制路径）；其他值立即报错。Java 宿主也可使用 document.painter().mode(Painter.Mode.NEW)，仅影响该文档。
 
 | 模式 | 行为 |
 |---|---|

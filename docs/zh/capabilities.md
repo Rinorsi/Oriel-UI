@@ -4,11 +4,11 @@
 
 [文档入口](index.md) · [CSS](css-guide.md) · [元素](elements.md) · [验收](validation.md)
 
-适用：Oriel UI 0.11.0 源码基准 `9928647`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。
+适用：Oriel UI 0.11.0 源码基准 `40cef5c`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。
 
 ## 选择界面类型
 
-选择器默认仍用旧匹配器；实验 new/both 开关、复杂度与作用域合同见 [CSS 选择器](css-guide.md#选择器实现与迁移开关)。开关不扩大页面语法或游戏验收范围。
+选择器默认用新匹配器（2026-11-08 起）；old/both 开关、复杂度与作用域合同见 [CSS 选择器](css-guide.md#选择器实现与迁移开关)。开关不扩大页面语法或游戏验收范围。
 
 Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟预览、引擎严格检查、固定版本用户验收、oriel-dev / oriel-folder / mod-project 资源接入；前两者支持独立游戏预览，mod-project 需在下游游戏验证（参数见 MCP 手册）。网页桥接首版支持普通 DOM/JS，外部 Java 控制器及 Oriel 模板需专门适配，不能直接在浏览器执行。该工具能力不扩大下面列出的引擎 HTML/CSS/JS 范围。
 
@@ -114,5 +114,5 @@ filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不�
 
 这些是使用边界。开发计划、分支合并状态和问题处置记录放工作区；能力真正合入后必须同时更新本页与字段参考，规则见 [维护约定](maintenance.md)。
 
-输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端为 new（old 回退）；六目标真实 IME 与手柄另验。
 绘制诊断与窄扩展：提供实验渐变装饰缓存、DisplayList 导出，以及 Canvas strokeLine 和 source-over/lighter/screen 子集；限制见 [绘制检查](d36-paint.md)。不代表通用 Canvas 路径、连续 clip-path 动画或原生物品 Sheen 已完成。

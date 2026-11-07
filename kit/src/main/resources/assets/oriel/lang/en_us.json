@@ -2414,5 +2414,12 @@
   "oriel.ui.modsettings.opt.ASK": "Ask",
   "oriel.ui.modsettings.opt.BLOCK": "Block",
   "oriel.ui.styles.side.old": "Legacy",
-  "oriel.ui.styles.drawer.details": "Details"
+  "oriel.ui.styles.drawer.details": "Details",
+  "oriel.ui.about.new.title": "What's new in 0.11",
+  "oriel.ui.about.new.1": "A new home page and community template centre: 56 official templates to preview, favourite and save in one click.",
+  "oriel.ui.about.new.2": "A Settings page: UI sounds, volume, reduced motion and more, saved as you change them.",
+  "oriel.ui.about.new.3": "Buttons, tabs and switches now have UI sounds.",
+  "oriel.ui.about.new.4": "Images in long lists load as you scroll, so scrolling is smoother.",
+  "oriel.ui.about.new.5": "The engine now runs on new implementations. Pages look the same, and problems are easier to trace.",
+  "oriel.ui.about.new.6": "Fixed scroll boxes stretching their parent, and the editor tabs being squeezed."
 }

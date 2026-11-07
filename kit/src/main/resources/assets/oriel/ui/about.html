@@ -30,6 +30,11 @@
 .looks span { padding: 0 5px; height: 14px; display: flex; align-items: center; color: var(--o-text-dim); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
 .looks span.on { color: var(--o-text); border-color: var(--o-accent); }
 
+.newslist { display: flex; flex-direction: column; gap: 4px; }
+.news { display: flex; gap: 6px; align-items: flex-start; color: var(--o-text-dim); line-height: 11px; }
+.news i { flex: none; width: 4px; height: 4px; margin-top: 4px; background: var(--o-accent); }
+.news span { min-width: 0; }
+
 .me { display: flex; align-items: center; gap: 8px; padding: 2px 0 4px; }
 .me img { flex: none; width: 34px; height: 34px; image-rendering: pixelated; }
 .me .t { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -89,8 +94,19 @@
             </div>
           </div>
           <div class="panel o-tile">
+            <h3><img class="o-ico" src="../textures/icons/star.png"><span data-i18n="oriel.ui.about.new.title">oriel.ui.about.new.title</span></h3>
+            <div class="newslist">
+              <div class="news"><i></i><span data-i18n="oriel.ui.about.new.1">oriel.ui.about.new.1</span></div>
+              <div class="news"><i></i><span data-i18n="oriel.ui.about.new.2">oriel.ui.about.new.2</span></div>
+              <div class="news"><i></i><span data-i18n="oriel.ui.about.new.3">oriel.ui.about.new.3</span></div>
+              <div class="news"><i></i><span data-i18n="oriel.ui.about.new.4">oriel.ui.about.new.4</span></div>
+              <div class="news"><i></i><span data-i18n="oriel.ui.about.new.5">oriel.ui.about.new.5</span></div>
+              <div class="news"><i></i><span data-i18n="oriel.ui.about.new.6">oriel.ui.about.new.6</span></div>
+            </div>
+          <div class="panel o-tile">
             <h3><img class="o-ico" src="../textures/icons/heart.png"><span data-i18n="oriel.ui.about.thanks.title">oriel.ui.about.thanks.title</span></h3>
             <p data-i18n="oriel.ui.about.thanks.text">oriel.ui.about.thanks.text</p>
+          </div>
           </div>
         </div>
         <div class="col">
