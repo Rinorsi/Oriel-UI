@@ -1,0 +1,36 @@
+{
+  "id": "forge",
+  "slug": "forge",
+  "group": "menu",
+  "author": "云诺羲",
+  "version": "0.2.0",
+  "date": "2026-11-07",
+  "sourceGroup": "",
+  "kind": "page",
+  "source": "legacy",
+  "entry": "legacy/forge/index.html",
+  "page": "oriel:ui/forge.html",
+  "cover": "oriel:ui/templates/legacy/forge/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "锻造台",
+      "description": "铁砧式的修理与强化界面",
+      "category": "旧版",
+      "tags": [
+        "菜单",
+        "锻造"
+      ],
+      "status": ""
+    },
+    "en_us": {
+      "name": "Forge",
+      "description": "An anvil-style repair and upgrade screen",
+      "category": "Legacy",
+      "tags": [
+        "Menu",
+        "Forge"
+      ],
+      "status": ""
+    }
+  }
+}

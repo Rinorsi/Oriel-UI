@@ -18,10 +18,10 @@ for(const {dir,t}of entries){
  const text={};for(const k of ['name','description','category','status'])text[k]=choices.map(v=>v[k]).find(v=>typeof v==='string'&&v.trim())||'';
  for(const k of ['name','description','category'])if(!text[k])throw Error(dir+' missing '+k+' in all locales');
  text.tags=choices.map(v=>v.tags).find(v=>Array.isArray(v)&&v.length)||[text.category];
- catalog.push({id:t.id,entry:t.entry,source:t.source,kind:t.kind,cover:t.cover});
+ catalog.push({id:t.id,entry:t.entry,source:t.source,kind:t.kind,cover:t.cover,...(t.page?{page:t.page}:{})});
  const title=(t.source==='official'?t.id+' · ':'')+text.name;
  const tag='<div class="tpl" data-id="'+t.id+'" data-title="'+esc(title)+'" data-author="'+esc(t.author)+'" data-source="'+t.source+'" data-group="'+t.group+'" data-ver="'+t.version+'" data-date="'+t.date+'" data-tags="'+esc(text.tags.join(','))+'" data-desc="'+esc(text.description)+'">';
- if(t.source==='official')cards.push(tag+nl+'<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/'+dir+'/</p><p>minecraft:default · '+t.sourceGroup+'</p></div>');
+ if(t.source==='official')cards.push(tag+'</div>');
  else html=html.replace(new RegExp('<div class="tpl" data-id="'+t.id+'"[^>]*>'),tag+'<p class="template-category" data-template-field="category"></p>');
  fs.copyFileSync(base+'/SOURCES.md',base+'/'+dir+'/SOURCES.md');
  const description=['# '+(t.source==='official'?t.id+' · ':'')+text.name,'','- 作者 / 制作者：'+t.author,'- 版本：'+t.version,'- 分类：'+text.category,'- 介绍：'+text.description,'- 入口：oriel:ui/templates/'+t.entry,'','## 模板自带语言','','名称、介绍、分类、标签与状态只编辑本目录 template.json 的 locales。当前语言无对应内容时按英文 → 中文 → 其他已有语言回退；空字段同样回退。玩家示例名不属于作者字段。','',...Object.entries(t.locales).flatMap(([l,v])=>['### '+l,'','- Name / 名称：'+v.name,'- Description / 介绍：'+v.description,'- Category / 分类：'+v.category,'- Status / 状态：'+(v.status||''),'']),'修改后运行 node tools/templates/sync.mjs，同步只生成目录索引和文件清单，不会覆盖本文件夹的 template.json。','版权与素材来源见 SOURCES.md；目录归属不代表已完成游戏验收。',''].join(nl);

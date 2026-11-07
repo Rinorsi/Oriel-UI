@@ -1,0 +1,36 @@
+{
+  "id": "55",
+  "slug": "settings",
+  "group": "host",
+  "author": "云诺羲",
+  "version": "0.2.0",
+  "date": "2026-11-07",
+  "sourceGroup": "",
+  "kind": "page",
+  "source": "official",
+  "entry": "55/index.html",
+  "page": "oriel:ui/settings.html",
+  "cover": "oriel:ui/templates/55/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "设置页",
+      "description": "开关、滑块、下拉与输入框齐全的设置界面",
+      "category": "菜单设置",
+      "tags": [
+        "设置",
+        "Ore"
+      ],
+      "status": ""
+    },
+    "en_us": {
+      "name": "Settings screen",
+      "description": "A settings screen with toggles, sliders, dropdowns and fields",
+      "category": "Menus",
+      "tags": [
+        "Settings",
+        "Ore"
+      ],
+      "status": ""
+    }
+  }
+}

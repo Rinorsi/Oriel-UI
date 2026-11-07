@@ -26,7 +26,7 @@ class OfficialTemplatesTest {
         StylesPreset.startAt("official");
         var doc = host.open(OrielKit.STYLES, new StylesPreset(true), 640, 360);
         var cards = doc.querySelectorAll("#grid .card");
-        assertEquals(53, cards.size());
+        assertEquals(57, cards.size());
         for (int i = 0; i < cards.size(); i++) {
             assertTrue(cards.get(i).querySelector(".meta b").textContent().startsWith(String.format("%02d", i + 1)));
             assertEquals("云诺羲", cards.get(i).querySelector(".by span").textContent());
@@ -44,7 +44,7 @@ class OfficialTemplatesTest {
         assertTrue(back.querySelector("#side [data-view=official]").hasClass("on"));
         back.getElementById("d-close").click();
         back.querySelector("#side [data-view=legacy]").click();
-        assertEquals(9, back.querySelectorAll("#grid .card").size());
+        assertEquals(11, back.querySelectorAll("#grid .card").size());
         back.close();
     }
 }

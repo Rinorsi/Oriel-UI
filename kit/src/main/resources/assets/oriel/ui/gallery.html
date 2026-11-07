@@ -108,7 +108,7 @@
 /* ---- About ---- */
 .about { grid-column: 3; grid-row: 2; }
 .about .thumb { display: flex; align-items: center; gap: 6px; padding: 4px 7px; background: radial-gradient(ellipse at 15% 20%, color-mix(in srgb, var(--o-accent) 20%, transparent), transparent 65%), var(--o-well); }
-.about .thumb img { width: 24px; height: 24px; flex: none; image-rendering: pixelated; }
+.about .thumb img { width: 30px; height: 30px; flex: none; image-rendering: pixelated; }
 .about .who { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .about .who b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .about .who span { color: var(--o-text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -140,11 +140,22 @@
 [data-window=mini] .o-hints { display: none; }
 @media (max-height: 300px) {
     .stage .tag, .stage .lede { display: none; }
+    .bento { grid-template-rows: 1.45fr 1fr; }
+    .stage { aspect-ratio: auto; }
     .stage .pitch { gap: 6px; padding: 0 10px; }
+    .stage .actions { gap: 3px; }
+    .stage .actions .ore-btn { padding: 0 5px; }
     .stats { display: none; }
+    .card { padding: 4px; gap: 3px; }
     .kit .thumb { padding: 2px 4px; gap: 2px 4px; }
-    .ico .thumb { gap: 3px 5px; }
-    .soon .ghost { display: none; }
+    .ico .thumb { gap: 3px 5px; padding: 2px 4px; }
+    .ico .thumb .o-ico:nth-child(n+7) { display: none; }
+    .cfg .thumb > div:nth-child(n+3) { display: none; }
+    .about .who { display: none; }
+    .about .thumb { justify-content: center; }
+    .soon .t2, .soon .ghost { display: none; }
+    .pick .slide .cap { padding: 10px 5px 6px; }
+    .pick .slide .cap span { display: none; }
 }
 /* Large GUIs, maximized (the window mode decides the room, not only the screen). */
 @media (min-width: 760px) and (min-height: 400px) {
@@ -243,7 +254,7 @@
     <div class="card about o-tile hot m-spot" tabindex="0" data-go="about">
       <div class="head"><img class="o-ico" src="../textures/icons/help.png"><span class="label" data-i18n-text-0="oriel.ui.home.about">oriel.ui.home.about</span><img class="o-ico go" src="../textures/icons/forward.png"></div>
       <div class="thumb">
-        <img src="../textures/ui/emblem.png">
+        <img src="templates/avatars/rinorsi.png">
         <div class="who"><b data-i18n-text-0="oriel.ui.brand.name">oriel.ui.brand.name</b><span data-i18n-text-0="oriel.ui.home.about.by">oriel.ui.home.about.by</span></div>
       </div>
     </div>

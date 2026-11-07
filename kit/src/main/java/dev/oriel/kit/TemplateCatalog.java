@@ -23,7 +23,65 @@ public final class TemplateCatalog {
     private static final String ROOT = "ui/templates/";
     private static final List<JsonObject> ENTRIES = load();
 
+    private static final Map<String, String> AVATARS = loadAvatars();
+
     private TemplateCatalog() {}
+
+    private static Map<String, String> loadAvatars() {
+        try (InputStream in = TemplateCatalog.class.getResourceAsStream("/assets/oriel/" + ROOT + "avatars/authors.json")) {
+            Map<String, String> avatars = new LinkedHashMap<>();
+            if (in != null) {
+                JsonParser.parseString(new String(in.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonObject()
+                        .entrySet().forEach(e -> avatars.put(e.getKey(), e.getValue().getAsString()));
+            }
+            return Map.copyOf(avatars);
+        } catch (IOException | RuntimeException e) {
+            return Map.of(); // an author without an avatar shows the Oriel emblem
+        }
+    }
+
+    /** One sidebar category: its key, its names by language and the templates in it. */
+    public record Category(String key, Map<String, String> names, List<String> ids) {
+        public String name(String language) {
+            String l = normalize(language);
+            for (String k : List.of(l, l.length() > 2 ? l.substring(0, 2) : l, "en_us", "zh_cn")) {
+                String v = names.get(k);
+                if (v != null && !v.isBlank()) return v;
+            }
+            return names.values().stream().findFirst().orElse(key);
+        }
+    }
+
+    private static final List<Category> CATEGORIES = loadCategories();
+
+    private static List<Category> loadCategories() {
+        try (InputStream in = TemplateCatalog.class.getResourceAsStream("/assets/oriel/" + ROOT + "categories.json")) {
+            if (in == null) return List.of();
+            List<Category> out = new ArrayList<>();
+            for (var value : JsonParser.parseString(new String(in.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonArray()) {
+                JsonObject o = value.getAsJsonObject();
+                Map<String, String> names = new LinkedHashMap<>();
+                o.getAsJsonObject("names").entrySet().forEach(e -> names.put(e.getKey(), e.getValue().getAsString()));
+                List<String> ids = new ArrayList<>();
+                for (var id : o.getAsJsonArray("ids")) ids.add(id.getAsString());
+                out.add(new Category(o.get("key").getAsString(), Map.copyOf(names), List.copyOf(ids)));
+            }
+            return List.copyOf(out);
+        } catch (IOException | RuntimeException e) {
+            return List.of();
+        }
+    }
+
+    /** The sidebar categories, in order: how a player looks for a template, not how the templates were made. */
+    public static List<Category> categories() {
+        return CATEGORIES;
+    }
+
+    /** An author's avatar, a picture kept with the templates; the Oriel emblem when there is none. */
+    public static String avatar(String author) {
+        String file = AVATARS.get(author == null ? "" : author.trim());
+        return file == null ? "oriel:textures/ui/emblem.png" : "oriel:" + ROOT + "avatars/" + file;
+    }
 
     private static List<JsonObject> load() {
         try (InputStream in = TemplateCatalog.class.getResourceAsStream("/assets/oriel/" + ROOT + "catalog.json")) {
@@ -52,7 +110,15 @@ public final class TemplateCatalog {
     }
 
     public static String page(String id) {
-        return "oriel:" + ROOT + entry(id).get("entry").getAsString();
+        JsonObject e = entry(id);
+        // A template that is one of the kit's own pages (the inventory, the settings...) opens that page itself.
+        if (e.has("page")) return e.get("page").getAsString();
+        return "oriel:" + ROOT + e.get("entry").getAsString();
+    }
+
+    /** Whether a copy can be saved to the player's folder: a template made of the kit's own pages has no files to copy. */
+    public static boolean saveable(String id) {
+        return !entry(id).has("page");
     }
 
     public static String cover(String id) {

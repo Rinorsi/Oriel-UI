@@ -1,0 +1,36 @@
+{
+  "id": "54",
+  "slug": "inventory",
+  "group": "host",
+  "author": "云诺羲",
+  "version": "0.2.0",
+  "date": "2026-11-07",
+  "sourceGroup": "",
+  "kind": "page",
+  "source": "official",
+  "entry": "54/index.html",
+  "page": "oriel:ui/inventory.html",
+  "cover": "oriel:ui/templates/54/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "背包与角色",
+      "description": "物品栏、角色预览与装备槽的 Ore 风格背包",
+      "category": "物品背包",
+      "tags": [
+        "背包",
+        "Ore"
+      ],
+      "status": ""
+    },
+    "en_us": {
+      "name": "Inventory and character",
+      "description": "An Ore-style inventory with a character preview and equipment slots",
+      "category": "Items",
+      "tags": [
+        "Inventory",
+        "Ore"
+      ],
+      "status": ""
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "music",
+  "slug": "music",
+  "group": "menu",
+  "author": "云诺羲",
+  "version": "0.2.0",
+  "date": "2026-11-07",
+  "sourceGroup": "",
+  "kind": "page",
+  "source": "legacy",
+  "entry": "legacy/music/index.html",
+  "page": "oriel:ui/music.html",
+  "cover": "oriel:ui/templates/legacy/music/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "音乐播放器",
+      "description": "唱片列表、频谱与进度条的播放器",
+      "category": "旧版",
+      "tags": [
+        "菜单",
+        "音乐"
+      ],
+      "status": ""
+    },
+    "en_us": {
+      "name": "Music player",
+      "description": "A player with a record list, a spectrum and a progress bar",
+      "category": "Legacy",
+      "tags": [
+        "Menu",
+        "Music"
+      ],
+      "status": ""
+    }
+  }
+}

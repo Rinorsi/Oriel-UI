@@ -23,9 +23,9 @@ class TemplateCatalogTest {
     }
 
     @Test void allNumbersIncluding44HavePackagedContent() throws Exception {
-        assertEquals(IntStream.rangeClosed(1, 53).mapToObj(i -> String.format("%02d", i)).toList(),
-                TemplateCatalog.ids().subList(0, 53));
-        assertEquals(62, TemplateCatalog.ids().size());
+        assertEquals(IntStream.rangeClosed(1, 57).mapToObj(i -> String.format("%02d", i)).toList(),
+                TemplateCatalog.ids().subList(0, 57));
+        assertEquals(68, TemplateCatalog.ids().size());
         for (String id : TemplateCatalog.ids()) assertTrue(read(TemplateCatalog.page(id).substring(6)).length > 100);
         assertFalse(TemplateCatalog.numbered("xianxia"));
         assertEquals("oriel:ui/templates/44/index.html", TemplateCatalog.page("44"));

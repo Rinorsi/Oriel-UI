@@ -40,6 +40,8 @@ public final class StylesPreset implements PageControllers.Controller {
     public static final String LIBRARY = "library";
     /** The template whose details were open when one was previewed: shown again on coming back. */
     private static volatile String returnTo;
+    /** The sidebar groups the player has folded, kept while the game runs (the older looks start folded). */
+    private static final Set<String> FOLDED = new LinkedHashSet<>(List.of("old"));
 
     private record Template(String id, String title, String author, String source, String group, String ver, String date,
                             List<String> tags, String desc, Element spec, Element card, int order) {}
@@ -74,13 +76,18 @@ public final class StylesPreset implements PageControllers.Controller {
     private static final long PLACE_MS = 10 * 60 * 1000L;
     private String namespace = "oriel_mine", folder = "config/oriel/my-pages/";
     private String view = "all", sort = "pick", query = "", tag = "";
-    private Element tagbar;
     private Template open;
     private Element grid, drawer, veil, specHome;
 
     private void rememberPlace() {
         Element list = Dom.byId(doc, "scroll");
         place = new Place(view, sort, query, tag, list == null ? 0 : list.scrollTop(), System.currentTimeMillis());
+    }
+
+    /** The next template centre opens on All with this template's details already open. */
+    public static void openTemplate(String id) {
+        startView = "all";
+        returnTo = id;
     }
 
     /** The next template centre opens on {@code view} ("demos", "pages", "fav", ...) instead of All. */
@@ -131,7 +138,6 @@ public final class StylesPreset implements PageControllers.Controller {
     private void buildCentre() {
         grid = Dom.byId(doc, "grid");
         Dom.on(Dom.byId(doc, "scroll"), "scroll", ev -> loadCovers());
-        tagbar = Dom.byId(doc, "tagbar");
         drawer = Dom.byId(doc, "drawer");
         veil = Dom.byId(doc, "veil");
         specHome = Dom.byId(doc, "tpls");
@@ -155,21 +161,22 @@ public final class StylesPreset implements PageControllers.Controller {
             JsonObject meta = TemplateCatalog.metadata(id, doc.host()::loadText);
             TemplateCatalog.Text text = TemplateCatalog.localized(meta, doc.host().language());
             String group = str(meta, "group"), source = str(meta, "source");
-            categoryNames.putIfAbsent(group, text.category());
             for (Element field : e.querySelectorAll("[data-template-field]")) {
                 Dom.text(field, field.getAttribute("data-template-field").equals("category") ? text.category() : text.status());
             }
             Template t = new Template(id, (source.equals("official") ? id + " · " : "") + text.name(),
                     str(meta, "author"), source, group, str(meta, "version"), str(meta, "date"),
-                    text.tags(), text.description(), e, null, order++);
+                    tagsOf(id, source, text.tags()), text.description(), e, null, order++);
             templates.add(new Template(t.id, t.title, t.author, t.source, t.group, t.ver, t.date, t.tags, t.desc, t.spec, card(t), t.order));
         }
-        for (Element label : doc.querySelectorAll("[data-template-group]")) {
-            String group = label.getAttribute("data-template-group");
-            Dom.text(label, categoryNames.getOrDefault(group, group));
+        for (TemplateCatalog.Category c : TemplateCatalog.categories()) {
+            categoryNames.put(c.key(), c.name(doc.host().language()));
+            for (Element label : doc.querySelectorAll("[data-category=" + c.key() + "]")) Dom.text(label, c.name(doc.host().language()));
         }
-        buildTagbar();
-        for (Element chip : tagbar.querySelectorAll("span")) chip.toggleClass("on", chip.getAttribute("data-tag").equals(tag));
+        folding();
+        Shell.activate(Dom.byId(doc, "tagpill"), () -> selectTag(tag));
+        Shell.activate(Dom.byId(doc, "d-morehead"), () -> Dom.byId(doc, "d-more").toggleClass("closed", !Dom.byId(doc, "d-more").hasClass("closed")));
+        showTag();
         for (Element s : doc.querySelectorAll("#sort [data-sort]")) s.toggleClass("on", s.getAttribute("data-sort").equals(sort));
         for (Element item : doc.querySelectorAll("#side .item")) item.toggleClass("on", item.getAttribute("data-view").equals(view));
         for (Element item : doc.querySelectorAll("#side .item")) {
@@ -224,13 +231,20 @@ public final class StylesPreset implements PageControllers.Controller {
         }
     }
 
+    /** An official template is tagged with the category it is listed under; an older look keeps the tags its manifest gives. */
+    private List<String> tagsOf(String id, String source, List<String> own) {
+        if (!source.equals("official")) return own;
+        for (TemplateCatalog.Category c : TemplateCatalog.categories()) if (c.ids().contains(id)) return List.of(c.name(doc.host().language()));
+        return own;
+    }
+
     /** A template's card: its cover, badges, favourite, title, author and tags. */
     private Element card(Template t) {
         Element card = Dom.html(doc, "<div class=\"card o-tile m-spot\" tabindex=\"0\"><div class=\"cover\"><img class=\"shot\">"
                 + "<i class=\"sheen\"></i><span class=\"badge\"></span><div class=\"fav\" title=\"" + Lang.html(doc, "oriel.ui.styles.drawer.favorite") + "\"><img class=\"o-ico\" "
                 + "src=\"../textures/icons/heart.png\"></div><span class=\"saved-mark\"><img class=\"o-ico\" src=\"../textures/icons/check.png\">" + Lang.html(doc, "oriel.ui.styles.side.saved") + "</span>"
-                + "</div><div class=\"meta\"><b></b><div class=\"by\"><img src=\"../textures/ui/emblem.png\"><span></span><em></em></div>"
-                + "<div class=\"tags\"></div></div></div>");
+                + "</div><div class=\"meta\"><b></b><div class=\"by\"><img class=\"av\"><span></span><em></em></div></div></div>");
+        Dom.query(card, ".by img").setAttribute("src", TemplateCatalog.avatar(t.author));
         Dom.query(card, "img.shot").setAttribute("data-cover", TemplateCatalog.cover(t.id));
         Dom.query(card, "img.shot").setAttribute("loading", "lazy");
         card.setAttribute("title", t.title + " · " + t.author + " · " + t.ver + " · " + t.desc);
@@ -242,15 +256,6 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.query(card, ".by span").setAttribute("lang", "zh");
         Dom.text(Dom.query(card, ".by span"), t.author);
         Dom.text(Dom.query(card, ".by em"), t.ver);
-        Element tags = Dom.query(card, ".tags");
-        for (String name : t.tags) {
-            Element chip = Dom.el(doc, "span", null, name);
-            Dom.onClick(chip, ev -> {
-                ev.stopPropagation();
-                selectTag(name);
-            });
-            tags.appendChild(chip);
-        }
         Element fav = Dom.query(card, ".fav");
         Dom.onClick(fav, ev -> {
             ev.stopPropagation();
@@ -278,7 +283,6 @@ public final class StylesPreset implements PageControllers.Controller {
         for (Element c : demoCards) c.remove();
         if (view.equals("pages")) for (Element c : ordered(pageCards)) if (pageMatches(c)) grid.appendChild(c);
         if (view.equals("demos")) for (Element c : ordered(demoCards)) if (pageMatches(c)) grid.appendChild(c);
-        tagbar.toggleClass("off", view.equals("pages") || view.equals("demos") || view.equals("guide"));
         for (Template t : shown) {
             grid.appendChild(t.card);
             t.card.toggleClass("faved", favorites.contains(t.id));
@@ -300,10 +304,7 @@ public final class StylesPreset implements PageControllers.Controller {
         }));
         if (guide) Dom.text(Dom.byId(doc, "guide-folder"), folder);
         Dom.text(Dom.byId(doc, "view-title"), title(view));
-        Dom.text(Dom.byId(doc, "view-sub"), Lang.t(doc, "oriel.ui.styles.view." + (view.startsWith("group:") ? "all" : view) + ".sub"));
-        Dom.text(Dom.byId(doc, "count"), guide ? "" : Lang.plural(doc, "oriel.ui.styles.count", pagesView ? pageCount(pageCards) : demosView ? pageCount(demoCards) : shown.size()));
-        Dom.text(Dom.byId(doc, "crumb"), Lang.t(doc, "oriel.ui.styles.crumb.view", title(view)));
-        Dom.text(Dom.byId(doc, "foot-count"), Lang.plural(doc, "oriel.ui.styles.foot_count", templates.size()));
+        Dom.text(Dom.byId(doc, "count"), guide ? "" : Integer.toString(pagesView ? pageCount(pageCards) : demosView ? pageCount(demoCards) : shown.size()));
         counts();
         loadCovers();
     }
@@ -360,7 +361,10 @@ public final class StylesPreset implements PageControllers.Controller {
     }
 
     private boolean inView(Template t, String v) {
-        if (v.startsWith("group:")) return t.group.equals(v.substring(6));
+        if (v.startsWith("cat:")) {
+            for (TemplateCatalog.Category c : TemplateCatalog.categories()) if (c.key().equals(v.substring(4))) return c.ids().contains(t.id);
+            return false;
+        }
         return switch (v) {
             case "official" -> t.source.equals("official");
             case "legacy" -> t.source.equals("legacy");
@@ -384,10 +388,9 @@ public final class StylesPreset implements PageControllers.Controller {
 
     /** A view's title in the headline and the crumb: the sidebar's label, in full where that is shortened. */
     private String title(String view) {
-        if (view.startsWith("group:")) return categoryNames.getOrDefault(view.substring(6), view.substring(6));
-        String v = view.startsWith("group:") ? view.substring(6) : view;
-        return Lang.t(doc, "oriel.ui.styles.view." + (switch (v) {
-            case "official", "community", "fav", "saved", "recent", "pages", "demos", "guide", "hud", "menu", "theme", "legacy", "basic", "information", "data", "events", "drawing", "host" -> v;
+        if (view.startsWith("cat:")) return categoryNames.getOrDefault(view.substring(4), view.substring(4));
+        return Lang.t(doc, "oriel.ui.styles.view." + (switch (view) {
+            case "official", "community", "fav", "saved", "recent", "pages", "demos", "guide", "legacy" -> view;
             default -> "all";
         }) + ".title");
     }
@@ -407,12 +410,28 @@ public final class StylesPreset implements PageControllers.Controller {
         Dom.text(Dom.byId(doc, "d-title"), t.title);
         Dom.byId(doc, "d-author").setAttribute("lang", "zh");
         Dom.text(Dom.byId(doc, "d-author"), t.author);
-        Dom.text(Dom.byId(doc, "d-ver"), t.ver + " · " + t.date);
+        Dom.byId(doc, "d-avatar").setAttribute("src", TemplateCatalog.avatar(t.author));
+        Dom.text(Dom.byId(doc, "d-ver"), t.ver);
         Dom.text(Dom.byId(doc, "d-desc"), t.desc);
         Dom.text(Dom.byId(doc, "d-note"), "");
+        Element tagList = Dom.byId(doc, "d-tags");
+        tagList.removeAllChildren();
+        for (String name : t.tags) {
+            Element chip = Dom.el(doc, "span", null, name);
+            Dom.onClick(chip, ev -> {
+                closeDetails();
+                selectTag(name);
+            });
+            tagList.appendChild(chip);
+        }
+        Dom.byId(doc, "d-save").setAttribute("style", TemplateCatalog.saveable(t.id) ? "" : "display: none");
+        // Older looks keep their design notes (palette, fonts, how it is made): folded under "details", moved in while the drawer is open.
         Element spec = Dom.byId(doc, "d-spec");
-        // The entry's spec moves into the drawer while it is open, and back after.
-        while (t.spec.childCount() > 0) spec.appendChild(t.spec.childAt(0));
+        Element more = Dom.byId(doc, "d-more");
+        boolean notes = t.source.equals("legacy") && t.spec.childCount() > 0;
+        more.toggleClass("on", notes);
+        more.addClass("closed");
+        if (notes) while (t.spec.childCount() > 0) spec.appendChild(t.spec.childAt(0));
         Element scroll = drawer.querySelector(".dscroll");
         if (scroll != null) scroll.scrollTo(0, 0);
         refreshDetails();
@@ -424,6 +443,25 @@ public final class StylesPreset implements PageControllers.Controller {
     private void parkSpec(Template t) {
         Element spec = Dom.byId(doc, "d-spec");
         while (spec.childCount() > 0) t.spec.appendChild(spec.childAt(0));
+    }
+
+    /** The sidebar's groups fold and open; what the player folded stays so while the game runs. */
+    private void folding() {
+        for (Element head : doc.querySelectorAll("#side .grp[data-set]")) {
+            String name = head.getAttribute("data-set");
+            Element set = Dom.byId(doc, "set-" + name);
+            boolean folded = FOLDED.contains(name);
+            head.toggleClass("closed", folded);
+            set.toggleClass("closed", folded);
+            head.setAttribute("tabindex", "0");
+            Shell.activate(head, () -> {
+                boolean now = !FOLDED.contains(name);
+                if (now) FOLDED.add(name);
+                else FOLDED.remove(name);
+                head.toggleClass("closed", now);
+                set.toggleClass("closed", now);
+            });
+        }
     }
 
     private void closeDetails() {
@@ -584,24 +622,17 @@ public final class StylesPreset implements PageControllers.Controller {
         return query.isEmpty() || card.getAttribute("data-path").toLowerCase(Locale.ROOT).contains(query);
     }
 
-    /** The commonest tags (at most twelve), as chips above the grid; one is selected at a time, a second click clears it. */
-    private void buildTagbar() {
-        java.util.Map<String, Integer> count = new java.util.TreeMap<>();
-        for (Template t : templates) for (String name : t.tags) if (!name.isBlank()) count.merge(name, 1, Integer::sum);
-        List<String> names = new ArrayList<>(count.keySet());
-        names.sort(Comparator.comparingInt((String n) -> -count.get(n)).thenComparing(n -> n));
-        for (String name : names.subList(0, Math.min(12, names.size()))) {
-            Element chip = Dom.el(doc, "span", null, name);
-            chip.setAttribute("data-tag", name);
-            Dom.onClick(chip, ev -> selectTag(name));
-            tagbar.appendChild(chip);
-        }
-    }
-
+    /** One tag filters at a time, shown as a pill in the toolbar; clicking the pill (or the same tag again) clears it. */
     private void selectTag(String name) {
         tag = tag.equals(name) ? "" : name;
-        for (Element chip : tagbar.querySelectorAll("span")) chip.toggleClass("on", chip.getAttribute("data-tag").equals(tag));
+        showTag();
         render();
+    }
+
+    private void showTag() {
+        Element pill = Dom.byId(doc, "tagpill");
+        pill.toggleClass("on", !tag.isEmpty());
+        Dom.text(Dom.byId(doc, "tagpill-text"), tag);
     }
 
     /** Page and demo cards in the order the sort asks: by title with 01, 02, 10 in number order, or by when the file changed. */

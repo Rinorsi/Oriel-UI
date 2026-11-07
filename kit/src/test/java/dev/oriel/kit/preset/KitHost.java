@@ -23,6 +23,7 @@ import java.util.Map;
  */
 final class KitHost implements Host {
     final List<String> sent = new ArrayList<>();
+    String clipboard = "";
     final List<String> logs = new ArrayList<>();
     final List<String> navigations = new ArrayList<>();
     final List<String> sounds = new ArrayList<>();
@@ -90,6 +91,16 @@ final class KitHost implements Host {
     @Override
     public void reportError(String message, Throwable error) {
         throw new AssertionError(message, error);
+    }
+
+    @Override
+    public String getClipboard() {
+        return clipboard;
+    }
+
+    @Override
+    public void setClipboard(String text) {
+        clipboard = text;
     }
 
     @Override

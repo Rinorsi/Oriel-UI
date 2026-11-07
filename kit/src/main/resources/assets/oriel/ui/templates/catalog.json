@@ -371,6 +371,38 @@
     "cover": "oriel:ui/templates/53/cover.png"
   },
   {
+    "id": "54",
+    "entry": "54/index.html",
+    "source": "official",
+    "kind": "page",
+    "cover": "oriel:ui/templates/54/cover.png",
+    "page": "oriel:ui/inventory.html"
+  },
+  {
+    "id": "55",
+    "entry": "55/index.html",
+    "source": "official",
+    "kind": "page",
+    "cover": "oriel:ui/templates/55/cover.png",
+    "page": "oriel:ui/settings.html"
+  },
+  {
+    "id": "56",
+    "entry": "56/index.html",
+    "source": "official",
+    "kind": "page",
+    "cover": "oriel:ui/templates/56/cover.png",
+    "page": "oriel:ui/potions.html"
+  },
+  {
+    "id": "57",
+    "entry": "57/index.html",
+    "source": "official",
+    "kind": "page",
+    "cover": "oriel:ui/templates/57/cover.png",
+    "page": "oriel:ui/editor.html"
+  },
+  {
     "id": "rpg",
     "entry": "legacy/rpg/index.html",
     "source": "legacy",
@@ -432,5 +464,21 @@
     "source": "legacy",
     "kind": "template",
     "cover": "oriel:textures/ui/templates/xianxia.png"
+  },
+  {
+    "id": "forge",
+    "entry": "legacy/forge/index.html",
+    "source": "legacy",
+    "kind": "page",
+    "cover": "oriel:ui/templates/legacy/forge/cover.png",
+    "page": "oriel:ui/forge.html"
+  },
+  {
+    "id": "music",
+    "entry": "legacy/music/index.html",
+    "source": "legacy",
+    "kind": "page",
+    "cover": "oriel:ui/templates/legacy/music/cover.png",
+    "page": "oriel:ui/music.html"
   }
 ]

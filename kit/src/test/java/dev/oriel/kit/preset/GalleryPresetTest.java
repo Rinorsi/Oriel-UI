@@ -21,16 +21,52 @@ class GalleryPresetTest {
     @Test
     void tilesOpenTheirPages() {
         Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
-        click(doc, ".card[data-go=forge]", 0, Modifiers.NONE, clock);
-        assertTrue(doc.querySelector(".m-zoom") != null, "the tile grows into the page first");
+        click(doc, ".stage .actions [data-go=inventory]", 0, Modifiers.NONE, clock);
+        assertTrue(doc.querySelector(".m-zoom") != null, "the start button grows into the page first");
         frame(doc, clock, 400);
-        assertEquals(List.of(OrielKit.FORGE), host.navigations);
-        // The HUD tile opens the potion HUD preview page; it asks the host for nothing and changes nothing in the game.
-        click(doc, ".card[data-page=potions]", 0, Modifiers.NONE, clock);
-        assertTrue(host.sent.isEmpty(), "the tile sends the host no message");
-        assertEquals(OrielKit.POTIONS, host.navigations.getLast());
+        assertEquals(List.of(OrielKit.INVENTORY), host.navigations);
+        click(doc, ".card[data-go=catalog]", 0, Modifiers.NONE, clock);
+        frame(doc, clock, 400);
+        assertEquals(OrielKit.CATALOG, host.navigations.getLast());
+        click(doc, ".card[data-go=modsettings]", 0, Modifiers.NONE, clock);
+        frame(doc, clock, 400);
+        assertEquals(OrielKit.MODSETTINGS, host.navigations.getLast());
+        click(doc, ".card[data-go=about]", 0, Modifiers.NONE, clock);
+        frame(doc, clock, 400);
+        assertEquals(OrielKit.ABOUT, host.navigations.getLast());
+        assertTrue(host.sent.isEmpty(), "the tiles send the host no message");
         click(doc, "#close", 0, Modifiers.NONE, clock);
         assertTrue(host.closed);
+    }
+
+    @Test
+    void communityButtonOpensTheCentreOnAllTemplates() {
+        Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
+        click(doc, "[data-community]", 0, Modifiers.NONE, clock);
+        frame(doc, clock, 400);
+        assertEquals(OrielKit.STYLES, host.navigations.getLast());
+        assertEquals(0, doc.querySelectorAll("[data-demos]").size(), "the demos button is gone");
+    }
+
+    @Test
+    void communityPicksTurnOverAndOpenTheirTemplate() {
+        Document doc = host.open(OrielKit.GALLERY, new GalleryPreset());
+        var slides = doc.querySelectorAll("#picks .slide");
+        assertEquals(GalleryPreset.PICKS.size(), slides.size());
+        assertTrue(slides.get(0).hasClass("on"));
+        assertTrue(slides.get(0).querySelector(".cap b").textContent().contains("·"), "the title shows");
+        assertEquals("云诺羲", slides.get(0).querySelector(".cap span").textContent(), "the author shows");
+        click(doc, "#pick-next", 0, Modifiers.NONE, clock);
+        assertTrue(slides.get(1).hasClass("on"));
+        assertTrue(!slides.get(0).hasClass("on"));
+        click(doc, "#pick-prev", 0, Modifiers.NONE, clock);
+        assertTrue(slides.get(0).hasClass("on"));
+        assertTrue(host.navigations.isEmpty(), "the arrows turn the picks, they do not open one");
+        frame(doc, clock, 5000);
+        assertTrue(slides.get(1).hasClass("on"), "the picks turn on their own");
+        click(doc, "#picks", 0, Modifiers.NONE, clock);
+        frame(doc, clock, 400);
+        assertEquals(OrielKit.STYLES, host.navigations.getLast());
     }
 
     @Test

@@ -1,0 +1,36 @@
+{
+  "id": "56",
+  "slug": "potion-hud",
+  "group": "host",
+  "author": "云诺羲",
+  "version": "0.2.0",
+  "date": "2026-11-07",
+  "sourceGroup": "",
+  "kind": "page",
+  "source": "official",
+  "entry": "56/index.html",
+  "page": "oriel:ui/potions.html",
+  "cover": "oriel:ui/templates/56/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "药水状态 HUD",
+      "description": "状态效果列表与剩余时间，可折叠成图标",
+      "category": "战斗状态",
+      "tags": [
+        "HUD",
+        "状态"
+      ],
+      "status": ""
+    },
+    "en_us": {
+      "name": "Potion effects HUD",
+      "description": "Status effects with time left, collapsible to icons",
+      "category": "Combat",
+      "tags": [
+        "HUD",
+        "Effects"
+      ],
+      "status": ""
+    }
+  }
+}

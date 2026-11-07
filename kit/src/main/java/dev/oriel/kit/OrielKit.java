@@ -1,5 +1,6 @@
 package dev.oriel.kit;
 
+import dev.oriel.kit.preset.AboutPreset;
 import dev.oriel.kit.preset.CatalogPreset;
 import dev.oriel.kit.preset.EditorPreset;
 import dev.oriel.kit.preset.ForgePreset;
@@ -8,6 +9,7 @@ import dev.oriel.kit.preset.IconsPreset;
 import dev.oriel.kit.preset.GalleryPreset;
 import dev.oriel.kit.preset.InventoryPreset;
 import dev.oriel.kit.preset.MusicPreset;
+import dev.oriel.kit.preset.ModSettingsPreset;
 import dev.oriel.kit.preset.InventoryEffectsPreset;
 import dev.oriel.kit.preset.PotionHudPreset;
 import dev.oriel.kit.preset.SettingsPreset;
@@ -35,6 +37,9 @@ public final class OrielKit {
     public static final String ICONS = page("icons");
     /** The style showcase's index; its looks are {@code styles/<name>} ({@link StylesPreset#PAGES}). */
     public static final String STYLES = page("styles");
+    /** The mod's own settings (the game keeps them: see ModSettingsPreset) and its information page. */
+    public static final String MODSETTINGS = page("modsettings");
+    public static final String ABOUT = page("about");
     /** The repair forge's container page: the server's forge menu ({@code oriel:forge}) shows it. */
     public static final String FORGE_STATION = page("forge_station");
     /** The presets, in gallery order. */
@@ -68,6 +73,8 @@ public final class OrielKit {
         PageControllers.register(ICONS, IconsPreset::new);
         PageControllers.register(STYLES, () -> new StylesPreset(true));
         PageControllers.register(FORGE_STATION, ForgeStationPreset::new);
+        PageControllers.register(MODSETTINGS, ModSettingsPreset::new);
+        PageControllers.register(ABOUT, AboutPreset::new);
         for (String look : StylesPreset.PAGES) {
             PageControllers.register(page("styles/" + look), () -> new StylesPreset(false));
             PageControllers.register(TemplateCatalog.page(look), () -> new StylesPreset(false));

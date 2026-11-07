@@ -4,15 +4,22 @@
 <title data-i18n="oriel.ui.styles.window_title">oriel.ui.styles.window_title</title>
 <link rel="stylesheet" href="ore.css">
 <style>
-/* The template centre: complete looks to start a screen from. The sidebar picks what shows (all, official,
-   community, the player's favourites, saved copies and the recently viewed, or one category); the grid shows covers
-   in the gallery's manner; a template's card opens its details beside the grid, with the way it is made, a
-   full-screen preview, one-click save into the player's own folder, and a favourite. StylesPreset builds it from the
-   .tpl entries below (a new template is one more entry) and the game keeps the library (TemplateLibrary). */
-.side { flex: none; width: 112px; display: flex; flex-direction: column; gap: 1px; padding: 5px 4px; overflow-y: auto; background: var(--o-well);
+/* The community: complete looks to start a screen from. A sidebar picks what shows (all, official, community, the
+   player's own, one category, the older looks); one toolbar row (what is shown, how many, search, sort) sits over the
+   grid of covers, and a template's card opens its details beside the grid: the picture, who made it, what it is, and
+   the three things to do with it (preview full screen, save a copy, favourite) pinned where they can always be reached.
+   StylesPreset builds the cards from the .tpl entries below (a new template is one more entry) and the game keeps the
+   library (TemplateLibrary). */
+.side { flex: none; width: 118px; display: flex; flex-direction: column; gap: 1px; padding: 4px 4px; overflow-y: auto; background: var(--o-well);
     border-right: 1px solid var(--o-line-strong); box-shadow: inset -1px 0 0 var(--o-line); }
-.side .grp { flex: none; height: 14px; margin-top: 5px; padding: 0 5px; display: flex; align-items: center; color: var(--o-text-faint); letter-spacing: 1px; }
+.side .grp { flex: none; height: 16px; margin-top: 4px; padding: 0 3px; display: flex; align-items: center; gap: 3px; cursor: pointer; color: var(--o-text-faint);
+    letter-spacing: 1px; -mc-tint: var(--o-text-faint); transition: color 120ms, -mc-tint 120ms; }
 .side .grp:first-child { margin-top: 0; }
+.side .grp:hover { color: var(--o-text-dim); -mc-tint: var(--o-text-dim); }
+.side .grp img { flex: none; width: 8px; height: 8px; transition: transform 180ms var(--m-out); }
+.side .grp.closed img { transform: rotate(-90deg); }
+.side .set { flex: none; display: flex; flex-direction: column; gap: 1px; }
+.side .set.closed { display: none; }
 .side .item { flex: none; position: relative; display: flex; align-items: center; gap: 5px; height: 19px; padding: 0 5px; cursor: pointer; color: var(--o-text-dim);
     -mc-tint: var(--o-text-faint); transition: background-color 120ms, color 120ms, padding-left 160ms var(--m-out); }
 .side .item:hover { background: var(--o-line); color: var(--o-text); -mc-tint: var(--o-text); padding-left: 7px; }
@@ -23,17 +30,21 @@
 .side .grow { flex: 1; }
 
 .main { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+/* One row over the grid: what is shown and how many, then search, the tag in use, and the sort. */
 .bar { flex: none; display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-bottom: 1px solid var(--o-line-strong); box-shadow: 0 1px 0 var(--o-line); }
-.bar .search { position: relative; flex: 1; max-width: 170px; }
+.bar .vt { flex: none; max-width: 40%; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar .count { flex: none; color: var(--o-text-faint); }
+.bar .o-grow { flex: 1; min-width: 0; }
+.bar .search { position: relative; flex: 0 1 150px; min-width: 56px; }
+.bar .o-seg { flex: none; }
+.bar .o-seg > * { white-space: nowrap; }
 .bar .search input { width: 100%; padding-left: 18px; height: 16px; }
 .bar .search .o-ico { position: absolute; left: 2px; top: 0; -mc-tint: var(--o-text-faint); pointer-events: none; }
-.bar .count { color: var(--o-text-faint); }
-.bar .o-grow { flex: 1; }
-.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 7px 8px 12px; }
-.headline { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; min-width: 0; }
-.headline .o-h2 { flex: none; white-space: nowrap; }
-.headline .o-faint { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.headline .o-faint { line-height: 10px; }
+.bar .pill { flex: none; display: none; align-items: center; gap: 4px; padding: 0 4px; height: 16px; color: var(--o-text); background: var(--o-tile); border: 1px solid var(--o-accent); cursor: pointer; white-space: nowrap; }
+.bar .pill.on { display: flex; }
+.bar .pill i { font-style: normal; color: var(--o-text-faint); }
+.bar .pill:hover i { color: var(--o-text); }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 8px 12px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); gap: 7px; }
 
 /* ---- Cards ---- */
@@ -51,7 +62,7 @@
 @keyframes sheen { from { left: -40%; opacity: 1; } to { left: 130%; opacity: 1; } }
 .badge { position: absolute; left: 4px; top: 4px; z-index: 2; padding: 1px 4px; color: #ffffff; background: rgba(20, 20, 24, 0.75);
     border: 1px solid rgba(255, 255, 255, 0.25); }
-.badge.official { background: color-mix(in srgb, var(--o-accent) 80%, #000); border-color: var(--o-accent-strong); }
+.badge.official { display: none; }
 .badge.new { left: auto; right: 4px; background: #c4462c; border-color: #ff8a6a; }
 .fav { position: absolute; right: 4px; bottom: 4px; z-index: 2; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
     background: rgba(20, 20, 24, 0.7); border: 1px solid rgba(255, 255, 255, 0.25); -mc-tint: rgba(255, 255, 255, 0.7);
@@ -63,22 +74,12 @@
 .saved-mark { position: absolute; left: 4px; bottom: 4px; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 1px 3px; color: #b6f08f;
     background: rgba(20, 20, 24, 0.75); border: 1px solid rgba(182, 240, 143, 0.5); -mc-tint: #b6f08f; }
 .saved-mark img { width: 8px; height: 8px; }
-.meta { display: flex; flex-direction: column; gap: 2px; padding: 5px 6px 6px; }
+.meta { display: flex; flex-direction: column; gap: 3px; padding: 5px 6px 6px; }
 .meta b { font-weight: normal; color: var(--o-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.by { display: flex; align-items: center; gap: 3px; color: var(--o-text-dim); white-space: nowrap; overflow: hidden; }
-.by img { width: 9px; height: 9px; flex: none; }
-.by em { margin-left: auto; font-style: normal; color: var(--o-text-faint); }
-.tags { display: flex; gap: 2px; overflow: hidden; }
-/* A card's line under its title: one line, cut with an ellipsis (the hover text has all of it). */
+.by { display: flex; align-items: center; gap: 4px; color: var(--o-text-dim); white-space: nowrap; overflow: hidden; }
+.by img { width: 14px; height: 14px; flex: none; image-rendering: pixelated; }
 .by span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* Tag filter: the commonest tags, one row; a tag on a card does the same when clicked. */
-.tagbar { flex: none; display: flex; flex-wrap: wrap; gap: 3px; padding: 4px 8px 0; }
-.tagbar.off { display: none; }
-.tagbar span { flex: none; padding: 0 4px; color: var(--o-text-dim); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; cursor: pointer; }
-.tagbar span:hover { color: var(--o-text); border-color: var(--o-text-faint); }
-.tagbar span.on { color: var(--o-text); background: var(--o-tile); border-color: var(--o-accent); }
-.tags span { cursor: pointer; }
-.tags span { flex: none; padding: 0 3px; color: var(--o-text-faint); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
+.by em { margin-left: auto; font-style: normal; color: var(--o-text-faint); }
 
 /* ---- Empty states ---- */
 .empty { display: none; flex-direction: column; align-items: center; gap: 5px; padding: 24px 10px; color: var(--o-text-dim); text-align: center; }
@@ -88,26 +89,44 @@
 .empty .art img { width: 24px; height: 24px; }
 .empty .o-h2 { color: var(--o-text); }
 .empty .code { text-align: left; }
+.code { margin: 0; padding: 4px 6px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f;
+    white-space: pre-wrap; word-break: break-all; line-height: 10px; }
+[data-theme=light] .code { background: #2b2b2b; }
+.code .c { color: #8c8d90; }
 
-/* ---- Details, beside the grid ---- */
+/* ---- Details, beside the grid: the picture and what it is on top, the three actions pinned below ---- */
 .veil { position: absolute; inset: 0; z-index: 5; background: rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; transition: opacity 220ms; }
 .veil.on { opacity: 1; pointer-events: auto; }
-.drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 6; width: 72%; max-width: 330px; display: flex; flex-direction: column;
+.drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 6; width: 72%; max-width: 320px; display: flex; flex-direction: column;
     background: var(--o-tile); border-left: 1px solid var(--o-line-strong); box-shadow: -6px 0 14px rgba(0, 0, 0, 0.45);
     transform: translateX(105%); transition: transform 280ms var(--m-out); }
 .drawer.on { transform: none; }
-.drawer .dscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 0 10px; }
+.drawer .dscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 0 8px; }
 .drawer .big { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #101114; }
 .drawer .big img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 .drawer .close { position: absolute; right: 4px; top: 4px; z-index: 2; }
-.drawer .head { display: flex; flex-direction: column; gap: 3px; padding: 6px 8px 0; }
-.drawer .desc { color: var(--o-text-dim); line-height: 10px; }
-.drawer .acts { display: flex; gap: 4px; padding: 6px 8px 2px; flex-wrap: wrap; }
-.drawer .acts .ore-btn { height: 20px; }
-.drawer .acts .ore-btn.on { -mc-tint: #ff8aa0; }
-.drawer .note { margin: 2px 8px 0; color: #b6f08f; min-height: 10px; }
-.drawer .spec { display: flex; flex-direction: column; gap: 5px; padding: 4px 8px 0; }
+.drawer .head { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px 0; }
+.drawer .dtitle { color: var(--o-text); line-height: 12px; }
+.drawer .head .by { gap: 5px; }
+.drawer .head .by img { width: 16px; height: 16px; }
+.drawer .desc { color: var(--o-text-dim); line-height: 11px; }
+.drawer .tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.drawer .tags span { padding: 0 4px; height: 13px; display: flex; align-items: center; cursor: pointer; color: var(--o-text-dim); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
+.drawer .tags span:hover { color: var(--o-text); border-color: var(--o-text-faint); }
+.drawer .note { margin: 4px 10px 0; color: #b6f08f; min-height: 0; }
+.drawer .more { display: none; margin: 8px 10px 0; flex-direction: column; gap: 5px; }
+.drawer .more.on { display: flex; }
+.drawer .more .mh { display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--o-text-faint); -mc-tint: var(--o-text-faint); border-top: 1px solid var(--o-line); padding-top: 5px; }
+.drawer .more .mh:hover { color: var(--o-text-dim); -mc-tint: var(--o-text-dim); }
+.drawer .more .mh img { width: 8px; height: 8px; transition: transform 180ms var(--m-out); }
+.drawer .more.closed .mh img { transform: rotate(-90deg); }
+.drawer .more.closed .spec { display: none; }
+.drawer .spec { display: flex; flex-direction: column; gap: 5px; }
 .spec .o-caps { color: var(--o-text-faint); }
+.dacts { flex: none; display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-top: 1px solid var(--o-line-strong); background: var(--o-tile); box-shadow: inset 0 1px 0 var(--o-tile-hi); }
+.dacts .ore-btn { height: 20px; white-space: nowrap; }
+.dacts .ore-btn.hero { flex: 1; min-width: 0; }
+.dacts .ore-btn.on { -mc-tint: #ff8aa0; }
 .swatches { display: flex; gap: 3px; }
 .swatches i { flex: 1; height: 22px; display: flex; align-items: flex-end; padding: 2px; border: 1px solid rgba(0, 0, 0, 0.35);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.9); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
@@ -122,29 +141,20 @@
 .how div { display: flex; gap: 4px; min-width: 0; color: var(--o-text-dim); line-height: 10px; }
 .how div b { flex: none; width: 9px; font-weight: normal; color: var(--o-accent-strong); }
 .how div span { flex: 1; min-width: 0; }
-.code { margin: 0; padding: 4px 6px; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--o-line-strong); color: #b6f08f;
-    white-space: pre-wrap; word-break: break-all; line-height: 10px; }
-[data-theme=light] .code { background: #2b2b2b; }
-.code .c { color: #8c8d90; }
 .tpls { display: none; }
-.foot { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-top: 1px solid var(--o-line-strong); box-shadow: inset 0 1px 0 var(--o-line); color: var(--o-text-faint); }
-.foot span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.foot #foot-count { flex: none; }
-.o-titlebar .o-crumb { min-width: 0; flex-shrink: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 @media (max-width: 560px) {
-    .bar #count { display: none; }
-    .side { width: 94px; }
+    .bar .count { display: none; }
+    .bar .vt { max-width: 32%; }
+    .side { width: 98px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
-    .tags { display: none; }
-    .drawer { width: 86%; }
-    .drawer .big { aspect-ratio: auto; height: 92px; }
-    .drawer .big img { top: 50%; height: auto; transform: translateY(-50%); }
+    .drawer { width: 88%; }
 }
-</style>
-<style>
-/* Retired prototype: also suppress the cached card in an already-running dev client. */
-.card[data-path$=" achievement"] { display: none !important; }
+@media (max-height: 300px) {
+    .drawer .big { aspect-ratio: auto; height: 64px; }
+    .drawer .big img { top: 50%; height: auto; transform: translateY(-50%); }
+    .drawer .head { padding-top: 5px; gap: 3px; }
+}
 </style>
 </head>
 <body>
@@ -152,58 +162,66 @@
   <div class="o-window">
     <div class="o-titlebar">
       <div class="o-brand"><img src="../textures/ui/emblem.png"><b data-i18n="oriel.ui.brand.name">oriel.ui.brand.name</b><span data-i18n="oriel.ui.brand.sub">oriel.ui.brand.sub</span></div>
-      <span class="o-crumb" id="crumb" data-i18n="oriel.ui.styles.crumb">oriel.ui.styles.crumb</span>
       <div class="o-grow"></div>
-      <div class="o-hints"><span data-i18n="oriel.ui.common.preview"><span class="o-kbd">Enter</span>oriel.ui.common.preview</span><span data-i18n="oriel.ui.styles.hint_save"><span class="o-kbd">S</span>oriel.ui.styles.hint_save</span><span data-i18n="oriel.ui.styles.hint_back"><span class="o-kbd">Esc</span>oriel.ui.styles.hint_back</span></div>
       <div class="ore-btn icon" data-action="theme" tabindex="0" title="oriel.ui.gallery.toggle_light_dark" data-i18n-title="oriel.ui.gallery.toggle_light_dark"><img class="o-ico" src="../textures/icons/sun.png"></div>
       <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div>
     </div>
     <div class="o-tabbar">
       <div class="o-apptabs">
         <div data-go="gallery"><img class="o-ico" src="../textures/icons/home.png"><em data-i18n-text-0="oriel.ui.nav.home">oriel.ui.nav.home</em></div>
+        <div class="on" data-go="styles"><img class="o-ico" src="../textures/icons/users.png"><em data-i18n-text-0="oriel.ui.nav.community">oriel.ui.nav.community</em></div>
         <div data-go="catalog"><img class="o-ico" src="../textures/icons/grid.png"><em data-i18n-text-0="oriel.ui.nav.components">oriel.ui.nav.components</em></div>
         <div data-go="icons"><img class="o-ico" src="../textures/icons/star.png"><em data-i18n-text-0="oriel.ui.nav.icons">oriel.ui.nav.icons</em></div>
-        <div class="on" data-go="styles"><img class="o-ico" src="../textures/icons/palette.png"><em data-i18n-text-0="oriel.ui.nav.templates">oriel.ui.nav.templates</em></div>
-        <div data-go="editor"><img class="o-ico" src="../textures/icons/layers.png"><em data-i18n-text-0="oriel.ui.nav.editor">oriel.ui.nav.editor</em></div>
+        <div data-go="modsettings"><img class="o-ico" src="../textures/icons/gear.png"><em data-i18n-text-0="oriel.ui.nav.settings">oriel.ui.nav.settings</em></div>
+        <div data-go="about"><img class="o-ico" src="../textures/icons/help.png"><em data-i18n-text-0="oriel.ui.nav.about">oriel.ui.nav.about</em></div>
         <i class="m-indicator"></i>
       </div>
     </div>
     <div class="o-body">
       <div class="side" id="side">
-        <div class="grp" data-i18n="oriel.ui.styles.side.browse">oriel.ui.styles.side.browse</div>
-        <div class="item on" data-view="all" tabindex="0"><img class="o-ico" src="../textures/icons/grid_bento.png"><span data-i18n="oriel.ui.styles.side.all">oriel.ui.styles.side.all</span><span class="n"></span></div>
-        <div class="item" data-view="official" tabindex="0"><img class="o-ico" src="../textures/icons/medal.png"><span data-i18n="oriel.ui.styles.side.official">oriel.ui.styles.side.official</span><span class="n"></span></div>
-        <div class="item" data-view="legacy" tabindex="0"><img class="o-ico" src="../textures/icons/folder.png"><span data-i18n="oriel.ui.styles.side.legacy"></span><span class="n"></span></div>
-        <div class="item" data-view="community" tabindex="0"><img class="o-ico" src="../textures/icons/users.png"><span data-i18n="oriel.ui.styles.side.community">oriel.ui.styles.side.community</span><span class="n"></span></div>
-        <div class="item" data-view="demos" tabindex="0"><img class="o-ico" src="../textures/icons/star.png"><span data-i18n="oriel.ui.styles.side.demos">oriel.ui.styles.side.demos</span><span class="n"></span></div>
-        <div class="grp" data-i18n="oriel.ui.styles.side.mine">oriel.ui.styles.side.mine</div>
-        <div class="item" data-view="fav" tabindex="0"><img class="o-ico" src="../textures/icons/heart.png"><span data-i18n="oriel.ui.styles.side.favorites">oriel.ui.styles.side.favorites</span><span class="n"></span></div>
-        <div class="item" data-view="saved" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span data-i18n="oriel.ui.styles.side.saved">oriel.ui.styles.side.saved</span><span class="n"></span></div>
-        <div class="item" data-view="pages" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-i18n="oriel.ui.styles.side.pages">oriel.ui.styles.side.pages</span><span class="n"></span></div>
-        <div class="item" data-view="recent" tabindex="0"><img class="o-ico" src="../textures/icons/clock.png"><span data-i18n="oriel.ui.styles.side.recent">oriel.ui.styles.side.recent</span><span class="n"></span></div>
-        <div class="grp" data-i18n="oriel.ui.styles.side.categories">oriel.ui.styles.side.categories</div>
-        <div class="item" data-view="group:basic" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-template-group="basic"></span><span class="n"></span></div>
-        <div class="item" data-view="group:information" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-template-group="information"></span><span class="n"></span></div>
-        <div class="item" data-view="group:data" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-template-group="data"></span><span class="n"></span></div>
-        <div class="item" data-view="group:events" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-template-group="events"></span><span class="n"></span></div>
-        <div class="item" data-view="group:drawing" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-template-group="drawing"></span><span class="n"></span></div>
-        <div class="item" data-view="group:host" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-template-group="host"></span><span class="n"></span></div>
-        <div class="item" data-view="group:hud" tabindex="0"><img class="o-ico" src="../textures/icons/swords.png"><span data-template-group="hud"></span><span class="n"></span></div>
-        <div class="item" data-view="group:menu" tabindex="0"><img class="o-ico" src="../textures/icons/book_open.png"><span data-template-group="menu"></span><span class="n"></span></div>
-        <div class="item" data-view="group:theme" tabindex="0"><img class="o-ico" src="../textures/icons/sparkle.png"><span data-template-group="theme"></span><span class="n"></span></div>
+        <div class="grp" data-set="browse"><img class="o-ico" src="../textures/icons/down.png"><span data-i18n="oriel.ui.styles.side.browse">oriel.ui.styles.side.browse</span></div>
+        <div class="set" id="set-browse">
+          <div class="item on" data-view="all" tabindex="0"><img class="o-ico" src="../textures/icons/grid_bento.png"><span data-i18n="oriel.ui.styles.side.all">oriel.ui.styles.side.all</span><span class="n"></span></div>
+          <div class="item" data-view="official" tabindex="0"><img class="o-ico" src="../textures/icons/medal.png"><span data-i18n="oriel.ui.styles.side.official">oriel.ui.styles.side.official</span><span class="n"></span></div>
+          <div class="item" data-view="community" tabindex="0"><img class="o-ico" src="../textures/icons/users.png"><span data-i18n="oriel.ui.styles.side.community">oriel.ui.styles.side.community</span><span class="n"></span></div>
+        </div>
+        <div class="grp" data-set="mine"><img class="o-ico" src="../textures/icons/down.png"><span data-i18n="oriel.ui.styles.side.mine">oriel.ui.styles.side.mine</span></div>
+        <div class="set" id="set-mine">
+          <div class="item" data-view="fav" tabindex="0"><img class="o-ico" src="../textures/icons/heart.png"><span data-i18n="oriel.ui.styles.side.favorites">oriel.ui.styles.side.favorites</span><span class="n"></span></div>
+          <div class="item" data-view="saved" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span data-i18n="oriel.ui.styles.side.saved">oriel.ui.styles.side.saved</span><span class="n"></span></div>
+          <div class="item" data-view="pages" tabindex="0"><img class="o-ico" src="../textures/icons/layers.png"><span data-i18n="oriel.ui.styles.side.pages">oriel.ui.styles.side.pages</span><span class="n"></span></div>
+          <div class="item" data-view="recent" tabindex="0"><img class="o-ico" src="../textures/icons/clock.png"><span data-i18n="oriel.ui.styles.side.recent">oriel.ui.styles.side.recent</span><span class="n"></span></div>
+        </div>
+        <div class="grp" data-set="cats"><img class="o-ico" src="../textures/icons/down.png"><span data-i18n="oriel.ui.styles.side.categories">oriel.ui.styles.side.categories</span></div>
+        <div class="set" id="set-cats">
+          <div class="item" data-view="cat:notify" tabindex="0"><img class="o-ico" src="../textures/icons/bell.png"><span data-category="notify"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:quest" tabindex="0"><img class="o-ico" src="../textures/icons/book_open.png"><span data-category="quest"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:items" tabindex="0"><img class="o-ico" src="../textures/icons/bag.png"><span data-category="items"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:combat" tabindex="0"><img class="o-ico" src="../textures/icons/swords.png"><span data-category="combat"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:reward" tabindex="0"><img class="o-ico" src="../textures/icons/crown.png"><span data-category="reward"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:craft" tabindex="0"><img class="o-ico" src="../textures/icons/hammer.png"><span data-category="craft"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:menu" tabindex="0"><img class="o-ico" src="../textures/icons/gear.png"><span data-category="menu"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:guide" tabindex="0"><img class="o-ico" src="../textures/icons/compass.png"><span data-category="guide"></span><span class="n"></span></div>
+          <div class="item" data-view="cat:fx" tabindex="0"><img class="o-ico" src="../textures/icons/sparkle.png"><span data-category="fx"></span><span class="n"></span></div>
+        </div>
+        <div class="grp closed" data-set="old"><img class="o-ico" src="../textures/icons/down.png"><span data-i18n="oriel.ui.styles.side.old">oriel.ui.styles.side.old</span></div>
+        <div class="set closed" id="set-old">
+          <div class="item" data-view="legacy" tabindex="0"><img class="o-ico" src="../textures/icons/folder.png"><span data-i18n="oriel.ui.styles.side.legacy">oriel.ui.styles.side.legacy</span><span class="n"></span></div>
+          <div class="item" data-view="demos" tabindex="0"><img class="o-ico" src="../textures/icons/star.png"><span data-i18n="oriel.ui.styles.side.demos">oriel.ui.styles.side.demos</span><span class="n"></span></div>
+        </div>
         <div class="grow"></div>
         <div class="item" data-view="guide" tabindex="0"><img class="o-ico" src="../textures/icons/help.png"><span data-i18n="oriel.ui.styles.side.guide">oriel.ui.styles.side.guide</span></div>
       </div>
       <div class="main">
         <div class="bar">
-          <div class="search"><input class="ore-field" id="q" placeholder="oriel.ui.styles.search" data-i18n-placeholder="oriel.ui.styles.search"><img class="o-ico" src="../textures/icons/search.png"></div>
+          <span class="vt" id="view-title" data-i18n="oriel.ui.styles.view.all.title">oriel.ui.styles.view.all.title</span>
           <span class="count" id="count"></span>
           <div class="o-grow"></div>
+          <div class="pill" id="tagpill" tabindex="0"><span id="tagpill-text"></span><i>×</i></div>
+          <div class="search"><input class="ore-field" id="q" placeholder="oriel.ui.styles.search" data-i18n-placeholder="oriel.ui.styles.search"><img class="o-ico" src="../textures/icons/search.png"></div>
           <div class="o-seg" id="sort"><span class="on" data-sort="pick" data-i18n="oriel.ui.styles.sort.pick">oriel.ui.styles.sort.pick</span><span data-sort="new" data-i18n="oriel.ui.styles.sort.new">oriel.ui.styles.sort.new</span><span data-sort="name" data-i18n="oriel.ui.styles.sort.name">oriel.ui.styles.sort.name</span></div>
         </div>
-        <div class="tagbar" id="tagbar"></div>
         <div class="scroll" id="scroll">
-          <div class="headline"><span class="o-h2" id="view-title" data-i18n="oriel.ui.styles.view.all.title">oriel.ui.styles.view.all.title</span><span class="o-faint" id="view-sub" data-i18n="oriel.ui.styles.view.all.sub">oriel.ui.styles.view.all.sub</span></div>
           <div class="grid" id="grid"></div>
           <div class="empty" id="empty-community"><div class="art"><img class="o-ico" src="../textures/icons/users.png"></div>
             <span class="o-h2" data-i18n="oriel.ui.styles.empty.community.title">oriel.ui.styles.empty.community.title</span><span data-i18n="oriel.ui.styles.empty.community.text">oriel.ui.styles.empty.community.text</span></div>
@@ -220,134 +238,88 @@
         </div>
         <div class="veil" id="veil"></div>
         <div class="drawer" id="drawer">
-          <div class="dscroll">
+          <div class="dscroll" id="dscroll">
             <div class="big"><img id="d-cover"><div class="ore-btn icon close" id="d-close" tabindex="0"><img class="o-ico" src="../textures/icons/close.png"></div></div>
-            <div class="head"><span class="o-h1" id="d-title"></span><div class="by"><img src="../textures/ui/emblem.png"><span id="d-author"></span><em id="d-ver"></em></div>
-              <span class="desc" id="d-desc"></span></div>
-            <div class="acts">
-              <div class="ore-btn hero m-ripple" id="d-open" tabindex="0" data-i18n="oriel.ui.styles.drawer.open"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.styles.drawer.open</div>
-              <div class="ore-btn m-ripple" id="d-save" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span data-i18n="oriel.ui.styles.drawer.save">oriel.ui.styles.drawer.save</span></div>
-              <div class="ore-btn icon m-ripple" id="d-fav" tabindex="0" title="oriel.ui.styles.drawer.favorite" data-i18n-title="oriel.ui.styles.drawer.favorite"><img class="o-ico" src="../textures/icons/heart.png"></div>
+            <div class="head">
+              <span class="dtitle o-h2" id="d-title"></span>
+              <div class="by"><img id="d-avatar" src="../textures/ui/emblem.png"><span id="d-author"></span><em id="d-ver"></em></div>
+              <span class="desc" id="d-desc"></span>
+              <div class="tags" id="d-tags"></div>
             </div>
             <div class="note" id="d-note"></div>
-            <div class="spec" id="d-spec"></div>
+            <div class="more closed" id="d-more"><div class="mh" id="d-morehead"><img class="o-ico" src="../textures/icons/down.png"><span data-i18n="oriel.ui.styles.drawer.details">oriel.ui.styles.drawer.details</span></div><div class="spec" id="d-spec"></div></div>
+          </div>
+          <div class="dacts">
+            <div class="ore-btn hero m-ripple" id="d-open" tabindex="0" data-i18n="oriel.ui.styles.drawer.open"><img class="o-ico" src="../textures/icons/play.png">oriel.ui.styles.drawer.open</div>
+            <div class="ore-btn m-ripple" id="d-save" tabindex="0"><img class="o-ico" src="../textures/icons/download.png"><span data-i18n="oriel.ui.styles.drawer.save">oriel.ui.styles.drawer.save</span></div>
+            <div class="ore-btn icon m-ripple" id="d-fav" tabindex="0" title="oriel.ui.styles.drawer.favorite" data-i18n-title="oriel.ui.styles.drawer.favorite"><img class="o-ico" src="../textures/icons/heart.png"></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="foot"><span id="foot-count"></span></div>
   </div>
 </div>
 
 <!-- The templates: one entry each (data for the card, and the spec the details show). -->
 <div class="tpls" id="tpls">
 <!-- NUMBERED TEMPLATES START -->
-<div class="tpl" data-id="01" data-title="01 · 提示与成就弹条" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="保存结果、物品获得、成就和错误提示">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/01/</p><p>minecraft:default · G01</p></div>
-<div class="tpl" data-id="02" data-title="02 · 队员加入与离开" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="组队事件、联机状态通知">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/02/</p><p>minecraft:default · G06</p></div>
-<div class="tpl" data-id="03" data-title="03 · 地点与群系提示" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="发现地标、进入区域、维度信息">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/03/</p><p>minecraft:default · G07</p></div>
-<div class="tpl" data-id="04" data-title="04 · 日期与生存天数" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="生存天数、赛季日期、时间提示">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/04/</p><p>minecraft:default · G08</p></div>
-<div class="tpl" data-id="05" data-title="05 · 地下城基础组件与动效工具" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="按钮、键帽、槽位、徽章、难度条、面板、计数、文字">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/05/</p><p>minecraft:default · G36</p></div>
-<div class="tpl" data-id="06" data-title="06 · 快捷栏选中与物品提示框" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="选中槽位、物品名称附魔与属性提示">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/06/</p><p>minecraft:default · G51</p></div>
-<div class="tpl" data-id="07" data-title="07 · 设置控件反馈" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="开关滑块页签按钮的实际交互">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/07/</p><p>minecraft:default · G52</p></div>
-<div class="tpl" data-id="08" data-title="08 · 主菜单布局与入场" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="模组首页、功能选择、暂停页入口">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/08/</p><p>minecraft:default · G53</p></div>
-<div class="tpl" data-id="09" data-title="09 · 收藏关注与通知开关" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="收藏模板、关注队友、启用通知">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/09/</p><p>minecraft:default · G42</p></div>
-<div class="tpl" data-id="10" data-title="10 · 收藏与入库反馈" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="配方收藏、模板保存、物品入库">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/10/</p><p>minecraft:default · G45</p></div>
-<div class="tpl" data-id="11" data-title="11 · 目标清单与目标更新" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="任务追踪、制作步骤、阶段目标">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/11/</p><p>minecraft:default · G02</p></div>
-<div class="tpl" data-id="12" data-title="12 · 解锁通知面板" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="配方、任务、能力、区域解锁">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/12/</p><p>minecraft:default · G03</p></div>
-<div class="tpl" data-id="13" data-title="13 · 对话与说话人字幕" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="NPC 对话、教程、剧情文字">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/13/</p><p>minecraft:default · G04</p></div>
-<div class="tpl" data-id="14" data-title="14 · 人物与生物介绍卡" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="NPC 身份、图鉴、目标资料">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/14/</p><p>minecraft:default · G05</p></div>
-<div class="tpl" data-id="15" data-title="15 · 倒计时" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="竞速、活动开始、准备倒数">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/15/</p><p>minecraft:default · G09</p></div>
-<div class="tpl" data-id="16" data-title="16 · 胜利与完成横幅" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="通关、挑战完成">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/16/</p><p>minecraft:default · G10</p></div>
-<div class="tpl" data-id="17" data-title="17 · 材料需求清单" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="合成、建造、任务收集材料">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/17/</p><p>minecraft:default · G14</p></div>
-<div class="tpl" data-id="18" data-title="18 · 关卡与整合包简报" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="关卡规则、难度、配置、奖励预览">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/18/</p><p>minecraft:default · G33</p></div>
-<div class="tpl" data-id="19" data-title="19 · 章节与任务步骤导航" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="教程目录、任务步骤、当前阶段">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/19/</p><p>minecraft:default · G34</p></div>
-<div class="tpl" data-id="20" data-title="20 · 任务标题与阶段条" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="任务名、章节进入、当前阶段">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/20/</p><p>minecraft:default · G49</p></div>
-<div class="tpl" data-id="21" data-title="21 · 加载与等待状态" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="数据加载、等服务器、准备资源">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/21/</p><p>minecraft:default · G48</p></div>
-<div class="tpl" data-id="22" data-title="22 · 物品详情展示" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="装备详情、商店预览、锻造结果">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/22/</p><p>minecraft:default · G12</p></div>
-<div class="tpl" data-id="23" data-title="23 · 属性与装备对比" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="当前与候选、强化前后对比">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/23/</p><p>minecraft:default · G13</p></div>
-<div class="tpl" data-id="24" data-title="24 · 结算与统计卡" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="关卡成绩、战斗统计、奖励结果">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/24/</p><p>minecraft:default · G11</p></div>
-<div class="tpl" data-id="25" data-title="25 · 升级路线与进化链" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="装备升级树、技能前置、配方链">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/25/</p><p>minecraft:default · G20</p></div>
-<div class="tpl" data-id="26" data-title="26 · 稀有度卡与局部光柱" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="奖励卡、物品槽品质强调">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/26/</p><p>minecraft:default · G22</p></div>
-<div class="tpl" data-id="27" data-title="27 · 动态排行榜" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="竞速榜、积分榜、击杀榜">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/27/</p><p>minecraft:default · G30</p></div>
-<div class="tpl" data-id="28" data-title="28 · 物品网格与整理反馈" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="独立仓库、背包或商店的网格与排序">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/28/</p><p>minecraft:default · G35</p></div>
-<div class="tpl" data-id="29" data-title="29 · 物品拾取与飞入" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="加入背包、奖励飞向目标槽">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/29/</p><p>minecraft:default · G23</p></div>
-<div class="tpl" data-id="30" data-title="30 · 货币经验与资源到账" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="货币、灵魂、经验计数变化">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/30/</p><p>minecraft:default · G24</p></div>
-<div class="tpl" data-id="31" data-title="31 · 受伤与低血量反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="受击提示、持续危险状态">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/31/</p><p>minecraft:default · G26</p></div>
-<div class="tpl" data-id="32" data-title="32 · 升级与等级徽章" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="角色或技能升级">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/32/</p><p>minecraft:default · G28</p></div>
-<div class="tpl" data-id="33" data-title="33 · 教学聚焦与局部遮罩" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="首次操作引导、突出当前控件">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/33/</p><p>minecraft:default · G37</p></div>
-<div class="tpl" data-id="34" data-title="34 · 命中强化与加速短反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="错误抖动、强化成功、技能卡激活、拆解碎屑">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/34/</p><p>minecraft:default · G41</p></div>
-<div class="tpl" data-id="35" data-title="35 · 消息气泡与发送反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="队伍消息、NPC 短句、发送成功">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/35/</p><p>minecraft:default · G43</p></div>
-<div class="tpl" data-id="36" data-title="36 · 付款与投入反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="商店付款、材料捐献、任务交付">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/36/</p><p>minecraft:default · G44</p></div>
-<div class="tpl" data-id="37" data-title="37 · 长期目标达成庆祝" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="全收集、累计挑战、长期成就">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/37/</p><p>minecraft:default · G46</p></div>
-<div class="tpl" data-id="38" data-title="38 · 进度解锁奖励箱" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="累计任务、通行证阶段奖励">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/38/</p><p>minecraft:default · G47</p></div>
-<div class="tpl" data-id="39" data-title="39 · 任务选关与路线地图" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="副本选择、任务路线、旅行规划">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/39/</p><p>minecraft:default · G31</p></div>
-<div class="tpl" data-id="40" data-title="40 · 地图标记与坐标标签" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="地图图钉、HUD 坐标、目的地信息">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/40/</p><p>minecraft:default · G32</p></div>
-<div class="tpl" data-id="41" data-title="41 · 火星尘埃与萤火虫" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="锻造、奖励、营地菜单少量装饰">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/41/</p><p>minecraft:default · G38</p></div>
-<div class="tpl" data-id="42" data-title="42 · 魔法灵魂与暖光" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="附魔、灵魂资源、暖光面板">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/42/</p><p>minecraft:default · G39</p></div>
-<div class="tpl" data-id="43" data-title="43 · 雨雪与雷电主题" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="天气信息卡、主题菜单、技能预览窗">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/43/</p><p>minecraft:default · G40</p></div>
-<div class="tpl" data-id="44" data-title="44 · 菜单静态背景参考" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="1.0.0-reference" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="主菜单、关卡详情背景选型">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/44/</p><p>minecraft:default · G50</p></div>
-<div class="tpl" data-id="45" data-title="45 · 合成配方界面" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="配方预览、合成台皮肤">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/45/</p><p>minecraft:default · G15</p></div>
-<div class="tpl" data-id="46" data-title="46 · 熔炉与加工进度" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="烧炼、机器加工、燃料显示">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/46/</p><p>minecraft:default · G16</p></div>
-<div class="tpl" data-id="47" data-title="47 · 锻造与强化" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="升级、修理、装备强化">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/47/</p><p>minecraft:default · G17</p></div>
-<div class="tpl" data-id="48" data-title="48 · 附魔选择与词条槽" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="附魔选项、消耗、词条预览">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/48/</p><p>minecraft:default · G18</p></div>
-<div class="tpl" data-id="49" data-title="49 · 酿造流程" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="炼药、分阶段加工">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/49/</p><p>minecraft:default · G19</p></div>
-<div class="tpl" data-id="50" data-title="50 · 奖励列表与开箱揭晓" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="任务奖励、副本宝箱、领取页">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/50/</p><p>minecraft:default · G21</p></div>
-<div class="tpl" data-id="51" data-title="51 · 血量经验与技能底栏" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="状态 HUD、冷却与资源条">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/51/</p><p>minecraft:default · G25</p></div>
-<div class="tpl" data-id="52" data-title="52 · Boss 血条与击败提示" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="Boss 名称、阶段、血量、击败反馈">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/52/</p><p>minecraft:default · G27</p></div>
-<div class="tpl" data-id="53" data-title="53 · 死亡与失败面板" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="挑战失败、剩余生命、死亡信息">
-<span class="o-caps" data-i18n="oriel.ui.styles.spec.category"></span><p data-template-field="category"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.status"></span><p data-template-field="status"></p><span class="o-caps" data-i18n="oriel.ui.styles.spec.source"></span><p>ui/templates/53/</p><p>minecraft:default · G29</p></div>
+<div class="tpl" data-id="01" data-title="01 · 提示与成就弹条" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="保存结果、物品获得、成就和错误提示"></div>
+<div class="tpl" data-id="02" data-title="02 · 队员加入与离开" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="组队事件、联机状态通知"></div>
+<div class="tpl" data-id="03" data-title="03 · 地点与群系提示" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="发现地标、进入区域、维度信息"></div>
+<div class="tpl" data-id="04" data-title="04 · 日期与生存天数" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="生存天数、赛季日期、时间提示"></div>
+<div class="tpl" data-id="05" data-title="05 · 地下城基础组件与动效工具" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="按钮、键帽、槽位、徽章、难度条、面板、计数、文字"></div>
+<div class="tpl" data-id="06" data-title="06 · 快捷栏选中与物品提示框" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="选中槽位、物品名称附魔与属性提示"></div>
+<div class="tpl" data-id="07" data-title="07 · 设置控件反馈" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="开关滑块页签按钮的实际交互"></div>
+<div class="tpl" data-id="08" data-title="08 · 主菜单布局与入场" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="模组首页、功能选择、暂停页入口"></div>
+<div class="tpl" data-id="09" data-title="09 · 收藏关注与通知开关" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="收藏模板、关注队友、启用通知"></div>
+<div class="tpl" data-id="10" data-title="10 · 收藏与入库反馈" data-author="云诺羲" data-source="official" data-group="basic" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="基础组件与轻量提示" data-desc="配方收藏、模板保存、物品入库"></div>
+<div class="tpl" data-id="11" data-title="11 · 目标清单与目标更新" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="任务追踪、制作步骤、阶段目标"></div>
+<div class="tpl" data-id="12" data-title="12 · 解锁通知面板" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="配方、任务、能力、区域解锁"></div>
+<div class="tpl" data-id="13" data-title="13 · 对话与说话人字幕" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="NPC 对话、教程、剧情文字"></div>
+<div class="tpl" data-id="14" data-title="14 · 人物与生物介绍卡" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="NPC 身份、图鉴、目标资料"></div>
+<div class="tpl" data-id="15" data-title="15 · 倒计时" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="竞速、活动开始、准备倒数"></div>
+<div class="tpl" data-id="16" data-title="16 · 胜利与完成横幅" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="通关、挑战完成"></div>
+<div class="tpl" data-id="17" data-title="17 · 材料需求清单" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="合成、建造、任务收集材料"></div>
+<div class="tpl" data-id="18" data-title="18 · 关卡与整合包简报" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="关卡规则、难度、配置、奖励预览"></div>
+<div class="tpl" data-id="19" data-title="19 · 章节与任务步骤导航" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="教程目录、任务步骤、当前阶段"></div>
+<div class="tpl" data-id="20" data-title="20 · 任务标题与阶段条" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="任务名、章节进入、当前阶段"></div>
+<div class="tpl" data-id="21" data-title="21 · 加载与等待状态" data-author="云诺羲" data-source="official" data-group="information" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="信息与任务交互" data-desc="数据加载、等服务器、准备资源"></div>
+<div class="tpl" data-id="22" data-title="22 · 物品详情展示" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="装备详情、商店预览、锻造结果"></div>
+<div class="tpl" data-id="23" data-title="23 · 属性与装备对比" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="当前与候选、强化前后对比"></div>
+<div class="tpl" data-id="24" data-title="24 · 结算与统计卡" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="关卡成绩、战斗统计、奖励结果"></div>
+<div class="tpl" data-id="25" data-title="25 · 升级路线与进化链" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="装备升级树、技能前置、配方链"></div>
+<div class="tpl" data-id="26" data-title="26 · 稀有度卡与局部光柱" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="奖励卡、物品槽品质强调"></div>
+<div class="tpl" data-id="27" data-title="27 · 动态排行榜" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="竞速榜、积分榜、击杀榜"></div>
+<div class="tpl" data-id="28" data-title="28 · 物品网格与整理反馈" data-author="云诺羲" data-source="official" data-group="data" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="数据型面板" data-desc="独立仓库、背包或商店的网格与排序"></div>
+<div class="tpl" data-id="29" data-title="29 · 物品拾取与飞入" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="加入背包、奖励飞向目标槽"></div>
+<div class="tpl" data-id="30" data-title="30 · 货币经验与资源到账" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="货币、灵魂、经验计数变化"></div>
+<div class="tpl" data-id="31" data-title="31 · 受伤与低血量反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="受击提示、持续危险状态"></div>
+<div class="tpl" data-id="32" data-title="32 · 升级与等级徽章" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="角色或技能升级"></div>
+<div class="tpl" data-id="33" data-title="33 · 教学聚焦与局部遮罩" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="首次操作引导、突出当前控件"></div>
+<div class="tpl" data-id="34" data-title="34 · 命中强化与加速短反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="错误抖动、强化成功、技能卡激活、拆解碎屑"></div>
+<div class="tpl" data-id="35" data-title="35 · 消息气泡与发送反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="队伍消息、NPC 短句、发送成功"></div>
+<div class="tpl" data-id="36" data-title="36 · 付款与投入反馈" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="商店付款、材料捐献、任务交付"></div>
+<div class="tpl" data-id="37" data-title="37 · 长期目标达成庆祝" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="全收集、累计挑战、长期成就"></div>
+<div class="tpl" data-id="38" data-title="38 · 进度解锁奖励箱" data-author="云诺羲" data-source="official" data-group="events" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="事件动效与轨迹" data-desc="累计任务、通行证阶段奖励"></div>
+<div class="tpl" data-id="39" data-title="39 · 任务选关与路线地图" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="副本选择、任务路线、旅行规划"></div>
+<div class="tpl" data-id="40" data-title="40 · 地图标记与坐标标签" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="地图图钉、HUD 坐标、目的地信息"></div>
+<div class="tpl" data-id="41" data-title="41 · 火星尘埃与萤火虫" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="锻造、奖励、营地菜单少量装饰"></div>
+<div class="tpl" data-id="42" data-title="42 · 魔法灵魂与暖光" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="附魔、灵魂资源、暖光面板"></div>
+<div class="tpl" data-id="43" data-title="43 · 雨雪与雷电主题" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="天气信息卡、主题菜单、技能预览窗"></div>
+<div class="tpl" data-id="44" data-title="44 · 菜单静态背景参考" data-author="云诺羲" data-source="official" data-group="drawing" data-ver="1.0.0-reference" data-date="2026-11-07" data-tags="地图与局部绘制" data-desc="主菜单、关卡详情背景选型"></div>
+<div class="tpl" data-id="45" data-title="45 · 合成配方界面" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="配方预览、合成台皮肤"></div>
+<div class="tpl" data-id="46" data-title="46 · 熔炉与加工进度" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="烧炼、机器加工、燃料显示"></div>
+<div class="tpl" data-id="47" data-title="47 · 锻造与强化" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="升级、修理、装备强化"></div>
+<div class="tpl" data-id="48" data-title="48 · 附魔选择与词条槽" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="附魔选项、消耗、词条预览"></div>
+<div class="tpl" data-id="49" data-title="49 · 酿造流程" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="炼药、分阶段加工"></div>
+<div class="tpl" data-id="50" data-title="50 · 奖励列表与开箱揭晓" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="任务奖励、副本宝箱、领取页"></div>
+<div class="tpl" data-id="51" data-title="51 · 血量经验与技能底栏" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="状态 HUD、冷却与资源条"></div>
+<div class="tpl" data-id="52" data-title="52 · Boss 血条与击败提示" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="Boss 名称、阶段、血量、击败反馈"></div>
+<div class="tpl" data-id="53" data-title="53 · 死亡与失败面板" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.1.0-preview" data-date="2026-11-07" data-tags="游戏宿主 UI 原型" data-desc="挑战失败、剩余生命、死亡信息"></div>
+<div class="tpl" data-id="54" data-title="54 · 背包与角色" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.2.0" data-date="2026-11-07" data-tags="背包,Ore" data-desc="物品栏、角色预览与装备槽的 Ore 风格背包"></div>
+<div class="tpl" data-id="55" data-title="55 · 设置页" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.2.0" data-date="2026-11-07" data-tags="设置,Ore" data-desc="开关、滑块、下拉与输入框齐全的设置界面"></div>
+<div class="tpl" data-id="56" data-title="56 · 药水状态 HUD" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.2.0" data-date="2026-11-07" data-tags="HUD,状态" data-desc="状态效果列表与剩余时间，可折叠成图标"></div>
+<div class="tpl" data-id="57" data-title="57 · 组件编辑器" data-author="云诺羲" data-source="official" data-group="host" data-ver="0.2.0" data-date="2026-11-07" data-tags="编辑器,工具" data-desc="拖动、对齐与属性面板的界面编辑器原型"></div>
 <!-- NUMBERED TEMPLATES END -->
   <div class="tpl" data-id="rpg" data-title="RPG 战斗 HUD" data-author="云诺羲" data-source="legacy" data-group="hud" data-ver="v1.0" data-date="2026-11-04" data-tags="HUD,动作,暗黑" data-desc="暗黑破坏神式的青铜底座：会晃动的血球与蓝球、技能冷却、Boss 血条、头像和任务追踪。"><p class="template-category" data-template-field="category"></p>
     <span class="o-caps" data-i18n="oriel.ui.styles.spec.palette">oriel.ui.styles.spec.palette</span><div class="swatches"><i style="background: #c0201a" data-i18n="oriel.ui.tpl.rpg.swatch.blood">oriel.ui.tpl.rpg.swatch.blood</i><i style="background: #2040c0" data-i18n="oriel.ui.tpl.rpg.swatch.mana">oriel.ui.tpl.rpg.swatch.mana</i><i style="background: #8a5a2a" data-i18n="oriel.ui.tpl.rpg.swatch.bronze">oriel.ui.tpl.rpg.swatch.bronze</i><i style="background: #ffd77a; color: #3a2a00" data-i18n="oriel.ui.tpl.rpg.swatch.gold">oriel.ui.tpl.rpg.swatch.gold</i></div>
@@ -435,6 +407,8 @@
 <pre class="code">h1 { writing-mode: vertical-rl; font-family: oriel:brush; }
 .realm b { color: #c99a3b; -webkit-text-stroke: 2px #1e1a16; }</pre>
   </div>
+  <div class="tpl" data-id="forge" data-title="锻造台" data-author="云诺羲" data-source="legacy" data-group="menu" data-ver="0.2.0" data-date="2026-11-07" data-tags="菜单,锻造" data-desc="铁砧式的修理与强化界面"><p class="template-category" data-template-field="category"></p></div>
+  <div class="tpl" data-id="music" data-title="音乐播放器" data-author="云诺羲" data-source="legacy" data-group="menu" data-ver="0.2.0" data-date="2026-11-07" data-tags="菜单,音乐" data-desc="唱片列表、频谱与进度条的播放器"><p class="template-category" data-template-field="category"></p></div>
 </div>
 </body>
 </html>

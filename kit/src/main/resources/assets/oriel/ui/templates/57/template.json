@@ -1,0 +1,36 @@
+{
+  "id": "57",
+  "slug": "component-editor",
+  "group": "host",
+  "author": "云诺羲",
+  "version": "0.2.0",
+  "date": "2026-11-07",
+  "sourceGroup": "",
+  "kind": "page",
+  "source": "official",
+  "entry": "57/index.html",
+  "page": "oriel:ui/editor.html",
+  "cover": "oriel:ui/templates/57/cover.png",
+  "locales": {
+    "zh_cn": {
+      "name": "组件编辑器",
+      "description": "拖动、对齐与属性面板的界面编辑器原型",
+      "category": "菜单设置",
+      "tags": [
+        "编辑器",
+        "工具"
+      ],
+      "status": ""
+    },
+    "en_us": {
+      "name": "Component editor",
+      "description": "A UI editor prototype: drag, align and a properties panel",
+      "category": "Menus",
+      "tags": [
+        "Editor",
+        "Tools"
+      ],
+      "status": ""
+    }
+  }
+}

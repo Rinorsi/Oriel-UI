@@ -30,6 +30,11 @@
 .looks span { padding: 0 5px; height: 14px; display: flex; align-items: center; color: var(--o-text-dim); background: var(--o-well); border: 1px solid var(--o-line); white-space: nowrap; }
 .looks span.on { color: var(--o-text); border-color: var(--o-accent); }
 
+.me { display: flex; align-items: center; gap: 8px; padding: 2px 0 4px; }
+.me img { flex: none; width: 34px; height: 34px; image-rendering: pixelated; }
+.me .t { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.me .t b { font-weight: normal; color: var(--o-text); }
+.me .t span { color: var(--o-text-faint); }
 /* Links and mods: rows that read like a list, with the action at the end. */
 .rows { display: flex; flex-direction: column; gap: 1px; }
 .row { display: flex; align-items: center; gap: 7px; min-height: 22px; padding: 3px 4px; border-top: 1px solid var(--o-line); }
@@ -91,7 +96,7 @@
         <div class="col">
           <div class="panel o-tile">
             <h3><img class="o-ico" src="../textures/icons/crown.png"><span data-i18n="oriel.ui.about.author.title">oriel.ui.about.author.title</span></h3>
-            <p><b lang="zh" data-i18n="oriel.ui.about.author.name">oriel.ui.about.author.name</b> · <span data-i18n="oriel.ui.about.author.role">oriel.ui.about.author.role</span></p>
+            <div class="me"><img src="templates/avatars/rinorsi.png"><div class="t"><b lang="zh" data-i18n="oriel.ui.about.author.name">oriel.ui.about.author.name</b><span data-i18n="oriel.ui.about.author.role">oriel.ui.about.author.role</span></div></div>
             <div class="rows">
               <div class="row"><img class="o-ico" src="../textures/icons/play.png"><div class="t"><b data-i18n="oriel.ui.about.link.bilibili">oriel.ui.about.link.bilibili</b><span>b23.tv/hjUvs0c</span></div>
                 <div class="ore-btn copy" tabindex="0" data-copy="https://b23.tv/hjUvs0c" data-i18n="oriel.ui.about.copy">oriel.ui.about.copy</div></div>
