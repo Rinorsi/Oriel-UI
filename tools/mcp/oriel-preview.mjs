@@ -10,11 +10,16 @@ import { checkProject, snapshotRevision } from './lib/checks.mjs';
 import { webPreview, review } from './lib/web.mjs';
 import { integrate, gamePreview } from './lib/integration.mjs';
 import { scaffold } from './lib/scaffold.mjs';
+import { capabilities, buildStatus } from './lib/contracts.mjs';
+import { diagnosticSink, logs } from './lib/diagnostics.mjs';
+import { inspect } from './lib/inspect.mjs';
+import { baseline } from './lib/baselines.mjs';
 
 initState();
+const diagnostics = process.env.ORIEL_MCP_DIAGNOSTICS === '1' ? diagnosticSink() : null;
 const string = { type: 'string' }, number = { type: 'integer' }, object = { type: 'object' };
 const schema = (properties = {}, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
-const tool = (name, description, properties, required, run, readOnly = false) => ({ name, description, inputSchema: schema(properties, required), annotations: { readOnlyHint: readOnly, destructiveHint: false, openWorldHint: false }, run });
+const tool = (name, description, properties, required, run, readOnly = false, destructive = false) => ({ name, description, inputSchema: schema(properties, required), annotations: { readOnlyHint: readOnly, destructiveHint: destructive, openWorldHint: false }, run });
 function result(value, isError = false) { return { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }], structuredContent: value, ...(isError ? { isError: true } : {}) }; }
 const pagePath = value => !value ? path.join(KIT, 'assets/oriel/ui') : value.includes('/') || value.includes('\\') ? path.resolve(ROOT, value) : path.join(KIT, 'assets/oriel/ui', value.endsWith('.html') ? value : value + '.html');
 async function imageResult(receipt) {
@@ -27,20 +32,19 @@ function reviewResult(receipt) {
   if (!receipt.imagePaths) return receipt;
   const { imagePaths, ...value } = receipt;
   const response = result(value);
-  for (const file of imagePaths.slice(0, 12)) if (fs.existsSync(file)) response.content.push({ type: 'image', mimeType: 'image/png', data: fs.readFileSync(file).toString('base64') });
+  requireThat(imagePaths.length <= 12, 'REVIEW_PAGE_REQUIRED', '图片超过单页上限，请使用分页。');
+  for (const file of imagePaths) {
+    requireThat(fs.existsSync(file), 'SNAPSHOT_CHANGED', '待返回截图已缺失。');
+    response.content.push({ type: 'image', mimeType: 'image/png', data: fs.readFileSync(file).toString('base64') });
+  }
   return response;
 }
 const TOOLS = [
-  tool('oriel_inspect', '加载指定页面：selector 解释选择器；property 解释属性的层叠输赢、继承、变量展开与当前动画值。二选一。只读诊断，不批准页面，不启动游戏。', { page: string, selector: string, property: string, element: string, frames: number }, ['page', 'element'], async args => {
-    const frames = args.frames ?? 1;
-    requireThat(frames > 0 && frames <= 600, 'INVALID_FRAMES', 'frames 必须在 1–600 之间。');
-    requireThat(Boolean(args.selector) !== Boolean(args.property), 'INVALID_INSPECT', 'selector 与 property 必须且只能指定一个。');
-    const r = await preview([pagePath(args.page), args.property ? '--why-property' : '--why', args.property ?? args.selector, args.element, '--frames', String(frames)]);
-    const explanations = r.output.split(/\r?\n/).filter(line => line.startsWith('{')).flatMap(line => {
-      try { const value = JSON.parse(line); return ['selector-explanation', 'cascade-explanation'].includes(value.kind) ? [value] : []; } catch { return []; }
-    });
-    return result({ passed: r.code === 0 && explanations.length > 0, exitCode: r.code, explanations, output: r.output }, r.code !== 0 || explanations.length === 0);
-  }),
+  tool('oriel_capabilities', '只读发现当前工具输入/输出合同、版本、限制和未支持能力；不构建、不连接游戏。', { contractVersion: number, profile: object }, [], args => capabilities(TOOLS, args), true),
+  tool('oriel_build_status', '只读查询gws/bench-window共享目录锁和构建槽位；无PID/心跳时明确owner未知，不释放锁。', {}, [], () => buildStatus(), true),
+  tool('oriel_logs', '只读列出本STATE的MCP JSONL诊断会话，或按sessionId/after/limit分页读取。采集默认关闭，ORIEL_MCP_DIAGNOSTICS=1开启。不读取任意文件，不代表引擎追踪。', { sessionId: string, after: number, limit: number, levels: { type: 'array', items: string } }, [], args => ({ ...logs(args), currentSessionId: diagnostics?.sessionId ?? null, recordingEnabled: diagnostics !== null }), true),
+  tool('oriel_inspect', '只读解释当前预览器选择器或属性层叠证据，selector/property二选一，保留explanations并增加有界why-tree。需先集成R03，不切换工作树、不推测布局原因。', { page: string, selector: string, property: string, element: string, frames: number, maxNodes: number }, ['page','element'], async args => { const value = await inspect(args, pagePath); return result(value, !value.passed); }, true),
+  tool('oriel_baseline', '独立黄金PNG候选审批：propose/status返回旧新图与零容差差异；decide逐字代记用户决定；promote只安装获准且匹配固定浏览器oracle的候选，页面批准不能复用。candidate/oracle为本STATE内相对路径。', { action: { ...string, enum: ['propose','status','decide','promote'] }, proposalId: string, baseline: string, candidate: string, oracle: string, reason: string, decision: { ...string, enum: ['approved','rejected'] }, quote: string }, [], args => reviewResult(baseline(args)), false, true),
   tool('oriel_scaffold', '只读检测下游 Fabric/NeoForge/Stonecutter 工程并返回接入清单。prepare=true 在工作区生成并检查固定骨架；经 oriel_review 用户批准后 apply=true + reviewId 只新建 HTML/Java，不改已有文件或构建配置。', { projectRoot: string, loader: { ...string, enum: ['fabric', 'neoforge'] }, minecraft: string, modId: string, resourcesDir: string, javaDir: string, javaPackage: string, launchMode: { ...string, enum: ['gradle-inside', 'gradle-outside', 'jar'] }, prepare: { type: 'boolean' }, apply: { type: 'boolean' }, reviewId: string }, ['projectRoot'], args => scaffold(args)),
   tool('oriel_rules', '制作前必读。查询目标版本的支持能力、限制、替代方式与调用流程；未查询到不代表支持。', { topic: { ...string, enum: Object.keys(topics) }, feature: string, profile: object }, [], args => rules(args), true),
   tool('oriel_project', '登记一个包含 assets/<namespace> 的页面包。重新登记或改源文件将使旧检查与验收失效。', {
@@ -70,7 +74,7 @@ const TOOLS = [
     if (args.boxes) command.push('--boxes', args.boxes);
     const r = await preview(command); return imageResult({ passed: r.code === 0 && fs.existsSync(image), image: fs.existsSync(image) ? image : null, exitCode: r.code, output: r.output });
   }),
-  tool('oriel_review', 'prepare 创建经过检查的固定版本验收：mode=web（缺省）开本机验收网页，必须用户本人点击批准，Agent 不能设置批准；mode=screenshots 把检查截图原样返回，让用户在聊天里看图决定，用户同意后用 decide 逐字引用用户的话（回执标注为聊天批准，由 Agent 代记）。status 查询决定。', { action: { ...string, enum: ['prepare', 'status', 'decide'] }, projectId: string, reviewId: string, mode: { ...string, enum: ['web', 'screenshots'] }, decision: { ...string, enum: ['approved', 'rejected'] }, quote: string }, [], async args => reviewResult(await review(args))),
+  tool('oriel_review', 'prepare创建固定版本验收；web须用户本人点击，screenshots须把各页截图交用户查看后逐字引用用户决定。page按offset/limit返回最多12图及分页标记，未完整返回不能记录批准。status查询决定。', { action: { ...string, enum: ['prepare', 'status', 'decide', 'page'] }, projectId: string, reviewId: string, mode: { ...string, enum: ['web', 'screenshots'] }, decision: { ...string, enum: ['approved', 'rejected'] }, quote: string, offset: number, limit: number }, [], async args => reviewResult(await review(args))),
   tool('oriel_integrate', '仅接入用户本人批准的当前版本。target=oriel-dev 写入本仓库共同资源；target=oriel-folder 复制进 folder 指定的文件夹（通常是游戏的 config/oriel/my-pages，游戏里以 oriel_mine: 打开），不改仓库也不改你的模组。target=mod-project 写入 projectRoot 下游工程的资源目录，支持 modId/resourcesDir/pageName，回执给出打开代码与热更新指引。plan 返回写入清单；apply 检查文件冲突并安装，失败恢复本次写入。', { action: { ...string, enum: ['plan', 'apply'] }, reviewId: string, planId: string, target: { ...string, enum: ['oriel-dev', 'oriel-folder', 'mod-project'] }, folder: string, projectRoot: string, modId: string, resourcesDir: string, pageName: string }, [], args => integrate(args)),
   tool('oriel_game_preview', '仅在验收并接入后启动独立游戏预览任务。status 查询截图、精确版本及诊断；cancel 仅取消本工具任务。', { action: { ...string, enum: ['start', 'status', 'cancel'] }, projectId: string, jobId: string, scene: string }, [], args => gamePreview(args)),
   tool('oriel_pages', '列出本库 kit 页面及已有像素图标，制作前优先复用。', {}, [], () => ({
@@ -106,8 +110,14 @@ async function handle(message) {
     const selected = TOOLS.find(t => t.name === params.name);
     if (!selected) throw new WorkflowError('UNKNOWN_TOOL', '未知工具：' + params.name);
     const invoke = async () => {
-      try { validate(params.arguments || {}, selected.inputSchema); const value = await selected.run(params.arguments || {}); return value?.content ? value : result(value); }
-      catch (error) { return result({ code: error.code || 'INTERNAL_ERROR', message: error.message, details: error.details || {} }, true); }
+      const started = Date.now();
+      const emit = (severity, code) => {
+        if (!diagnostics) return;
+        try { diagnostics.emit({ requestId: String(message.id).slice(0,200), phase: 'tool', severity, code, message: severity === 'error' ? '工具调用失败' : '工具调用完成', durationMs: Date.now() - started, source: null, data: { tool: selected.name } }); }
+        catch { process.stderr.write('MCP diagnostic sink unavailable; log evidence incomplete\n'); }
+      };
+      try { validate(params.arguments || {}, selected.inputSchema); const value = await selected.run(params.arguments || {}); const response = value?.content ? value : result(value); emit(response.isError ? 'error' : 'info', response.isError ? 'tool.failed' : 'tool.completed'); return response; }
+      catch (error) { emit('error', error.code || 'INTERNAL_ERROR'); return result({ code: error.code || 'INTERNAL_ERROR', message: error.message, details: error.details || {} }, true); }
     };
     const pending = queue.then(invoke); queue = pending.catch(() => {}); return pending;
   }

@@ -38,9 +38,11 @@ node tools/bench/run.mjs --config C:/external/config.json --manifest C:/external
 
 测量自动进入配置中工作区的 tools/bench-window.sh，与 gws 共享排他约定。**不要从外面再包一次 bench-window**，否则会等待自己的锁。构建必须提前完成。默认子进程最长120秒，整个持锁测量最长20分钟；超时保留日志，不产生 PASS。长集合须预先按固定显式分组分别冻结/测量，再汇总所有分组，不能测到失败后删页。
 
-先同一旧实现 A/A，再旧/新 A/B；至少三个奇数轮，顺序为 `A0,A1 / A1,A0 / A0,A1`、`old,new / new,old / old,new`。每份 FrameBenchmark 报告本身仍用三个独立内轮，配置、页面集合、JDK/OS/CPU数必须一致。默认保存12份进程原始报告、命令、日志与聚合 JSON、Markdown。
+同一时间序列逐轮执行A/A和A/B：第一轮 `A0,A1,old,new`，第二轮 `A1,A0,new,old`，第三轮重复第一轮；至少三个奇数外轮。每份FrameBenchmark本身仍用三个独立内轮，配置、集合、JDK/OS/CPU数必须一致。默认保存12份原始报告、命令、日志和聚合JSON/Markdown。
 
-每页每项 p50/p95 取外轮中位数；噪声底为 A/A 配对相对差 `abs(a1-a0)/min(a0,a1)` 的最大值。A/B 增幅大于对应噪声即 FAIL。任一噪声底超过默认5%则 INCONCLUSIVE，不把忙机器判通过。maxNoise 可在0至0.25间显式设置，改变必须说明理由，不得自动调高。p50改善不能抵消p95回退，任何单页失败都阻止总 PASS。
+默认判定对每页p50/p95计算逐轮配对相对差 `(new-old)/old` 的均值及双侧95% Student-t置信区间（df=n-1，假设独立进程配对差近似正态；3轮区间可能很宽，可预先选择5/7/9轮）。A/A同样计算有符号配对差区间，噪声底为其两个端点绝对值的较大者。A/B区间上界不超过噪声底才PASS，下界超过噪声底则FAIL，区间跨越边界为INCONCLUSIVE。旧新外轮中位数仅作展示，不再负责判定。p50改善不能抵消p95回退。
+
+噪声底超过默认5%同样INCONCLUSIVE；maxNoise允许0至0.25，修改必须说明理由，不能自动放宽。每个被测进程前后探测系统java/javaw，JSON的interference保留探测时间、PID/父PID、进程名、Minecraft提示及失败数；不保留命令行。Minecraft提示不等于核实游戏实例。探测在计时进程之外，可能漏掉两边界之间的短暂进程；探测失败标unavailable，不能当没有外部负载。检测到负载只打标，不自动杀进程或修改统计阈值；Lead决定是否接受/重测被干扰证据。
 
 退出码：0=PASS、1=性能 FAIL、2=INCONCLUSIVE/配置或执行错误（通过 comparison.json 或 failure.json 区分）。缺失指标、不同页面集、不同参数、异常进程退出或中途资源变化均不能通过。不沿用旧 benchmarkFrames 的25%容差。
 

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { compare, freeze, verify, read, write, hash, tree, execute, markdown } from './core.mjs';
 import { synthetic, generate } from './synthetic.mjs';
 import { pixels, compareEffects } from './effects.mjs';
+import { confidence95 } from './noise.mjs';
 
 assert.ok(process.env.ORIEL_TEST_TMP, 'Set ORIEL_TEST_TMP to a workspace scratch directory');
 const temp = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'bench-'));
@@ -28,9 +29,9 @@ test('noise permits only bounded changes and noisy measurements are inconclusive
   data.find(s => s.label === 'aa1').report.pages['a.html'].p50_ms = 12;
   assert.equal(compare(data, ['a.html']).verdict, 'INCONCLUSIVE');
 });
-test('round medians resist one outlier; malformed metrics/environment/page sets fail closed', () => {
+test('uncertain paired outlier is inconclusive; malformed metrics/environment/page sets fail closed', () => {
   const data = samples(); data.find(s => s.label === 'new').report.pages['a.html'].p95_ms = 900;
-  assert.equal(compare(data, ['a.html']).verdict, 'PASS');
+  assert.equal(compare(data, ['a.html']).verdict, 'INCONCLUSIVE');
   const bad = structuredClone(data); bad[0].report.java = '26';
   assert.throws(() => compare(bad, ['a.html']), /environment differs/);
   assert.throws(() => compare(data, ['missing.html']), /page set differs/);
@@ -74,8 +75,19 @@ test('CLI alternates independent processes, uses shared lock wrapper, retains ra
   assert.equal(fs.readFileSync(marker, 'utf8'), 'locked');
   const result = read(path.join(output, 'comparison.json'));
   assert.equal(result.verdict, 'PASS'); assert.equal(result.samples.length, 12);
-  assert.deepEqual(result.samples.map(s => s.label), ['aa0','aa1','aa1','aa0','aa0','aa1','old','new','new','old','old','new']);
+  assert.deepEqual(result.samples.map(s => s.label), ['aa0','aa1','old','new','aa1','aa0','new','old','aa0','aa1','old','new']);
+  assert.equal(result.interference.observations.length, 24);
+  assert.ok(result.interference.detected === null || typeof result.interference.detected === 'boolean');
+  assert.equal(result.samples[0].order, 0); assert.ok(Date.parse(result.samples[0].startedAt) <= Date.parse(result.samples[0].finishedAt));
   assert.ok(fs.existsSync(path.join(output, '00-aa0/command.log')));
+});
+test('paired CI uses Student-t and never treats overlap as proof of non-regression', () => {
+  const ci = confidence95([-.01, 0, .01]);
+  assert.equal(ci.mean, 0); assert.ok(Math.abs(ci.high - .02484138) < 1e-7);
+  const data = samples();
+  data.filter(s => s.label === 'new').forEach((s, i) => s.report.pages['a.html'].p95_ms += (i - 1) * .2);
+  const result = compare(data, ['a.html']); assert.equal(result.verdict, 'INCONCLUSIVE');
+  assert.equal(result.rows[1].pairedDifferences.length, 3);
 });
 test('spawn failures/timeout return errors without a successful report', async () => {
   await assert.rejects(execute(['oriel-no-such-executable'], { log: path.join(temp, 'spawn.log') }));

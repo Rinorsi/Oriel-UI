@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Oriel MCP diagnostic JSONL envelope v1", "type": "object",
+  "required": ["schemaVersion","sessionId","seq","time","environment","phase","severity","code","message"],
+  "properties": {
+    "schemaVersion": {"const":1}, "sessionId": {"type":"string"}, "seq": {"type":"integer","minimum":1},
+    "time": {"type":"string","format":"date-time"}, "environment": {"type":"string"},
+    "phase": {"type":"string"}, "severity": {"enum":["info","warning","error"]},
+    "code": {"type":"string"}, "message": {"type":"string"},
+    "requestId": {"type":["string","null"]}, "durationMs": {"type":"number","minimum":0},
+    "source": {"type":["object","null"]}, "data": {"type":"object"}
+  },
+  "additionalProperties": true
+}

@@ -87,13 +87,13 @@ export function run(command, args, { cwd = ROOT, timeout = 120000, env = {}, sig
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd, env: { ...process.env, ...env }, windowsHide: true, shell: false, signal });
     onSpawn?.(child);
-    let output = '', timedOut = false;
+    let output = '', timedOut = false, outputTruncated = false;
     const log = logFile ? fs.createWriteStream(logFile) : null;
-    const capture = chunk => { log?.write(chunk); output = (output + chunk.toString()).slice(-2_000_000); };
+    const capture = chunk => { log?.write(chunk); const joined = output + chunk.toString(); outputTruncated ||= joined.length > 2_000_000; output = joined.slice(-2_000_000); };
     child.stdout.on('data', capture); child.stderr.on('data', capture);
     const timer = setTimeout(() => { timedOut = true; stopProcess(child); }, timeout);
     child.once('error', error => { clearTimeout(timer); log?.end(); reject(error); });
-    child.once('close', (code, stoppedBy) => { clearTimeout(timer); log?.end(); resolve({ code, stoppedBy, timedOut, output }); });
+    child.once('close', (code, stoppedBy) => { clearTimeout(timer); log?.end(); resolve({ code, stoppedBy, timedOut, output, outputTruncated }); });
   });
 }
 export function stopProcess(child) {
@@ -101,9 +101,12 @@ export function stopProcess(child) {
   if (process.platform === 'win32') spawn('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
   else child.kill('SIGTERM');
 }
+export const schedulerArguments = args => args.filter(arg => arg !== '--console=plain');
 export function gradle(args, options = {}) {
   // The command is fixed; user-supplied shell fragments never reach cmd.exe.
   requireThat(args.every(arg => typeof arg === 'string' && !/[\r\n"&|<>^%!]/.test(arg)), 'INVALID_BUILD_ARGUMENT', '构建参数含不允许的 shell 字符。');
+  const scheduler = path.join(WORKSPACE, 'tools/gws.sh');
+  if (fs.existsSync(scheduler)) return run('bash', [scheduler, ROOT, ...schedulerArguments(args)], { ...options, timeout: options.timeout ?? 4200000 });
   return process.platform === 'win32'
     ? run('cmd.exe', ['/d', '/c', path.join(ROOT, 'gradlew.bat'), ...args], options)
     : run(path.join(ROOT, 'gradlew'), args, options);
@@ -114,10 +117,14 @@ export async function ensurePreview() {
   const hash = sha(JSON.stringify(inputs.map(rel => [rel, treeHash(path.join(ROOT, rel))])));
   const stamp = path.join(STATE, 'preview-build.json');
   if (fs.existsSync(LIB) && fs.existsSync(stamp) && readJson(stamp).hash === hash && readJson(stamp).engineHash === engineIdentity()) return;
-  if (!building) building = gradle([':preview:installDist', '--console=plain'], { timeout: 600000 }).then(r => {
-    requireThat(r.code === 0, 'PREVIEW_BUILD_FAILED', '预览器构建失败。', { output: r.output });
-    writeJson(stamp, { hash, engineHash: engineIdentity(), at: now() });
-  }).finally(() => { building = null; });
+  if (!building) {
+    const logFile = path.join(STATE, 'jobs', id('preview-build') + '.log');
+    fs.mkdirSync(path.dirname(logFile), { recursive: true });
+    building = gradle([':preview:installDist', '--console=plain'], { timeout: 4200000, logFile }).then(r => {
+      requireThat(r.code === 0, 'PREVIEW_BUILD_FAILED', '预览器构建失败。', { output: r.output, logFile });
+      writeJson(stamp, { hash, engineHash: engineIdentity(), at: now(), logFile });
+    }).finally(() => { building = null; });
+  }
   await building;
 }
 export async function preview(args, env = {}) {

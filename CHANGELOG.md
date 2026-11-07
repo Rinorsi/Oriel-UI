@@ -13,6 +13,14 @@ those entries as history, not as documentation of the current API.
 
 - Development: add tools/bench resource freezing, alternating independent A/A and A/B CPU frame comparisons, per-page p50/p95 noise verdicts, deterministic synthetic stress generators and a strict 15-effect captured-frame comparator. Existing timing/golden baselines remain unchanged; phase timings, hover input transitions and game measurements require separate evidence.
 
+- MCP: add versioned capability discovery, observational build-marker queries, bounded tool-event JSONL and readers, a selector why-tree adapter for the R03 CLI, separate fixed-PNG baseline approval with browser-reference comparison, and complete screenshot-review pagination. Route workspace builds through gws without duplicating console options; preserve existing tool receipts.
+
+- Benchmarks: default to chronological paired A/A and A/B relative differences with 95% Student-t intervals and explicit inconclusive verdicts; record external Java/Minecraft process hints at measurement boundaries without retaining command lines.
+
+- Agents: document task ownership, workflow modes, scheduling and evidence contracts; add copyable task, report, evidence, terminal-state and R10 templates.
+
+- Development: add tools/bench resource freezing, alternating independent A/A and A/B CPU frame comparisons, per-page p50/p95 noise verdicts, deterministic synthetic stress generators and a strict 15-effect captured-frame comparator. Existing timing/golden baselines remain unchanged; phase timings, hover input transitions and game measurements require separate evidence.
+
 - MCP: add oriel_scaffold for read-only downstream Fabric/NeoForge/Stonecutter detection and integration snippets. Optional preparation runs strict page checks; chat-approved snapshots can create a hello page and client-only Java helper without replacing existing files or editing Gradle/metadata. Receipts retain skipped files and separate downstream game verification.
 
 - Images: opt-in `img loading=lazy` and `data-oriel-lazy` URL backgrounds share a document queue (three sources per 50ms by default, configurable on html), with half-viewport prefetch, fixed-size placeholders and cancellation of unstarted detached elements. Eager loading stays the default; loaded textures retain host-managed lifetimes. The preview checker warns on more than 24 image/background references without lazy loading.

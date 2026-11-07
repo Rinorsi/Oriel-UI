@@ -1,5 +1,9 @@
 # AGENTS.md — 优易库 / Oriel UI
 
+## Agent 协作入口
+
+协作执行前读 [编排与证据合同](docs/zh/agent-orchestration.md)，任务/汇报/证据/终态/R10模板见 tools/agent-templates/。当前任务授权和通道约定优先于历史模型/串行规则；模板不构成自动委派、批准、游戏启动或基线更新授权。个人记录复制到工作区daily，收工更新唯一总清单。
+
 ## 视频 UI 复刻任务的必读规范
 
 做 video 动画的游戏 UI 复刻前，必须先读工作区 `../Oriel-UI-Workspace/planning/UI-REPLICATION-STANDARD.md`，填写原版参数对照表，制作过程中逐项执行，不能只在收工时补验收。Oriel 用法以 docs 为准；原动画源码与实际画面是视觉和动效依据。当前原型只放用户实际游戏的「我的页面」，透明背景，逐个制作。最新未完成项见工作区 `daily/2026-11-06/reports/VIDEO-UI-REPLICATION-STATUS.md`。
