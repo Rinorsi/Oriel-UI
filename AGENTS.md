@@ -6,7 +6,7 @@
 
 ## 视频 UI 复刻任务的必读规范
 
-做 video 动画的游戏 UI 复刻前，必须先读工作区 `../Oriel-UI-Workspace/planning/UI-REPLICATION-STANDARD.md`，填写原版参数对照表，制作过程中逐项执行，不能只在收工时补验收。Oriel 用法以 docs 为准；原动画源码与实际画面是视觉和动效依据。当前原型只放用户实际游戏的「我的页面」，透明背景，逐个制作。最新未完成项见工作区 `daily/2026-11-06/reports/VIDEO-UI-REPLICATION-STATUS.md`。
+做 video 动画的游戏 UI 复刻前，必须先读工作区 `../Oriel-UI-Workspace/planning/UI-REPLICATION-STANDARD.md`，填写原版参数对照表，制作过程中逐项执行，不能只在收工时补验收。Oriel 用法以 docs 为准；原动画源码与实际画面是视觉和动效依据。官方模板的唯一源码在 kit/src/main/resources/assets/oriel/ui/templates/（编号只是目录名，界面里不显示；旧风格在 legacy/；背景参考 44 已移除）。作者为云诺羲，玩家示例名仍为云诺羲Rinorsi。模板名称/介绍/分类放各自 template.json.locales；当前语言缺失时按英文→中文→其他已有语言回退，不写全局语言键。新增实验页可先在我的页面迭代，透明背景，按现有参数表制作。制作顺序与用户验收状态统一维护在工作区 `planning/UI-REPLICATION-CHECKLIST.md`。
 
 > 给任何在本仓库工作的 agent。先读本文，再读工作区里的决策文档（路径见下）。
 
