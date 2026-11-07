@@ -175,10 +175,10 @@ public final class DevAutopilot {
         if (!PLAY) DevPointer.hold(); // after screens the step opened, before their first frame
     }
 
-    /** Small cross-version acceptance run: the home page and component catalog, then normal client shutdown. */
+    /** Small cross-version acceptance run: every tab of the showcase window, then normal client shutdown. */
     private static void smoke(Minecraft mc) {
         Constants.LOG.info("Oriel smoke started");
-        for (String page : List.of("gallery", "catalog")) {
+        for (String page : List.of("gallery", "styles", "catalog", "icons", "modsettings", "about")) {
             shoot(mc, "smoke_" + page, () -> OrielClientCommands.preset(page));
             Path screenshot = mc.gameDirectory.toPath().resolve("screenshots/oriel_smoke_" + page + ".png");
             until("smoke " + page + " screenshot saved", ticks -> Files.isRegularFile(screenshot));
