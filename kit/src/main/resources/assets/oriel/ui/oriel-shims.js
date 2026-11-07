@@ -107,7 +107,8 @@
     capabilities: function () {
       return {version: 1, htmlNamespace: typeof document.createElementNS === 'function',
         reactIframeProbe: typeof global.HTMLIFrameElement === 'function',
-        animeTypeProbes: typeof global.SVGElement === 'function' && typeof global.NodeList === 'function',
+        animeTypeProbes: typeof global.SVGElement === 'function' && typeof global.NodeList === 'function' &&
+          typeof global.HTMLCollection === 'function' && typeof global.HTMLInputElement === 'function',
         canvas: 'four-point-fill-only', confetti: '1.9.3-flat-square'};
     }
   };

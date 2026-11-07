@@ -15,6 +15,7 @@ if (project.hasProperty('oriel_release')) {
 // Ported from wip/main-checkout-20261105: generated documentation is a real verification input.
 tasks.named('test') {
     inputs.file(rootProject.file('docs/zh/css-reference.md')).withPropertyName('cssReference')
+    inputs.file(rootProject.file('kit/src/main/resources/assets/oriel/ui/oriel-shims.js')).withPropertyName('ecosystemShims')
     inputs.property('updateDocs', providers.environmentVariable('ORIEL_UPDATE_DOCS').orElse(''))
     systemProperty('oriel.layout.block', providers.gradleProperty('blockLayoutBackend').getOrElse('old'))
     def ecosystem = providers.environmentVariable('ORIEL_ECOSYSTEM_LIBS')

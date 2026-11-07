@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * {@link HostClass}). Objects whose property names are open-ended ({@code dataset}, {@code element.style}) also get
  * {@link Named} properties, consulted after own and inherited properties.
  */
-final class HostObject extends ScriptableObject {
+class HostObject extends ScriptableObject {
     /** Open-ended property names resolved by the host: dataset keys, CSS properties. */
     interface Named {
         boolean has(String name);
