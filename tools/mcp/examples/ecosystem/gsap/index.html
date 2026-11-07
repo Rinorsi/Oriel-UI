@@ -1,0 +1,11 @@
+<!doctype html>
+<html data-oriel-shell><head><meta charset="utf-8"><title>GSAP timeline</title>
+<link rel="stylesheet" href="oriel:ui/ore.css"><style>
+html{font-family:minecraft:default;font-size:16px}.o-titlebar h1{font-size:16px}.page{padding:12px}.square{width:24px;height:24px;background:var(--o-accent);margin:8px}button{font-size:16px}
+@media(prefers-reduced-motion:reduce){#play{display:none}}</style></head><body><div class="o-app"><div class="o-window"><div class="o-titlebar"><h1>GSAP timeline</h1></div><div class="o-body page"><button class="ore-btn" id="play">Replay</button><div class="square"></div><div class="square"></div></div></div></div>
+<script src="../vendor/gsap.js"></script><script>
+var timeline=gsap.timeline({paused:true});
+timeline.to(document.querySelectorAll('.square'),{x:80,opacity:0.5,duration:0.5,stagger:0.1,ease:'power2.inOut'}).to(document.querySelectorAll('.square'),{x:0,opacity:1,duration:0.5});
+document.getElementById('play').onclick=function(){timeline.restart()};
+window.addEventListener('unload',function(){timeline.kill();gsap.ticker.sleep()});
+</script></body></html>

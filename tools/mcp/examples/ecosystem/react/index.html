@@ -1,0 +1,14 @@
+<!doctype html>
+<html data-oriel-shell><head><meta charset="utf-8"><title>React counter</title>
+<link rel="stylesheet" href="oriel:ui/ore.css"><style>
+html{font-family:minecraft:default;font-size:16px}.o-titlebar h1{font-size:16px}.page{padding:12px}button{font-size:16px}
+</style></head><body><div class="o-app"><div class="o-window"><div class="o-titlebar"><h1>React counter</h1></div><div class="o-body page" id="app"></div></div></div>
+<script src="../vendor/react.js"></script><script src="../vendor/react-extra.js"></script>
+<script>
+function App(){var s=React.useState(0);return React.createElement('div',null,
+  React.createElement('button',{className:'ore-btn',onClick:function(){s[1](s[0]+1)}},'Count '+s[0]),
+  React.createElement('ul',null,[1,2,3].map(function(i){return React.createElement('li',{key:i},'Item '+i)})))}
+var root=ReactDOM.createRoot(document.getElementById('app'));
+ReactDOM.flushSync(function(){root.render(React.createElement(App))});
+window.addEventListener('unload',function(){root.unmount()});
+</script></body></html>

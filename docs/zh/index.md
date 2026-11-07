@@ -21,6 +21,7 @@
 3. [设计规范](design.md)、[组件与参数](components.md)、[动效规范](motion.md)：Ore 外壳、主题、控件、反馈、字体与粒子。
 4. [CSS 参数参考](css-guide.md)、[HTML 与 Minecraft 元素](elements.md)：准确的名称、取值、默认、单位、限制和例子。
 5. [脚本与交互合同](scripting.md)：语言、DOM、事件、模板、限额。
+   [前端库的受限兼容](ecosystem.md)：React / Preact / 动画库固定构建、可选桥接、许可与缺口。
 6. [接入指南](integration.md)、[页面接口](pages.md)、[Java API](java-api.md)、[服务端与容器](server.md)：依赖、资源 URL、注册、同步与权限。
 7. [检查与验收工具](validation.md)：可复制的 CLI、交互脚本、MCP 参数、错误排查。
 

@@ -1,0 +1,10 @@
+<!doctype html>
+<html data-oriel-shell><head><meta charset="utf-8"><title>anime sequence</title>
+<link rel="stylesheet" href="oriel:ui/ore.css"><style>
+html{font-family:minecraft:default;font-size:16px}.o-titlebar h1{font-size:16px}.page{padding:12px}#box{width:24px;height:24px;background:var(--o-accent);margin:8px}button{font-size:16px}
+@media(prefers-reduced-motion:reduce){#play{display:none}}</style></head><body><div class="o-app"><div class="o-window"><div class="o-titlebar"><h1>anime sequence</h1></div><div class="o-body page"><button class="ore-btn" id="play">Replay</button><div id="box"></div></div></div></div>
+<script src="../vendor/anime.js"></script><script>
+var sequence=anime.timeline({autoplay:false,easing:'easeInOutQuad'}).add({targets:'#box',translateX:80,opacity:0.5,duration:400}).add({targets:'#box',translateX:0,opacity:1,duration:400});
+document.getElementById('play').onclick=function(){sequence.restart()};
+window.addEventListener('unload',function(){sequence.pause();anime.remove('#box')});
+</script></body></html>

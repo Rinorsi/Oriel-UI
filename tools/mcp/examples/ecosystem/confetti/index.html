@@ -1,0 +1,9 @@
+<!doctype html>
+<html data-oriel-shell><head><meta charset="utf-8"><title>Square confetti</title>
+<link rel="stylesheet" href="oriel:ui/ore.css"><style>
+html{font-family:minecraft:default;font-size:16px}.o-titlebar h1{font-size:16px}.page{padding:12px}canvas{width:300px;height:120px}button{font-size:16px}
+@media(prefers-reduced-motion:reduce){#play{display:none}}</style></head><body><div class="o-app"><div class="o-window"><div class="o-titlebar"><h1>Square confetti</h1></div><div class="o-body page"><button class="ore-btn" id="play">Celebrate</button><canvas id="canvas" width="300" height="120"></canvas></div></div></div>
+<script src="oriel:ui/oriel-shims.js"></script><script src="../vendor/confetti.js"></script><script>
+var fire=OrielShims.squareConfetti(document.getElementById('canvas'),confetti);
+document.getElementById('play').onclick=function(){fire.reset();fire({particleCount:24,ticks:60,startVelocity:12,origin:{x:0.5,y:0.8}})};
+</script></body></html>

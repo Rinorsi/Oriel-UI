@@ -16,6 +16,12 @@ if (project.hasProperty('oriel_release')) {
 tasks.named('test') {
     inputs.file(rootProject.file('docs/zh/css-reference.md')).withPropertyName('cssReference')
     inputs.property('updateDocs', providers.environmentVariable('ORIEL_UPDATE_DOCS').orElse(''))
+    def ecosystem = providers.environmentVariable('ORIEL_ECOSYSTEM_LIBS')
+    inputs.property('ecosystemLibrariesDirectory', ecosystem.orElse(''))
+    if (ecosystem.isPresent()) {
+        inputs.files(fileTree(ecosystem.get()) { include('*.js') })
+                .withPropertyName('ecosystemLibraries').withPathSensitivity(PathSensitivity.RELATIVE)
+    }
 }
 
 dependencies {

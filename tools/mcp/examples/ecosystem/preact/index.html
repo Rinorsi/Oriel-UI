@@ -1,0 +1,11 @@
+<!doctype html>
+<html data-oriel-shell><head><meta charset="utf-8"><title>Preact form</title>
+<link rel="stylesheet" href="oriel:ui/ore.css"><style>
+html{font-family:minecraft:default;font-size:16px}.o-titlebar h1{font-size:16px}.page{padding:12px}input{font-size:16px}
+</style></head><body><div class="o-app"><div class="o-window"><div class="o-titlebar"><h1>Preact form</h1></div><div class="o-body page" id="app"></div></div></div>
+<script src="../vendor/preact.js"></script><script src="../vendor/preact-extra.js"></script>
+<script>
+var html=htm.bind(preact.h),name='Alex';
+function render(){preact.render(html`<div><input class=ore-field value=${name} onInput=${function(e){name=e.target.value;render()}}/><p>Hello ${name}</p><ul>${[1,2,3].map(function(i){return html`<li key=${i}>Item ${i}</li>`})}</ul></div>`,document.getElementById('app'))}
+render();window.addEventListener('unload',function(){preact.render(null,document.getElementById('app'))});
+</script></body></html>

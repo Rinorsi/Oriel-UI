@@ -93,6 +93,8 @@ Rhino 实现了 ES2015 的大部分和后续版本的不少内容。Oriel 用补
 
 ## DOM
 
+生态兼容补充（WIP，宿主 -Doriel.ecosystem=new，默认 old）：HTML `createElementNS` / `namespaceURI`、`HTMLInputElement` 与检测构造器，以及可选 `oriel:ui/oriel-shims.js`，详见 [前端库兼容合同](ecosystem.md)。集合仍为 Array 快照，没有 SVG / iframe 实现。
+
 同一个节点每次拿到的都是同一个对象（`document.getElementById('a') === list.firstElementChild`）。`childNodes`、`children`、`querySelectorAll()`、`getElementsByClassName()` 这类列表返回真正的**数组快照**，文档变化时不会更新，也不是 live 的 HTMLCollection。
 
 **Node**（元素、文本、文档和文档片段）：`nodeType`、`nodeName`、`ownerDocument`、`isConnected`、`parentNode`、`parentElement`、`childNodes`、`firstChild`、`lastChild`、`previousSibling`、`nextSibling`、`children`、`childElementCount`、`firstElementChild`、`lastElementChild`、`previousElementSibling`、`nextElementSibling`、`textContent`、`hasChildNodes()`、`contains(node)`、`appendChild`、`insertBefore`、`removeChild`、`replaceChild`、`cloneNode(deep)`、`remove()`、`append(...)`、`prepend(...)`、`before(...)`、`after(...)`、`replaceWith(...)`、`replaceChildren(...)`（这些接受节点和字符串）、`querySelector`、`querySelectorAll`、`getElementsByTagName`、`getElementsByClassName`、`addEventListener`、`removeEventListener`、`dispatchEvent`，以及 `on<event>` 处理器属性（`button.onclick = fn`）。
