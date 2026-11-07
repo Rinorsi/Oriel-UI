@@ -68,9 +68,11 @@ public final class GalleryPreset implements PageControllers.Controller {
             Element slide = Dom.html(doc, "<div class=\"slide\"><img><div class=\"cap\"><b></b><span></span></div></div>");
             slide.querySelector("img").setAttribute("src", TemplateCatalog.cover(id));
             Dom.text(slide.querySelector("b"), id + " · " + text.name());
+            slide.querySelector("b").setAttribute("title", id + " · " + text.name());
             Element by = slide.querySelector("span");
             by.setAttribute("lang", "zh");
             Dom.text(by, author);
+            by.setAttribute("title", author);
             stage.insertBefore(slide, anchor);
             Element dot = Dom.el(doc, "i", null, null);
             dotBar.appendChild(dot);

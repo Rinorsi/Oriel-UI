@@ -7,6 +7,8 @@ those entries as history, not as documentation of the current API.
 
 ## 0.11.0 (in development)
 
+- Kit pages: the home page is rebuilt around the pitch, the component library, the community's picks (a carousel with title and author), the mod's settings, the icons, the mod's information and a "coming soon" tile; the main tabs are now Home, Community, Components, Icons, Settings, About. New pages: mod settings (writes the player-facing client settings back through the game) and about (author links to copy, other mods, the Ore UI and beyond statement). The template centre loses its stacked rows (crumb, hints, tag chips, sub-headline, footer): one toolbar row over the grid, a collapsible sidebar with short categories (`templates/categories.json`), details with the actions pinned at the bottom, author avatars kept with the templates (`templates/avatars`), and the inventory, settings, potion HUD and component editor pages as official templates (54–57).
+
 - Add experimental block-flow/overflow old/new/both verification (default old), immutable diagnostic geometry, optional sizing constraints, explicit font-measurement invalidation, a fixed-row range calculator, and the development-only oriel_layout preview probe. Inline/positioning/incremental layout and full R06 gates remain separate work.
 
 - CSS: add opt-in old/new/both cascade ranking, dependency-path invalidation with full-reference computed-field checks, read-only installed-property metadata, and explicit cascade explanations through --why-property / oriel_inspect. Real nested cascade layers are separately opt-in; defaults remain legacy pending performance acceptance. Typed custom properties and true revert-layer remain unsupported. See docs/zh/d36-r04.md.
