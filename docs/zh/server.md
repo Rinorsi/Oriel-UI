@@ -4,6 +4,16 @@
 
 Oriel 的页面运行在客户端。服务端决定业务状态和物品变化，通过协议 v2 发送页面与数据；不在服务端创建 Screen，也不依赖客户端渲染类。
 
+## 安装方向与当前边界
+
+**客户端装 Oriel 不要求服务端也装；这是本地功能路径的源码判断，连接场景未实测。服务端装 Oriel 则要求客户端也装并匹配协议。** 两个方向不能互相推导，完整说明、加载器元数据写法与计划验证见[服务端到底要不要装 Oriel](distribution.md#服务端到底要不要装-oriel)。
+
+客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端；NeoForge 通道注册为 optional。但连接无 Oriel 的 Fabric / NeoForge 专服及原版服务端、注册表同步仍**待验证**。没有服务端 Oriel 时，`OrielServer` 会话、推页面/数据和 `ForgeMenu` 不可用。当前下游专服验收只覆盖带服务端部分的 Editor，不能外推为纯客户端场景通过。
+
+反方向的当前源码行为明确：服务端有库而客户端没有时，两个加载器在玩家加入时都调用 `requireOnClient` 主动断开，提示中英文原因，当前不支持。optional 通道不会跳过此检查。
+
+`driver.serverSession()` 判断的是页面是否来自服务端会话，不是服务器安装状态；不要拿它探测能力。目前没有统一的客户端侧服务端能力探测 API，等待服务端确认的业务须自行实现回执和超时。
+
 ## 选哪一类
 
 | 类型 | 谁打开、谁拥有状态 | 使用场景 | 入口 |
@@ -198,10 +208,10 @@ node tools/server-smoke.mjs neoforge /absolute/external/neoforge --multiplayer -
 
 脚本对每个 Gradle 进程设 900 秒上限，启动一个专用服务器和 A/B 两个真实客户端。服务器只给 A 打开现有 templates 页面；A 等到真实文档加载后回消息；B 验证没有收到打开包／没有打开页面，并伪造 A 的消息和关闭包。服务端检查仅收到一次合法回调。最后客户端自行退出、脚本经 RCON stop 正常关闭服务器，保存 result.json 和三个日志。去掉 --multiplayer 可只验专用服务器启动／关闭。
 
-GameTest 包含 unsupported_client、player_isolation、forge_menu、protocol_compatibility，分别验证无协商通道的明确结果／回调、玩家隔离、菜单加工／防重复领取和协议能力。正常游戏服务器要求客户端安装匹配协议的 Oriel；未安装或协议不匹配会在加入时断开。openStatus 的失败结果仍保留为防御性 API，不代表缺库客户端可正常进入服务器。
+GameTest 包含 unsupported_client、player_isolation、forge_menu、protocol_compatibility，分别验证无协商通道的明确结果／回调、玩家隔离、菜单加工／防重复领取和协议能力。安装了 Oriel 的正常游戏服务器要求客户端安装匹配协议的 Oriel；这是两个加载器 `requireOnClient` 的当前源码行为，未安装或协议不匹配会在加入时断开。它不表示客户端单装时也必须要求服务器安装；反方向的连接验证见[安装方向与当前边界](#安装方向与当前边界)。openStatus 的失败结果仍保留为防御性 API，不代表缺库客户端可正常进入服务器。
 
 使用 server-smoke.mjs 的 --mismatch 参数可额外启动协议 999 的测试客户端，检查清晰的拒绝原因与正常退出；该覆盖与成功双客户端流程可一起运行。GameTestServer 的 mock 不进行网络协商，只对测试服务器豁免加入检查，正式专用／集成服务器均不豁免。
 
 `--missing-client` 再启动关闭全部 Oriel 通道注册的真实连接，验证缺少客户端通道时同样断开；测试驱动仍在客户端中，因此该测试不等同于完全卸载模组。两种拒绝都核对客户端和服务端日志中的中英双语内容。提示来自 `assets/oriel/lang/en_us.json` 与 `zh_cn.json`，由服务器解析后发送，未安装库的客户端也能看懂。NeoForge 保持固定可选传输注册标识，应用协议是否兼容由版本能力门禁决定；版本不匹配时不发送页面数据。
 
-手动复现多人隔离：开启专用测试服务器，让两个装库客户端分别用 A/B 身份进入；控制台针对 A 调用自己的 OrielServer.open 命令（或启用 -PserverProbe 后执行 oriel-probe start OrielProbeA OrielProbeB），确认 B 仍在原屏幕。A 发送消息后服务端仅处理 A 的状态。真实未装库或协议不匹配客户端应在加入阶段被拒绝，不能要求它先进入服务器再调用 OrielServer.open。`CLIENT_UNSUPPORTED` 的防御性返回值与迟注册失败回调由 `unsupported_client` GameTest 的无协商 mock 验证；该 mock 不证明缺库客户端可进入正式服务器，也不能将连接阶段拒绝冒算为打开失败回调已触发。
+手动复现多人隔离：开启专用测试服务器，让两个装库客户端分别用 A/B 身份进入；控制台针对 A 调用自己的 OrielServer.open 命令（或启用 -PserverProbe 后执行 oriel-probe start OrielProbeA OrielProbeB），确认 B 仍在原屏幕。A 发送消息后服务端仅处理 A 的状态。对装有 Oriel 的正式服务器，真实未装库或协议不匹配客户端应在加入阶段被拒绝，不能要求它先进入服务器再调用 OrielServer.open。`CLIENT_UNSUPPORTED` 的防御性返回值与迟注册失败回调由 `unsupported_client` GameTest 的无协商 mock 验证；该 mock 不证明缺库客户端可进入正式服务器，也不能将连接阶段拒绝冒算为打开失败回调已触发。
