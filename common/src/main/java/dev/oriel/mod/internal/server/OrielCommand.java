@@ -49,6 +49,10 @@ public final class OrielCommand {
                 .then(clientTree("about", List.of()))
                 .then(clientTree("reload", List.of()));
         if (dev.oriel.kit.ReferenceContent.available()) root.then(showcase).then(clientTree("canvastest", List.of()));
+        else root.then(Commands.literal("showcase").executes(c -> {
+            c.getSource().sendSuccess(() -> Component.translatable("oriel.reference.unavailable"), false);
+            return 1;
+        }));
         d.register(root);
     }
 
