@@ -4,6 +4,22 @@ plugins {
     id 'oriel-errorprone'
     id 'java-library'
     id 'oriel-java'
+    id 'maven-publish'
+}
+
+java { withSourcesJar() }
+tasks.withType(Jar).configureEach {
+    from(rootProject.files('LICENSE', 'NOTICE'))
+}
+
+// Common's runtime metadata must point to a published coordinate, just like engine and Rhino.
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId = 'oriel-kit'
+            from components.java
+        }
+    }
 }
 
 dependencies {

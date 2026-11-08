@@ -14,14 +14,41 @@ repositories {
     mavenLocal()
 }
 
+def embeddedOption = providers.gradleProperty('orielEmbedded').getOrElse('false')
+if (!(embeddedOption in ['true', 'false'])) throw new GradleException('orielEmbedded must be true or false')
+// Acceptance runs load their independently prepared parent jars from mods/.
+def orielEmbedded = embeddedOption == 'true' && !project.hasProperty('jijAcceptance')
+if (oriel_version != '0.12.0')
+    throw new GradleException('Compile and embed against the slim version 0.12.0; full jars are player distributions')
+// Loom must invalidate its generated nested list when switching modes in one output directory.
+tasks.named('processIncludeJars') { inputs.property('orielEmbedded', orielEmbedded) }
+tasks.named('jar') { inputs.property('orielEmbedded', orielEmbedded) }
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-    // Oriel for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
-    // instead: include(implementation("dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"))
-    if (project.hasProperty('jijAcceptance')) compileOnly "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"
-    else implementation "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"
+    def oriel = "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"
+    if (project.hasProperty('jijAcceptance')) compileOnly(oriel) { transitive = false }
+    else implementation(oriel) { transitive = false }
+    if (orielEmbedded) {
+        include("dev.oriel:oriel-fabric-${minecraft_version}") {
+            transitive = false
+            version {
+                strictly('[0.12.0,0.13.0)')
+                prefer(oriel_version)
+            }
+        }
+    }
+}
+
+// A preferred version is not a pin if another constraint (or a stale repository) wins.
+configurations.includeInternal.incoming.afterResolve {
+    configurations.includeInternal.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        def id = artifact.moduleVersion.id
+        if (id.group == 'dev.oriel' && id.name == "oriel-fabric-${minecraft_version}" && id.version != oriel_version)
+            throw new GradleException("Refusing to embed non-slim Oriel ${id.version}; expected ${oriel_version}")
+    }
 }
 
 if (project.hasProperty('jijAcceptance')) {

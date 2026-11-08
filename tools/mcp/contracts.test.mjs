@@ -4,7 +4,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { capabilities, leaseAt } from './lib/contracts.mjs';
 import { McpClient } from './client.mjs';
-import { schedulerArguments, run } from './lib/core.mjs';
+import { schedulerArguments, run, ROOT } from './lib/core.mjs';
+import { validateProfile } from './lib/rules.mjs';
+import { properties, variantVersions } from '../check-release.mjs';
+
+test('profile follows the checkout core/full versions and rejects stale versions', () => {
+  const props = properties(fs.readFileSync(path.join(ROOT, 'gradle.properties'), 'utf8'));
+  const versions = variantVersions(props.version, props.oriel_full_patch);
+  assert.equal(validateProfile().oriel, versions.slim);
+  for (const oriel of Object.values(versions)) assert.equal(validateProfile({ oriel }).oriel, oriel);
+  assert.throws(() => validateProfile({ oriel: '0.11.0' }), e => e.code === 'UNSUPPORTED_PROFILE');
+});
 
 assert.ok(process.env.ORIEL_TEST_TMP);
 const temp = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'contracts-'));

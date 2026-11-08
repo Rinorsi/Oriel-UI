@@ -109,6 +109,19 @@ EULA 由操作者确认；实例已有 `eula=true` 时无需额外参数，否�
 
 发布附件需从同版本工作树同步 `docs/zh/`、模板说明/元数据和 MCP 分发入口，并在新包 `AGENTS-snippet.md` 醒目标明 `oriel_rules topic=distribution`、0.12 双变体及范围、核心改动升 minor、参考内容需复制。仓库没有该片段的持续生成器；不要改旧 dist 包或把旧片段的“已实测”外推到新版本。发布前复核附件链接与真实下游迁移；游戏弹窗、游戏内设置及 Editor 升级未验证时须保留标记。
 
+### Maven 发布完整性与模板打包门禁
+
+向新的仓库外临时目录发布瘦包的全部 publication，避免旧文件掩盖缺失。所有 Maven 发布必须带 `-Poriel_slim`，否则 Gradle 在任务图阶段直接拒绝；涵盖 publish、指定目录、MavenLocal 和 templateCompile。完整版只分发 jar，不进入 Maven。`kit` 与 engine 等独立模块一样发布为 `dev.oriel:oriel-kit:<版本>`，common 元数据自动引用该坐标。loader 仍平铺自包含，不重复声明这些模块为运行依赖。
+
+```bash
+bash "$ORIEL_GWS" "$PWD" publishAllPublicationsToOrielMavenRepository -Poriel_slim -Poriel_maven_dir=/absolute/workspace/daily/YYYY-MM-DD/scratch/maven-slim
+node tools/check-release.mjs --maven-dir=/absolute/workspace/daily/YYYY-MM-DD/scratch/maven-slim
+```
+
+`--maven-dir` 可独立运行或与 jar 审计同时运行；检查所有 POM/module 中内部依赖的 POM、jar 存在性（`.module` 可选，兼容 Rhino 的 POM-only publication），缺项、完整版 publication 或不支持的内部版本表达式退出 1，空目录也失败。第三方仓库可用性、字节码链接与加载器运行另验。永久回归为 `tools/maven-publication.test.mjs`；设置 `ORIEL_MAVEN_PUBLICATION=1`、`ORIEL_GWS` 和仓库外 `ORIEL_TEST_TMP` 运行该测试，会真实验证四种未带 slim 的发布入口被拒绝且不写 Maven 文件（MavenLocal 也重定向到临时目录）。
+
+`templateCompile -Poriel_slim` 编译默认外部模式；聚合 `check` 同样须带 `-Poriel_slim`。要验真实嵌套和同目录切换，设置仓库外 `ORIEL_TEST_TMP`、工作区 `ORIEL_GWS` 后执行 `ORIEL_TEMPLATE_PACKAGING=1 node --test tools/template-packaging.test.mjs`。此测试先通过 gws 发布并编译模板，再对两个加载器依次打包默认外部、嵌入、外部、`jijAcceptance` 模式，核对原始内嵌字节、数量、范围及无 Oriel 类平铺；测试仓库故意提供更高的 full 坐标，验证仍选 slim，并用强制版本冲突负例验证两个加载器均拒绝误嵌 full。不启动游戏。普通 `tools/*.test.mjs` 显式跳过这项构建测试。
+
 ## 文档归属与并行修改
 
 - `docs/zh/` 是唯一手册目录，没有需要同步的英文 `docs/` 镜像；`CHANGELOG.md` 保留英文版本历史。`docs/zh/index.md` 是唯一中文导航；同一字段只保留一个权威定义，其他页面链接过去。旧路径可保留短入口，不留相反的旧合同。

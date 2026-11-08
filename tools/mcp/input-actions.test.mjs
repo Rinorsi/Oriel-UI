@@ -6,7 +6,7 @@ import { rules } from './lib/rules.mjs';
 test('input rules expose the same backend defaults and diagnostic contract as the handbook', () => {
   const response = rules({ topic: 'input' });
   assert.equal(response.source, 'docs/zh/d36-input.md');
-  assert.ok(response.text.includes('缺省 old'));
+  assert.ok(response.text.includes('缺省 new'));
   assert.ok(response.text.includes('why-no-click'));
 });
 

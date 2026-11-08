@@ -95,7 +95,7 @@ processResources {
 }
 ```
 
-这里不需要任何 Maven 仓库配置（Loom 自带 Minecraft 与 Fabric 的仓库）。如果你有本仓库，也可以用 `publishToMavenLocal -Poriel_slim` 发布瘦包后改成 `implementation "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"`（完整版省略 `-Poriel_slim`，同步改用 `oriel_version=0.12.1`），见 [接入指南](integration.md)。
+这里不需要任何 Maven 仓库配置（Loom 自带 Minecraft 与 Fabric 的仓库）。如果你有本仓库，也可以用 `publishToMavenLocal -Poriel_slim` 发布瘦包后改成 `implementation "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"`（Maven 只允许瘦包，省略 `-Poriel_slim` 会报错；完整版仅作玩家安装的 jar 分发，不作为 Maven 依赖），见 [接入指南](integration.md)。
 
 ## src/main/resources/fabric.mod.json
 

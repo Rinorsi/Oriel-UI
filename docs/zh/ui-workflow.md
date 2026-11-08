@@ -19,7 +19,7 @@
 
 Agent 从 [调用提示词](agent-prompts.md) 开始；工具连接和完整参数见 [MCP 手册](mcp.md)。HTML/CSS 仍直接由引擎加载，接入工具整理资源与宿主入口，不把任意浏览器应用自动翻译成 Java。
 
-1. 调用 oriel_rules，取得目标版本能力、禁止项和替代写法。用 oriel_project 登记独立页面包、数据合同、模拟数据及交互场景。
+1. 调用 oriel_rules，取得目标版本能力、禁止项和替代写法。profile 缺省为当前工作树的核心版本，也接受当前完整版；版本与脚手架范围从 `gradle.properties` 读取，升级后旧规则哈希失效，详见 [MCP 手册](mcp.md)。用 oriel_project 登记独立页面包、数据合同、模拟数据及交互场景。
 2. 制作共享 HTML/CSS/JS，通过 oriel_web_preview 给用户可点击的网页。浏览器桥接和 mock 与游戏资产分开。
 3. 每轮调用 oriel_check 和 oriel_snapshot，查看结构诊断、640×360/427×240 引擎截图及场景结果；失败先修，不把浏览器成功当游戏兼容。
 4. 检查通过后调用 oriel_review.prepare，生成不可变版本的验收页。用户本人批准或填写意见；Agent 不代点批准。
