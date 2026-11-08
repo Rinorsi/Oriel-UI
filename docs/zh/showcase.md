@@ -1,8 +1,10 @@
 # Showcase 源码导览：每个效果是怎么做的
 
-编号模板入口：/oriel showcase → 模板中心 → 官方模板；仙侠等原有风格位于「旧版」。按编号定位源码见 [官方模板目录](templates.md)。
+**0.12 起瘦包不含模板、showcase、demo 和相关展示资源；本页的游戏演示入口只适用于完整版。** 下游不能依赖这些页面恰好在库里，所用内容必须复制到自己的模组，见[分发指南](distribution.md)。0.12 瘦包下的复制示例运行未验证。
 
-Showcase 是 Oriel 的**主参考库**：8 个整页示例 + 4 个基础演示，全部是普通的 HTML/CSS/JS，几乎不依赖 Java，源码里有大量写给人看的注释。要做类似的效果，**直接打开对应页面的源码照着读、照着改**，不要从零发明。模板中心的 01—53 编号模板（52 个原型 + 44 背景参考，kit/.../ui/templates/）及 legacy/ 下 9 个旧版风格模板和各预设页（设置、背包、锻造等）是**次级参考**：它们展示"整套界面风格"和"控制器写法"，不是效果的出处。
+官方模板入口：`/oriel showcase` → 模板中心 → 官方模板；原有风格位于「旧版」。源码目录和元数据见[官方模板目录](templates.md)。
+
+Showcase 是 Oriel 的**主参考库**：8 个整页示例 + 4 个基础演示，全部是普通的 HTML/CSS/JS，几乎不依赖 Java，源码里有大量写给人看的注释。要做类似的效果，**直接打开对应页面的源码照着读、照着改**，不要从零发明。模板中心的官方模板（`kit/.../ui/templates/`）及 `legacy/` 下旧版风格模板和各预设页（设置、背包、锻造等）是**次级参考**：它们展示"整套界面风格"和"控制器写法"，不是效果的出处。
 
 ## 在哪里
 
@@ -11,15 +13,15 @@ Showcase 是 Oriel 的**主参考库**：8 个整页示例 + 4 个基础演示�
 | 8 个展示页 + 共用样式 | `common/src/main/resources/assets/oriel/oriel/showcase/`（`*.html`、`showcase.css`） | 模板中心 → 旧版 → 演示；`/oriel showcase <页面>` |
 | 4 个基础演示、标题卡、toast、箱子 | `common/src/main/resources/assets/oriel/oriel/demo/` | 模板中心 → 旧版 → 演示；`/oriel showcase layout\|animation\|livedata\|forms\|titlecard\|toast\|chest` |
 | 生物图鉴的游戏数据 | `common/src/main/java/dev/oriel/mod/internal/client/showcase/Mobdex.java` | 同上 |
-| 发布 jar 里 | `assets/oriel/oriel/showcase/`、`assets/oriel/oriel/demo/`（解压即可读） | |
+| 完整版 jar 里（瘦包没有） | `assets/oriel/oriel/showcase/`、`assets/oriel/oriel/demo/`（解压即可读） | |
 
 下面的行号是写本文时的位置；源码改动后行号会移，**按注释里的关键词搜索**最可靠。
 
 ## 怎么复用到你的模组
 
-1. 把要的 `*.html`**和同目录的 `showcase.css`**（8 个展示页都链接它）复制到你模组的 `assets/<你的模组id>/oriel/` 下。页面里引用的是 `minecraft:` 原版纹理和 `oriel:` 库资源，不用改；引用同目录文件用相对路径。
+1. 从源码或完整版把要的 `*.html` **和同目录的 `showcase.css`**（8 个展示页都链接它）复制到你模组的 `assets/<你的模组id>/oriel/` 下，并沿 HTML/CSS/脚本引用复制图片、JSON、结构等资源。官方模板复制完整目录。`minecraft:` 原版纹理及 `oriel:ui/ore.css`、核心字体/图标可以保留；参考内容的 `oriel:` 地址与页面跳转必须改到自己的命名空间，不能假设装了库就有。
 2. Java 里 `OrielScreens.open("<模组id>:oriel/shop.html")`，或游戏里 `/oriel open <模组id>:oriel/shop.html`。想先预览，放进 `config/oriel/my-pages/` 即可（见 [快速入门](quickstart.md)）。
-3. 页面是否要 Java：**只有两处**。生物图鉴要游戏推送 `oriel.data.mobs`（`Mobdex.java` 就是这个推送，约 160 行，可照抄）；伙伴控制台里的对话是用关键词假装回复的，真要接模型就把 `oriel.send('chat', text)` 接到你的服务端，见 [服务端与容器](server.md)。小屋页还引用库自带的结构文件 `oriel:structures/cottage.nbt`，库装着就在，不用复制。其余页面复制即可运行。
+3. 生物图鉴需要自己提供 `oriel.data.mobs`，可以阅读 `Mobdex.java` 的数据推送写法，但不要导入这个内部演示类；伙伴控制台的关键词假回复要由自己的消息处理接入真实业务，见[服务端与容器](server.md)。小屋页引用的 `oriel:structures/cottage.nbt` 是参考资源，也应复制到自己模组并改 URL。演示容器/HUD 的注册与业务逻辑由自己的模组接入，不因复制 HTML 自动获得。
 4. 想要库的动效（涟漪、聚光、计数），在 `<html>` 上加 `data-oriel-shell`，见 [做页面前先读](page-rules.md)。
 
 ## 怎么查：先搜效果，再读代码
@@ -223,6 +225,6 @@ MCP 里 `oriel_rules` 的 `topic=showcase` 读的是下面这份文档，`featur
 
 ## 次级参考：模板与预设
 
-- **9 个官方模板**（`kit/src/main/resources/assets/oriel/ui/styles/`，仙侠、地下城、军事、科幻等）：看**整套风格怎么配色、排版、统一**，不是单个效果的出处；每个都能在模板中心"保存一份"后改。
+- **官方与旧版风格模板**（`kit/src/main/resources/assets/oriel/ui/templates/`，旧版在 `legacy/`）：看**整套风格怎么配色、排版、统一**，不是单个效果的出处；完整版可在模板中心保存副本后改，发布下游时再复制到自己的资源目录。
 - **预设页**（`kit/.../ui/*.html` 和 `kit/.../preset/*Preset.java`）：设置、背包、锻造、音乐、组件目录。想看 **Java 控制器怎么写**、`Shell.setup`、`Motion`、`Widgets` 的用法，读这里。
 - 组件与参数查手册：[组件](components.md)、[CSS 参考](css-guide.md)；设计规则：[设计规范](design.md)、[动效](motion.md)。

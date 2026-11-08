@@ -1,5 +1,7 @@
 # Oriel UI 制作与接入手册
 
+**接入与发布必读：[分发指南：瘦包 / 完整版 / Jar-in-Jar](distribution.md)**。0.12 起瘦包为 `0.12.0`、完整版为 `0.12.1`；下游依赖核心，所用模板与示例复制到自己的模组。迁移、嵌套提示及未验证范围都在该页。
+
 [布局迁移开关与尺寸诊断（开发期）](d36-r06.md)：块流/溢出 old/new/both、why-size、几何快照与固定行高范围原语。
 
 用 HTML/CSS 制作 Minecraft 界面，用 Java 控制器或受限 JavaScript 接交互，用 Minecraft 宿主显示物品、实体和容器。**没有把任意 H5 自动转译成游戏 UI 的工具，也没有浏览器与游戏全效果等价的保证。**
@@ -8,7 +10,7 @@
 
 ## 第一次制作页面，按这个顺序读
 
-**只有库 jar、没有本仓库？** 先看[只有 jar 时的最小 Fabric 工程](quickstart.md)：完整的构建文件、入口类和页面，已实际编译并启动验证。
+**只有库 jar、没有本仓库？** 先看[只有 jar 时的最小 Fabric 工程](quickstart.md)：完整的构建文件、入口类和页面；历史 0.10 编译与启动验证不代表 0.12 已验证。
 
 使用 Agent 时，先打开 [MCP 接入手册](mcp.md)和[调用提示词](agent-prompts.md)，按[网页验收 → 游戏接入流程](ui-workflow.md)制作。MCP 提供规则查询、可交互网页预览、严格检查、固定版本人工验收与受控游戏接入。
 
@@ -45,6 +47,7 @@ D36 引擎性能门禁见[统一 CPU 基准工具](d36-mcp-bench.md)：固定资
 |---|---|
 | 只有 jar，做一个自己的 mod 界面 | [只有 jar 时的最小 Fabric 工程](quickstart.md) |
 | 把已有的手绘 Screen 迁成页面 | [迁移](migrating.md) |
+| 选瘦包/完整版、嵌入或外部依赖 | [分发指南](distribution.md) |
 | 选依赖、看稳定性承诺和版本范围 | [接入指南第 2 节](integration.md#2-获取与依赖) |
 | 从客户端或服务器打开页面、交换数据 | [页面接口](pages.md)；签名速查见 [Java API](java-api.md) |
 | 画在 HUD 上的叠加层 | [HUD 叠加层](hud.md) |
@@ -69,7 +72,7 @@ D36 引擎性能门禁见[统一 CPU 基准工具](d36-mcp-bench.md)：固定资
 
 **参数**：[CSS 参数参考](css-guide.md) · [CSS 支持参考](css-reference.md) · [元素](elements.md) · [脚本](scripting.md) · [Java 声明式绑定](bindings.md)
 
-**接入**：[最小 Fabric 工程](quickstart.md) · [接入指南](integration.md) · [页面接口](pages.md) · [HUD](hud.md) · [容器页面](containers.md) · [Java API](java-api.md) · [服务端与容器](server.md) · [迁移](migrating.md) · [朗读](narration.md) · [安全与设置](security.md)
+**接入**：[分发指南](distribution.md) · [最小 Fabric 工程](quickstart.md) · [接入指南](integration.md) · [页面接口](pages.md) · [HUD](hud.md) · [容器页面](containers.md) · [Java API](java-api.md) · [服务端与容器](server.md) · [迁移](migrating.md) · [朗读](narration.md) · [安全与设置](security.md)
 
 **验收与开发**：[验收工具](validation.md) · [MCP](mcp.md) · [Agent 提示词](agent-prompts.md) · [开发参考](development.md)
 

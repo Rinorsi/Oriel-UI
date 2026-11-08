@@ -1,0 +1,56 @@
+{
+  "development": [
+    "^dev/oriel/mod/internal/client/(DevAutopilot|DevTour|DevPointer|DevReload|DevAgent|DevInspector|TourCursor|TourPointer|CursorArt)(\\$.*)?\\.class$",
+    "^dev/oriel/engine/inspect/",
+    "^dev/oriel/engine/script/InspectorBindings(\\$.*)?\\.class$",
+    "^assets/oriel/oriel/dev/"
+  ],
+  "reference": [
+    "^assets/oriel/ui/(templates|styles)/",
+    "^assets/oriel/ui/(gallery|styles|catalog|icons|inventory|inventory_effects|forge|forge_station|music|settings|potions|editor)\\.html$",
+    "^assets/oriel/ui/icons\\.json$",
+    "^assets/oriel/oriel/(showcase|demo)/",
+    "^assets/oriel/structures/",
+    "^assets/oriel/textures/(showcase|demo|styles|covers)/",
+    "^assets/oriel/textures/ui/(?!emblem\\.png$)",
+    "^data/oriel/(test_instance|structure/test)/",
+    "^dev/oriel/kit/ReferenceKit(\\$.*)?\\.class$",
+    "^dev/oriel/kit/preset/(?!(AboutPreset|ModSettingsPreset|NestedNoticePreset)(\\$|\\.))",
+    "^dev/oriel/mod/internal/client/showcase/",
+    "^dev/oriel/mod/internal/client/(TemplateLibrary|ServerProbeClient|CanvasTestScreen|ReferenceClientCommands)(\\$.*)?\\.class$",
+    "^dev/oriel/mod/internal/server/(OrielDemos|ServerProbe)(\\$.*)?\\.class$",
+    "^dev/oriel/mod/internal/gametest/"
+  ],
+  "metadata": [
+    "^META-INF/MANIFEST\\.MF$",
+    "^fabric\\.mod\\.json$",
+    "^META-INF/neoforge\\.mods\\.toml$",
+    "^META-INF/oriel/manifest\\.json$"
+  ],
+  "requiredCore": [
+    "META-INF/oriel/boundaries.json",
+    "dev/oriel/engine/dom/Document.class",
+    "dev/oriel/engine/host/PageControllers.class",
+    "dev/oriel/engine/script/RhinoScriptRuntime.class",
+    "dev/oriel/shadow/rhino/Context.class",
+    "dev/oriel/engine/host/MinecraftCompatibilityProfile.class",
+    "dev/oriel/kit/OrielKit.class",
+    "dev/oriel/kit/Shell.class",
+    "dev/oriel/kit/TemplateCatalog.class",
+    "dev/oriel/kit/LocalPage.class",
+    "dev/oriel/kit/preset/ModSettingsPreset.class",
+    "dev/oriel/kit/preset/AboutPreset.class",
+    "dev/oriel/kit/preset/NestedNoticePreset.class",
+    "assets/oriel/ui/nested-notice.html",
+    "dev/oriel/mod/server/ForgeMenu.class",
+    "dev/oriel/mod/client/OrielScreens.class",
+    "dev/oriel/mod/internal/client/MyPages.class",
+    "dev/oriel/mod/internal/client/OrielPages.class",
+    "assets/oriel/ui/ore.css",
+    "assets/oriel/ui/modsettings.html",
+    "assets/oriel/ui/about.html",
+    "assets/oriel/textures/ui/emblem.png",
+    "assets/oriel/lang/en_us.json",
+    "assets/oriel/lang/zh_cn.json"
+  ]
+}

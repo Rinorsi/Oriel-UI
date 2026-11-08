@@ -34,7 +34,7 @@ import java.util.Set;
  * {@code {"favorites": [...], "saved": [...], "recent": [...], "folder": "..."}}.
  */
 public final class TemplateLibrary {
-    public static final String NAMESPACE = "oriel_mine";
+    public static final String NAMESPACE = MyPages.NAMESPACE;
     private static final int RECENT = 12;
 
     private static Path dir, file;
@@ -44,15 +44,8 @@ public final class TemplateLibrary {
     private TemplateLibrary() {}
 
     public static void init() {
-        Path root = Services.PLATFORM.configDir().resolve("oriel");
-        dir = root.resolve("my-pages");
-        file = root.resolve("templates.json");
-        try {
-            OrielPages.folder(NAMESPACE, dir);
-        } catch (IllegalArgumentException e) {
-            Constants.LOG.warn("Oriel: saved templates are off: {}", e.getMessage());
-            dir = null;
-        }
+        dir = MyPages.directory();
+        file = Services.PLATFORM.configDir().resolve("oriel/templates.json");
         load();
         OrielScreens.onPageLoad(OrielKit.STYLES, driver -> {
             driver.patch(StylesPreset.LIBRARY, state());

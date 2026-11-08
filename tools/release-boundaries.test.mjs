@@ -4,10 +4,70 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
+import * as release from './check-release.mjs';
 import {auditEntries} from './check-release.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const licenses = ['LICENSE_Oriel UI', 'NOTICE_Oriel UI', ...['LICENSE.txt', 'NOTICE.txt', 'SOURCE.txt'].map(n => 'META-INF/licenses/rhino/' + n), 'META-INF/licenses/fonts/font.txt'];
+
+test('slim rejects reference entries and requires its core, while full permits development content', () => {
+  assert.equal(typeof release.classifyEntry, 'function');
+  for (const entry of ['assets/oriel/ui/templates/catalog.json', 'assets/oriel/ui/gallery.html',
+    'dev/oriel/kit/preset/StylesPreset.class', 'dev/oriel/mod/internal/client/showcase/Mobdex.class',
+    'dev/oriel/mod/internal/gametest/GameTests.class', 'data/oriel/test_instance/forge_menu.json']) {
+    assert.equal(release.classifyEntry(entry), 'reference', entry);
+    assert.ok(auditEntries([...licenses, entry], {variant: 'slim'}).some(s => s.includes(entry)));
+  }
+  assert.ok(auditEntries(licenses, {variant:'slim'}).some(s => s.includes('ore.css')));
+  assert.ok(auditEntries(licenses, {variant:'slim'}).some(s => s.includes('META-INF/oriel/boundaries.json')));
+  assert.deepEqual(auditEntries([...licenses, 'dev/oriel/mod/internal/client/DevReload.class'], {variant:'full'}), []);
+});
+
+test('core hashes include paths and class bytes but ignore reference, dev and distribution metadata', () => {
+  const core = new Map([['dev/oriel/engine/Test.class', Buffer.from('class')], ['assets/oriel/ui/ore.css', Buffer.from('css')]]);
+  const hash = release.coreHash(core);
+  assert.equal(hash, release.coreHash(new Map([...core].reverse())));
+  assert.equal(hash, release.coreHash(new Map([...core, ['assets/oriel/ui/templates/01/page.js', Buffer.from('demo')],
+    ['META-INF/MANIFEST.MF', Buffer.from('version')], ['fabric.mod.json', Buffer.from('version')]])));
+  assert.notEqual(hash, release.coreHash(new Map([...core, ['dev/oriel/engine/Test.class', Buffer.from('changed')]])));
+  assert.notEqual(hash, release.coreHash(new Map([['dev/oriel/engine/Renamed.class', Buffer.from('class')], [...core][1]])));
+  assert.throws(() => release.checkCoreBaseline('0.12', 'fabric-26.3', hash, {'0.12.fabric-26.3':'0'.repeat(64)}), /核心有变，需要升 minor/);
+  assert.throws(() => release.checkCoreBaseline('0.12', 'fabric-26.3', hash, {}, true), /Missing core hash baseline/);
+  assert.doesNotThrow(() => release.checkCoreBaseline('0.12', 'fabric-26.3', hash, {'0.12.fabric-26.3':hash}, true));
+});
+
+test('variant versions and template ranges reject equal patches, wrong minors and excluded variants', () => {
+  assert.deepEqual(release.variantVersions('0.12.0', '1'), {slim:'0.12.0', full:'0.12.1'});
+  assert.throws(() => release.variantVersions('0.12.1', '1'));
+  assert.throws(() => release.variantVersions('0.12.0', '0'));
+  for (const range of ['>=0.12.0 <0.13.0', '[0.12.0,0.13.0)']) {
+    assert.equal(release.inRange('0.12.0', range), true);
+    assert.equal(release.inRange('0.12.1', range), true);
+    assert.equal(release.inRange('0.13.0', range), false);
+  }
+  assert.equal(release.inRange('0.12.0', '>=0.11.0 <0.12.0'), false);
+});
+
+test('current nested fixtures retain real variant bytes and express conflicting ranges', () => {
+  assert.ok(process.env.ORIEL_TEST_TMP);
+  const dir = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'slim-jij-'));
+  const bin = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java') : 'java';
+  const slim = path.join(dir, 'slim.jar'), full = path.join(dir, 'full.jar');
+  fs.writeFileSync(slim, 'real-slim-bytes'); fs.writeFileSync(full, 'real-full-bytes');
+  for (const loader of ['fabric','neoforge']) for (const scenario of ['slim','top-full','two-parents','conflict']) {
+    const out = path.join(dir, loader, scenario);
+    execFileSync(bin, [path.join(root,'tools/compat/BundleFixtures.java'), loader, slim, out, full, scenario]);
+    const entries = release.readJar(path.join(out,'oriel_bundle_1.jar')).entries;
+    assert.deepEqual(entries.get('META-INF/jars/oriel.jar'), fs.readFileSync(slim));
+    if (scenario === 'top-full') assert.deepEqual(fs.readFileSync(path.join(out,'oriel-full.jar')), fs.readFileSync(full));
+    if (['two-parents','conflict'].includes(scenario)) {
+      const second = release.readJar(path.join(out,'oriel_bundle_2.jar')).entries;
+      assert.deepEqual(second.get('META-INF/jars/oriel.jar'), fs.readFileSync(full));
+      const meta = second.get(loader === 'fabric' ? 'fabric.mod.json' : 'META-INF/neoforge.mods.toml').toString();
+      assert.ok(meta.includes(scenario === 'conflict' ? '0.13.0' : '0.12.0'));
+    }
+  }
+});
 
 test('local Loom exclusions accept access-widened outputs and reject downloaded lookalikes', () => {
   assert.ok(process.env.ORIEL_TEST_TMP, 'Set ORIEL_TEST_TMP to an external test directory');

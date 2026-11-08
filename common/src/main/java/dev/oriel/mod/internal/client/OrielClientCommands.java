@@ -43,7 +43,7 @@ public final class OrielClientCommands {
         for (String name : CommandNames.BASICS) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> later(() -> demo(basicsPage(name)))));
         showcase.then(LiteralArgumentBuilder.<S>literal(CommandNames.TOAST).executes(c -> later(OrielClientCommands::toast)));
         for (String name : SERVER_DEMOS) showcase.then(LiteralArgumentBuilder.<S>literal(name).executes(c -> askServer("oriel showcase " + name)));
-        return LiteralArgumentBuilder.<S>literal("oriel")
+        LiteralArgumentBuilder<S> root = LiteralArgumentBuilder.<S>literal("oriel")
                 .then(LiteralArgumentBuilder.<S>literal("version").executes(c -> later(() -> McClient.systemMessage(
                         Component.literal("Oriel UI runtime version: " + dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel"))))))
                 .then(LiteralArgumentBuilder.<S>literal("open")
@@ -52,9 +52,14 @@ public final class OrielClientCommands {
                                     String url = StringArgumentType.getString(c, "url");
                                     return later(() -> OrielScreens.open(url));
                                 })))
-                .then(showcase)
-                .then(LiteralArgumentBuilder.<S>literal("reload").executes(c -> later(OrielClient::onResourceReload)))
-                .then(LiteralArgumentBuilder.<S>literal("canvastest").executes(c -> later(() -> McClient.setScreen(new CanvasTestScreen()))));
+                .then(LiteralArgumentBuilder.<S>literal("settings").executes(c -> later(() -> OrielScreens.open(OrielKit.MODSETTINGS))))
+                .then(LiteralArgumentBuilder.<S>literal("about").executes(c -> later(() -> OrielScreens.open(OrielKit.ABOUT))))
+                .then(LiteralArgumentBuilder.<S>literal("reload").executes(c -> later(OrielClient::onResourceReload)));
+        if (dev.oriel.kit.ReferenceContent.available()) {
+            root.then(showcase);
+            root.then(LiteralArgumentBuilder.<S>literal("canvastest").executes(c -> later(() -> ReferenceClientCommands.canvas())));
+        }
+        return root;
     }
 
     /** The kit presets under {@code /oriel showcase}. */
@@ -62,11 +67,14 @@ public final class OrielClientCommands {
 
     /** Opens a preset page, or the gallery. */
     public static void preset(String name) {
-        OrielScreens.open(name.equals("templates") ? OrielKit.STYLES : OrielKit.page(name));
+        String page = name.equals("templates") ? "styles" : name;
+        if (!dev.oriel.kit.ReferenceContent.pageAvailable(page)) { noReference(); return; }
+        OrielScreens.open(OrielKit.page(page));
     }
 
     /** Opens a demo page; {@code hud} toggles the demo HUD overlay instead. */
     public static void demo(String name) {
+        if (!dev.oriel.kit.ReferenceContent.available()) { noReference(); return; }
         if (name.equals("hud")) {
             if (OrielHud.isShown(OrielClient.DEMO_HUD)) OrielHud.hide(OrielClient.DEMO_HUD);
             else OrielHud.show(OrielClient.DEMO_HUD);
@@ -83,12 +91,17 @@ public final class OrielClientCommands {
      * back as a message and is echoed in chat.
      */
     public static void toast() {
+        if (!dev.oriel.kit.ReferenceContent.available()) { noReference(); return; }
         if (OrielHud.isShown(OrielClient.DEMO_TOAST)) {
             OrielHud.hide(OrielClient.DEMO_TOAST);
             return;
         }
         OrielHud.show(OrielClient.DEMO_TOAST)
                 .onMessage("answer", value -> McClient.systemMessage(Component.literal("Rivet's request: " + value.getAsString())));
+    }
+
+    private static void noReference() {
+        McClient.systemMessage(Component.translatable("oriel.reference.unavailable"));
     }
 
     public static String demoUrl(String name) {

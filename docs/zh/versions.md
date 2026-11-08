@@ -1,6 +1,8 @@
 # Minecraft 版本适配
 
-[入口](index.md) · [接入指南](integration.md) · [后端构建与维护](backend-maintenance.md)
+[入口](index.md) · [接入指南](integration.md) · [分发指南](distribution.md) · [后端构建与维护](backend-maintenance.md)
+
+**0.12 分发边界：瘦包 `0.12.0` / 完整版 `0.12.1`，mod id 都为 `oriel`。** 核心任何变化都升 minor，完整版补丁只改参考内容；下游使用 `>=0.12.0 <0.13.0` / `[0.12.0,0.13.0)`。六目标双变体构建及发行检查已通过，26.3 两加载器专服五场景已实测；26.1.2 / 26.2 专服混装、客户端弹窗/设置及真实 Editor 下游升级仍未验证。下列旧客户端冒烟流程不等于 0.12 已通过，详细证据范围见分发指南。
 
 Oriel 用 [Stonecutter](https://stonecutter.kikugie.dev) 从同一份源码树为三个 Minecraft 版本构建：
 
@@ -12,7 +14,7 @@ Oriel 用 [Stonecutter](https://stonecutter.kikugie.dev) 从同一份源码树�
 
 每个版本有各自的 Gradle 子项目，以版本命名：`:common:26.1`、`:neoforge:26.1`、`:fabric:26.1`。它们的设置在 `stonecutter.properties.toml`。引擎、Rhino 和预览器只构建一次，所有版本共用。
 
-jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`（如 `oriel-neoforge-26.1.2-0.11.0.jar`），位于 `<加载器>/versions/<MC 版本>/build/libs/`。发布时会为每个版本、以同一个 Oriel 版本号发布 `dev.oriel:oriel-{common,neoforge,fabric}-<MC 版本>`。
+jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`，例如瘦包 `oriel-neoforge-26.1.2-0.12.0.jar`、完整版 `oriel-neoforge-26.1.2-0.12.1.jar`，位于 `<加载器>/versions/<项目版本>/build/libs/`（26.1.2 对应项目目录 `26.1`）。加载器 Maven 坐标保持 `dev.oriel:oriel-<loader>-<mc>:<版本>`，不增加 slim/full 分类器；同一变体在六目标使用同一 Oriel 版本。构建开关和版本单一来源见[分发指南](distribution.md#2-变体与版本规则)。
 
 源码以 26.3 为活动版本。26.x 内部的 API 差异使用 `>=26.2`、`>=26.3`、`<26.3` 等 Stonecutter 条件，包名与键名迁移放在 `stonecutter.gradle`。**提交前恢复活动版本 26.3。**
 
@@ -70,6 +72,8 @@ bash tools/test-smoke-all.sh /absolute/path/outside/the/repo/smoke-script-test
 新增 Minecraft 版本或升级 Loom 后，还须审查 `gradle/generated-minecraft.json` 中本地生成包的排除范围：确切版本与受限模块/文件正则。`verifyMinecraftContent` 在 Fabric 编译及根 `:check` 前检查当前工作树的 Loom 本地来源、文件形态及版本，不再固定已应用访问扩展的生成字节。访问扩展修改无需更新清单；有意升级时先核对输入与命名规则，再更新 JSON，并运行 `writeDependencyVerification` 同步和审查 XML。失败信息会列出版本、文件、期望/实际与更新步骤；不要用整个 `net.minecraft` 组的信任例外绕过检查。外部下载依赖 SHA-256 与 Linux 等平台分类器须保留。刷新命令、真实访问扩展回归命令与信任限制见 [后端维护](backend-maintenance.md)。
 
 ## 提交与发布
+
+0.12 起发布须逐目标核对瘦包与完整版条目、同 minor 版本关系、模板范围、`oriel` id 和核心哈希；清单见[分发指南的发布检查](distribution.md#6-发布前检查清单)。瘦包使用 `-Poriel_slim`，完整版玩家包使用 `-Poriel_release`；受控核心哈希记录在 `tools/release/core-hash.properties`，同 minor 的后续核心变化应拒绝发布并要求升 minor。十二产物清单/核心哈希检查已通过，六目标 0.12 pin 已冻结并通过普通发布复核；命令与 pin 规则见[维护约定](maintenance.md#双变体发布与专服复核)。这不证明远端 CI、游戏客户端或全部门禁通过；全量预览仍有 about 设计 warning，源码总量卫生门禁仍有既有超限项。
 
 提交时保持共享源码为 26.3。当前仓库仅配置 `.github/workflows/build.yml`，没有 release.yml 或自动标签发布流程。Build 在 main 推送、PR 或手动触发时运行，不使用路径过滤；执行全版本构建、根检查、NeoForge 26.1 服务端 GameTest 及下游模板编译，并用 Node 24 运行后端/发布边界回归与无游戏的冒烟结果计数测试。运行和测试临时目录放在 runner.temp。上传前再以 `-Poriel_release` 构建六个加载器/版本 JAR 并检查开发类排除及许可条目。源码 JAR 仍保留源码。配置存在不代表远端运行已通过，须查看对应提交的 GitHub Actions 回执。
 

@@ -1,19 +1,7 @@
 package dev.oriel.kit;
 
 import dev.oriel.kit.preset.AboutPreset;
-import dev.oriel.kit.preset.CatalogPreset;
-import dev.oriel.kit.preset.EditorPreset;
-import dev.oriel.kit.preset.ForgePreset;
-import dev.oriel.kit.preset.ForgeStationPreset;
-import dev.oriel.kit.preset.IconsPreset;
-import dev.oriel.kit.preset.GalleryPreset;
-import dev.oriel.kit.preset.InventoryPreset;
-import dev.oriel.kit.preset.MusicPreset;
 import dev.oriel.kit.preset.ModSettingsPreset;
-import dev.oriel.kit.preset.InventoryEffectsPreset;
-import dev.oriel.kit.preset.PotionHudPreset;
-import dev.oriel.kit.preset.SettingsPreset;
-import dev.oriel.kit.preset.StylesPreset;
 import dev.oriel.engine.host.PageControllers;
 
 import java.util.List;
@@ -35,7 +23,7 @@ public final class OrielKit {
     public static final String EDITOR = page("editor");
     public static final String CATALOG = page("catalog");
     public static final String ICONS = page("icons");
-    /** The style showcase's index; its looks are {@code styles/<name>} ({@link StylesPreset#PAGES}). */
+    /** The style showcase's index; its looks are {@code styles/<name>} ({@link dev.oriel.kit.preset.StylesPreset#PAGES}). */
     public static final String STYLES = page("styles");
     /** The mod's own settings (the game keeps them: see ModSettingsPreset) and its information page. */
     public static final String MODSETTINGS = page("modsettings");
@@ -61,23 +49,9 @@ public final class OrielKit {
         registered = true;
         Lang.register();
         PageControllers.registerShared(() -> Shell::setup);
-        PageControllers.register(GALLERY, GalleryPreset::new);
-        PageControllers.register(INVENTORY, InventoryPreset::new);
-        PageControllers.register(FORGE, ForgePreset::new);
-        PageControllers.register(MUSIC, MusicPreset::new);
-        PageControllers.register(SETTINGS, SettingsPreset::new);
-        PageControllers.register(POTIONS, PotionHudPreset::new);
-        PageControllers.register(INVENTORY_EFFECTS, InventoryEffectsPreset::new);
-        PageControllers.register(EDITOR, EditorPreset::new);
-        PageControllers.register(CATALOG, CatalogPreset::new);
-        PageControllers.register(ICONS, IconsPreset::new);
-        PageControllers.register(STYLES, () -> new StylesPreset(true));
-        PageControllers.register(FORGE_STATION, ForgeStationPreset::new);
         PageControllers.register(MODSETTINGS, ModSettingsPreset::new);
         PageControllers.register(ABOUT, AboutPreset::new);
-        for (String look : StylesPreset.PAGES) {
-            PageControllers.register(page("styles/" + look), () -> new StylesPreset(false));
-            PageControllers.register(TemplateCatalog.page(look), () -> new StylesPreset(false));
-        }
+        PageControllers.register(page("nested-notice"), dev.oriel.kit.preset.NestedNoticePreset::new);
+        if (ReferenceContent.available()) ReferenceKit.register();
     }
 }

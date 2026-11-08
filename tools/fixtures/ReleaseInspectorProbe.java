@@ -31,9 +31,24 @@ public class ReleaseInspectorProbe {
             }
             for (String name : List.of("dev.oriel.mod.client.DocumentDriver", "dev.oriel.mod.internal.client.McHost",
                     "dev.oriel.mod.internal.client.InspectorAccess", "dev.oriel.engine.host.Host",
+                    "dev.oriel.mod.internal.OrielCommon", "dev.oriel.mod.internal.client.OrielClient",
+                    "dev.oriel.mod.internal.client.OrielClientCommands", "dev.oriel.mod.internal.client.OrielKeys",
+                    "dev.oriel.mod.internal.server.OrielCommand", "dev.oriel.mod.internal.client.MyPages",
                     "dev.oriel.engine.script.RhinoScriptRuntime")) {
                 Class<?> type = Class.forName(name, false, loader);
                 type.getDeclaredMethods(); type.getDeclaredFields(); type.getDeclaredConstructors();
+            }
+            if (loader.getResource("assets/oriel/ui/templates/catalog.json") == null) {
+                loader.loadClass("dev.oriel.kit.OrielKit").getMethod("register").invoke(null);
+                Object ids = loader.loadClass("dev.oriel.kit.TemplateCatalog").getMethod("ids").invoke(null);
+                if (!List.of().equals(ids)) throw new AssertionError("Slim catalog is not empty");
+                Object command = loader.loadClass("dev.oriel.mod.internal.client.OrielClientCommands").getMethod("create").invoke(null);
+                Object tree = command.getClass().getMethod("build").invoke(command);
+                var child = tree.getClass().getMethod("getChild", String.class);
+                for (String name : List.of("settings", "about", "open", "reload"))
+                    if (child.invoke(tree, name) == null) throw new AssertionError("Missing core command " + name);
+                for (String name : List.of("showcase", "canvastest"))
+                    if (child.invoke(tree, name) != null) throw new AssertionError("Reference command " + name);
             }
             Class<?> flags = Class.forName("dev.oriel.mod.internal.client.DevFlags", true, loader);
             if (flags.getField("INSPECTOR_AVAILABLE").getBoolean(null)) throw new AssertionError("Inspector enabled");

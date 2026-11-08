@@ -13,7 +13,7 @@
 - 页面不能撑满游戏内存。一次脚本调用最多分配 256 MiB，一个页面最多 100,000 个节点、嵌套 512 层、1600 万个画布像素；内建函数拒绝超过 100 万个元素的数组和超过 1600 万字符的字符串；脚本发现垃圾回收后堆仍超过 90% 的页面会被终止并释放。`localStorage` 和 `sessionStorage` 各 256K 字符，只存活到页面关闭，所以不会写到磁盘。
 - 页面不能让游戏崩溃。任何错误，包括栈溢出和内存耗尽，都只会停掉那个页面，页面随后显示它的错误。它每秒最多写 50 行日志，每行截断到 4096 个字符。
 - 页面只通过 Minecraft 的资源管理器加载样式表、脚本、图片和字体，别无他途。带协议的 URL 和其他 URL 一样只是资源 id（`https://example.com/a.png` 指的是 `assets/https/...`），所以不会有请求离开游戏，第三方不会得知玩家的 IP，也不会读取资源包之外的文件。开发环境里页面还会从 `common/src/main/resources/assets` 读取，但绝不从它之外读取。
-- mod 可以用玩家可编辑的文件夹来提供一个命名空间（见[页面](integration.md#页面放哪url-怎么写)里的"玩家可编辑的页面"）。这些页面只能读该文件夹内的文件，包括 `..` 和指向文件夹之外的符号链接。服务器打开的页面不能读它们，服务器也不能打开它们。这同样适用于服务器会话里导航或重载之后。被拒绝的文本或二进制读取返回 null，并记录 ERROR 级诊断（`server-folder-access`，来源是被拒绝的 URL，行号未知时为 0）。
+- mod 可以用玩家可编辑的文件夹来提供一个命名空间（见[玩家可编辑的页面](pages.md#玩家可编辑的页面)）。这些页面只能读该文件夹内的文件，包括 `..` 和指向文件夹之外的符号链接。服务器打开的页面不能读它们，服务器也不能打开它们。这同样适用于服务器会话里导航或重载之后。被拒绝的文本或二进制读取返回 null，并记录 ERROR 级诊断（`server-folder-access`，来源是被拒绝的 URL，行号未知时为 0）。
 - 画布只能绘制其他画布，所以 `getImageData` 读不到纹理、皮肤或屏幕的像素。没有 `toDataURL`。
 - Shift+Escape 永远会关闭 Oriel 界面，页面看不到这个键。即使页面用 `preventDefault()` 保留了 Escape，1.5 秒内按三次 Escape 也会关闭它。
 - 服务器页面只会替换"没有界面"、容器界面或另一个 Oriel 界面。玩家在聊天、暂停菜单、选项、告示牌或任何其他界面时，页面会等他们离开。服务器抓不到输入聊天的按键，带"断开连接"按钮的暂停菜单始终可达。
@@ -71,14 +71,17 @@
 
 客户端允许页面做什么：
 
-可在模组设置页修改的项：`client.uiSounds`、`client.uiSoundVolume`、`client.reducedMotion`、`client.typingNotice`、`client.serverPages`、`client.webLinks`、`client.shapeShader`。保存成功后立即更新内存并原子替换 `config/oriel.properties`，保留注释与其他键的顺序；恢复默认只改这七项。音量控件步长为 0.05，宿主接受范围内的有限数值，不钳制非法值。`shapeShader` 每帧读取，不需重启；减少动效是否被页面脚本遵守取决于页面实现。文件保存失败或值不合法时保留原值并记录诊断。
+`client.nestedNotice` **0.12 起提供**，默认 `on`，配置值为 `on/off`，内部为 Choice/enum（`NestedNotice.ON/OFF`），设置页以开关呈现。提示页勾选“不再提示”立即写回 `off`；设置白名单、非法值与 boolean 拒绝、写盘/回执和恢复默认到 `on` 已通过单元测试，**游戏内设置页、勾选和重启显示仍未验证**。关闭只抑制客户端提示，扫描与风险日志继续工作；恢复默认不清空已提示指纹历史。嵌套风险日志、缓存与旧副本限制见[分发指南](distribution.md#5-多个模组都带-oriel-时)。
 
-设置页的内部宿主协议：仅本地 `OrielKit.page("modsettings")` 页面接入，服务器会话不会得到设置数据或写入处理器。页面通过 `OrielKit.CHANNEL` 发送 `{"op":"set","key":"client.uiSounds","value":"false"}` 或 `{"op":"reset"}`；页面控件的值统一发送字符串，由对应 Setting 解析；宿主也接受类型相符的 JSON 布尔值或数值，选项为字符串（`ALLOW`/`ASK`/`BLOCK`，网页链接仅 `ASK`/`BLOCK`，解析不区分大小写）。未知操作忽略，未知键、缺省/null/错误类型的值拒绝；不开放限额、调试或强制关闭设置。请求为最多三个字段的扁平对象，紧凑 JSON 不超过 1024 字符，沿用按界面跨重载的 `client.messageBurst` / `client.messagesPerSecond` 限速。
+可在模组设置页修改的项：`client.uiSounds`、`client.uiSoundVolume`、`client.reducedMotion`、`client.typingNotice`、`client.serverPages`、`client.webLinks`、`client.shapeShader`、`client.nestedNotice`。保存成功后立即更新内存并原子替换 `config/oriel.properties`，保留注释与其他键的顺序；恢复默认只改这八项。音量控件步长为 0.05，宿主接受范围内的有限数值，不钳制非法值。`shapeShader` 每帧读取，不需重启；减少动效是否被页面脚本遵守取决于页面实现。文件保存失败或值不合法时保留原值并记录诊断。
 
-加载及每次已送达请求后，宿主以 `driver.patch("settings", state)` 完整替换 `settings` 子字段（不覆盖其他页面数据）。`state.items` 的每项为 `{key,type,value,default,min,max,step,options,live}`，`type` 为 `bool`/`number`/`choice`；当前七项 `live` 均为 `true`，非数字项的 `min/max/step` 为 null，非选项项的 `options` 为 `[]`，选项值使用大写枚举名。拒绝后的回执仍含原值；重复设置是幂等的，重载后重发当前内存状态。此协议是内部页面合同，纯 Java 回归与三版本编译/API 检查和游戏里的声音、动效、着色器验收须分别验证。
+设置页的内部宿主协议：仅本地 `OrielKit.page("modsettings")` 页面接入，服务器会话不会得到设置数据或写入处理器。页面通过 `OrielKit.CHANNEL` 发送 `{"op":"set","key":"client.uiSounds","value":"false"}` 或 `{"op":"reset"}`；页面控件的值统一发送字符串，由对应 Setting 解析；宿主也接受类型相符的 JSON 布尔值或数值，选项为字符串（`ALLOW`/`ASK`/`BLOCK`，网页链接仅 `ASK`/`BLOCK`，嵌套提示为 `ON`/`OFF`，解析不区分大小写；嵌套提示不接受 JSON boolean 或 `true/false` 字符串）。未知操作忽略，未知键、缺省/null/错误类型的值拒绝；不开放限额、调试或强制关闭设置。请求为最多三个字段的扁平对象，紧凑 JSON 不超过 1024 字符，沿用按界面跨重载的 `client.messageBurst` / `client.messagesPerSecond` 限速。
+
+加载及每次已送达请求后，宿主以 `driver.patch("settings", state)` 完整替换 `settings` 子字段（不覆盖其他页面数据）。`state.items` 的每项为 `{key,type,value,default,min,max,step,options,live}`，`type` 为 `bool`/`number`/`choice`；当前八项 `live` 均为 `true`，非数字项的 `min/max/step` 为 null，非选项项的 `options` 为 `[]`，选项值使用大写枚举名。拒绝后的回执仍含原值；重复设置是幂等的，重载后重发当前内存状态。此协议是内部页面合同，纯 Java 回归与三版本编译/API 检查和游戏里的声音、动效、着色器验收须分别验证。
 
 | 键 | 缺省 | 范围 | 含义 |
 |---|---|---|---|
+| `client.nestedNotice` | `on` | `on`、`off` | 0.12 起提供。仅客户端的嵌套风险提示开关，设置页以开关呈现；提示页“不再提示”写 `off` 到 `config/oriel.properties`，恢复默认为 `on`。关闭不影响扫描、风险日志或加载器选择；专服不弹窗。白名单/持久化/恢复已单测，游戏内仍未验证。 |
 | `client.serverPages` | `allow` | `allow`、`ask`、`block` | 服务器打开的页面是否显示。`ask` 每次访问问一次。 |
 | `client.maxInlineHtmlChars` | 200000 | 1 到 200000 | 显示的最大内联页面。 |
 | `client.maxDataChars` | 100000 | 1 到 100000 | 接受的服务器数据最大长度。 |

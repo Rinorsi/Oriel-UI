@@ -41,6 +41,8 @@ public final class OrielConfig {
     /** What a client does when a page links to a web page. */
     public enum WebLinks { ASK, BLOCK }
 
+    public enum NestedNotice { ON, OFF }
+
     private static final Map<String, Setting<?>> SETTINGS = new LinkedHashMap<>();
 
     // ---- Server ----
@@ -96,6 +98,8 @@ public final class OrielConfig {
             "Loudest volume a page may play a sound at, 0 to 1 (then scaled by your sound settings).");
     public static final Setting<WebLinks> CLIENT_WEB_LINKS = choice("client.webLinks", WebLinks.ASK,
             "Links to web pages: ask (confirm before opening, and only right after a click or key press) or block.");
+    public static final Setting<NestedNotice> CLIENT_NESTED_NOTICE = choice("client.nestedNotice", NestedNotice.ON,
+            "Show a notice about different bundled Oriel copies at the title screen: on or off.");
     public static final Setting<Boolean> CLIENT_TYPING_NOTICE = bool("client.typingNotice", true,
             "Show a notice while you type into a page that a server opened.");
     public static final Setting<Boolean> CLIENT_REDUCED_MOTION = bool("client.reducedMotion", false,

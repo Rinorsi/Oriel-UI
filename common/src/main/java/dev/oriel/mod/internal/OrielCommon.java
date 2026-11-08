@@ -22,15 +22,19 @@ public final class OrielCommon {
         if (Boolean.getBoolean("oriel.jijProbe")) Constants.LOG.info("ORIEL_JIJ_PROBE parents={},{}",
                 dev.oriel.mod.internal.platform.Services.PLATFORM.isModLoaded("oriel_bundle_1"),
                 dev.oriel.mod.internal.platform.Services.PLATFORM.isModLoaded("oriel_bundle_2"));
+        Constants.LOG.info("Oriel UI distribution: {} version={} {}",
+                dev.oriel.kit.ReferenceContent.available() ? "full" : "slim",
+                dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion(Constants.MOD_ID),
+                dev.oriel.kit.ReferenceContent.available() ? "reference content included" : "参考内容未包含（官方模板/showcase/demo）");
         OrielConfig.load();
-        OrielDemos.init();
+        if (dev.oriel.kit.ReferenceContent.available()) OrielDemos.init();
         dev.oriel.mod.server.ForgeMenu.init();
-        OrielGameTests.init();
+        if (dev.oriel.kit.ReferenceContent.available()) OrielGameTests.init();
     }
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         OrielCommand.register(dispatcher);
-        dev.oriel.mod.internal.server.ServerProbe.register(dispatcher);
+        if (dev.oriel.kit.ReferenceContent.available()) dev.oriel.mod.internal.server.ServerProbe.register(dispatcher);
     }
 
     public static void onPlayerLeft(ServerPlayer player) {

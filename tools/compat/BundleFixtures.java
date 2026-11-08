@@ -13,8 +13,12 @@ public final class BundleFixtures {
         String loader = args[0];
         Path library = Path.of(args[1]), output = Path.of(args[2]);
         Files.createDirectories(output);
+        if (args.length >= 5) {
+            current(loader, library, Path.of(args[3]), output, args[4], args.length > 5 ? args[5] : null);
+            return;
+        }
         for (int i = 1; i <= 2; i++) {
-            String version = "0.10." + i;
+            String version = "0.12." + i;
             Map<String, byte[]> nested = new TreeMap<>();
             try (ZipFile zip = new ZipFile(library.toFile())) {
                 var entries = zip.entries();
@@ -47,19 +51,60 @@ public final class BundleFixtures {
             if (loader.equals("fabric")) {
                 String json = "{" + q("schemaVersion") + ":1," + q("id") + ":" + q(id) + "," + q("version") + ":" + q("1.0.0")
                         + "," + q("jars") + ":[{" + q("file") + ":" + q("META-INF/jars/oriel.jar") + "}],"
-                        + q("depends") + ":{" + q("oriel") + ":" + q(">=0.10.0 <0.11.0") + "}}";
+                        + q("depends") + ":{" + q("oriel") + ":" + q(">=0.12.0 <0.13.0") + "}}";
                 parent.put("fabric.mod.json", json.getBytes(StandardCharsets.UTF_8));
             } else {
                 String toml = "modLoader=" + q("lowcodefml") + NL + "loaderVersion=" + q("[1,)") + NL + "license=" + q("MIT")
                         + NL + "[[mods]]" + NL + "modId=" + q(id) + NL + "version=" + q("1.0.0") + NL + "displayName=" + q(id) + NL;
                 parent.put("META-INF/neoforge.mods.toml", toml.getBytes(StandardCharsets.UTF_8));
                 String metadata = "{" + q("jars") + ":[{" + q("identifier") + ":{" + q("group") + ":" + q("dev.oriel") + ","
-                        + q("artifact") + ":" + q("oriel") + "}," + q("version") + ":{" + q("range") + ":" + q("[0.10.0,0.11.0)")
+                        + q("artifact") + ":" + q("oriel") + "}," + q("version") + ":{" + q("range") + ":" + q("[0.12.0,0.13.0)")
                         + "," + q("artifactVersion") + ":" + q(version) + "}," + q("path") + ":" + q("META-INF/jars/oriel.jar") + "}]}";
                 parent.put("META-INF/jarjar/metadata.json", metadata.getBytes(StandardCharsets.UTF_8));
             }
             Files.write(output.resolve(id + ".jar"), zip(parent));
         }
+    }
+
+    /** Current acceptance embeds original slim/full bytes, never relabels a release. */
+    private static void current(String loader, Path slim, Path full, Path output, String scenario, String legacyVersion) throws IOException {
+        if (!List.of("slim", "top-full", "two-parents", "conflict", "same-core", "different-core", "legacy").contains(scenario))
+            throw new IllegalArgumentException("Unknown JiJ scenario: " + scenario);
+        Properties props = new Properties();
+        try (var input = Files.newInputStream(Path.of("gradle.properties"))) { props.load(input); }
+        String core = props.getProperty("version"), minor = core.substring(0, core.lastIndexOf('.'));
+        String fullVersion = minor + "." + props.getProperty("oriel_full_patch");
+        String[] parts = minor.split("\\.");
+        String next = parts[0] + "." + (Integer.parseInt(parts[1]) + 1) + ".0";
+        currentParent(loader, slim, output.resolve("oriel_bundle_1.jar"), "oriel_bundle_1",
+                scenario.equals("legacy") ? Objects.requireNonNull(legacyVersion) : core,
+                scenario.equals("legacy") ? legacyVersion : core, next);
+        if (scenario.equals("top-full")) Files.copy(full, output.resolve("oriel-full.jar"));
+        if (List.of("two-parents", "conflict", "same-core", "different-core", "legacy").contains(scenario))
+            currentParent(loader, full, output.resolve("oriel_bundle_2.jar"), "oriel_bundle_2", fullVersion,
+                    scenario.equals("conflict") ? next : core, scenario.equals("conflict") ? parts[0] + "." + (Integer.parseInt(parts[1]) + 2) + ".0" : next);
+    }
+
+    private static void currentParent(String loader, Path library, Path output, String id, String version,
+                                      String lower, String upper) throws IOException {
+        Map<String, byte[]> parent = new TreeMap<>();
+        parent.put("META-INF/jars/oriel.jar", Files.readAllBytes(library));
+        String display = "Oriel acceptance " + id;
+        if (loader.equals("fabric")) {
+            parent.put("fabric.mod.json", ("{\"schemaVersion\":1,\"id\":" + q(id) + ",\"name\":" + q(display)
+                    + ",\"version\":\"1.0.0\",\"jars\":[{\"file\":\"META-INF/jars/oriel.jar\"}],\"depends\":{\"oriel\":"
+                    + q(">=" + lower + " <" + upper) + "}}").getBytes(StandardCharsets.UTF_8));
+        } else {
+            String range = "[" + lower + "," + upper + ")";
+            parent.put("META-INF/neoforge.mods.toml", ("modLoader=\"lowcodefml\"" + NL + "loaderVersion=\"[1,)\"" + NL
+                    + "license=\"MIT\"" + NL + "[[mods]]" + NL + "modId=" + q(id) + NL + "version=\"1.0.0\"" + NL
+                    + "displayName=" + q(display) + NL + "[[dependencies." + id + "]]" + NL + "modId=\"oriel\"" + NL
+                    + "type=\"required\"" + NL + "versionRange=" + q(range) + NL).getBytes(StandardCharsets.UTF_8));
+            parent.put("META-INF/jarjar/metadata.json", ("{\"jars\":[{\"identifier\":{\"group\":\"dev.oriel\",\"artifact\":\"oriel\"},"
+                    + "\"version\":{\"range\":" + q(range) + ",\"artifactVersion\":" + q(version)
+                    + "},\"path\":\"META-INF/jars/oriel.jar\"}]}").getBytes(StandardCharsets.UTF_8));
+        }
+        Files.write(output, zip(parent));
     }
 
     /** Wraps an unchanged release and a separately compiled consumer; ranges stay release-specific. */

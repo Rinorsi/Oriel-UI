@@ -25,7 +25,7 @@ public final class OrielKeys {
     /** Once a client tick: opens the home page for each press (the game only delivers the key while no screen is open). */
     public static void tick() {
         while (HOME.consumeClick()) {
-            OrielScreens.open(OrielKit.GALLERY);
+            OrielScreens.open(dev.oriel.kit.ReferenceContent.home());
         }
     }
 }

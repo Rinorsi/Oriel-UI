@@ -177,7 +177,8 @@ public final class Shell {
     /** Back to the launcher, with the back transition. */
     public static void back(Document doc) {
         fromTab = -1;
-        go(doc, OrielKit.GALLERY, "back");
+        if (ReferenceContent.available()) go(doc, OrielKit.GALLERY, "back");
+        else doc.host().close();
     }
 
     /** Applies the theme, wires the shared attributes and starts the page's particles. */
@@ -191,6 +192,10 @@ public final class Shell {
         for (Element e : doc.querySelectorAll("[data-icons-pick]")) activate(e, () -> icons(doc, e.getAttribute("data-icons-pick")));
         windowSwitch(doc);
         enter(doc);
+        // Remove unavailable built-in destinations before wiring tabs or click handlers.
+        for (Element e : doc.querySelectorAll("[data-go]")) {
+            if (!ReferenceContent.pageAvailable(e.getAttribute("data-go"))) e.remove();
+        }
         appTabs(doc);
         for (Element e : doc.querySelectorAll("[data-style-pick]")) activate(e, () -> style(doc, e.getAttribute("data-style-pick")));
         for (Element e : doc.querySelectorAll("[data-font-pick]")) activate(e, () -> font(doc, e.getAttribute("data-font-pick")));

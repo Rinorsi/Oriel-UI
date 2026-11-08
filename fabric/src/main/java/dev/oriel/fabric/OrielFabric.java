@@ -18,6 +18,7 @@ public final class OrielFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         OrielCommon.init();
+        FabricNestedScan.start();
         registerAll();
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) clientbound(c);
         for (OrielNetwork.Serverbound<?> s : OrielNetwork.SERVERBOUND) serverbound(s);

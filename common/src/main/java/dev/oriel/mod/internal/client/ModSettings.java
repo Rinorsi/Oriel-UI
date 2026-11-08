@@ -25,6 +25,7 @@ public final class ModSettings {
     private static final List<Setting<?>> EDITABLE = List.of(
             OrielConfig.CLIENT_UI_SOUNDS, OrielConfig.CLIENT_UI_SOUND_VOLUME,
             OrielConfig.CLIENT_REDUCED_MOTION, OrielConfig.CLIENT_TYPING_NOTICE,
+            OrielConfig.CLIENT_NESTED_NOTICE,
             OrielConfig.CLIENT_SERVER_PAGES, OrielConfig.CLIENT_WEB_LINKS, OrielConfig.CLIENT_SHAPE_SHADER);
 
     private ModSettings() {}

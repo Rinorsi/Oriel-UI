@@ -85,7 +85,7 @@ public final class TemplateCatalog {
 
     private static List<JsonObject> load() {
         try (InputStream in = TemplateCatalog.class.getResourceAsStream("/assets/oriel/" + ROOT + "catalog.json")) {
-            if (in == null) throw new IOException("Missing template catalog");
+            if (in == null) return List.of(); // The slim distribution deliberately omits official templates.
             List<JsonObject> entries = new ArrayList<>();
             for (var value : JsonParser.parseString(new String(in.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonArray()) {
                 entries.add(value.getAsJsonObject());

@@ -6,7 +6,7 @@
 
 ## 适用基准与事实等级
 
-本轮文档核对日期：2026-11-08；源码基准：`40cef5c`；项目版本：0.11.0。分支名称不代表版本合同，读取文档时使用与正在运行的 JAR 同一版本的手册。
+既有能力核对日期：2026-11-08；源码基准：`40cef5c`；项目版本：0.11.0。2026-11-09 新增的[分发合同](distribution.md)及相关接入/升级配方面向 0.12.0 瘦包、0.12.1 完整版；六目标双变体构建/发行检查、26.3 双加载器专服五场景、嵌套与设置单元测试、通知页桌面预览已验证。游戏客户端弹窗与设置页、26.1.2 / 26.2 专服混装、真实 Editor 下游升级仍未验证，不能沿用旧基准的运行结论。分支名称不代表版本合同，读取文档时使用与正在运行的 JAR 同一版本的手册。
 
 | 标记 | 允许表达的结论 |
 |---|---|
@@ -36,6 +36,7 @@
 | 新增或改名公开类（`dev.oriel.mod.client` / `server`） | `api/*.txt` 快照（`-PupdateApi`）、`tools/api/ApiCheck.java` 与 `tools/backend-boundaries.test.mjs` 的名单、`java-api.md` |
 | 新增或改名示例页（showcase / demo） | `tools/showcase/index.json` 条目，运行 `node tools/showcase/query.mjs --write-doc` 刷新 `showcase.md` 的效果表 |
 | 热更新机制、开发环境读取源码的方式 | `hot-reload.md`、`quickstart.md`「边改边看」、`page-rules.md` |
+| 瘦包/完整版、版本生成、核心哈希、Jar-in-Jar、嵌套检测与提示 | `distribution.md`（权威定义）、`integration.md`、`upgrading.md`、`versions.md`、`showcase.md`、`security.md`（`client.nestedNotice`）、`../../CHANGELOG.md`、`../../template/README.md` 与模板依赖/元数据；`index.md`、`quickstart.md`、`agent-prompts.md`、`mcp.md`、`../../README.md`、`../../AGENTS.md` 同步入口；MCP `oriel_rules topic=distribution`、发布包 `AGENTS-snippet.md` 同步 |
 | 配置、限额、协议、依赖与发布坐标 | `security.md`、`integration.md`、`server.md`、`capabilities.md`、`../../template/README.md` |
 | i18n 接口、语言 key、回退逻辑 | `components.md` 的字体/翻译段、`scripting.md`、新增的专属 i18n 参考及索引；不得覆盖原流程 |
 | preview CLI / MCP / h5ref / 脚手架 | `validation.md`、`ui-workflow.md`、工具 README：参数、默认、退出码、路径、覆盖范围 |
@@ -70,9 +71,47 @@ CSS 能力改变时应同时更新生成表与 css-guide 的相应字段/示例/
 
 维护者新增自动化时必须明确检测范围：属性集合、默认、示例解析、API 签名、配置键、消息字段与视觉行为是不同层次。当前没有的命令不能先写进使用流程。
 
+## 双变体发布与专服复核
+
+发布合同和已测范围见[分发指南](distribution.md#6-发布前检查清单)。**核心每次变动都升 minor，包括小 bug 修复**；只改参考内容才可增加 `oriel_full_patch`。根 `gradle.properties` 提供核心 `X.Y.0` 与完整版补丁号，依赖范围和模板元数据随 minor 同步。
+
+在目标工作树执行命令；构建经工作区 `gws.sh <工作树> <任务…>`，日志、运行目录和临时文件均放仓库外的当天目录。下列 Bash 路径是占位，执行前换为本机绝对路径并载入工作区 `tools/env.sh`：
+
+```bash
+export ORIEL_GWS='/absolute/workspace/tools/gws.sh'
+export ORIEL_LOG_DIR='/absolute/workspace/daily/YYYY-MM-DD/logs/release'
+# 从待发布工作树执行；26.1 项目对应 Minecraft 26.1.2
+bash "$ORIEL_GWS" "$PWD" :fabric:26.1:assemble :fabric:26.2:assemble :fabric:26.3:assemble :neoforge:26.1:assemble :neoforge:26.2:assemble :neoforge:26.3:assemble -Poriel_slim
+bash "$ORIEL_GWS" "$PWD" :fabric:26.1:assemble :fabric:26.2:assemble :fabric:26.3:assemble :neoforge:26.1:assemble :neoforge:26.2:assemble :neoforge:26.3:assemble -Poriel_release
+# 以下通配符只选择 0.12 十二个运行包；升 minor 时同步改版本
+node tools/check-release.mjs fabric/versions/*/build/libs/oriel-*-0.12.[01].jar neoforge/versions/*/build/libs/oriel-*-0.12.[01].jar --record-core
+node tools/check-release.mjs fabric/versions/*/build/libs/oriel-*-0.12.[01].jar neoforge/versions/*/build/libs/oriel-*-0.12.[01].jar
+```
+
+`--record-core` 用于首次冻结新 minor，每个目标必须同时给 slim/full 且核心哈希一致；写入受控文件 `tools/release/core-hash.properties`，键为 `<major>.<minor>.<loader>-<mc>`。**已有 pin 不同，即使带 `--record-core` 也拒绝**，必须升 minor，不能删除或改写旧 pin 绕过检查。普通检查在缺 pin 或哈希不符时失败；`--allow-unrecorded` 仅用于首次冻结前的开发审计，不能替代正式检查，也不能放行不匹配的旧 pin。0.12 六目标 pin 已首次冻结，十二包普通检查已通过；后续发布以最终字节重新核验。文档改动不影响核心 pin；共享语言文件整份计入核心，不能把其中的参考文案改动当成参考内容豁免。
+
+清单生成、发行审计和运行时分类共用 `tools/release/boundaries.json`。清单为 `META-INF/oriel/manifest.json`，上限 200 KiB；class 按包聚合，API 快照按原始字节哈希；运行时使用打入包内的 `META-INF/oriel/boundaries.json`。0.12 十二包的清单为 99,805–99,813 bytes；完整清单字段与缓存行为见[分发指南第 5 节](distribution.md#5-多个模组都带-oriel-时)。
+
+专服复核先构建目标双变体，再为每个加载器/场景使用新的外部运行根（`mods/` 必须为空）。`--jij` 当前固定 **26.3**，不能据此宣称验证 26.1.2 / 26.2；脚本仍会调用 Gradle，须通过 `ORIEL_GWS` 指定构建入口，`ORIEL_LOG_DIR` 指定外部构建/专服日志目录：
+
+```bash
+ORIEL_LOG_DIR='/absolute/workspace/daily/YYYY-MM-DD/logs/jij-fabric-same-core' \
+  node tools/server-smoke.mjs fabric /absolute/workspace/daily/YYYY-MM-DD/run/jij-fabric-same-core --jij --jij-scenario=same-core
+# neoforge 同样执行；legacy 须额外指定真实、无清单且匹配加载器/26.3 的旧包
+ORIEL_LEGACY_JAR='/absolute/releases/oriel-neoforge-26.3-0.11.0.jar' \
+ORIEL_LOG_DIR='/absolute/workspace/daily/YYYY-MM-DD/logs/jij-neoforge-legacy' \
+  node tools/server-smoke.mjs neoforge /absolute/workspace/daily/YYYY-MM-DD/run/jij-neoforge-legacy --jij --jij-scenario=legacy
+```
+
+可选场景：`slim`（单嵌）、`top-full`（顶层 full + 父嵌 slim）、`two-parents` / `same-core`（双父分别嵌 slim/full）、`different-core`（修改实际 Ore CSS 后重算清单）、`legacy`（真实无清单旧包）、`conflict`（范围无交集）。缺省为 `two-parents`。B 在两加载器各实测 `same-core/different-core/legacy/slim/top-full`，共 10/10；`conflict` 沿用 A 阶段的明确拒绝证据，不列作 B 重跑。范围拒绝由加载器负责，runner 核对拒绝原因后退出 0，底层 Gradle 的非零退出是该负例预期。
+
+EULA 由操作者确认；实例已有 `eula=true` 时无需额外参数，否则仅在操作者接受后用 `--accept-eula`。运行上限 900 秒，正常通过 RCON 回读 `/oriel version` 并停服，不能停止共享 Gradle daemon。退出码、日志与 result.json 留在外部目录；本机源码总量卫生检查仍有既有超限项，不得把已过发行/Node 检查写成全门禁通过。
+
+发布附件需从同版本工作树同步 `docs/zh/`、模板说明/元数据和 MCP 分发入口，并在新包 `AGENTS-snippet.md` 醒目标明 `oriel_rules topic=distribution`、0.12 双变体及范围、核心改动升 minor、参考内容需复制。仓库没有该片段的持续生成器；不要改旧 dist 包或把旧片段的“已实测”外推到新版本。发布前复核附件链接与真实下游迁移；游戏弹窗、游戏内设置及 Editor 升级未验证时须保留标记。
+
 ## 文档归属与并行修改
 
-- `docs/zh/index.md` 是唯一中文导航；同一字段只保留一个权威定义，其他页面链接过去。旧路径可保留短入口，不留相反的旧合同。
+- `docs/zh/` 是唯一手册目录，没有需要同步的英文 `docs/` 镜像；`CHANGELOG.md` 保留英文版本历史。`docs/zh/index.md` 是唯一中文导航；同一字段只保留一个权威定义，其他页面链接过去。旧路径可保留短入口，不留相反的旧合同。
 - AUI 的研究结论不描述 Oriel；Vellum 上游说明必须按本 fork 复核后才能纳入。保留版权，不把来源研究混入使用说明。
 - 维护规则放本页和 AGENTS；方案提议、问题单、验收记录、分支冲突表放仓库外工作区。
 - 其他会话在运行时，不为了文档检查停止共享 Gradle daemon、切换它的分支或覆盖它的工作文件。只处理自己的文档差异。

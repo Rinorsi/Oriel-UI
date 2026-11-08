@@ -22,6 +22,11 @@ dependencies {
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
+// Share exactly the release inventory with the runtime comparison; no duplicate ignore list.
+processResources {
+    from(rootProject.file('tools/release/boundaries.json')) { into('META-INF/oriel') }
+}
+
 // Common's host policies can be tested without booting Minecraft.
 sourceSets.test.java.setSrcDirs([parent.file('src/test/java')])
 tasks.named('test', Test) { useJUnitPlatform() }
