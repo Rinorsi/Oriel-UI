@@ -7,7 +7,7 @@ import java.util.*;
 
 /** Compile-time API inspection: no Minecraft class initialization or client launch. */
 public class ApiCheck {
-    private static final List<String> API = List.of("server.OrielServer", "server.OrielSession", "server.ForgeMenu",
+    private static final List<String> API = List.of("server.OrielServer", "server.OrielSession",
             "client.OrielScreens", "client.OrielScreen", "client.OrielContainerScreen", "client.OrielHud",
             "client.OrielAutomation", "client.DocumentDriver", "client.OrielEntities", "client.OrielPages");
     private static final SortedSet<String> lines = new TreeSet<>();

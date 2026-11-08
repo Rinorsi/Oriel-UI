@@ -81,7 +81,7 @@ dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") { transiti
 
 ### 稳定性与兼容性
 
-公共 API 是：`dev.oriel.mod.server.OrielServer`、`OrielSession`、设置文件的键，以及 `dev.oriel.mod.client.OrielScreens`、`OrielScreen`、`OrielContainerScreen`、`OrielHud`、`OrielEntities`、`OrielAutomation` 和 `DocumentDriver` 的公共方法，再加上 `dev.oriel.mod.server.ForgeMenu` 及其槽位/数据合同。带 `@ApiStatus.Internal` 注解的成员是跨包的实现桥接，不是下游 API。所有实现类都在 `dev.oriel.mod.internal` 之下；即使 Java 的可见性是 public，也不要导入它们。
+公共 API 是：`dev.oriel.mod.server.OrielServer`、`OrielSession`、设置文件的键，以及 `dev.oriel.mod.client.OrielScreens`、`OrielScreen`、`OrielContainerScreen`、`OrielHud`、`OrielEntities`、`OrielAutomation` 和 `DocumentDriver` 的公共方法。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；不再属于公共 API。带 `@ApiStatus.Internal` 注解的成员是跨包的实现桥接，不是下游 API。所有实现类都在 `dev.oriel.mod.internal` 之下；即使 Java 的可见性是 public，也不要导入它们。
 
 1.0 之前，不兼容的受支持 API 变更必须提升 minor。**0.12 起进一步规定：核心任何变化（包括 bug 修复）都升 minor；同 minor 的完整版补丁只更新参考内容。** 当前模板范围为 `>=0.12.0 <0.13.0` / `[0.12.0,0.13.0)`，覆盖瘦包 `0.12.0` 和完整版 `0.12.1`。旧的 0.9 槽位回调到 0.10 的 `DocumentDriver.SlotSink`、0.11 移出物品编辑器等仍是历史迁移边界；旧消费者必须保留原范围，完成迁移再升级，不能只放宽范围。已有 0.11 下游（如 Editor）的 0.12 编译、业务、资源和游戏验证未完成前，不应发布兼容声明。详见[升级说明](upgrading.md)。
 
@@ -177,7 +177,7 @@ session.close();
 
 页面必须在客户端存在（客户端装了你的模组，或服务器资源包提供了它）；纯服务端模组可以用 `OrielServer.openInline(player, html, data)` 把整页 HTML 发过去。**把页面发来的每条消息当成恶意输入**：校验玩家、校验范围、校验物品是否还在手上。本库已经替你做了限频、大小和嵌套深度限制、会话数上限，但"这个操作合不合理"只有你的代码知道。参考实现：`common/.../server/ItemEditor.java`。
 
-**本节的服务端功能需要两端都有库**：装有 Oriel 的服务器会在玩家加入时通过 `requireOnClient` 拒绝未装或协议不兼容的客户端，给出双语提示，这是当前源码行为。客户端单装时只能使用本地能力，不能调用本节的 `OrielServer` 会话、服务端推送或 `ForgeMenu`；连接无库服务器的场景**未实测**。`driver.serverSession()` 只是页面来源标记，不是服务器装库探测；没有统一服务端能力探测 API，等待服务端确认的业务必须自己设计回执和超时。
+**本节的服务端功能需要两端都有库**：装有 Oriel 的服务器会在玩家加入时通过 `requireOnClient` 拒绝未装或协议不兼容的客户端，给出双语提示，这是当前源码行为。客户端单装时只能使用本地能力，不能调用本节的 `OrielServer` 会话、服务端推送或 `ForgeMenu`；连接无库服务器的 26.3 指定场景已实测，包含 Fabric/NeoForge 独立专服及 Fabric 瘦包连接原版专服，本地页面/消息/HUD/热重载通过，详见[分发指南](distribution.md#已测边界)。`driver.serverSession()` 只是页面来源标记，不是服务器装库探测；没有统一服务端能力探测 API，等待服务端确认的业务必须自己设计回执和超时。
 
 ## 7. 带物品槽的界面（D 类）
 
@@ -196,7 +196,7 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 
 ## 8. 命令与配置
 
-下表的 showcase / 演示项只适用于完整版；瘦包移除参考入口或明确说明不含演示内容。两变体都提供 `/oriel settings` 和 `/oriel about`。瘦包 Home 动作打开模组设置，`Shell.back()` 直接关闭；关于页模板头像回退到核心 emblem。我的页面仍可用 `/oriel open oriel_mine:<目录>/index.html` 打开并保留热重载。`ForgeMenu` 类、`TYPE` 注册与公开 API 保留，瘦包取消默认演示 screen 与 `/oriel-forge`。上述入口已做控制器隔离/JVM 链接验证，游戏内点击与热重载仍未验证。
+下表的 showcase / 演示项只适用于完整版；瘦包移除参考入口或明确说明不含演示内容。两变体都提供 `/oriel settings` 和 `/oriel about`。瘦包 Home 动作打开模组设置，`Shell.back()` 直接关闭；关于页模板头像回退到核心 emblem。我的页面仍可用 `/oriel open oriel_mine:<目录>/index.html` 打开并保留热重载。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；只有完整版包含实现、默认 screen、`oriel:forge` 注册和 `/oriel-forge`，瘦包均不包含。公共容器绑定 API 保留。游戏实测范围以[分发指南](distribution.md#已测边界)为准；本轮包括 26.3 本地页面、按钮消息、HUD 和热重载，不代表所有入口/交互均已验证。
 
 | 命令 | 作用 |
 |---|---|

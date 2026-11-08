@@ -39,18 +39,20 @@ public final class OrielClient {
     public static final Identifier DEMO_HUD = Constants.id("demo_hud");
     public static final Identifier DEMO_TOAST = Constants.id("demo_toast");
 
-    private static Consumer<CustomPacketPayload> serverSender = p ->
-            Constants.LOG.warn("Oriel: no client network sender installed; dropped {}", p.type().id());
+    private static ClientSender<CustomPacketPayload> serverSender = new ClientSender<>(
+            () -> false, p -> false, p -> {}, reason -> Constants.LOG.warn("Oriel: upstream unavailable: {}", reason));
 
     private OrielClient() {}
 
     /** Called by the loader's client entrypoint with its way of sending serverbound payloads. */
-    public static void init(Consumer<CustomPacketPayload> sender) {
-        serverSender = sender;
+    public static void init(java.util.function.Predicate<CustomPacketPayload> canSend, Consumer<CustomPacketPayload> sender) {
+        serverSender = new ClientSender<>(() -> Minecraft.getInstance().getConnection() != null
+                && Minecraft.getInstance().getConnection().getConnection().isConnected(), canSend, sender,
+                reason -> Constants.LOG.warn("Oriel: upstream unavailable: {}", reason));
         OrielResources.init();
         if (dev.oriel.kit.ReferenceContent.available()) {
             OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE);
-            OrielScreens.registerContainer(dev.oriel.mod.server.ForgeMenu.TYPE, OrielKit.FORGE_STATION, dev.oriel.mod.server.ForgeMenu::pageData);
+            OrielScreens.registerContainer(dev.oriel.mod.internal.server.ForgeMenu.TYPE, OrielKit.FORGE_STATION, dev.oriel.mod.internal.server.ForgeMenu::pageData);
             OrielHud.register(DEMO_HUD, "oriel:oriel/demo/hud.html");
             OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
             OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
@@ -83,8 +85,8 @@ public final class OrielClient {
         ModSettings.init();
     }
 
-    public static void sendToServer(CustomPacketPayload payload) {
-        serverSender.accept(payload);
+    public static boolean sendToServer(CustomPacketPayload payload) {
+        return serverSender.send(payload);
     }
 
     /** Handles every clientbound payload in {@code OrielNetwork.CLIENTBOUND}; {@link ServerPages} decides what servers may show. */

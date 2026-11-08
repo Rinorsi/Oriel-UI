@@ -47,4 +47,6 @@ OrielScreens.registerContainer(MyMenus.BOT, "mymod:oriel/bot.html", menu -> {
 
 试一试：`/oriel showcase chest` 打开一个箱子，它的界面是 `assets/oriel/oriel/demo/chest.html`。
 
-该样例及 `ForgeMenu.open(player)` 缺省固定到脚下的非空气方块，最大距离 8 格，并检查拥有者、存活、关闭状态和方块是否存续。自定义固定位置使用 `ForgeMenu.Workstation`；两参数的 `ForgeMenu` 构造器保留便携模式。参数、失败和授权合同见[服务端菜单](server.md#锻造菜单的接入合同)。
+**ForgeMenu 现在是参考内容，需要请复制到自己模组。** 它及 ForgeStationPreset、forge_station 页面和专属语言文件仅随完整版提供；瘦包不含类或 `oriel:forge` 注册。`OrielScreens.registerContainer` / `OrielContainerScreen` 继续是公共 API。
+
+该样例及复制后的 `ForgeMenu.open(player)` 缺省固定到脚下的非空气方块，最大距离 8 格，并检查拥有者、存活、关闭状态和方块是否存续。自定义固定位置使用 `ForgeMenu.Workstation`；两参数的 `ForgeMenu` 构造器保留便携模式。参数、失败和授权合同见[服务端菜单](server.md#锻造菜单的接入合同)。

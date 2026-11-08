@@ -1,0 +1,14 @@
+{
+  "oriel.ui.forge_station.title": "Forge Station",
+  "oriel.ui.forge_station.cell.item": "Item",
+  "oriel.ui.forge_station.cell.material": "Material",
+  "oriel.ui.forge_station.cell.result": "Result",
+  "oriel.ui.forge_station.state.empty": "Insert a damaged iron or diamond sword",
+  "oriel.ui.forge_station.inventory": "Inventory",
+  "oriel.ui.forge_station.state.working": "Repairing…",
+  "oriel.ui.forge_station.state.blocked": "Take the result out to continue",
+  "oriel.ui.forge_station.state.done": "Repaired. Take the result",
+  "oriel.ui.forge_station.state.material": "Add the matching material",
+  "oriel.ui.forge_station.recipe.repair_iron_sword": "Iron Sword + Iron Ingot",
+  "oriel.ui.forge_station.recipe.repair_diamond_sword": "Diamond Sword + Diamond"
+}

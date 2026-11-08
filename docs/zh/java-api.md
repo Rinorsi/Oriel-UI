@@ -90,7 +90,7 @@ NONE 不接鼠标；WHEN_CHAT_OPEN 在聊天界面可点；WHEN_CURSOR_FREE 在�
 
 频率/大小/线程/失败、容器数据见 [服务端](server.md)。收到 JSON 或 channel 名不代表已经授权。
 
-`ForgeMenu.open(player)` 默认固定到脚下非空气方块、最大距离 8 格；`open(player, new ForgeMenu.Workstation(level, pos, block, maxDistance))` 可配置固定工作站。只在服务器线程调用，业务方先授权；位置、方块存续、维度、距离及拥有者状态约束见 [锻造菜单合同](server.md#锻造菜单的接入合同)。两参数构造器仍是便携模式，固定工作站用三参数构造器传非 null 工作站。
+`ForgeMenu` 现在是参考内容，需要请复制到自己模组。其实现移到 `dev.oriel.mod.internal.server`，仅完整版包含并注册；不再列入公共 API 快照。公共容器绑定仍使用 `OrielScreens.registerContainer` / `OrielContainerScreen`。复制后的 `ForgeMenu.open(player)` 默认固定到脚下非空气方块、最大距离 8 格；`open(player, new ForgeMenu.Workstation(level, pos, block, maxDistance))` 可配置固定工作站。只在服务器线程调用，业务方先授权；位置、方块存续、维度、距离及拥有者状态约束见 [锻造菜单合同](server.md#锻造菜单的接入合同)。两参数构造器仍是便携模式，固定工作站用三参数构造器传非 null 工作站。
 
 ## 项目内 Java 页面控制器
 
@@ -108,7 +108,7 @@ NONE 不接鼠标；WHEN_CHAT_OPEN 在聊天界面可点；WHEN_CURSOR_FREE 在�
 | McFormat | render(doc,el,text)、json(text)、strip(text) |
 | GameRegistry | entries()/entities()/name(id)；游戏读取注册表，预览用小型 fixture |
 
-Java Host.send(channel,jsonText) 使用 JSON 文本，区别于 JS oriel.send 的对象和 Driver.onMessage 的 JsonElement。初始数据用 doc.initialData()（JSON 文本，可空）；后续用 doc.addDataListener((key,json) -> ...)：key=null 表示完整替换，其他 key 表示 patch，json=null 表示删除。业务自己保存更新后的模型；没有 doc.data() 或独立 DOM data 事件 API。普通 receive 会产生 message 事件，patch 不产生。
+Java Host.send(channel,jsonText) 使用 JSON 文本，区别于 JS oriel.send 的对象和 Driver.onMessage 的 JsonElement。服务端会话上行在缺连接/缺通道/发送失败时返回 false，关闭或拒绝页面仍完成本地生命周期并明确记录未通知服务端；true 不代表业务成功。`serverSession()` 仍只表示页面来源，不是服务端能力探测。初始数据用 doc.initialData()（JSON 文本，可空）；后续用 doc.addDataListener((key,json) -> ...)：key=null 表示完整替换，其他 key 表示 patch，json=null 表示删除。业务自己保存更新后的模型；没有 doc.data() 或独立 DOM data 事件 API。普通 receive 会产生 message 事件，patch 不产生。
 
 ## 自动化与实体扩展
 

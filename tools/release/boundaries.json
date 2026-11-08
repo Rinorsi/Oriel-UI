@@ -18,7 +18,8 @@
     "^dev/oriel/kit/preset/(?!(AboutPreset|ModSettingsPreset|NestedNoticePreset)(\\$|\\.))",
     "^dev/oriel/mod/internal/client/showcase/",
     "^dev/oriel/mod/internal/client/(TemplateLibrary|ServerProbeClient|CanvasTestScreen|ReferenceClientCommands)(\\$.*)?\\.class$",
-    "^dev/oriel/mod/internal/server/(OrielDemos|ServerProbe)(\\$.*)?\\.class$",
+    "^assets/oriel/reference/",
+    "^dev/oriel/mod/internal/server/(ForgeMenu|OrielDemos|ServerProbe)(\\$.*)?\\.class$",
     "^dev/oriel/mod/internal/gametest/"
   ],
   "metadata": [
@@ -42,7 +43,6 @@
     "dev/oriel/kit/preset/AboutPreset.class",
     "dev/oriel/kit/preset/NestedNoticePreset.class",
     "assets/oriel/ui/nested-notice.html",
-    "dev/oriel/mod/server/ForgeMenu.class",
     "dev/oriel/mod/client/OrielScreens.class",
     "dev/oriel/mod/internal/client/MyPages.class",
     "dev/oriel/mod/internal/client/OrielPages.class",

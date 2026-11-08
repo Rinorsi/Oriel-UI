@@ -15,7 +15,7 @@ class SlimKitTest {
     private static final class SlimLoader extends ClassLoader {
         SlimLoader() { super(SlimKitTest.class.getClassLoader()); }
         @Override public URL getResource(String name) {
-            if (name.startsWith("assets/oriel/ui/templates/")) return null;
+            if (name.startsWith("assets/oriel/ui/templates/") || name.startsWith("assets/oriel/reference/")) return null;
             return super.getResource(name);
         }
         @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {

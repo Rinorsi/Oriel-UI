@@ -227,7 +227,8 @@ public final class ServerPages {
     }
 
     private static void refuse(int session) {
-        OrielClient.sendToServer(new ClosedPayload(session));
+        if (!OrielClient.sendToServer(new ClosedPayload(session)))
+            Constants.LOG.warn("Oriel: refused session {} locally; server was not notified", session);
     }
 
     /** Refuses the waiting page, if there is one. */

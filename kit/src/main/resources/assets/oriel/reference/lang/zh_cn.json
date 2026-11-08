@@ -1,0 +1,14 @@
+{
+  "oriel.ui.forge_station.title": "锻造台",
+  "oriel.ui.forge_station.cell.item": "物品",
+  "oriel.ui.forge_station.cell.material": "材料",
+  "oriel.ui.forge_station.cell.result": "成品",
+  "oriel.ui.forge_station.state.empty": "放入一把受损的铁剑或钻石剑",
+  "oriel.ui.forge_station.inventory": "物品栏",
+  "oriel.ui.forge_station.state.working": "正在修复…",
+  "oriel.ui.forge_station.state.blocked": "先取走成品，才能继续",
+  "oriel.ui.forge_station.state.done": "修好了，取走成品",
+  "oriel.ui.forge_station.state.material": "放入对应的材料",
+  "oriel.ui.forge_station.recipe.repair_iron_sword": "铁剑 + 铁锭",
+  "oriel.ui.forge_station.recipe.repair_diamond_sword": "钻石剑 + 钻石"
+}

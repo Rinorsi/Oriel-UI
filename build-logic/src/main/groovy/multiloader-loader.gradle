@@ -185,8 +185,13 @@ tasks.named('jar', Jar) {
         }
         def execution = providers.exec {
             ignoreExitValue = true
-            commandLine('node', rootProject.file('tools/check-release.mjs').absolutePath,
-                    archiveFile.get().asFile.absolutePath, '--allow-unrecorded')
+            def auditArgs = ['node', rootProject.file('tools/check-release.mjs').absolutePath,
+                    archiveFile.get().asFile.absolutePath]
+            if (project.hasProperty('rebaseCoreUnreleased')) {
+                auditArgs.add('--rebase-core-unreleased=' + project.property('rebaseCoreUnreleased'))
+                auditArgs.add('--check-only') // Build candidates; only the final twelve-JAR command may rewrite pins.
+            } else auditArgs.add('--allow-unrecorded')
+            commandLine(auditArgs)
         }
         logger.lifecycle(execution.standardOutput.asText.get())
         def errors = execution.standardError.asText.get()

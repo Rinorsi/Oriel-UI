@@ -6,7 +6,7 @@
 
 ## 适用基准与事实等级
 
-既有能力核对日期：2026-11-08；源码基准：`40cef5c`；项目版本：0.11.0。2026-11-09 新增的[分发合同](distribution.md)及相关接入/升级配方面向 0.12.0 瘦包、0.12.1 完整版；六目标双变体构建/发行检查、26.3 双加载器专服五场景、嵌套与设置单元测试、通知页桌面预览已验证。游戏客户端弹窗与设置页、26.1.2 / 26.2 专服混装、真实 Editor 下游升级仍未验证，不能沿用旧基准的运行结论。分支名称不代表版本合同，读取文档时使用与正在运行的 JAR 同一版本的手册。
+既有能力核对日期：2026-11-08；源码基准：`40cef5c`；项目版本：0.11.0。2026-11-09 新增的[分发合同](distribution.md)及相关接入/升级配方面向 0.12.0 瘦包、0.12.1 完整版；六目标双变体构建/发行检查、26.3 双加载器专服五场景、嵌套与设置单元测试、通知页桌面预览已验证。游戏客户端提示及下游升级的后续实测范围以[分发指南](distribution.md)为准；本轮补充 26.3 无库专服/原版连接、本地功能和双变体冒烟，未验证项仍逐场景保留。分支名称不代表版本合同，读取文档时使用与正在运行的 JAR 同一版本的手册。
 
 | 标记 | 允许表达的结论 |
 |---|---|
@@ -88,7 +88,9 @@ node tools/check-release.mjs fabric/versions/*/build/libs/oriel-*-0.12.[01].jar 
 node tools/check-release.mjs fabric/versions/*/build/libs/oriel-*-0.12.[01].jar neoforge/versions/*/build/libs/oriel-*-0.12.[01].jar
 ```
 
-`--record-core` 用于首次冻结新 minor，每个目标必须同时给 slim/full 且核心哈希一致；写入受控文件 `tools/release/core-hash.properties`，键为 `<major>.<minor>.<loader>-<mc>`。**已有 pin 不同，即使带 `--record-core` 也拒绝**，必须升 minor，不能删除或改写旧 pin 绕过检查。普通检查在缺 pin 或哈希不符时失败；`--allow-unrecorded` 仅用于首次冻结前的开发审计，不能替代正式检查，也不能放行不匹配的旧 pin。0.12 六目标 pin 已首次冻结，十二包普通检查已通过；后续发布以最终字节重新核验。文档改动不影响核心 pin；共享语言文件整份计入核心，不能把其中的参考文案改动当成参考内容豁免。
+`--record-core` 用于首次冻结新 minor，每个目标必须同时给 slim/full 且核心哈希一致；写入受控文件 `tools/release/core-hash.properties`，键为 `<major>.<minor>.<loader>-<mc>`。**已有 pin 不同，即使带 `--record-core` 也拒绝**。已发布 minor 必须升级。
+
+本次 0.12 尚未发布，用户明确授权在同 minor 重冻结。可审计流程：先提交全部核心源码，以 `git rev-parse HEAD` 的完整 SHA 运行双变体 assemble，附加 `-PrebaseCoreUnreleased=<SHA>`。构建只执行 `--rebase-core-unreleased=<SHA> --check-only` 审计，不写 pin。工具要求 SHA 等于当前 HEAD、源码无未提交改动（pin 文件除外），且 CHANGELOG 明确标注当前版本 unreleased。全部检查通过后，向 `check-release.mjs` 提供六目标共十二个包及 `--rebase-core-unreleased=<SHA>`，才会改写该 minor 的 pin，注释保留源提交和旧 pin。缺目标、重复目标、核心不一致或任何包审计失败均拒绝。随后必须不带放行参数重新执行 assemble 与十二包发行检查。此流程不能用于已发布版本。普通检查在缺 pin 或哈希不符时失败；`--allow-unrecorded` 仅用于首次冻结前的开发审计，不能替代正式检查，也不能放行不匹配的旧 pin。0.12 六目标 pin 已按本次明确授权重冻结，保留源提交与旧值注释；十二包普通检查及六目标双变体普通 assemble 已通过。文档改动不影响核心 pin；共享语言文件整份计入核心，不能把其中的参考文案改动当成参考内容豁免。
 
 清单生成、发行审计和运行时分类共用 `tools/release/boundaries.json`。清单为 `META-INF/oriel/manifest.json`，上限 200 KiB；class 按包聚合，API 快照按原始字节哈希；运行时使用打入包内的 `META-INF/oriel/boundaries.json`。0.12 十二包的清单为 99,805–99,813 bytes；完整清单字段与缓存行为见[分发指南第 5 节](distribution.md#5-多个模组都带-oriel-时)。
 
@@ -103,7 +105,7 @@ ORIEL_LOG_DIR='/absolute/workspace/daily/YYYY-MM-DD/logs/jij-neoforge-legacy' \
   node tools/server-smoke.mjs neoforge /absolute/workspace/daily/YYYY-MM-DD/run/jij-neoforge-legacy --jij --jij-scenario=legacy
 ```
 
-可选场景：`slim`（单嵌）、`top-full`（顶层 full + 父嵌 slim）、`two-parents` / `same-core`（双父分别嵌 slim/full）、`different-core`（修改实际 Ore CSS 后重算清单）、`legacy`（真实无清单旧包）、`conflict`（范围无交集）。缺省为 `two-parents`。B 在两加载器各实测 `same-core/different-core/legacy/slim/top-full`，共 10/10；`conflict` 沿用 A 阶段的明确拒绝证据，不列作 B 重跑。范围拒绝由加载器负责，runner 核对拒绝原因后退出 0，底层 Gradle 的非零退出是该负例预期。
+可选场景：`slim`（单嵌）、`top-full`（顶层 full + 父嵌 slim）、`two-parents` / `same-core`（双父分别嵌 slim/full）、`different-core`（修改实际 Ore CSS 后重算清单）、`legacy`（真实无清单旧包）、`conflict`（范围无交集）。缺省为 `two-parents`。本次 S 最终核心在两加载器各重跑全部七个场景（含 two-parents 与 same-core 别名），共 14/14；冲突明确验证拒绝原因。历史 B 的五场景为 10/10，不与本次结果混算。范围拒绝由加载器负责，runner 核对拒绝原因后退出 0，底层 Gradle 的非零退出是该负例预期。
 
 EULA 由操作者确认；实例已有 `eula=true` 时无需额外参数，否则仅在操作者接受后用 `--accept-eula`。运行上限 900 秒，正常通过 RCON 回读 `/oriel version` 并停服，不能停止共享 Gradle daemon。退出码、日志与 result.json 留在外部目录；本机源码总量卫生检查仍有既有超限项，不得把已过发行/Node 检查写成全门禁通过。
 

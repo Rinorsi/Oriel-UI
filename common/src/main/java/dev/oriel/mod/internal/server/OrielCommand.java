@@ -1,7 +1,7 @@
 package dev.oriel.mod.internal.server;
 
 import dev.oriel.mod.internal.CommandNames;
-import dev.oriel.mod.server.ForgeMenu;
+
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;

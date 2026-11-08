@@ -8,7 +8,7 @@ Oriel 的页面运行在客户端。服务端决定业务状态和物品变化�
 
 **客户端装 Oriel 不要求服务端也装；这是本地功能路径的源码判断，连接场景未实测。服务端装 Oriel 则要求客户端也装并匹配协议。** 两个方向不能互相推导，完整说明、加载器元数据写法与计划验证见[服务端到底要不要装 Oriel](distribution.md#服务端到底要不要装-oriel)。
 
-客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端；NeoForge 通道注册为 optional。但连接无 Oriel 的 Fabric / NeoForge 专服及原版服务端、注册表同步仍**待验证**。没有服务端 Oriel 时，`OrielServer` 会话、推页面/数据和 `ForgeMenu` 不可用。当前下游专服验收只覆盖带服务端部分的 Editor，不能外推为纯客户端场景通过。
+客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端。26.3 已实测 Fabric full 客户端→无库 Fabric 专服、NeoForge full JAR→无库 NeoForge 专服、Fabric slim JAR→原版专服；均正常进服，本地页面/消息/HUD/热重载通过，未出现额外参考菜单注册导致的拒绝。精确版本与未测边界见[分发指南](distribution.md#已测边界)。没有服务端 Oriel 时，`OrielServer` 会话、推页面/数据不可用；ForgeMenu 参考也不能在没有相应服务端实现时提供业务。
 
 反方向的当前源码行为明确：服务端有库而客户端没有时，两个加载器在玩家加入时都调用 `requireOnClient` 主动断开，提示中英文原因，当前不支持。optional 通道不会跳过此检查。
 
@@ -100,10 +100,10 @@ public final class ServerPageExample {
 
 MenuType 和菜单工厂属于公共注册，实际菜单实例在服务端拥有输入、输出和配方计算。客户端工厂建立相同数量和顺序的槽，只接收原版同步结果。OrielContainerScreen 将 HTML 的 slot 元素映射到菜单索引，点击、拖拽、Shift 点击、拾取物品走原版菜单包。
 
-现有 /oriel showcase chest 是最小可运行参考：OrielDemos.CHEST 注册为独立 MenuType；服务端 OrielDemos.openChest(player) 打开 27 格样例容器；客户端初始化已经注册 OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE)。可以直接从自己的服务端命令调用：
+现有完整版 `/oriel showcase chest` 和 `/oriel-forge` 是可复制参考。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；它位于 `dev.oriel.mod.internal.server`，不属于公共 API，瘦包不包含该类或 `oriel:forge` 注册。复制菜单、控制器、页面和 `assets/oriel/reference/lang/` 中的语言文件，改用自己的包名、注册 ID 和资源命名空间。复制后用加载器的注册 API 替换参考类中的 `OrielRegistry`；将 `OrielNetwork` / `OpenPayload` 的内部检查替换为自己模组的客户端依赖或握手约束，不继续导入这些内部类。语言键移入自己的语言文件或自有 bundle。以下 `mymod.server.ForgeMenu` 指完成这些适配后的实现：
 
 ```java
-import dev.oriel.mod.server.ForgeMenu;
+import mymod.server.ForgeMenu;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class ContainerExample {
@@ -129,9 +129,9 @@ OrielContainerScreen 自动给页面提供 title、inventory 和 slots 数组（
 
 ## 锻造菜单的接入合同
 
-本轮只实现服务端和数据，不注册新 Screen、不改 kit 的 forge 页面。主会话完成页面及客户端注册前，/oriel-forge 只有服务端菜单入口，尚不是完整可用的玩家界面。
+本节记录完整版锻造参考的槽位和数据，供复制后修改。公共容器页面绑定仍为 `OrielScreens.registerContainer` / `OrielContainerScreen`。
 
-公共类型：ForgeMenu.TYPE，注册 ID oriel:forge。入口：/oriel-forge（管理员权限），或者在服务端调用 ForgeMenu.open(player)。通过工作站位置和客户端 Oriel 通道校验后才打开菜单；不支持的客户端返回 false 并收到普通聊天说明，不发送自定义菜单打开包。
+参考类型：ForgeMenu.TYPE，只有完整版注册 ID oriel:forge。入口：/oriel-forge（管理员权限）。复制到自己的模组后调用自己的 ForgeMenu.open(player)。通过工作站位置和客户端 Oriel 通道校验后才打开菜单；不支持的客户端返回 false 并收到普通聊天说明，不发送自定义菜单打开包。
 
 `ForgeMenu.open(player)` 将打开时玩家脚下的方块固定为工作站，默认最大距离为 8 格；脚下为空气时拒绝并给聊天说明。距离从玩家位置到方块中心计算，要求仍在同一个 `ServerLevel`、区块已加载、方块类型仍匹配。破坏后放回同类型方块可再次满足校验，不跟踪方块实体身份或方块状态属性。
 
@@ -153,11 +153,11 @@ var station = new ForgeMenu.Workstation(player.level(), pos, Blocks.SMITHING_TAB
 ForgeMenu.open(player, station); // Call only after your own authorization.
 ```
 
-主会话需要在客户端入口、MenuScreens 注册事件之前接入以下代码，并自行提供对应页面：
+复制后在自己的客户端入口、MenuScreens 注册事件之前接入以下代码，并提供自己的页面：
 
 ```java
 import dev.oriel.mod.client.OrielScreens;
-import dev.oriel.mod.server.ForgeMenu;
+import mymod.server.ForgeMenu;
 
 public final class ForgeClientRegistration {
     public static void init() {

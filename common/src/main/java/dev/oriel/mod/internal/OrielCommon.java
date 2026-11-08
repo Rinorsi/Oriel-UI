@@ -28,7 +28,7 @@ public final class OrielCommon {
                 dev.oriel.kit.ReferenceContent.available() ? "reference content included" : "参考内容未包含（官方模板/showcase/demo）");
         OrielConfig.load();
         if (dev.oriel.kit.ReferenceContent.available()) OrielDemos.init();
-        dev.oriel.mod.server.ForgeMenu.init();
+        if (dev.oriel.kit.ReferenceContent.available()) dev.oriel.mod.internal.server.ForgeMenu.init();
         if (dev.oriel.kit.ReferenceContent.available()) OrielGameTests.init();
     }
 

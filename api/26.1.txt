@@ -164,54 +164,6 @@ dev.oriel.mod.client.OrielScreens.ContainerBinding [public] java.util.function.S
 dev.oriel.mod.client.OrielScreens.ContainerBinding [public] void ContainerBinding(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String) throws= varargs=false
 dev.oriel.mod.client.OrielScreens.ContainerBinding [public] void ContainerBinding(java.util.function.Supplier<? extends net.minecraft.world.inventory.MenuType<M>>,java.lang.String,java.util.function.@org.jspecify.annotations.Nullable Function<? super M,? extends com.google.gson.JsonObject>) throws= varargs=false
 dev.oriel.mod.client.OrielScreens.ContainerBinding bound M=net.minecraft.world.inventory.AbstractContainerMenu
-dev.oriel.mod.server.ForgeMenu CLASS [public, final] typeparams= extends=net.minecraft.world.inventory.AbstractContainerMenu implements=
-dev.oriel.mod.server.ForgeMenu [public, static, final] int END=39
-dev.oriel.mod.server.ForgeMenu [public, static, final] int HOTBAR_START=30
-dev.oriel.mod.server.ForgeMenu [public, static, final] int IDLE=0
-dev.oriel.mod.server.ForgeMenu [public, static, final] int INPUT=0
-dev.oriel.mod.server.ForgeMenu [public, static, final] int MATERIAL=1
-dev.oriel.mod.server.ForgeMenu [public, static, final] int OUTPUT=2
-dev.oriel.mod.server.ForgeMenu [public, static, final] int OUTPUT_BLOCKED=2
-dev.oriel.mod.server.ForgeMenu [public, static, final] int PLAYER_START=3
-dev.oriel.mod.server.ForgeMenu [public, static, final] int WORKING=1
-dev.oriel.mod.server.ForgeMenu [public, static, final] int WORK_TICKS=40
-dev.oriel.mod.server.ForgeMenu [public, static, final] java.util.List<dev.oriel.mod.server.ForgeMenu.Recipe> RECIPES
-dev.oriel.mod.server.ForgeMenu [public, static, final] net.minecraft.world.inventory.MenuType<dev.oriel.mod.server.ForgeMenu> TYPE
-dev.oriel.mod.server.ForgeMenu [public, static] boolean open(net.minecraft.server.level.ServerPlayer) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public, static] boolean open(net.minecraft.server.level.ServerPlayer,dev.oriel.mod.server.ForgeMenu.Workstation) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public, static] void init() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] boolean stillValid(net.minecraft.world.entity.player.Player) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] com.google.gson.JsonObject pageData() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] net.minecraft.world.item.ItemStack quickMoveStack(net.minecraft.world.entity.player.Player,int) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] void ForgeMenu(int,net.minecraft.world.entity.player.Inventory) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] void ForgeMenu(int,net.minecraft.world.entity.player.Inventory,dev.oriel.mod.server.ForgeMenu.Workstation) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] void broadcastChanges() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu [public] void removed(net.minecraft.world.entity.player.Player) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe RECORD [public, static, final] typeparams= extends=java.lang.Record implements=
-dev.oriel.mod.server.ForgeMenu.Recipe [public, final] boolean equals(java.lang.Object) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe [public, final] int hashCode() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe [public, final] java.lang.String toString() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe [public] java.lang.String id
-dev.oriel.mod.server.ForgeMenu.Recipe [public] java.lang.String id() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item input
-dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item input() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item material
-dev.oriel.mod.server.ForgeMenu.Recipe [public] net.minecraft.world.item.Item material() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Recipe [public] void Recipe(java.lang.String,net.minecraft.world.item.Item,net.minecraft.world.item.Item) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation RECORD [public, static, final] typeparams= extends=java.lang.Record implements=
-dev.oriel.mod.server.ForgeMenu.Workstation [public, final] boolean equals(java.lang.Object) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public, final] int hashCode() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public, final] java.lang.String toString() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public] boolean stillValid(net.minecraft.world.entity.player.Player) throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public] double maxDistance
-dev.oriel.mod.server.ForgeMenu.Workstation [public] double maxDistance() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public] net.minecraft.core.BlockPos position
-dev.oriel.mod.server.ForgeMenu.Workstation [public] net.minecraft.core.BlockPos position() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public] net.minecraft.server.level.ServerLevel level
-dev.oriel.mod.server.ForgeMenu.Workstation [public] net.minecraft.server.level.ServerLevel level() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public] net.minecraft.world.level.block.Block block
-dev.oriel.mod.server.ForgeMenu.Workstation [public] net.minecraft.world.level.block.Block block() throws= varargs=false
-dev.oriel.mod.server.ForgeMenu.Workstation [public] void Workstation(net.minecraft.server.level.ServerLevel,net.minecraft.core.BlockPos,net.minecraft.world.level.block.Block,double) throws= varargs=false
 dev.oriel.mod.server.OrielServer CLASS [public, final] typeparams= extends=java.lang.Object implements=
 dev.oriel.mod.server.OrielServer [public, static] dev.oriel.mod.server.@org.jspecify.annotations.Nullable OrielSession session(net.minecraft.server.level.ServerPlayer,int) throws= varargs=false
 dev.oriel.mod.server.OrielServer [public, static] dev.oriel.mod.server.OrielSession open(net.minecraft.server.level.ServerPlayer,java.lang.String,com.google.gson.@org.jspecify.annotations.Nullable JsonElement) throws= varargs=false

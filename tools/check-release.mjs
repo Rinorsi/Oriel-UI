@@ -4,6 +4,8 @@ import crypto from 'node:crypto';
 import {inflateRawSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 import {auditMaven} from './check-maven.mjs';
+import {execFileSync} from 'node:child_process';
+import {validateRebase, rebasePins} from './release/rebase.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const boundaries = JSON.parse(fs.readFileSync(path.join(root, 'tools/release/boundaries.json'), 'utf8'));
@@ -116,7 +118,7 @@ export function jarMetadata(entries) {
   const text = neo.toString(), mod = text.split('[[mods]]')[1]?.split(/\[\[/)[0];
   return {loader:'neoforge', id:mod?.match(/^\s*modId\s*=\s*"([^"]+)"/m)?.[1], version:mod?.match(/^\s*version\s*=\s*"([^"]+)"/m)?.[1]};
 }
-export function auditJar(file, {variant, allowUnrecorded = false} = {}) {
+export function auditJar(file, {variant, allowUnrecorded = false, rebaseUnreleased = false} = {}) {
   const jar = readJar(file), meta = jarMetadata(jar.entries);
   variant ??= jar.entries.has('assets/oriel/ui/templates/catalog.json') ? 'full' : 'slim';
   const failures = auditEntries(jar.entries.keys(), {variant});
@@ -166,21 +168,36 @@ export function auditJar(file, {variant, allowUnrecorded = false} = {}) {
     } catch (e) { failures.push('Invalid nested manifest: ' + e.message); }
   }
   const pins = properties(fs.readFileSync(pinFile, 'utf8'));
-  try { checkCoreBaseline(minor, target, hash, pins, !allowUnrecorded); } catch (e) { failures.push(e.message); }
+  if (!rebaseUnreleased) try { checkCoreBaseline(minor, target, hash, pins, !allowUnrecorded); } catch (e) { failures.push(e.message); }
   return {jar:path.resolve(file), variant, ...meta, target, minor, coreHash:hash, entries:jar.entries.size, bytes:jar.bytes, failures};
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2), record = args.includes('--record-core'), allowUnrecorded = args.includes('--allow-unrecorded');
   const mavenArg = args.find(s => s.startsWith('--maven-dir='));
+  const rebaseArg = args.find(s => s.startsWith('--rebase-core-unreleased='));
+  const checkOnly = args.includes('--check-only');
+  const source = rebaseArg?.slice('--rebase-core-unreleased='.length);
+  if (checkOnly && !rebaseArg || rebaseArg && (record || allowUnrecorded)) throw Error('Rebase/check-only cannot be combined with other pin exemptions');
+  if (rebaseArg) {
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], {cwd:root,encoding:'utf8'}).trim();
+    validateRebase(source, head, properties(fs.readFileSync(path.join(root,'gradle.properties'),'utf8')).version,
+      fs.readFileSync(path.join(root,'CHANGELOG.md'),'utf8'));
+    execFileSync('git', ['diff', '--exit-code', 'HEAD', '--', '.', ':!tools/release/core-hash.properties'], {cwd:root,stdio:'pipe'});
+  }
   const files = args.filter(s => !s.startsWith('--'));
-  if ((!files.length && !mavenArg) || (record && !files.length) || args.some(s => s.startsWith('--') && !s.startsWith('--maven-dir=') && !['--record-core','--allow-unrecorded'].includes(s)))
-    throw Error('Usage: node tools/check-release.mjs [slim.jar full.jar ...] [--record-core|--allow-unrecorded] [--maven-dir=<local Maven directory>]');
+  if ((!files.length && !mavenArg) || (record && !files.length) || args.some(s => s.startsWith('--') && !s.startsWith('--maven-dir=') && !s.startsWith('--rebase-core-unreleased=') && !['--record-core','--allow-unrecorded','--check-only'].includes(s)))
+    throw Error('Usage: node tools/check-release.mjs [slim.jar full.jar ...] [--record-core|--allow-unrecorded|--rebase-core-unreleased=<source SHA> [--check-only]] [--maven-dir=<local Maven directory>]');
   const maven = mavenArg ? auditMaven(mavenArg.slice('--maven-dir='.length)) : null;
-  const results = files.map(file => auditJar(file, {allowUnrecorded: record || allowUnrecorded}));
+  const results = files.map(file => auditJar(file, {allowUnrecorded: record || allowUnrecorded, rebaseUnreleased: Boolean(rebaseArg)}));
   for (const slim of results.filter(r => r.variant === 'slim')) for (const full of results.filter(r => r.variant === 'full' && r.target === slim.target)) {
     if (full.coreHash !== slim.coreHash) full.failures.push('Slim/full core hashes differ: ' + slim.target);
     if (compare(full.version, slim.version) <= 0) full.failures.push('Full version must exceed slim');
+  }
+  if (rebaseArg && !checkOnly) {
+    if (maven?.failures.length) throw Error('Maven audit failed; core pins unchanged');
+    const file = path.join(root, 'tools/release/core-hash.properties');
+    fs.writeFileSync(file, rebasePins(fs.readFileSync(file,'utf8'), results, source));
   }
   if (record) {
     for (const result of results) if (!results.some(other => other.target === result.target && other.variant !== result.variant))

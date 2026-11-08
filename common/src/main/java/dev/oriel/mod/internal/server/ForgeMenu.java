@@ -1,4 +1,4 @@
-package dev.oriel.mod.server;
+package dev.oriel.mod.internal.server;
 
 
 import com.google.gson.JsonArray;
