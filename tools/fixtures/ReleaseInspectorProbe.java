@@ -45,9 +45,14 @@ public class ReleaseInspectorProbe {
                 Object command = loader.loadClass("dev.oriel.mod.internal.client.OrielClientCommands").getMethod("create").invoke(null);
                 Object tree = command.getClass().getMethod("build").invoke(command);
                 var child = tree.getClass().getMethod("getChild", String.class);
-                for (String name : List.of("settings", "about", "open", "reload"))
+                for (String name : List.of("settings", "about", "open", "reload", "showcase"))
                     if (child.invoke(tree, name) == null) throw new AssertionError("Missing core command " + name);
-                for (String name : List.of("showcase", "canvastest"))
+                Object unavailable = child.invoke(tree, "showcase");
+                if (unavailable.getClass().getMethod("getCommand").invoke(unavailable) == null)
+                    throw new AssertionError("Slim showcase must explain missing reference content");
+                if (!((java.util.Collection<?>) unavailable.getClass().getMethod("getChildren").invoke(unavailable)).isEmpty())
+                    throw new AssertionError("Slim showcase must not advertise missing pages");
+                for (String name : List.of("canvastest"))
                     if (child.invoke(tree, name) != null) throw new AssertionError("Reference command " + name);
             }
             Class<?> flags = Class.forName("dev.oriel.mod.internal.client.DevFlags", true, loader);

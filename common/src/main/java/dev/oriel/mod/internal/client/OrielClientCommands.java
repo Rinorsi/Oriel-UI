@@ -58,6 +58,8 @@ public final class OrielClientCommands {
         if (dev.oriel.kit.ReferenceContent.available()) {
             root.then(showcase);
             root.then(LiteralArgumentBuilder.<S>literal("canvastest").executes(c -> later(() -> ReferenceClientCommands.canvas())));
+        } else {
+            root.then(LiteralArgumentBuilder.<S>literal("showcase").executes(c -> later(OrielClientCommands::noReference)));
         }
         return root;
     }

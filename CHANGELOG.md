@@ -5,6 +5,10 @@ Oriel UI was forked. Names in those entries (`VellumPages`, `VellumSession`, `ve
 the upstream's; in this fork they are `OrielPages`, `OrielSession`, `oriel.data`, `/oriel` and `oriel.properties` (the handbook in `docs/zh` is authoritative). Treat
 those entries as history, not as documentation of the current API.
 
+## Unreleased core fix (next minor required)
+
+- Slim `/oriel showcase` now explains that reference content is not included, instead of producing a command syntax error. The command advertises no missing demo children, and the server supplies the matching stub/notice. This changes the frozen 0.12 core: the existing pins remain unchanged and publishing requires a new minor and corresponding dependency metadata.
+
 ## 0.12.0 slim / 0.12.1 full (unreleased)
 
 - Distribution contract: use a slim core jar (`-Poriel_slim`, including release-tool exclusions) for Jar-in-Jar, or declare Oriel as a required external dependency. Full builds add reference templates, showcase/demo assets and registrations; both variants keep mod id `oriel` and the existing Maven coordinates. See [distribution guide](docs/zh/distribution.md).
