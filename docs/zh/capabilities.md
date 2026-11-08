@@ -4,7 +4,7 @@
 
 [文档入口](index.md) · [CSS](css-guide.md) · [元素](elements.md) · [验收](validation.md)
 
-适用：Oriel UI 0.11.0 源码基准 `40cef5c`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。
+适用：Oriel UI 0.11.0 源码基准 `40cef5c`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。0.12 分发与工具版本另见[分发合同](distribution.md)及 [MCP 手册](mcp.md)：profile/脚手架版本读取根 `gradle.properties`，缺省当前瘦包，也接受当前完整版，不代表游戏验收。
 
 ## 选择界面类型
 

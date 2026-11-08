@@ -43,7 +43,9 @@ jobs:
         run: bash tools/test-smoke-all.sh "$RUNNER_TEMP/oriel-smoke-tests"
 
       # Full matrix, explicit root API/template/boundary gates, and both loaders' server tests.
-      - run: ./gradlew build :check :neoforge:26.1:runGameTestServer --stacktrace
+      - run: |
+          ./gradlew build :check -Poriel_slim --stacktrace
+          ./gradlew :neoforge:26.1:runGameTestServer --stacktrace
 
       - name: Check all kit pages strictly in both languages
         run: |
@@ -53,7 +55,7 @@ jobs:
       # The example mods in template/, against this Oriel rather than the released one, so an API change can't
       # break them unnoticed.
       - name: Compile downstream templates
-        run: ./gradlew templateCompile --stacktrace
+        run: ./gradlew templateCompile -Poriel_slim --stacktrace
 
       # Rebuild runtime jars with development implementations excluded before uploading artifacts.
       - name: Build and check release jars for all supported targets
@@ -67,9 +69,12 @@ jobs:
             done
           done
           ./gradlew "${tasks[@]}" -Poriel_release --stacktrace
+          core_version=$(awk -F= '$1 == "version" {gsub(/\r/, "", $2); print $2}' gradle.properties)
+          full_patch=$(awk -F= '$1 == "oriel_full_patch" {gsub(/\r/, "", $2); print $2}' gradle.properties)
+          full_version="${core_version%.0}.${full_patch}"
           for loader in fabric neoforge; do
             for version in 26.1 26.2 26.3; do
-              mapfile -t jars < <(find "$loader/versions/$version/build/libs" -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-dev.jar')
+              mapfile -t jars < <(find "$loader/versions/$version/build/libs" -maxdepth 1 -type f -name "oriel-$loader-*-$full_version.jar")
               if (( ${#jars[@]} != 1 )); then
                 echo "Expected one runtime jar for $loader:$version, got ${#jars[@]}" >&2
                 exit 1

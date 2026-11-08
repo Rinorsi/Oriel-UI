@@ -1,6 +1,6 @@
 # MCP 页面制作与接入
 
-接入与分发先调用 `oriel_rules`，参数 `{ "topic": "distribution" }`，读取[瘦包、完整版与嵌入依赖](distribution.md)。该主题直接读取 `docs/zh/distribution.md`，与其他主题一样返回 `profile` / `source` / `text` / `rulesHash`，支持可选 `feature`，参与规则哈希；0.12 的运行验证状态以正文为准。当前 `validateProfile` 仍限定并返回 0.11.0，脚手架也有旧依赖常量；这与分发正文的 0.12 合同是已知工具版本缺口，不能据此声称 0.12 工具链已验证，也不要直接把旧范围用于新 jar。
+接入与分发先调用 `oriel_rules`，参数 `{ "topic": "distribution" }`，读取[瘦包、完整版与嵌入依赖](distribution.md)。该主题直接读取 `docs/zh/distribution.md`，与其他主题一样返回 `profile` / `source` / `text` / `rulesHash`，支持可选 `feature`，参与规则哈希；0.12 的运行验证状态以正文为准。当前 profile 从仓库根 `gradle.properties` 读取核心版本与 `oriel_full_patch`：缺省为瘦包 `0.12.0`，也接受并保留当前完整版 `0.12.1`；旧版本或其他版本返回 `UNSUPPORTED_PROFILE`。版本参与 `rulesHash`，版本变化使旧验收失效。脚手架依赖和同 minor 范围使用同一来源，默认外部必需依赖；嵌入瘦包使用模板的 `orielEmbedded` 开关。工具 profile 是规则目标，不代表游戏验证通过。
 
 版本化能力发现、JSONL读取、selector why-tree、黄金图独立审批与截图分页见[增量工具合同](d36-agent-tools.md)。协作任务按[编排规范](agent-orchestration.md)；默认迭代与正式交付仍分别遵循本文流程。
 开发期 oriel_layout 的参数、JSONL 与限制见[布局尺寸诊断](d36-r06.md)。它不产生页面批准或游戏验收。
@@ -111,7 +111,7 @@ AI 客户端 ──stdio──▶ MCP 服务器 ──▶ 状态目录（项目�
 
 需要 Node 22+、Java 25 和本仓库可用的 Gradle 环境。项目模式默认读取目标版本 common/versions 下的构建资源，也可用 ORIEL_MC_JAR 指定客户端资源；资源 JAR 摘要纳入验收，内部版本必须与 profile 一致。ORIEL_MCP_STATE 可指定固定状态目录，必须在工作区内、仓库外；默认工作区 daily/当天日期/scratch/mcp-workflow。跨日继续任务应使用原状态目录。运行记录跟随工作区清理策略，长期保留应按工作区约定添加 KEEP。
 
-首次检查会执行 :preview:installDist；源代码变化后重新构建，规则及引擎身份变化将使旧验收失效。规则使用目标 MC 26.1.2 / 26.2 / 26.3、Fabric / NeoForge、Oriel 0.11.0。浏览器预览无法替代六目标游戏验收。
+首次检查会执行 :preview:installDist；源代码变化后重新构建，规则及引擎身份变化将使旧验收失效。规则使用目标 MC 26.1.2 / 26.2 / 26.3、Fabric / NeoForge，以及当前工作树声明的 Oriel 核心/完整版版本（目前 0.12.0 / 0.12.1）。浏览器预览无法替代六目标游戏验收。
 
 初始化响应提供 instructions，resources/list/read 提供 oriel://rules/<topic>，prompts/list/get 提供 workflow、revise、integrate。客户端不支持这些能力时直接调用 oriel_rules。MCP 不能提升为客户端系统权限；工具独立检查前置条件。
 

@@ -20,6 +20,16 @@ if (!(coreVersion ==~ /\d+\.\d+\.0/) || !(fullPatch ==~ /[1-9]\d*/))
 def distributionVersion = hasProperty('oriel_slim') ? coreVersion : coreVersion.replaceFirst(/0$/, fullPatch)
 allprojects { version = distributionVersion }
 
+// A higher full version at the same Maven coordinate can win downstream range resolution.
+// Reject the entire graph before any task writes to Maven, including MavenLocal and templateCompile.
+if (!hasProperty('oriel_slim')) {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.allTasks.any { it instanceof org.gradle.api.publish.maven.tasks.AbstractPublishToMaven }) {
+            throw new GradleException('Maven publishing requires -Poriel_slim (X.Y.0). Full X.Y.N jars are distributed only through Modrinth/CurseForge/dist; publishing them to Maven can make downstream ranges embed the full reference content.')
+        }
+    }
+}
+
 tasks.register('check') { group = 'verification' }
 
 // Compile real downstream examples against this checkout's artifacts, never the upstream Maven repository.

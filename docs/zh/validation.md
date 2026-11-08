@@ -4,6 +4,8 @@
 
 下游骨架 `oriel_scaffold` 默认只读；prepare 使用 `oriel_check` 的严格引擎诊断与双尺寸截图，用户聊天批准后 apply 仅新建不存在的 HTML/Java。`node --test tools/mcp/scaffold.test.mjs` 用伪造工程覆盖检测、路径、批准及幂等；`ORIEL_TEST_TMP` 指向仓库外临时目录。Java 注册片段未据此证明下游编译或游戏可用，详见 [MCP 手册](mcp.md#下游骨架oriel_scaffold)。
 
+下游骨架与规则 profile 的版本读取根 `gradle.properties`，缺省当前瘦包，也接受当前完整版；版本变更使规则哈希及旧验收失效。脚手架默认生成外部必需依赖坐标和同 minor 范围。发布元数据与模板开关的永久检查见[维护约定](maintenance.md#maven-发布完整性与模板打包门禁)。
+
 粒子/动画的性能验收见 [性能规范](performance.md)（MCP：`oriel_rules` 的 `topic=performance`）。strict 零诊断不等于帧率达标；保留同动作基线、离线与实机证据分开记录。
 
 [入口](index.md) · [制作流程](ui-workflow.md)

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, sha, requireThat, fileHash, walk } from './core.mjs';
+import { distributionVersions } from './version.mjs';
 
 export const topics = {
   orchestration: 'agent-orchestration.md', 'agent-tools': 'd36-agent-tools.md', benchmark: 'd36-mcp-bench.md',
@@ -13,9 +14,10 @@ export const topics = {
 };
 export const profileVersions = ['26.1.2', '26.2', '26.3'];
 export function validateProfile(profile = {}) {
-  const result = { minecraft: profile.minecraft || '26.1.2', loader: profile.loader || 'fabric', oriel: '0.11.0' };
+  const versions = distributionVersions();
+  const result = { minecraft: profile.minecraft || '26.1.2', loader: profile.loader || 'fabric', oriel: profile.oriel || versions.slim };
   requireThat(profileVersions.includes(result.minecraft) && ['fabric', 'neoforge'].includes(result.loader), 'UNSUPPORTED_PROFILE', '请选择明确支持的 MC/加载器组合。', { versions: profileVersions });
-  requireThat(!profile.oriel || profile.oriel === '0.11.0', 'UNSUPPORTED_PROFILE', '当前规则针对 Oriel 0.11.0。');
+  requireThat([versions.slim, versions.full].includes(result.oriel), 'UNSUPPORTED_PROFILE', `当前规则针对 Oriel ${versions.slim} / ${versions.full}。`);
   return result;
 }
 export function instructions() {
@@ -29,7 +31,7 @@ export function prompt(name = 'workflow') {
 export function rulesIdentity() {
   const files = [...Object.values(topics), 'agent-prompts.md', 'mcp.md'];
   const implementation = ['oriel-preview.mjs', 'web-worker.mjs', 'game-worker.mjs', ...walk(path.join(ROOT, 'tools/mcp/lib')).map(file => 'lib/' + file), ...walk(path.join(ROOT, 'tools/mcp/schemas')).map(file => 'schemas/' + file)];
-  return sha(JSON.stringify({ docs: files.map(file => [file, fs.existsSync(path.join(ROOT, 'docs/zh', file)) ? fs.readFileSync(path.join(ROOT, 'docs/zh', file), 'utf8') : '']), implementation: implementation.map(file => [file, fileHash(path.join(ROOT, 'tools/mcp', file))]) }));
+  return sha(JSON.stringify({ versions: distributionVersions(), docs: files.map(file => [file, fs.existsSync(path.join(ROOT, 'docs/zh', file)) ? fs.readFileSync(path.join(ROOT, 'docs/zh', file), 'utf8') : '']), implementation: implementation.map(file => [file, fileHash(path.join(ROOT, 'tools/mcp', file))]) }));
 }
 export function rules({ topic = 'overview', feature, profile } = {}) {
   requireThat(topic in topics, 'UNKNOWN_TOPIC', '未知主题。', { topics: Object.keys(topics) });

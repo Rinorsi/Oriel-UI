@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { STATE, initState, id, treeHash, fileHash, sha } from './lib/core.mjs';
 import { detectScaffold } from './lib/scaffold.mjs';
+import { validateProfile } from './lib/rules.mjs';
 import { installFiles } from './lib/transaction.mjs';
 import { McpClient } from './client.mjs';
 
@@ -29,6 +30,10 @@ for (const [loader, stonecutter] of [['fabric', false], ['neoforge', false], ['f
     assert.equal(plan.modId, 'example_mod'); assert.equal(plan.stonecutter, stonecutter); assert.equal(plan.javaPackage, 'dev.example');
     assert.equal(plan.hotReload.case, 2); assert.match(plan.snippets.gradle, new RegExp('oriel-' + loader + '-26.1.2'));
     assert.match(plan.snippets.registration, /schedule/); assert.ok(plan.existingOriel.metadata[0].oriel);
+    const version = validateProfile().oriel;
+    const [major, minor] = version.split('.').map(Number), next = `${major}.${minor + 1}.0`;
+    assert.ok(plan.snippets.gradle.includes(':' + version + '"'));
+    assert.ok(plan.snippets.metadata.includes(loader === 'fabric' ? `>=${version} <${next}` : `[${version},${next})`));
     if (loader === 'fabric') assert.ok(plan.existingOriel.gradle.length);
     assert.equal(treeHash(args.projectRoot), before);
     assert.match(plan.files[0].content, /data-oriel-shell/);

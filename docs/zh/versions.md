@@ -14,7 +14,7 @@ Oriel 用 [Stonecutter](https://stonecutter.kikugie.dev) 从同一份源码树�
 
 每个版本有各自的 Gradle 子项目，以版本命名：`:common:26.1`、`:neoforge:26.1`、`:fabric:26.1`。它们的设置在 `stonecutter.properties.toml`。引擎、Rhino 和预览器只构建一次，所有版本共用。
 
-jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`，例如瘦包 `oriel-neoforge-26.1.2-0.12.0.jar`、完整版 `oriel-neoforge-26.1.2-0.12.1.jar`，位于 `<加载器>/versions/<项目版本>/build/libs/`（26.1.2 对应项目目录 `26.1`）。加载器 Maven 坐标保持 `dev.oriel:oriel-<loader>-<mc>:<版本>`，不增加 slim/full 分类器；同一变体在六目标使用同一 Oriel 版本。构建开关和版本单一来源见[分发指南](distribution.md#2-变体与版本规则)。
+jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`，例如瘦包 `oriel-neoforge-26.1.2-0.12.0.jar`、完整版 `oriel-neoforge-26.1.2-0.12.1.jar`，位于 `<加载器>/versions/<项目版本>/build/libs/`（26.1.2 对应项目目录 `26.1`）。加载器 Maven 坐标为 `dev.oriel:oriel-<loader>-<mc>:X.Y.0`，仅发布瘦包，不增加 slim/full 分类器；所有 Maven 发布必须带 `-Poriel_slim`。完整版 `X.Y.N` 只作为 jar 分发到 Modrinth / CurseForge / dist；两种变体在六目标各使用相同 Oriel 版本。构建开关和版本单一来源见[分发指南](distribution.md#2-变体与版本规则)。
 
 源码以 26.3 为活动版本。26.x 内部的 API 差异使用 `>=26.2`、`>=26.3`、`<26.3` 等 Stonecutter 条件，包名与键名迁移放在 `stonecutter.gradle`。**提交前恢复活动版本 26.3。**
 

@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {inflateRawSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
+import {auditMaven} from './check-maven.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const boundaries = JSON.parse(fs.readFileSync(path.join(root, 'tools/release/boundaries.json'), 'utf8'));
@@ -171,9 +172,11 @@ export function auditJar(file, {variant, allowUnrecorded = false} = {}) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2), record = args.includes('--record-core'), allowUnrecorded = args.includes('--allow-unrecorded');
+  const mavenArg = args.find(s => s.startsWith('--maven-dir='));
   const files = args.filter(s => !s.startsWith('--'));
-  if (!files.length || args.some(s => s.startsWith('--') && !['--record-core','--allow-unrecorded'].includes(s)))
-    throw Error('Usage: node tools/check-release.mjs <slim.jar> [full.jar ...] [--record-core|--allow-unrecorded]');
+  if ((!files.length && !mavenArg) || (record && !files.length) || args.some(s => s.startsWith('--') && !s.startsWith('--maven-dir=') && !['--record-core','--allow-unrecorded'].includes(s)))
+    throw Error('Usage: node tools/check-release.mjs [slim.jar full.jar ...] [--record-core|--allow-unrecorded] [--maven-dir=<local Maven directory>]');
+  const maven = mavenArg ? auditMaven(mavenArg.slice('--maven-dir='.length)) : null;
   const results = files.map(file => auditJar(file, {allowUnrecorded: record || allowUnrecorded}));
   for (const slim of results.filter(r => r.variant === 'slim')) for (const full of results.filter(r => r.variant === 'full' && r.target === slim.target)) {
     if (full.coreHash !== slim.coreHash) full.failures.push('Slim/full core hashes differ: ' + slim.target);
@@ -182,7 +185,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   if (record) {
     for (const result of results) if (!results.some(other => other.target === result.target && other.variant !== result.variant))
       result.failures.push('--record-core requires both slim and full for ' + result.target);
-    if (results.every(r => !r.failures.length)) {
+    if (results.every(r => !r.failures.length) && !maven?.failures.length) {
       const file = path.join(root, 'tools/release/core-hash.properties');
       const pins = properties(fs.readFileSync(file, 'utf8'));
       for (const r of results) pins[r.minor + '.' + r.target] = r.coreHash;
@@ -191,5 +194,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     }
   }
   console.log(JSON.stringify(results, null, 2));
-  process.exitCode = results.some(r => r.failures.length) ? 1 : 0;
+  if (maven) console.log(JSON.stringify(maven, null, 2));
+  process.exitCode = results.some(r => r.failures.length) || maven?.failures.length ? 1 : 0;
 }

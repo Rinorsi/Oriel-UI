@@ -38,11 +38,35 @@ neoForge {
     }
 }
 
+def embeddedOption = providers.gradleProperty('orielEmbedded').getOrElse('false')
+if (!(embeddedOption in ['true', 'false'])) throw new GradleException('orielEmbedded must be true or false')
+// Acceptance runs load their independently prepared parent jars from mods/.
+def orielEmbedded = embeddedOption == 'true' && !project.hasProperty('jijAcceptance')
+if (oriel_version != '0.12.0')
+    throw new GradleException('Compile and embed against the slim version 0.12.0; full jars are player distributions')
+
 dependencies {
-    // Oriel for this Minecraft version, installed by players as its own mod. To bundle it in this mod's jar
-    // instead: jarJar(implementation("dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"))
-    if (project.hasProperty('jijAcceptance')) compileOnly "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
-    else implementation "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
+    def oriel = "dev.oriel:oriel-neoforge-${minecraft_version}:${oriel_version}"
+    if (project.hasProperty('jijAcceptance')) compileOnly(oriel) { transitive = false }
+    else implementation(oriel) { transitive = false }
+    if (orielEmbedded) {
+        jarJar("dev.oriel:oriel-neoforge-${minecraft_version}") {
+            transitive = false
+            version {
+                strictly('[0.12.0,0.13.0)')
+                prefer(oriel_version)
+            }
+        }
+    }
+}
+
+// Fail if range resolution selects a higher full version from a stale repository.
+configurations.jarJar.incoming.afterResolve {
+    configurations.jarJar.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        def id = artifact.moduleVersion.id
+        if (id.group == 'dev.oriel' && id.name == "oriel-neoforge-${minecraft_version}" && id.version != oriel_version)
+            throw new GradleException("Refusing to embed non-slim Oriel ${id.version}; expected ${oriel_version}")
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

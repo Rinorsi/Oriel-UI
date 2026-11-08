@@ -25,7 +25,7 @@ C 和 D 的原理与完整例子见 [服务端篇](server.md)。
 
 只有 jar、没有仓库时，直接看 [只有 jar 时的最小 Fabric 工程](quickstart.md)（`implementation files(...)` 的写法；0.12 未验证）。
 
-在本仓库里不加 `-Poriel_slim` 构建完整版，加 `-Poriel_slim` 构建瘦包（同时排除开发工具）；给玩家的完整版另加 `-Poriel_release`。每个目标的 jar 在 `<加载器>/versions/<项目版本>/build/libs/oriel-<加载器>-<MC 版本>-<版本>.jar`（MC 26.1.2 的项目目录是 `26.1`）。把它放进测试环境的 `mods/`，开发时让你的工程依赖这个 jar。仓库的 `./gradlew templateCompile` 会把当前产物发布到 `build/template-maven` 并编译两个模板，不使用上游 Vellum 的 Maven。
+在本仓库里不加 `-Poriel_slim` 构建完整版，加 `-Poriel_slim` 构建瘦包（同时排除开发工具）；给玩家的完整版另加 `-Poriel_release`。每个目标的 jar 在 `<加载器>/versions/<项目版本>/build/libs/oriel-<加载器>-<MC 版本>-<版本>.jar`（MC 26.1.2 的项目目录是 `26.1`）。把它放进测试环境的 `mods/`，开发时让你的工程依赖这个 jar。仓库的 `./gradlew templateCompile -Poriel_slim` 会把瘦包发布到 `build/template-maven` 并编译两个模板，不使用上游 Vellum 的 Maven。
 
 模组 id 固定为 `oriel`。在你的 `neoforge.mods.toml` / `fabric.mod.json` 里声明为**必需依赖**；想把库打进自己的 jar，用 Jar-in-Jar（NeoForge 的 `jarJar`、Fabric 的 `include`）。多个模组都带了本库时，加载器须先满足全部消费者的版本约束，再选择一份可用版本；约束无交集应拒绝加载，不能保证总是选最新版。
 
@@ -33,17 +33,19 @@ C 和 D 的原理与完整例子见 [服务端篇](server.md)。
 
 ### 依赖写法
 
-没有公开 Maven 仓库的承诺；不要使用上游 Vellum 仓库。下面以瘦包 `0.12.0` 为例，先在本仓库执行 `./gradlew publishToMavenLocal -Poriel_slim`。不加 `-Poriel_slim` 发布的是完整版 `0.12.1`，使用它时将下方版本同步改成 `0.12.1`；本地 Maven 发布配方仍未验证，已有 `templateCompile` 证据仅覆盖仓库私有构建仓库与瘦包的双模板编译。然后：
+没有公开 Maven 仓库的承诺；不要使用上游 Vellum 仓库。下面以瘦包 `0.12.0` 为例，先在本仓库执行 `./gradlew publishToMavenLocal -Poriel_slim`。**Maven 只允许瘦包 `X.Y.0`**；不带 `-Poriel_slim` 的发布（包括 MavenLocal、`-Poriel_maven_dir` 对应任务、templateCompile 私有仓库）直接报错。完整版只作为 jar 分发到 Modrinth / CurseForge / dist，不能用作下游 Maven 编译依赖；否则范围解析可能取到更高的 full 并误嵌参考内容。下游依赖固定 `X.Y.0`，嵌入采用严格同 minor 范围加瘦包 prefer 时也须核验实际解析版本。发布完整性需在新的临时 Maven 目录通过 `check-release --maven-dir` 检查，流程见[维护约定](maintenance.md#双变体发布与专服复核)。然后：
 
 ```groovy
 repositories {
     mavenLocal()
 }
-// common/（针对原版编译）：API，加上它暴露的引擎类型
-dependencies { compileOnly("dev.oriel:oriel-common-26.3:0.12.0") }
-// neoforge/ 和 fabric/：加载器 jar，让开发运行时把 Oriel 当作 mod 加载（它自带引擎和 Rhino）
-dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") }   // 或 oriel-fabric-26.3
+// common/：用自包含的同游戏版本 loader 工件仅作编译类型来源，不加载 Fabric 入口。
+dependencies { compileOnly("dev.oriel:oriel-fabric-26.3:0.12.0") { transitive = false } }
+// neoforge/ 和 fabric/：匹配目标 loader；由下游自己声明 Minecraft/加载器/Fabric API。
+dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") { transitive = false } } // 或 oriel-fabric-26.3
 ```
+
+独立 `oriel-common-*` 仍发布，其 runtime 元数据引用同版本 `oriel-engine`、`oriel-kit`、`oriel-script-rhino`、`oriel-mc-extension`，这些坐标均由全 publication 发布提供。API variant 不传递 implementation 依赖，因此单独 `compileOnly(oriel-common)` 不保证引擎/kit 类型可用；上面的 loader 配方更简单。独立模块不作为瘦运行包，发布合同见[分发指南](distribution.md#maven-模块合同)。
 
 没有仓库、只有 jar 时见[只有 jar 时的最小 Fabric 工程](quickstart.md)。每个 Minecraft 版本有自己的工件，版本号相同：
 
@@ -59,7 +61,7 @@ dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") }   // 或
 
 ### Jar-in-Jar：嵌入瘦包
 
-也可以把 **0.12.0 瘦包**打进你的 jar，让玩家只装一个文件。Fabric 用 `include(implementation("dev.oriel:oriel-fabric-26.3:0.12.0"))`；NeoForge 用 `jarJar` 声明 `[0.12.0,0.13.0)` 的严格范围及 `0.12.0` 优先版本。完整 Groovy 与元数据片段见[分发指南第 4 节](distribution.md#4-gradle-与加载器元数据)，不要只给 NeoForge 的 TOML 写范围、却把嵌套清单锁死为单一版本。两种变体的 id 都为 `oriel`，完整版 `0.12.1` 也满足此范围。
+也可以把 **0.12.0 瘦包**打进你的 jar，让玩家只装一个文件。模板提供 `-PorielEmbedded=true` 开关：Fabric 用禁传递解析的 `implementation` 与 `include`；NeoForge 用 `jarJar` 声明 `[0.12.0,0.13.0)` 的严格范围及 `0.12.0` 优先版本。完整 Groovy 与元数据片段见[分发指南第 4 节](distribution.md#4-gradle-与加载器元数据)，不要只给 NeoForge 的 TOML 写范围、却把嵌套清单锁死为单一版本。两种变体的 id 都为 `oriel`，完整版 `0.12.1` 也满足此范围。
 
 无论哪种方式，都要在 `neoforge.mods.toml` 或 `fabric.mod.json` 里保留必需依赖。多个 mod 都带了 Oriel、或玩家另外装了它时，加载器先满足全部消费者的版本约束再选一份可用版本，约束无交集会拒绝加载，不保证总是选最新版，所以实际加载的版本可能与你编译时用的不同。Oriel 仍然显示在 mod 列表里，并保留自己的配置文件。Rhino 的许可证和声明已在 Oriel 的 jar 里。
 
@@ -85,7 +87,7 @@ dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") }   // 或
 
 跨 minor 必须迁移消费者并分别验证；只改版本元数据的夹具、共同 DOM 子集的无头通过，都不能证明游戏内或全部 API 兼容。实际发行 jar 的无头消费者探针见[验证工具](../../tools/compat/README.md)。嵌入和外部依赖都支持；推荐外部必需依赖。瘦包不含模板、showcase、demo 等参考内容，要复用就[复制到自己的模组](showcase.md#怎么复用到你的模组)。嵌套检测与提示 **0.12 起提供**：26.3 双加载器专服、单元与通知页预览已测，游戏弹窗仍未验证；不能替代加载器约束或兼容性测试。
 
-`./gradlew check` 包含用本仓库编译的两个加载器模板，以及每个 Minecraft 版本的 API 快照 `api/*.txt`。`:common:<版本>:checkPublicApi` 拒绝受支持签名里出现内部类型和签名漂移；经过审查后用 `-PupdateApi` 更新。`checkBackendBoundaries` 锁定引擎、kit 和预览不得导入游戏或加载器。这些在 fork 的内部实现演进时保护它。
+`./gradlew check -Poriel_slim` 包含用本仓库编译的两个加载器模板，以及每个 Minecraft 版本的 API 快照 `api/*.txt`。`:common:<版本>:checkPublicApi` 拒绝受支持签名里出现内部类型和签名漂移；经过审查后用 `-PupdateApi` 更新。`checkBackendBoundaries` 锁定引擎、kit 和预览不得导入游戏或加载器。这些在 fork 的内部实现演进时保护它。
 
 ## 3. 页面放哪、URL 怎么写
 

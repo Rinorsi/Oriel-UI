@@ -32,7 +32,7 @@
 
 ## integrate
 
-先读 `oriel_rules topic=distribution`，确认下游采用嵌入瘦包还是外部依赖；0.12 配方及验证状态以[分发指南](distribution.md)为准。若工具返回旧版 profile 或依赖片段，不直接套用为 0.12，先核对实际 jar 与范围。
+先读 `oriel_rules topic=distribution`，确认下游采用嵌入瘦包还是外部依赖；0.12 配方及验证状态以[分发指南](distribution.md)为准。profile 与脚手架版本读取当前工作树的 `gradle.properties`，默认瘦包、可指定当前完整版；旧 profile 返回 `UNSUPPORTED_PROFILE`，须按实际 jar 重新登记和验收，不能复用旧版批准。
 
 下游模组首次接入先用 oriel_scaffold(projectRoot) 只读检测，按 missing/candidates 补信息（不要猜 Stonecutter 版本或启动方式）。工具给出依赖、元数据、打开和客户端命令片段。需要示例文件时传 prepare=true，在工作区生成并检查骨架；展示完整清单与截图，用户聊天同意后以 oriel_review.decide 逐字记录，再用原参数 apply=true 与 reviewId。仅新建不存在的 HTML/Java，已有文件跳过；不改 Gradle/元数据/已有 Java，不自动启动游戏。普通页面资源交付仍用下述 oriel_integrate。
 

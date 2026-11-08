@@ -1,5 +1,7 @@
 # Oriel UI workflow MCP
 
+profile 从根 `gradle.properties` 的 `version` / `oriel_full_patch` 读取：缺省当前瘦包，显式接受当前完整版，其他版本返回 `UNSUPPORTED_PROFILE`。脚手架坐标与同 minor 范围来自同一来源，默认外部必需依赖；版本参与规则哈希，升级后重新检查/验收。详见 [分发合同](../../docs/zh/distribution.md)与 [profile 参数](../../docs/zh/mcp.md)。
+
 新增oriel_capabilities、oriel_build_status、oriel_logs、oriel_inspect、oriel_baseline及review分页，字段/限制见[增量合同](../../docs/zh/d36-agent-tools.md)。JSONL采集默认关闭，ORIEL_MCP_DIAGNOSTICS=1开启；只存MCP工具事件，不记录参数和输入，不代表引擎trace。存在工作区gws.sh时所有MCP Gradle调用均走调度器。
 
 下游首次接入：`oriel_scaffold` 只传 projectRoot 默认只读返回检测值、待补项和清单。补齐参数后 prepare=true 生成并严格检查固定骨架；通过截图验收、用户聊天批准后 apply=true + reviewId，只新建不存在的 HTML/Java，保留已有文件。详细字段与热更新模式见 [工具参数](../../docs/zh/mcp.md#下游骨架oriel_scaffold)。测试：`node --test tools/mcp/scaffold.test.mjs`，ORIEL_TEST_TMP 指向工作区临时目录；不访问真实下游工程。
