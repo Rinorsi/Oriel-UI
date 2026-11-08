@@ -264,7 +264,8 @@ public final class DocumentDriver {
             }
         }
         if (session >= 0 && !closedByServer) {
-            OrielClient.sendToServer(new ClosedPayload(session));
+            if (!OrielClient.sendToServer(new ClosedPayload(session)))
+                Constants.LOG.warn("Oriel: {} closed locally; server session {} was not notified", name(), session);
             ServerPages.closed(Util.getMillis() - lastEscape < ESCAPE_CLOSE_MS);
         }
     }
@@ -832,8 +833,7 @@ public final class DocumentDriver {
             Constants.LOG.warn("Oriel: {} message on '{}' is too large to send ({} chars)", name(), channel, json.length());
             return false;
         }
-        OrielClient.sendToServer(new MessagePayload(session, channel, json));
-        return true;
+        return OrielClient.sendToServer(new MessagePayload(session, channel, json));
     }
 
     @org.jetbrains.annotations.ApiStatus.Internal

@@ -46,7 +46,9 @@ import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlers
 @Mod(value = Constants.MOD_ID, dist = Dist.CLIENT)
 public final class OrielNeoForgeClient {
     public OrielNeoForgeClient(IEventBus modBus, ModContainer container) {
-        OrielClient.init(payload -> ClientPacketDistributor.sendToServer(payload));
+        OrielClient.init(payload -> net.neoforged.neoforge.network.registration.NetworkRegistry.hasChannel(
+                Minecraft.getInstance().getConnection(), payload.type().id()),
+                payload -> ClientPacketDistributor.sendToServer(payload));
         // <item tooltip>: pass the stack on to NeoForge's tooltip events, as vanilla's item tooltips do.
         //? if >=26.3 {
         ItemTooltips.install((g, font, lines, stack, x, y) -> g.setTooltipForNextFrame(font, lines, stack.getTooltipImage(),

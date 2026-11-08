@@ -196,7 +196,7 @@ anim.finished.then(() => console.log('shown'));
 | `oriel.data` | 服务器或打开页面的 mod 最近一次发来的数据（解析后的 JSON 值；数据到达之前是 `{}`）。模板从这里读。`push` 会整体替换它；直接赋值不会传给服务端。 |
 | `oriel.on(channel, fn)` | 对 `channel` 上的消息调用 `fn(value)`；`'data'` 在 `oriel.data` 被替换或打补丁时触发，`'patch'` 在其中一个字段被打补丁时触发（见[补丁](#补丁)）。返回一个移除该监听器的函数。 |
 | `oriel.off(channel, fn)` | 移除监听器。 |
-| `oriel.send(channel, value)` | 把 `JSON.stringify(value)` 发给服务器或 mod。突发 20 条，之后每秒 20 条，所以第一秒最多 40 条。多余的消息会被丢弃并给出警告，`send` 返回 false；返回 true 也不是业务成功的回执。默认单条消息上限 8192 字符。 |
+| `oriel.send(channel, value)` | 把 `JSON.stringify(value)` 发给服务器或 mod。突发 20 条，之后每秒 20 条，所以第一秒最多 40 条。多余的消息会被丢弃并给出警告，`send` 返回 false；服务端会话发送前还检查活动连接和对应通道，不可用或发送期间断线同样返回 false 并给出诊断。本地页只触发客户端监听，不要求服务端安装 Oriel；返回 true 也不是业务成功的回执。默认单条消息上限 8192 字符。 |
 | `oriel.state(object)` | 让该对象的属性对[模板](#模板)可见，并返回它（缺省是空对象）。 |
 | `oriel.close()` | 关闭界面（HUD 则关闭对应叠加层）。 |
 | `oriel.playSound(id, volume = 1, pitch = 1)` | 播放声音事件，如 `'minecraft:ui.button.click'`，或 kit 的 [UI 声音 token](capabilities.md#ui-音效)，如 `'tab'`（token 的基础音量/音高乘以参数）；未知裸 token 报错。受 `client.uiSounds`、`client.uiSoundVolume`、音量上限和限频控制。 |

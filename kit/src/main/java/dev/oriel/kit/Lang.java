@@ -66,6 +66,14 @@ public final class Lang {
             Map<String, String> messages = new HashMap<>();
             JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject()
                     .entrySet().forEach(entry -> messages.put(entry.getKey(), entry.getValue().getAsString()));
+            if (ReferenceContent.available()) {
+                String reference = "/assets/oriel/reference/lang/" + language + ".json";
+                try (InputStream extra = Lang.class.getResourceAsStream(reference)) {
+                    if (extra == null) throw new IllegalStateException("Missing reference language resource: " + reference);
+                    JsonParser.parseReader(new InputStreamReader(extra, StandardCharsets.UTF_8)).getAsJsonObject()
+                            .entrySet().forEach(entry -> messages.put(entry.getKey(), entry.getValue().getAsString()));
+                }
+            }
             return Map.copyOf(messages);
         } catch (IOException e) {
             throw new IllegalStateException("Cannot read " + path, e);

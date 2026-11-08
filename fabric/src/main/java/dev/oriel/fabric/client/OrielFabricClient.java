@@ -37,7 +37,7 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 public final class OrielFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        OrielClient.init(ClientPlayNetworking::send);
+        OrielClient.init(payload -> ClientPlayNetworking.canSend(payload.type()), ClientPlayNetworking::send);
         for (OrielNetwork.Clientbound<?> c : OrielNetwork.CLIENTBOUND) register(c);
         //? if >=26.2 {
         PictureInPictureRendererRegistry.register(context -> new GuiSceneRenderer());

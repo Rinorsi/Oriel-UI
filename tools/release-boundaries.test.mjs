@@ -14,6 +14,8 @@ test('slim rejects reference entries and requires its core, while full permits d
   assert.equal(typeof release.classifyEntry, 'function');
   for (const entry of ['assets/oriel/ui/templates/catalog.json', 'assets/oriel/ui/gallery.html',
     'dev/oriel/kit/preset/StylesPreset.class', 'dev/oriel/mod/internal/client/showcase/Mobdex.class',
+    'dev/oriel/mod/internal/server/ForgeMenu.class', 'dev/oriel/mod/internal/server/ForgeMenu$Workstation.class',
+    'assets/oriel/reference/lang/en_us.json',
     'dev/oriel/mod/internal/gametest/GameTests.class', 'data/oriel/test_instance/forge_menu.json']) {
     assert.equal(release.classifyEntry(entry), 'reference', entry);
     assert.ok(auditEntries([...licenses, entry], {variant: 'slim'}).some(s => s.includes(entry)));

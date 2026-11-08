@@ -5,7 +5,7 @@ import dev.oriel.mod.internal.net.ClosedPayload;
 import dev.oriel.mod.internal.net.MessagePayload;
 import dev.oriel.mod.internal.net.OpenPayload;
 import dev.oriel.mod.internal.net.OrielNetwork;
-import dev.oriel.mod.server.ForgeMenu;
+import dev.oriel.mod.internal.server.ForgeMenu;
 import dev.oriel.mod.server.OrielServer;
 import dev.oriel.mod.server.OrielSession;
 import net.minecraft.core.component.DataComponents;
