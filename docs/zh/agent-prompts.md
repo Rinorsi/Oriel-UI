@@ -1,5 +1,7 @@
 # Agent 调用提示词
 
+**接入、升级或发布前必读：[分发指南](distribution.md)**，MCP 调用 `oriel_rules` 的 `topic=distribution`。按 0.12 同 minor 范围选择嵌入瘦包或外部必需依赖；所用模板/showcase/demo 复制到自己模组。验证范围以分发指南为准：26.3 双加载器专服五场景、单元/通知页预览已有证据；游戏客户端弹窗与设置页、26.1.2/26.2 混装和真实 Editor 升级仍未验证，不能扩大已测范围。
+
 工具合同先查oriel_capabilities；协作所有权/模板见[编排规范](agent-orchestration.md)，日志/why-tree/截图分页和独立黄金审批见[增量合同](d36-agent-tools.md)。截图验收逐页交用户查看，不能把首12图当全部场景批准；页面批准不能批准黄金更新。
 
 本文件的三个二级标题对应 MCP prompts/get 的 workflow、revise、integrate；MCP 直接读取正文，避免维护两套提示词。完整阶段合同见 [制作流程](ui-workflow.md)，参数见 [MCP 手册](mcp.md)。
@@ -29,6 +31,8 @@
 先调用 oriel_status 读取原项目与验收状态，再调用 oriel_rules 查询本次修改涉及的能力。修改共享源文件，保留未知业务数据。修改后重新 oriel_check、oriel_snapshot，并用 oriel_review.prepare 创建新版本。不得使用旧版批准安装新版页面；旧回执只能追踪原版本。向用户说明可见改动与需要重新验收的场景。
 
 ## integrate
+
+先读 `oriel_rules topic=distribution`，确认下游采用嵌入瘦包还是外部依赖；0.12 配方及验证状态以[分发指南](distribution.md)为准。若工具返回旧版 profile 或依赖片段，不直接套用为 0.12，先核对实际 jar 与范围。
 
 下游模组首次接入先用 oriel_scaffold(projectRoot) 只读检测，按 missing/candidates 补信息（不要猜 Stonecutter 版本或启动方式）。工具给出依赖、元数据、打开和客户端命令片段。需要示例文件时传 prepare=true，在工作区生成并检查骨架；展示完整清单与截图，用户聊天同意后以 oriel_review.decide 逐字记录，再用原参数 apply=true 与 reviewId。仅新建不存在的 HTML/Java，已有文件跳过；不改 Gradle/元数据/已有 Java，不自动启动游戏。普通页面资源交付仍用下述 oriel_integrate。
 

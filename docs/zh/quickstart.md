@@ -1,6 +1,6 @@
 # 只有 jar 时的最小 Fabric 工程
 
-适用：你拿到的是打包好的库 jar（`oriel-fabric-<MC 版本>-0.11.0.jar`），没有本仓库，也没有 Maven 仓库。下面的文件在 Minecraft 26.1.2 + Fabric 上**实际编译并启动过**：构建通过，游戏日志里同时出现你的 mod 和 `oriel 0.10.0`。页面是否按预期渲染，需要你在游戏里打开确认（见末尾）。
+**先读[分发指南：瘦包 / 完整版 / 嵌入或外部依赖](distribution.md)。** 本页是外部必需依赖配方：适用拿到打包好的库 jar（`oriel-fabric-<MC 版本>-0.12.0.jar` 瘦包，或 `0.12.1` 完整版）、没有本仓库和 Maven 仓库的情况。下方以瘦包 `0.12.0` 为例，**0.12 配方的编译、启动与页面渲染未验证**。历史最小工程曾在 Minecraft 26.1.2 + Fabric + Oriel 0.10.0 编译并启动，不能把该记录算作 0.12 验证。
 
 [入口](index.md) · [接入指南](integration.md) · [Java API](java-api.md)
 
@@ -11,7 +11,7 @@ my-mod/
   settings.gradle
   gradle.properties
   build.gradle
-  libs/oriel-fabric-26.1.2-0.11.0.jar          ← 库 jar 放这里
+  libs/oriel-fabric-26.1.2-0.12.0.jar          ← 库 jar 放这里
   src/main/java/com/example/mymod/MyModClient.java
   src/main/resources/fabric.mod.json
   src/main/resources/assets/mymod/oriel/hello.html
@@ -23,9 +23,9 @@ Gradle wrapper 用你自己的（`gradle wrapper`，Gradle 9.x，JDK 25）。把
 
 | Minecraft | `minecraft_version` | `fabric_version` | 库 jar |
 |---|---|---|---|
-| 26.1.2 | `26.1.2` | `0.155.3+26.1.2` | `oriel-fabric-26.1.2-0.11.0.jar` |
-| 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.11.0.jar` |
-| 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.11.0.jar` |
+| 26.1.2 | `26.1.2` | `0.155.3+26.1.2` | `oriel-fabric-26.1.2-0.12.0.jar` |
+| 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.12.0.jar` |
+| 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.12.0.jar` |
 
 `fabric_loader_version` 目前都是 `0.19.5`。以上来自 [版本适配](versions.md)；换版本时以该页为准。
 
@@ -51,7 +51,7 @@ rootProject.name = 'my-mod'
 minecraft_version=26.1.2
 fabric_loader_version=0.19.5
 fabric_version=0.155.3+26.1.2
-oriel_version=0.11.0
+oriel_version=0.12.0
 
 mod_id=mymod
 mod_name=My Mod
@@ -95,7 +95,7 @@ processResources {
 }
 ```
 
-这里不需要任何 Maven 仓库配置（Loom 自带 Minecraft 与 Fabric 的仓库）。如果你有本仓库，也可以用 `publishToMavenLocal` 后改成 `implementation "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"`，见 [接入指南](integration.md)。
+这里不需要任何 Maven 仓库配置（Loom 自带 Minecraft 与 Fabric 的仓库）。如果你有本仓库，也可以用 `publishToMavenLocal -Poriel_slim` 发布瘦包后改成 `implementation "dev.oriel:oriel-fabric-${minecraft_version}:${oriel_version}"`（完整版省略 `-Poriel_slim`，同步改用 `oriel_version=0.12.1`），见 [接入指南](integration.md)。
 
 ## src/main/resources/fabric.mod.json
 
@@ -115,12 +115,12 @@ processResources {
         "fabric-api": "*",
         "minecraft": "~${minecraft_version}",
         "java": ">=25",
-        "oriel": ">=0.11.0 <0.12.0"
+        "oriel": ">=0.12.0 <0.13.0"
     }
 }
 ```
 
-`oriel` 这一行就是对库的**必需依赖**，范围限定在 0.11 系列；库升级到 0.12 前不会影响你。
+`oriel` 这一行就是对库的**必需依赖**，范围限定在 0.12 系列，瘦包 `0.12.0` 与完整版 `0.12.1` 均满足。用完整版时同步修改 `oriel_version` 和实际 jar 文件；跨 minor 需要重新迁移和验证。
 
 ## 入口类：一个命令打开页面
 
@@ -187,15 +187,15 @@ public final class MyModClient implements ClientModInitializer {
 | 想做什么 | 做法 |
 |---|---|
 | 打开任意页面 | `/oriel open mymod:oriel/hello.html` |
-| 不建工程，先看一个 .html | 把页面（连同它的 css、图片）放进游戏的 `config/oriel/my-pages/`，进游戏 `/oriel open oriel_mine:文件名.html`（子文件夹照写，如 `oriel_mine:item-editor/index.html`）；也可在 模板中心 → 我的页面 里点开。页面里用相对路径引用同文件夹的资源。保存即热重载 |
+| 不建工程，先看一个 .html | 把页面（连同它的 css、图片）放进游戏的 `config/oriel/my-pages/`，进游戏 `/oriel open oriel_mine:文件名.html`（子文件夹照写，如 `oriel_mine:item-editor/index.html`）；完整版也可在 模板中心 → 我的页面 里点开。页面里用相对路径引用同文件夹的资源。保存即热重载 |
 | 改了页面看效果 | 开发环境保存文件会热重载已打开的页面；也可以 `/oriel reload` |
-| 看库自带的例子 | `/oriel showcase`（首页画廊，后面可加页面名）；示例页面源码在库 jar 的 `assets/oriel/oriel/showcase/` 下（可用 `unzip` 查看） |
-| 确认库已加载 | 日志里应有 `Oriel UI runtime version: 0.11.0`，模组列表里有 `oriel` |
+| 看库自带的例子 | **仅完整版**：`/oriel showcase`；示例源码在完整版 jar 的 `assets/oriel/oriel/showcase/` 下。瘦包不含演示，复用时[复制资源到自己模组](showcase.md#怎么复用到你的模组) |
+| 确认库已加载 | 日志中的实际运行版本应与加载器选中结果一致（瘦包 `0.12.0` / 完整版 `0.12.1`），模组列表里有 `oriel`；混装不按编译时版本猜测 |
 | 页面写错了 | 不支持的 CSS/HTML 会在日志里报带文件和位置的诊断，不会静默忽略 |
 
 ## 我的页面：标题、副标题、封面，以及库的动效
 
-放进 `config/oriel/my-pages/` 的页面会出现在 模板中心 → 我的页面。卡片上的内容都写在页面自己的 `<head>` 里，全部可选：
+瘦包与完整版均保留 `config/oriel/my-pages/` 的 `oriel_mine` 注册和热重载。下述模板中心卡片说明只适用于完整版；瘦包使用 `/oriel open oriel_mine:<目录>/index.html`，Home 动作打开设置，也可直接用 `/oriel settings`、`/oriel about`。入口已做控制器/JVM 链接验证，0.12 游戏内页面与热重载仍未验证。完整版中卡片内容写在页面自己的 `<head>` 里，全部可选：
 
 ```html
 <html data-oriel-shell>   <!-- 想要涟漪、聚光、数字计数、主题切换等库的效果就加；纯展示可以不加 -->
@@ -209,7 +209,7 @@ public final class MyModClient implements ClientModInitializer {
 
 ## 边改边看：模组自己的页面也能热更新
 
-**完整的配置指南、日志确认方法、什么会热什么不会、排错表：[热更新](hot-reload.md)。** 下面是三种情形的速览。
+**完整的配置指南、日志确认方法、什么会热什么不会、排错表：[热更新](hot-reload.md)。** 以下“已实测”指历史版本的机制验证，0.12 两种变体的游戏内热重载未验证。下面是三种情形的速览。
 
 打包进模组的页面（`assets/<模组id>/…`）默认要重新构建才变。下面三种情形，**选符合你的那一种**，都不需要模组里写任何代码：
 

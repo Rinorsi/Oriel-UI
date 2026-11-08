@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title data-i18n="oriel.ui.nested.title">Oriel UI</title>
+  <link rel="stylesheet" href="oriel:ui/ore.css">
+  <style>
+    html { font-family: oriel:pixel_12; font-size: 12px; }
+    .o-titlebar h1 { font-size: 12px; }
+    .o-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .notice-copy { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .notice-copy p { margin: 0; flex: none; }
+    #active { color: var(--o-accent); }
+    .notice-help { color: var(--o-text-dim); }
+    .notice-footer { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--o-line); }
+    .notice-footer label { display: flex; align-items: center; gap: 6px; }
+    .notice-footer .ore-btn { min-height: 24px; }
+    @media (max-height: 270px) { .notice-copy { padding: 8px; gap: 6px; } .notice-footer { padding: 6px 8px; } }
+  </style>
+</head>
+<body>
+<div class="o-app">
+  <div class="o-window">
+    <div class="o-titlebar"><img class="o-ico" src="oriel:textures/icons/info.png"><h1 data-i18n="oriel.ui.nested.title">Oriel UI</h1></div>
+    <div class="o-body">
+      <div class="notice-copy">
+        <p data-i18n="oriel.ui.nested.intro"></p>
+        <p id="parents"></p>
+        <p id="active"></p>
+        <p data-i18n="oriel.ui.nested.effect"></p>
+        <p class="notice-help" data-i18n="oriel.ui.nested.help"></p>
+      </div>
+      <div class="notice-footer">
+        <label><input id="never" type="checkbox"><span data-i18n="oriel.ui.nested.never"></span></label>
+        <div class="o-grow"></div>
+        <div id="dismiss" class="ore-btn primary" role="button" tabindex="0" data-i18n="oriel.ui.nested.dismiss"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

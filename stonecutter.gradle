@@ -12,6 +12,14 @@ plugins {
 
 stonecutter.active '26.3'
 
+// A single source for both distributions. Keep all module/publication versions aligned.
+def coreVersion = providers.gradleProperty('version').get()
+def fullPatch = providers.gradleProperty('oriel_full_patch').get()
+if (!(coreVersion ==~ /\d+\.\d+\.0/) || !(fullPatch ==~ /[1-9]\d*/))
+    throw new GradleException('Expected core version X.Y.0 and oriel_full_patch >= 1')
+def distributionVersion = hasProperty('oriel_slim') ? coreVersion : coreVersion.replaceFirst(/0$/, fullPatch)
+allprojects { version = distributionVersion }
+
 tasks.register('check') { group = 'verification' }
 
 // Compile real downstream examples against this checkout's artifacts, never the upstream Maven repository.
@@ -32,7 +40,8 @@ tasks.register('templateCompile') {
         dir = file("template/" + loader)
         tasks = ['compileJava', 'processResources']
         startParameter.offline = gradle.startParameter.offline
-        startParameter.projectProperties = ['orielRepository': layout.buildDirectory.dir('template-maven').get().asFile.absolutePath]
+        startParameter.projectProperties = ['orielRepository': layout.buildDirectory.dir('template-maven').get().asFile.absolutePath,
+                'oriel_version': distributionVersion]
         dependsOn(":" + loader + ':26.3:publishAllPublicationsToTemplateLocalRepository',
                 ':engine:publishAllPublicationsToTemplateLocalRepository', ':mc-extension:publishAllPublicationsToTemplateLocalRepository',
                 ':script-rhino:publishAllPublicationsToTemplateLocalRepository', ':rhino:publishAllPublicationsToTemplateLocalRepository')

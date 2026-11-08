@@ -26,7 +26,7 @@ public final class OrielCommand {
     private OrielCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> d) {
-        d.register(Commands.literal("oriel-forge").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+        if (dev.oriel.kit.ReferenceContent.available()) d.register(Commands.literal("oriel-forge").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .executes(c -> ForgeMenu.open(c.getSource().getPlayerOrException()) ? 1 : 0));
         // "showcase" itself is open to everyone (the client's pages hang under it); only the server's two demos need permission.
         LiteralArgumentBuilder<CommandSourceStack> showcase = clientTree("showcase", clientWords());
@@ -38,16 +38,18 @@ public final class OrielCommand {
             OrielDemos.openLive(c.getSource().getPlayerOrException());
             return 1;
         }));
-        d.register(Commands.literal("oriel")
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("oriel")
                 .then(Commands.literal("version").executes(c -> {
                     c.getSource().sendSuccess(() -> Component.literal("Oriel UI runtime version: "
                             + dev.oriel.mod.internal.platform.Services.PLATFORM.modVersion("oriel")), false);
                     return 1;
                 }))
-                .then(showcase)
                 .then(Commands.literal("open").then(Commands.argument("url", StringArgumentType.greedyString()).executes(OrielCommand::clientOnly)))
-                .then(clientTree("reload", List.of()))
-                .then(clientTree("canvastest", List.of())));
+                .then(clientTree("settings", List.of()))
+                .then(clientTree("about", List.of()))
+                .then(clientTree("reload", List.of()));
+        if (dev.oriel.kit.ReferenceContent.available()) root.then(showcase).then(clientTree("canvastest", List.of()));
+        d.register(root);
     }
 
     private static List<String> clientWords() {

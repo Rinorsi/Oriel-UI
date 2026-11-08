@@ -79,6 +79,7 @@ processResources {
         exclude('META-INF/MANIFEST.MF')
     }
     from(configurations.commonResources)
+    from(rootProject.file('tools/release/boundaries.json')) { into('META-INF/oriel') }
     from(configurations.engineClasses)
     from(configurations.scriptClasses)
     from(configurations.mcExtensionClasses)
@@ -154,12 +155,42 @@ clientRunProperties['oriel.dev.root'] = rootProject.projectDir.absolutePath
 clientRunProperties['oriel.dev.project'] = project.path
 clientRunProperties['jdk.attach.allowAttachSelf'] = 'true'
 
-// -Poriel_release builds the jar players get: the dev autopilot and scripted tour (classes and pages) stay out. Code
-// elsewhere only reaches them through DevFlags, which checks class resources before enabling a tool.
-if (project.hasProperty('oriel_release')) {
-    tasks.named('jar', Jar) {
-        ['DevAutopilot', 'DevTour', 'DevPointer', 'DevReload', 'DevAgent', 'DevInspector', 'TourCursor', 'TourPointer', 'CursorArt'].each { exclude("dev/oriel/mod/internal/client/${it}*.class") }
-        exclude('dev/oriel/engine/inspect/**', 'dev/oriel/engine/script/InspectorBindings*.class')
-        exclude('assets/oriel/oriel/dev/**')
+// Apply the shared inventory at the final loader JAR: module output directories are copied above.
+def slim = project.hasProperty('oriel_slim')
+def release = slim || project.hasProperty('oriel_release')
+def boundaryFile = rootProject.file('tools/release/boundaries.json')
+def boundaries = new groovy.json.JsonSlurper().parse(boundaryFile)
+def removed = ((release ? boundaries.development : []) + (slim ? boundaries.reference : []))
+        .collect { java.util.regex.Pattern.compile(it) }
+tasks.named('jar', Jar) {
+    inputs.file(boundaryFile)
+    inputs.file(rootProject.file('tools/check-release.mjs'))
+    inputs.file(rootProject.file('tools/release/core-hash.properties'))
+    inputs.file(rootProject.file('tools/release/manifest.mjs'))
+    inputs.file(rootProject.file('api/' + project.name + '.txt'))
+    manifest.attributes('Oriel-Variant': slim ? 'slim' : 'full', 'Oriel-Development-Tools': release ? 'excluded' : 'included')
+    inputs.property('oriel_slim', slim)
+    inputs.property('oriel_release', release)
+    exclude { details -> removed.any { it.matcher(details.path).find() } }
+    // Existing release pins are immutable; an unrecorded new minor is allowed during development.
+    doLast {
+        def generated = layout.buildDirectory.file('nested-manifest/META-INF/oriel/manifest.json').get().asFile
+        providers.exec {
+            commandLine('node', rootProject.file('tools/release/manifest.mjs').absolutePath,
+                    archiveFile.get().asFile.absolutePath, rootProject.file('api/' + project.name + '.txt').absolutePath,
+                    generated.absolutePath)
+        }.result.get().assertNormalExitValue()
+        ant.zip(destfile: archiveFile.get().asFile, update: true) {
+            zipfileset(file: generated, fullpath: 'META-INF/oriel/manifest.json')
+        }
+        def execution = providers.exec {
+            ignoreExitValue = true
+            commandLine('node', rootProject.file('tools/check-release.mjs').absolutePath,
+                    archiveFile.get().asFile.absolutePath, '--allow-unrecorded')
+        }
+        logger.lifecycle(execution.standardOutput.asText.get())
+        def errors = execution.standardError.asText.get()
+        if (errors) logger.error(errors)
+        execution.result.get().assertNormalExitValue()
     }
 }

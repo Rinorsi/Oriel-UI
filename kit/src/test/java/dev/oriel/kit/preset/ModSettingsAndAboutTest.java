@@ -16,13 +16,16 @@ class ModSettingsAndAboutTest {
     @Test void settingsShowTheDefaultsWithoutAGameAndSendChangesToOne() {
         host.acceptSends = true;
         var doc = host.open(OrielKit.MODSETTINGS, new ModSettingsPreset());
-        assertEquals(7, doc.querySelectorAll("#groups .item").size());
+        assertEquals(8, doc.querySelectorAll("#groups .item").size());
         assertEquals(3, doc.querySelectorAll("#groups .group").size());
         assertTrue(doc.querySelector(".item[data-key=\"client.uiSounds\"] .ore-toggle").hasClass("on"));
         click(doc, ".item[data-key=\"client.uiSounds\"] .ore-toggle", 0, Modifiers.NONE, clock);
         assertFalse(doc.querySelector(".item[data-key=\"client.uiSounds\"] .ore-toggle").hasClass("on"));
         assertEquals("oriel {\"op\":\"set\",\"key\":\"client.uiSounds\",\"value\":\"false\"}", host.sent.getLast());
         assertTrue(doc.getElementById("saved").hasClass("on"), "an accepted change says so");
+        assertTrue(doc.querySelector(".item[data-key=\"client.nestedNotice\"] .ore-toggle").hasClass("on"));
+        doc.querySelector(".item[data-key=\"client.nestedNotice\"] .ore-toggle").click();
+        assertEquals("oriel {\"op\":\"set\",\"key\":\"client.nestedNotice\",\"value\":\"OFF\"}", host.sent.getLast());
         doc.querySelector(".item[data-key=\"client.webLinks\"] .o-seg span:nth-child(2)").click();
         assertEquals("oriel {\"op\":\"set\",\"key\":\"client.webLinks\",\"value\":\"BLOCK\"}", host.sent.getLast());
         assertTrue(doc.querySelector(".item[data-key=\"client.webLinks\"] .o-seg span:nth-child(2)").hasClass("on"));

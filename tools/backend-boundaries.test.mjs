@@ -77,9 +77,10 @@ test('generated Minecraft exceptions cover only local Loom module shapes and rev
   }
 });
 
-test('engine, kit and preview have no game, graphics or loader imports', () => {
+test('engine, kit, preview and nested comparison have no game, graphics or loader imports', () => {
   const failures = [];
-  for (const module of ['engine','kit','preview']) for (const file of walk(path.join(root,module,'src')).filter(f=>f.endsWith('.java'))) {
+  const dirs = ['engine/src', 'kit/src', 'preview/src', 'common/src/main/java/dev/oriel/mod/internal/nested'];
+  for (const dir of dirs) for (const file of walk(path.join(root,dir)).filter(f=>f.endsWith('.java'))) {
     const lines=fs.readFileSync(file,'utf8').split(String.fromCharCode(10));
     lines.forEach((line,index)=>{
       const text=line.trim().replace('import static ','import ');

@@ -34,7 +34,7 @@ public final class ModSettingsPreset implements PageControllers.Controller {
     static {
         GROUPS.put("sound", List.of("client.uiSounds", "client.uiSoundVolume"));
         GROUPS.put("display", List.of("client.reducedMotion", "client.shapeShader"));
-        GROUPS.put("safety", List.of("client.serverPages", "client.webLinks", "client.typingNotice"));
+        GROUPS.put("safety", List.of("client.serverPages", "client.webLinks", "client.typingNotice", "client.nestedNotice"));
     }
     private static final Map<String, String> GROUP_ICON = Map.of("sound", "music", "display", "sparkle", "safety", "shield");
 
@@ -45,6 +45,7 @@ public final class ModSettingsPreset implements PageControllers.Controller {
             + "{\"key\":\"client.shapeShader\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":true},"
             + "{\"key\":\"client.serverPages\",\"type\":\"choice\",\"value\":\"ALLOW\",\"default\":\"ALLOW\",\"options\":[\"ALLOW\",\"ASK\",\"BLOCK\"],\"live\":true},"
             + "{\"key\":\"client.webLinks\",\"type\":\"choice\",\"value\":\"ASK\",\"default\":\"ASK\",\"options\":[\"ASK\",\"BLOCK\"],\"live\":true},"
+            + "{\"key\":\"client.nestedNotice\",\"type\":\"choice\",\"value\":\"ON\",\"default\":\"ON\",\"options\":[\"ON\",\"OFF\"],\"live\":true},"
             + "{\"key\":\"client.typingNotice\",\"type\":\"bool\",\"value\":true,\"default\":true,\"live\":true}]}";
 
     private record Item(String key, String type, String value, String def, double min, double max, double step, List<String> options, boolean live) {}
@@ -149,7 +150,10 @@ public final class ModSettingsPreset implements PageControllers.Controller {
         switch (item.type()) {
             case "bool" -> toggle(item, control);
             case "number" -> slider(item, control);
-            default -> choice(item, control);
+            default -> {
+                if (item.key().equals("client.nestedNotice")) noticeToggle(item, control);
+                else choice(item, control);
+            }
         }
         return row;
     }
@@ -169,6 +173,26 @@ public final class ModSettingsPreset implements PageControllers.Controller {
             t.toggleClass("on", on[0]);
         });
         t.toggleClass("on", on[0]);
+    }
+
+    private void noticeToggle(Item item, Element control) {
+        Element toggle = Dom.el(doc, "div", "ore-toggle", null);
+        toggle.setAttribute("tabindex", "0");
+        toggle.setAttribute("role", "switch");
+        boolean[] on = {"ON".equalsIgnoreCase(item.value())};
+        Control show = value -> {
+            on[0] = "ON".equalsIgnoreCase(value);
+            toggle.toggleClass("on", on[0]);
+            toggle.setAttribute("aria-checked", Boolean.toString(on[0]));
+        };
+        Shell.activate(toggle, () -> {
+            String value = on[0] ? "OFF" : "ON";
+            show.show(value);
+            change(item.key(), value);
+        });
+        show.show(item.value());
+        control.appendChild(toggle);
+        controls.put(item.key(), show);
     }
 
     private void slider(Item item, Element control) {

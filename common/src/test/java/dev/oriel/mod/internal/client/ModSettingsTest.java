@@ -127,7 +127,7 @@ class ModSettingsTest {
         var items = ModSettings.state().getAsJsonArray("items");
         for (var item : items) assertEquals(item.getAsJsonObject().get("default"), item.getAsJsonObject().get("value"));
         Properties saved = read();
-        assertEquals(9, saved.size());
+        assertEquals(10, saved.size());
         assertEquals("true", saved.getProperty("client.inspector"));
         assertEquals("100", saved.getProperty("limits.maxNodes"));
         assertEquals("allow", saved.getProperty("client.serverPages"));
@@ -138,7 +138,7 @@ class ModSettingsTest {
         JsonObject state = ModSettings.state();
         assertEquals(1, state.size());
         var items = state.getAsJsonArray("items");
-        assertEquals(7, items.size());
+        assertEquals(8, items.size());
         Map<String, JsonObject> byKey = new LinkedHashMap<>();
         for (var item : items) {
             var entry = item.getAsJsonObject();
@@ -189,6 +189,17 @@ class ModSettingsTest {
         request.add("extra", new JsonObject());
         ModSettings.handle(file, request);
         assertFalse(Files.exists(file));
+    }
+
+    @Test void nestedNoticeUsesOnOffAndPersistsThroughTheWhitelist() throws Exception {
+        set("client.nestedNotice", "off");
+        assertEquals("off", read().getProperty("client.nestedNotice"));
+        set("client.nestedNotice", "invalid");
+        assertEquals("off", read().getProperty("client.nestedNotice"));
+        set("client.nestedNotice", true);
+        assertEquals("off", read().getProperty("client.nestedNotice"));
+        request("{\"op\":\"reset\"}");
+        assertEquals("on", read().getProperty("client.nestedNotice"));
     }
 
     private Properties read() throws Exception {

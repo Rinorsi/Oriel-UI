@@ -6,10 +6,13 @@ import net from 'node:net';
 import crypto from 'node:crypto';
 import {spawn, spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {properties, variantVersions, jarMetadata, readJar} from './check-release.mjs';
 
 const [loader, requestedRoot, ...flags] = process.argv.slice(2);
-if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !['--multiplayer', '--mismatch', '--missing-client', '--jij', '--accept-eula'].includes(f))) {
-  console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--multiplayer] [--mismatch] [--missing-client] [--accept-eula]');
+const scenario = flags.find(f => f.startsWith('--jij-scenario='))?.split('=')[1] ?? 'two-parents';
+if (!['slim', 'top-full', 'two-parents', 'conflict', 'same-core', 'different-core', 'legacy'].includes(scenario)) throw Error('Unknown JiJ scenario: ' + scenario);
+if (!['fabric', 'neoforge'].includes(loader) || !requestedRoot || flags.some(f => !f.startsWith('--jij-scenario=') && !['--multiplayer', '--mismatch', '--missing-client', '--jij', '--accept-eula'].includes(f))) {
+  console.error('Usage: node tools/server-smoke.mjs fabric|neoforge <external-root> [--jij --jij-scenario=slim|top-full|two-parents|conflict|same-core|different-core|legacy] [--multiplayer] [--mismatch] [--missing-client] [--accept-eula]; ORIEL_GWS selects the build wrapper, ORIEL_LOG_DIR selects external build logs');
   process.exit(2);
 }
 const LF = String.fromCharCode(10), CR = String.fromCharCode(13), BS = String.fromCharCode(92);
@@ -42,19 +45,49 @@ fs.writeFileSync(path.join(serverDir, 'server.properties'), [
   'level-type=minecraft:flat', 'generate-structures=false', 'difficulty=peaceful', 'max-players=3',
   'motd=Oriel local server acceptance'
 ].join(LF) + LF);
+const buildProperties = properties(fs.readFileSync(path.join(repo, 'gradle.properties'), 'utf8'));
+const versions = variantVersions(buildProperties.version, buildProperties.oriel_full_patch);
 if (jij) {
-  const version = fs.readFileSync(path.join(repo, 'gradle.properties'), 'utf8').split(LF).find(l => l.startsWith('version=')).slice(8).trim();
-  const library = path.join(repo, loader, 'versions/26.3/build/libs', 'oriel-' + loader + '-26.3-' + version + '.jar');
-  if (!fs.existsSync(library)) throw Error('Build templateCompile before --jij: ' + library);
-  const fixture = spawnSync('java', [path.join(repo, 'tools/compat/BundleFixtures.java'), loader, library, path.join(serverDir, 'mods')], {encoding:'utf8'});
+  const library = version => path.join(repo, loader, 'versions/26.3/build/libs', 'oriel-' + loader + '-26.3-' + version + '.jar');
+  for (const version of Object.values(versions)) if (!fs.existsSync(library(version))) throw Error('Build both distributions before --jij: ' + library(version));
+  const mods = path.join(serverDir, 'mods');
+  if (fs.existsSync(mods) && fs.readdirSync(mods).length) throw Error('JiJ acceptance requires an empty mods directory: ' + mods);
+  const java = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin/java') : 'java';
+  let nested = library(versions.slim), legacyVersion;
+  if (scenario === 'different-core') {
+    nested = path.join(root, 'fixtures/different-core.jar');
+    const changed = spawnSync(java, [path.join(repo, 'tools/compat/DifferentCoreFixture.java'), library(versions.slim), nested,
+      path.join(repo, 'api/26.3.txt')], {cwd:repo, encoding:'utf8'});
+    if (changed.status !== 0) throw Error('Different-core fixture failed: ' + changed.stdout + changed.stderr);
+  }
+  if (scenario === 'legacy') {
+    if (!process.env.ORIEL_LEGACY_JAR) throw Error('legacy scenario requires ORIEL_LEGACY_JAR pointing to a real older release');
+    nested = path.resolve(process.env.ORIEL_LEGACY_JAR);
+    const old = readJar(nested);
+    if (old.entries.has('META-INF/oriel/manifest.json')) throw Error('Legacy fixture must have no manifest');
+    const meta = jarMetadata(old.entries);
+    if (meta.id !== 'oriel' || meta.loader !== loader) throw Error('Wrong legacy release target');
+    legacyVersion = meta.version;
+  }
+  const fixture = spawnSync(java, [path.join(repo, 'tools/compat/BundleFixtures.java'), loader, nested, mods, library(versions.full), scenario,
+    ...(legacyVersion ? [legacyVersion] : [])], {cwd:repo, encoding:'utf8'});
   if (fixture.status !== 0) throw Error('Nested fixture creation failed: ' + fixture.stdout + fixture.stderr);
 }
 
 const quote = value => "'" + value.replaceAll("'", "'" + BS + "''") + "'";
 function launch(name, task, extra = [], runRoot = root) {
-  const log = path.join(root, name + '.log');
+  const logRoot = path.resolve(process.env.ORIEL_LOG_DIR || root);
+  if (insideRepo(logRoot)) throw Error('Log directory must be outside the source repository');
+  fs.mkdirSync(logRoot, {recursive:true});
+  if (insideRepo(fs.realpathSync(logRoot))) throw Error('Log directory resolves inside the source repository');
+  const log = path.join(logRoot, name + '.log');
   const output = fs.createWriteStream(log);
-  const args = [path.join(repo, 'gradlew').replaceAll(BS, '/'), '--offline', '--console=plain', task, ...extra];
+  const projectArg = extra.indexOf('-p');
+  const project = projectArg < 0 ? repo : extra[projectArg + 1];
+  const forwarded = projectArg < 0 ? extra : extra.filter((_, i) => i !== projectArg && i !== projectArg + 1);
+  const wrapper = process.env.ORIEL_GWS;
+  const args = wrapper ? [wrapper, project, task, ...forwarded]
+    : [path.join(repo, 'gradlew').replaceAll(BS, '/'), '-p', project, '--offline', '--console=plain', task, ...forwarded];
   const command = 'exec timeout 900 bash ' + args.map(quote).join(' ');
   const child = spawn(process.env.ORIEL_BASH || (process.platform === 'win32' ? 'C:/Program Files/Git/bin/bash.exe' : 'bash'),
     ['-lc', command], {cwd: repo, env: {...process.env, ORIEL_RUN_DIR: runRoot}, windowsHide: true});
@@ -111,19 +144,44 @@ const runs = [];
 let server, ready = false, success = false;
 try {
   server = jij ? launch('dedicated', 'runServer', ['-p', path.join(repo, 'template', loader), '-PjijAcceptance',
-    '-PjijRunDir=' + serverDir, '-PorielRepository=' + path.join(repo, 'build/template-maven')])
+    '-PjijRunDir=' + serverDir, '-PorielRepository=' + path.join(repo, 'build/template-maven'), '-Poriel_version=' + versions.slim])
     : launch('dedicated', ':' + loader + ':26.1:runServer', ['-PserverProbe']);
   runs.push(server);
+  if (jij && scenario === 'conflict') {
+    const code = await server.done;
+    const [major, minor] = versions.slim.split('.').map(Number);
+    const refused = major + '.' + (minor + 1) + '.0';
+    if (code === 0 || !server.text.includes(refused) || !/oriel_bundle_2/i.test(server.text)
+        || !/incompatible|incompatib|requires|mandatory|dependency|dependencies|resolution/i.test(server.text)
+        || server.text.includes('Done (')) throw Error('Expected loader rejection naming oriel_bundle_2 and ' + refused + '; see ' + server.log);
+    success = true;
+    console.log('JAR_IN_JAR PASS incompatible ranges rejected');
+  } else {
   await until(server, text => text.includes('Done (') && text.includes('RCON running on'), 300);
   ready = true;
-  if (!server.text.includes(jij ? 'ORIEL_JIJ_PROBE parents=true,true' : 'ORIEL_SERVER_PROBE loaded'))
+  const parents = ['two-parents', 'conflict', 'same-core', 'different-core', 'legacy'].includes(scenario) ? 'true,true' : 'true,false';
+  if (!server.text.includes(jij ? 'ORIEL_JIJ_PROBE parents=' + parents : 'ORIEL_SERVER_PROBE loaded'))
     throw Error('Server started without the expected acceptance modules; see ' + server.log);
   if (jij) {
     const version = await rcon('oriel version');
-    if (!version.includes('Oriel UI runtime version: 0.10.2')) throw Error('Loader selected the wrong nested library: ' + version);
+    const expected = scenario === 'slim' ? versions.slim : versions.full;
+    if (!version.includes('Oriel UI runtime version: ' + expected)) throw Error('Loader selected the wrong nested library: ' + version);
     const starts = server.text.split('Oriel UI runtime version:').length - 1;
-    if (starts !== 1 || !server.text.includes('Oriel UI runtime version: 0.10.2')) throw Error('Expected exactly one 0.10.2 runtime: ' + starts);
-    console.log('JAR_IN_JAR PASS two parents, versions 0.10.1/0.10.2, one runtime 0.10.2; /oriel version confirmed');
+    if (starts !== 1 || !server.text.includes('Oriel UI runtime version: ' + expected)) throw Error('Expected exactly one ' + expected + ' runtime: ' + starts);
+    if (!server.text.includes('Oriel nested summary:') || server.text.includes('Oriel nested check failed'))
+      throw Error('Nested scan did not complete; see ' + server.log);
+    const risk = server.text.split(/\r?\n/).filter(line => line.includes('Oriel nested risk:'));
+    if (['different-core', 'legacy'].includes(scenario)) {
+      if (risk.length !== 1 || !risk[0].includes('oriel_bundle_1') || !risk[0].includes('oriel_bundle_2') || !risk[0].includes('WARN'))
+        throw Error('Expected one nested WARN naming both parent mods; see ' + server.log);
+    } else if (risk.length) throw Error('Equal cores must not produce a nested risk WARN; see ' + server.log);
+    const cache = JSON.parse(fs.readFileSync(path.join(serverDir, 'config/oriel/nested-check.json'), 'utf8'));
+    const expectedCopies = scenario === 'slim' ? 1 : 2;
+    if (cache.report.copies.length !== expectedCopies || cache.report.copies.filter(copy => copy.source === cache.report.active.source).length !== 1)
+      throw Error('Nested scan must retain all copies and exactly one active copy');
+    if (scenario === 'legacy' && !JSON.stringify(cache.report.differences).includes('version-only')) throw Error('Legacy comparison was not version-only');
+    if (scenario === 'different-core' && !JSON.stringify(cache.report.differences).includes('assets/oriel/ui/ore.css')) throw Error('Changed core resource was not detected');
+    console.log('JAR_IN_JAR PASS ' + scenario + '; one runtime ' + expected + '; /oriel version and nested diagnostics confirmed');
   }
   if (flags.includes('--mismatch')) {
     const clientRoot = path.join(root, 'mismatch');
@@ -177,11 +235,14 @@ try {
   await rcon('stop');
   if (await server.done !== 0 || !server.text.includes('Stopping server')) throw Error('Dedicated server did not shut down normally');
   success = true;
+  }
 } finally {
   if (!success && ready && server.code === undefined) {
     await rcon('stop').catch(error => console.error('Could not stop server through RCON: ' + error.message));
   }
   const results = await Promise.all(runs.map(async run => ({name: run.name, exit: await run.done, log: run.log})));
-  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, jij, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), missingClientChannels: flags.includes('--missing-client'), success, results}, null, 2));
+  fs.writeFileSync(path.join(root, 'result.json'), JSON.stringify({loader, jij, scenario, multiplayer: flags.includes('--multiplayer'), mismatch: flags.includes('--mismatch'), missingClientChannels: flags.includes('--missing-client'), success, results}, null, 2));
 }
-console.log('PASS: ' + loader + ' dedicated startup, library loading, ' + (flags.includes('--multiplayer') ? 'two-client isolation, ' : '') + 'clean shutdown');
+console.log(jij && scenario === 'conflict'
+  ? 'PASS: ' + loader + ' rejected incompatible dependency ranges before startup'
+  : 'PASS: ' + loader + ' dedicated startup, library loading, ' + (flags.includes('--multiplayer') ? 'two-client isolation, ' : '') + 'clean shutdown');

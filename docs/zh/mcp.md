@@ -1,5 +1,7 @@
 # MCP 页面制作与接入
 
+接入与分发先调用 `oriel_rules`，参数 `{ "topic": "distribution" }`，读取[瘦包、完整版与嵌入依赖](distribution.md)。该主题直接读取 `docs/zh/distribution.md`，与其他主题一样返回 `profile` / `source` / `text` / `rulesHash`，支持可选 `feature`，参与规则哈希；0.12 的运行验证状态以正文为准。当前 `validateProfile` 仍限定并返回 0.11.0，脚手架也有旧依赖常量；这与分发正文的 0.12 合同是已知工具版本缺口，不能据此声称 0.12 工具链已验证，也不要直接把旧范围用于新 jar。
+
 版本化能力发现、JSONL读取、selector why-tree、黄金图独立审批与截图分页见[增量工具合同](d36-agent-tools.md)。协作任务按[编排规范](agent-orchestration.md)；默认迭代与正式交付仍分别遵循本文流程。
 开发期 oriel_layout 的参数、JSONL 与限制见[布局尺寸诊断](d36-r06.md)。它不产生页面批准或游戏验收。
 

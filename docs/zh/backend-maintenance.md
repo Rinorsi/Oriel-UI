@@ -132,19 +132,21 @@ verifyDependencyGraph 解析已声明的编译、运行、测试及 NeoForm 工�
 
 ## Jar-in-Jar 共存验收
 
-先构建当前模板和本地库产物，再分别启动两个仅监听本机的专用验收服务器：
+先构建当前目标的 slim/full，再分别启动仅监听本机的专用验收服务器。当前 `--jij` 固定为 26.3，`ORIEL_GWS` 指定工作区构建入口，`ORIEL_LOG_DIR` 指定外部构建/专服日志目录；完整命令、全部场景与核心 pin 发布流程见[维护约定](maintenance.md#双变体发布与专服复核)。
 
 ```bash
-./gradlew --offline templateCompile
-node tools/server-smoke.mjs fabric /external/jij-fabric --jij --accept-eula
-node tools/server-smoke.mjs neoforge /external/jij-neoforge --jij --accept-eula
+export ORIEL_GWS='/absolute/workspace/tools/gws.sh'
+ORIEL_LOG_DIR=/absolute/workspace/daily/YYYY-MM-DD/logs/jij-fabric \
+  node tools/server-smoke.mjs fabric /absolute/workspace/daily/YYYY-MM-DD/run/jij-fabric --jij --jij-scenario=same-core
+ORIEL_LOG_DIR=/absolute/workspace/daily/YYYY-MM-DD/logs/jij-neoforge \
+  node tools/server-smoke.mjs neoforge /absolute/workspace/daily/YYYY-MM-DD/run/jij-neoforge --jij --jij-scenario=same-core
 ```
 
-EULA 必须由操作者确认；已有 eula=true 时不需要 --accept-eula。每次运行都有900秒上限，正常关闭使用 RCON stop，不停止全局 Gradle daemon。
+EULA 必须由操作者确认；已有 `eula=true` 时不需要 `--accept-eula`。每次运行有 900 秒上限，正常关闭使用 RCON stop，不停止全局 Gradle daemon；每场景用新的外部运行根，`mods/` 必须为空。
 
-脚本在外部运行目录生成两个父模组，各内嵌一份当前 Oriel 代码，测试元数据版本分别为0.10.1和0.10.2，范围都为 [0.10.0,0.11.0)。Fabric 使用标准 nested jars 元数据，NeoForge 使用 JarJar 元数据。模板在该模式仅 compileOnly 依赖 Oriel，不在顶层运行时添加本库，防止顶层开发副本使测试失真。
+`same-core`（也可用 `two-parents`）在外部目录生成两父模组，分别内嵌当前真实 slim/full（0.12.0/0.12.1），两者同目标核心相同，范围为 `[0.12.0,0.13.0)`。Fabric 使用 nested jars，NeoForge 使用 JarJar。`slim` 验单父嵌瘦包；`top-full` 验顶层 full + 父嵌 slim；`different-core` 修改被淘汰副本的实际 Ore CSS 并重算清单；`legacy` 要求 `ORIEL_LEGACY_JAR` 指向匹配加载器/26.3 的真实无清单旧包；`conflict` 验范围无交集的加载器拒绝。
 
-验收断言：两个父模组都加载、仅有一次 Oriel 初始化、运行版本为0.10.2，且真实 /oriel version 命令返回同一版本。日志与 result.json 留在外部目录。夹具的代码相同、元数据版本不同，证明加载器的选择和单实例启动；它不替代未来不同真实发行版本间的业务/API兼容测试。
+26.3 Fabric / NeoForge 的 `same-core/different-core/legacy/slim/top-full` 五场景各已实测：检测摘要、副本数和恰一活动来源、风险 WARN 双方名字、`ore.css` 或 `version-only` 差异按场景断言；正常启动均回读 `/oriel version` 并停服，共 10/10。混装选择 0.12.1，单嵌 slim 为 0.12.0。范围冲突的明确拒绝沿用 A 阶段证据，未计入 B 五场景。日志与 result.json 留在外部目录，具体验证等级见[分发指南](distribution.md#5-多个模组都带-oriel-时)。这些结果不证明游戏客户端、26.1.2 / 26.2 混装或真实 Editor 迁移；历史 0.10 同代码改元数据夹具只证明当时的择优与单实例，不再是当前脚本的场景描述。
 
 正常客户端和服务端启动均记录加载器实际选中的版本；/oriel version 在对应侧输出该版本，不读取编译期常量。
 

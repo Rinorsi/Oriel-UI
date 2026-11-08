@@ -10,6 +10,8 @@
 
 > 给任何在本仓库工作的 agent。先读本文，再读工作区里的决策文档（路径见下）。
 
+> **接入、打包或升级先读 [分发指南](docs/zh/distribution.md)**（MCP：`oriel_rules` 的 `topic=distribution`）：0.12 起瘦包 `X.Y.0`、完整版 `X.Y.N`（N≥1），核心有任何改动都升 minor。下游选嵌入瘦包或外部必需依赖，范围为 `>=0.12.0 <0.13.0` / `[0.12.0,0.13.0)`；所用模板/showcase/demo 复制到自己的模组，不依赖库内参考内容。嵌套提示及混装的验证范围以该页为准。
+
 ## 这是什么
 
 **优易库（中文名）/ Oriel UI（英文名）**：面向 Minecraft Java 版的现代化模组 UI 库。类 HTML/CSS 的声明式界面，Fabric + NeoForge，MC 26.x，Java 25，agent 友好（热重载、截图、校验器、MCP）。视觉第一版对齐 Ore UI（像素斜角风格），同时支持 SDF 平滑风格。之后在其上做我们自己的模组（武器/组件编辑器、药水 HUD、锻造台 HUD）。

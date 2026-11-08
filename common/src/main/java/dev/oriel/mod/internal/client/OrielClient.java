@@ -48,12 +48,13 @@ public final class OrielClient {
     public static void init(Consumer<CustomPacketPayload> sender) {
         serverSender = sender;
         OrielResources.init();
-        OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE);
-        // The server's repair forge (/oriel-forge): a real container on the kit's forge station page.
-        OrielScreens.registerContainer(dev.oriel.mod.server.ForgeMenu.TYPE, OrielKit.FORGE_STATION, dev.oriel.mod.server.ForgeMenu::pageData);
-        OrielHud.register(DEMO_HUD, "oriel:oriel/demo/hud.html");
-        OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
-        OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
+        if (dev.oriel.kit.ReferenceContent.available()) {
+            OrielScreens.registerContainer(OrielDemos.CHEST, OrielDemos.CHEST_PAGE);
+            OrielScreens.registerContainer(dev.oriel.mod.server.ForgeMenu.TYPE, OrielKit.FORGE_STATION, dev.oriel.mod.server.ForgeMenu::pageData);
+            OrielHud.register(DEMO_HUD, "oriel:oriel/demo/hud.html");
+            OrielHud.register(DEMO_TOAST, "oriel:oriel/demo/toast.html", OrielHud.Input.WHEN_CHAT_OPEN);
+            OrielScreens.onPageLoad(Mobdex.URL, Mobdex::load);
+        }
         OrielKit.register();
         if (DevFlags.RELOAD_AVAILABLE) DevReload.init();
         // Pickers list every registered item (vanilla and modded) by the name the game shows in its language.
@@ -77,7 +78,8 @@ public final class OrielClient {
             return all;
         });
         // The template centre's favourites, recently viewed and saved copies (config/oriel/).
-        TemplateLibrary.init();
+        MyPages.init();
+        if (dev.oriel.kit.ReferenceContent.available()) TemplateLibrary.init();
         ModSettings.init();
     }
 
@@ -87,7 +89,7 @@ public final class OrielClient {
 
     /** Handles every clientbound payload in {@code OrielNetwork.CLIENTBOUND}; {@link ServerPages} decides what servers may show. */
     public static void handle(CustomPacketPayload payload) {
-        if (ServerProbeClient.ENABLED) ServerProbeClient.received(payload);
+        if (dev.oriel.kit.ReferenceContent.available() && ServerProbeClient.ENABLED) ServerProbeClient.received(payload);
         switch (payload) {
             case OpenPayload p -> ServerPages.open(p);
             case DataPayload p -> ServerPages.data(p);
@@ -112,9 +114,10 @@ public final class OrielClient {
 
     /** Called by the loaders at the end of every client tick. */
     public static void tick() {
+        NestedNoticeClient.tick();
         OrielKeys.tick();
-        if (ServerProbeClient.ENABLED) ServerProbeClient.tick();
+        if (dev.oriel.kit.ReferenceContent.available() && ServerProbeClient.ENABLED) ServerProbeClient.tick();
         ServerPages.tick();
-        Mobdex.tick();
+        if (dev.oriel.kit.ReferenceContent.available()) Mobdex.tick();
     }
 }

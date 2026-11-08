@@ -25,6 +25,7 @@ public final class OrielNeoForge {
 
     public OrielNeoForge(IEventBus modBus, ModContainer container) {
         OrielCommon.init();
+        NeoForgeNestedScan.start();
         modBus.addListener(OrielNeoForge::register);
         modBus.addListener(OrielNeoForge::registerPayloads);
 
