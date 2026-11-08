@@ -187,7 +187,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   }
   const files = args.filter(s => !s.startsWith('--'));
   if ((!files.length && !mavenArg) || (record && !files.length) || args.some(s => s.startsWith('--') && !s.startsWith('--maven-dir=') && !s.startsWith('--rebase-core-unreleased=') && !['--record-core','--allow-unrecorded','--check-only'].includes(s)))
-    throw Error('Usage: node tools/check-release.mjs [slim.jar full.jar ...] [--record-core|--allow-unrecorded] [--maven-dir=<local Maven directory>]');
+    throw Error('Usage: node tools/check-release.mjs [slim.jar full.jar ...] [--record-core|--allow-unrecorded|--rebase-core-unreleased=<source SHA> [--check-only]] [--maven-dir=<local Maven directory>]');
   const maven = mavenArg ? auditMaven(mavenArg.slice('--maven-dir='.length)) : null;
   const results = files.map(file => auditJar(file, {allowUnrecorded: record || allowUnrecorded, rebaseUnreleased: Boolean(rebaseArg)}));
   for (const slim of results.filter(r => r.variant === 'slim')) for (const full of results.filter(r => r.variant === 'full' && r.target === slim.target)) {

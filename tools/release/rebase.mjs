@@ -28,5 +28,5 @@ export function rebasePins(text, results, source) {
     return next;
   });
   return lines.join('\n')+'\n# Unreleased core rebase source='+source+'\n'+previous.join('\n')+'\n'
-    + [...replacements].map(([k,v]) => k+'='+v).join('\n')+'\n';
+    + (replacements.size ? [...replacements].map(([k,v]) => k+'='+v).join('\n')+'\n' : '');
 }

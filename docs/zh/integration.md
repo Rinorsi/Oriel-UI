@@ -177,7 +177,7 @@ session.close();
 
 页面必须在客户端存在（客户端装了你的模组，或服务器资源包提供了它）；纯服务端模组可以用 `OrielServer.openInline(player, html, data)` 把整页 HTML 发过去。**把页面发来的每条消息当成恶意输入**：校验玩家、校验范围、校验物品是否还在手上。本库已经替你做了限频、大小和嵌套深度限制、会话数上限，但"这个操作合不合理"只有你的代码知道。参考实现：`common/.../server/ItemEditor.java`。
 
-**本节的服务端功能需要两端都有库**：装有 Oriel 的服务器会在玩家加入时通过 `requireOnClient` 拒绝未装或协议不兼容的客户端，给出双语提示，这是当前源码行为。客户端单装时只能使用本地能力，不能调用本节的 `OrielServer` 会话、服务端推送或 `ForgeMenu`；连接无库服务器的场景**未实测**。`driver.serverSession()` 只是页面来源标记，不是服务器装库探测；没有统一服务端能力探测 API，等待服务端确认的业务必须自己设计回执和超时。
+**本节的服务端功能需要两端都有库**：装有 Oriel 的服务器会在玩家加入时通过 `requireOnClient` 拒绝未装或协议不兼容的客户端，给出双语提示，这是当前源码行为。客户端单装时只能使用本地能力，不能调用本节的 `OrielServer` 会话、服务端推送或 `ForgeMenu`；连接无库服务器的 26.3 指定场景已实测，包含 Fabric/NeoForge 独立专服及 Fabric 瘦包连接原版专服，本地页面/消息/HUD/热重载通过，详见[分发指南](distribution.md#已测边界)。`driver.serverSession()` 只是页面来源标记，不是服务器装库探测；没有统一服务端能力探测 API，等待服务端确认的业务必须自己设计回执和超时。
 
 ## 7. 带物品槽的界面（D 类）
 
@@ -196,7 +196,7 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 
 ## 8. 命令与配置
 
-下表的 showcase / 演示项只适用于完整版；瘦包移除参考入口或明确说明不含演示内容。两变体都提供 `/oriel settings` 和 `/oriel about`。瘦包 Home 动作打开模组设置，`Shell.back()` 直接关闭；关于页模板头像回退到核心 emblem。我的页面仍可用 `/oriel open oriel_mine:<目录>/index.html` 打开并保留热重载。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；只有完整版包含实现、默认 screen、`oriel:forge` 注册和 `/oriel-forge`，瘦包均不包含。公共容器绑定 API 保留。上述入口已做控制器隔离/JVM 链接验证，游戏内点击与热重载仍未验证。
+下表的 showcase / 演示项只适用于完整版；瘦包移除参考入口或明确说明不含演示内容。两变体都提供 `/oriel settings` 和 `/oriel about`。瘦包 Home 动作打开模组设置，`Shell.back()` 直接关闭；关于页模板头像回退到核心 emblem。我的页面仍可用 `/oriel open oriel_mine:<目录>/index.html` 打开并保留热重载。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；只有完整版包含实现、默认 screen、`oriel:forge` 注册和 `/oriel-forge`，瘦包均不包含。公共容器绑定 API 保留。游戏实测范围以[分发指南](distribution.md#已测边界)为准；本轮包括 26.3 本地页面、按钮消息、HUD 和热重载，不代表所有入口/交互均已验证。
 
 | 命令 | 作用 |
 |---|---|

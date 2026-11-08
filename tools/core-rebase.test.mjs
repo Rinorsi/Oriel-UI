@@ -14,6 +14,9 @@ test('rebase requires all six matching pairs and records old pins and source', (
   const old = '# previous audit\n0.11.fabric-26.3='+'c'.repeat(64)+'\n0.12.fabric-26.3='+'d'.repeat(64)+'\n';
   const next = rebasePins(old, pairs, source);
   assert.ok(next.includes('source='+source));
+  assert.ok(!next.endsWith('\n\n'));
+  const complete = pairs.filter(r => r.variant === 'slim').map(r => r.minor+'.'+r.target+'='+'d'.repeat(64)).join('\n')+'\n';
+  assert.ok(!rebasePins(complete, pairs, source).endsWith('\n\n'));
   assert.ok(next.includes('previous 0.12.fabric-26.3='+'d'.repeat(64)));
   assert.ok(next.includes('0.11.fabric-26.3='+'c'.repeat(64)));
   assert.throws(() => rebasePins(old, pairs.slice(1), source));

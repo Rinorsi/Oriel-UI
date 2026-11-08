@@ -8,7 +8,7 @@ Oriel 的页面运行在客户端。服务端决定业务状态和物品变化�
 
 **客户端装 Oriel 不要求服务端也装；这是本地功能路径的源码判断，连接场景未实测。服务端装 Oriel 则要求客户端也装并匹配协议。** 两个方向不能互相推导，完整说明、加载器元数据写法与计划验证见[服务端到底要不要装 Oriel](distribution.md#服务端到底要不要装-oriel)。
 
-客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端；NeoForge 通道注册为 optional。但连接无 Oriel 的 Fabric / NeoForge 专服及原版服务端、注册表同步仍**待验证**。没有服务端 Oriel 时，`OrielServer` 会话、推页面/数据和 `ForgeMenu` 不可用。当前下游专服验收只覆盖带服务端部分的 Editor，不能外推为纯客户端场景通过。
+客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端。26.3 已实测 Fabric full 客户端→无库 Fabric 专服、NeoForge full JAR→无库 NeoForge 专服、Fabric slim JAR→原版专服；均正常进服，本地页面/消息/HUD/热重载通过，未出现额外参考菜单注册导致的拒绝。精确版本与未测边界见[分发指南](distribution.md#已测边界)。没有服务端 Oriel 时，`OrielServer` 会话、推页面/数据不可用；ForgeMenu 参考也不能在没有相应服务端实现时提供业务。
 
 反方向的当前源码行为明确：服务端有库而客户端没有时，两个加载器在玩家加入时都调用 `requireOnClient` 主动断开，提示中英文原因，当前不支持。optional 通道不会跳过此检查。
 
@@ -100,7 +100,7 @@ public final class ServerPageExample {
 
 MenuType 和菜单工厂属于公共注册，实际菜单实例在服务端拥有输入、输出和配方计算。客户端工厂建立相同数量和顺序的槽，只接收原版同步结果。OrielContainerScreen 将 HTML 的 slot 元素映射到菜单索引，点击、拖拽、Shift 点击、拾取物品走原版菜单包。
 
-现有完整版 `/oriel showcase chest` 和 `/oriel-forge` 是可复制参考。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；它位于 `dev.oriel.mod.internal.server`，不属于公共 API，瘦包不包含该类或 `oriel:forge` 注册。复制菜单、控制器、页面和 `assets/oriel/reference/lang/` 中的语言文件，改用自己的包名、注册 ID 和资源命名空间。以下 `mymod.server.ForgeMenu` 指复制后的实现：
+现有完整版 `/oriel showcase chest` 和 `/oriel-forge` 是可复制参考。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；它位于 `dev.oriel.mod.internal.server`，不属于公共 API，瘦包不包含该类或 `oriel:forge` 注册。复制菜单、控制器、页面和 `assets/oriel/reference/lang/` 中的语言文件，改用自己的包名、注册 ID 和资源命名空间。复制后用加载器的注册 API 替换参考类中的 `OrielRegistry`；将 `OrielNetwork` / `OpenPayload` 的内部检查替换为自己模组的客户端依赖或握手约束，不继续导入这些内部类。语言键移入自己的语言文件或自有 bundle。以下 `mymod.server.ForgeMenu` 指完成这些适配后的实现：
 
 ```java
 import mymod.server.ForgeMenu;
