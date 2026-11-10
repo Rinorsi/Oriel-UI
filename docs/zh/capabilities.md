@@ -8,6 +8,9 @@
 
 ## 选择界面类型
 
+0.13 新增每 driver 原生比例（自动、1～4），普通 OrielScreen 可在不重载文档的情况下切换。
+原版菜单槽暂拒绝非自动比例；API、坐标与实测边界见[页面接口](pages.md)。
+
 选择器默认用新匹配器（2026-11-08 起）；old/both 开关、复杂度与作用域合同见 [CSS 选择器](css-guide.md#选择器实现与迁移开关)。开关不扩大页面语法或游戏验收范围。
 
 Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟预览、引擎严格检查、固定版本用户验收、oriel-dev / oriel-folder / mod-project 资源接入；前两者支持独立游戏预览，mod-project 需在下游游戏验证（参数见 MCP 手册）。网页桥接首版支持普通 DOM/JS，外部 Java 控制器及 Oriel 模板需专门适配，不能直接在浏览器执行。该工具能力不扩大下面列出的引擎 HTML/CSS/JS 范围。
@@ -51,7 +54,7 @@ Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟�
 - 形状：实线/虚线等边框、圆角、`box-shadow`、`text-shadow`、`border-image`、文字描边、渐变字。
 - 合成：blur/brightness/contrast/grayscale/invert/opacity/saturate/sepia/hue-rotate/drop-shadow；clip 的 inset/circle/ellipse/polygon；mask 的 add/subtract/intersect/exclude；混合模式见 CSS 表。
 - 动态：2D 平移缩放旋转倾斜、transition、keyframes、命名动效、FLIP、Java Canvas 粒子；3D 内容通过 `-mc-yaw/-mc-pitch` 转动。
-- 控件：输入、多行、复选、单选、range、select、进度、details；Ore 页签、菜单、抽屉、浮层、通知、懒显示需正确接控制器。
+- 控件：输入、多行、复选、单选、range、select、进度、details；Ore 页签、菜单、抽屉、浮层、通知、懒显示需正确接控制器。0.15 的原生 textarea 支持可选 UTF-16 着色、行号、wrap=off 横滚及脚本选区定位，保留同一文本/撤销模型，详见[脚本手册](scripting.md#原生多行编辑着色015)。
 
 filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不代表能像浏览器一样平滑插值。要平滑呼吸光，优先使用 `opacity`、颜色、阴影、transform。
 

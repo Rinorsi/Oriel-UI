@@ -6,6 +6,10 @@
 
 ## 命令与开发环境
 
+0.13 的 `OrielAutomation.rect/pointerTarget` 返回原版 GUI 坐标，即使目标 driver
+启用了独立比例；DOM 内部布局和脚本坐标仍为页面逻辑像素，自定义工具用
+`driver.toGui/toPage` 转换。独立比例不会重建 Document，原生渲染/IME 应另做实机验证。
+
 | 命令 | 端 | 说明 |
 |---|---|---|
 | `/oriel open <url>` | 客户端 | 打开任意页面，如 `/oriel open mymod:oriel/shop.html`。 |

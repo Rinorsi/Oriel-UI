@@ -89,12 +89,27 @@ public final class Controls {
         boolean showPlaceholder = editor.text().isEmpty() && placeholder != null;
         TextLayout shown = showPlaceholder ? field.placeholderLayout(placeholder) : value;
         boolean clip = clipIf(canvas, box, field.overflows(shown));
+        float gutter = field.gutter();
+        if (gutter > 0) {
+            int number = 1;
+            for (int i = 0; i < shown.lineCount(); i++) {
+                if (i == 0 || !shown.line(i - 1).softWrapped()) {
+                    String label = Integer.toString(number++);
+                    float width = field.measure().width(label, field.font(), s);
+                    TextPainter.draw(canvas, label, null, box.contentX() + gutter - width - field.measure().width(" ", field.font(), s),
+                            field.glyphY(i), field.font(), s, Colors.withAlphaFactor(s.color, 0.5f));
+                }
+            }
+            canvas.save();
+            canvas.clipRect(box.contentX() + gutter, box.contentY(), Math.max(0, box.contentWidth() - gutter), box.contentHeight());
+        }
         if (showPlaceholder) {
             ComputedStyle ps = el.placeholderStyle;
             drawLines(canvas, box, field, shown, ps != null ? ps : s,
                     ps != null ? ps.color : Colors.withAlphaFactor(s.color, PLACEHOLDER_ALPHA));
         } else if (field.preedit() != null && el.isFocused()) {
             paintComposition(canvas, box, field, s);
+            if (gutter > 0) canvas.restore();
             if (clip) canvas.restore();
             return;
         } else {
@@ -106,6 +121,7 @@ public final class Controls {
             canvas.fillRect(TextPainter.snap(canvas, field.textX() + value.x(caret)),
                     TextPainter.snap(canvas, field.glyphY(value.lineOf(caret))), 1, field.glyphHeight(), s.color);
         }
+        if (gutter > 0) canvas.restore();
         if (clip) canvas.restore();
     }
 
@@ -164,8 +180,35 @@ public final class Controls {
             float y = field.glyphY(i);
             if (y + lineHeight < 0 || y - lineHeight > box.height) continue; // scrolled out (the clip trims the rest)
             TextLayout.Line line = layout.line(i);
-            TextPainter.draw(canvas, line.display(), line.spaced(), x, y, font, s, color);
+            TextHighlights.State highlights = field.highlights;
+            if (highlights == null || !highlights.source().equals(field.editor.text()) || field.preedit() != null) {
+                TextPainter.draw(canvas, line.display(), line.spaced(), x, y, font, s, color);
+                continue;
+            }
+            int at = line.start();
+            // Binary search avoids rescanning all preceding tokens for each visible line.
+            int lo = 0, hi = highlights.ranges().size();
+            while (lo < hi) {
+                int mid = (lo + hi) >>> 1;
+                if (highlights.ranges().get(mid).end() <= at) lo = mid + 1; else hi = mid;
+            }
+            for (int r = lo; r < highlights.ranges().size(); r++) {
+                TextHighlights.Range range = highlights.ranges().get(r);
+                if (range.start() >= line.end()) break;
+                int start = Math.max(at, range.start()), end = Math.min(line.end(), range.end());
+                drawSpan(canvas, field, line, at, start, x, y, font, s, color);
+                drawSpan(canvas, field, line, start, end, x, y, font, s, range.color());
+                at = end;
+            }
+            drawSpan(canvas, field, line, at, line.end(), x, y, font, s, color);
         }
+    }
+
+    private static void drawSpan(Canvas canvas, TextField field, TextLayout.Line line, int start, int end,
+                                 float x, float y, FontSpec font, ComputedStyle s, int color) {
+        if (start >= end) return;
+        String text = line.display().substring(start - line.start(), end - line.start());
+        TextPainter.draw(canvas, text, field.measure().spaced(text, font, s), x + line.x(start), y, font, s, color);
     }
 
     /** The UA stylesheet draws checkboxes and radios with sprites; without a background, draw a plain mark. */

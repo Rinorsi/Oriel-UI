@@ -18,6 +18,10 @@ dev.oriel.mod.client.DocumentDriver [public] dev.oriel.engine.dom.@org.jspecify.
 dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver onClose(java.lang.Runnable) throws= varargs=false
 dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver onKey(java.util.function.Predicate<net.minecraft.client.input.KeyEvent>) throws= varargs=false
 dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver onMessage(java.lang.String,java.util.function.Consumer<com.google.gson.JsonElement>) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] dev.oriel.mod.client.DocumentDriver uiScale(int) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] double toGui(double) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] double toPage(double) throws= varargs=false
+dev.oriel.mod.client.DocumentDriver [public] int uiScale() throws= varargs=false
 dev.oriel.mod.client.DocumentDriver [public] java.lang.String url() throws= varargs=false
 dev.oriel.mod.client.DocumentDriver [public] void DocumentDriver(dev.oriel.mod.client.DocumentDriver.Owner,java.lang.String,java.lang.@org.jspecify.annotations.Nullable String,int) throws= varargs=false
 dev.oriel.mod.client.DocumentDriver [public] void close() throws= varargs=false

@@ -173,6 +173,20 @@ Oriel 的 `activationsound` 是可冒泡、可取消的 `Event`：原生按钮/�
 
 `title` 属性显示提示框（规则见[元素](elements.md#提示框与物品提示)）。Minecraft 的朗读器会读页面标题、获得焦点或悬停的元素的名称和角色（`aria-label`、`aria-labelledby`、`role`、`aria-hidden`），以及文字变化时的实时区域（`aria-live`、`role="status"`、`"log"`、`"alert"`）。规则见[朗读](narration.md)。脚本通过改变这些属性和区域文字来改变朗读内容。
 
+### 原生多行编辑着色（0.15）
+
+`textarea.setTextHighlights(source, ranges, lineNumbers)` 在同一原生输入模型上着色。
+`source` 必须等于当前 `value`，否则返回 `false`；成功返回 `true`。
+`ranges` 是有序、互不重叠的 `{start,end,color}` 数组：UTF-16 半开区间，不能切断代理对，
+`color` 是 `0..4294967295` 的整数 ARGB，最多 100000 段；非法参数抛出 TypeError。
+不调用时使用原文字色；改变 value 后必须重新提供对应范围。此 API 不修改文本、光标或历史。
+`lineNumbers` 布尔值缺省为 false，行号与原文本共享布局、滚动和裁剪。
+`wrap=off` 关闭软折行并允许横滚。预编辑仍使用原生 composition，暂不着色未提交文字。
+`selectionStart` / `selectionEnd` 只读；`setSelectionRange(start,end)` 通过已有原生文本模型
+选择 UTF-16 范围（等值定位光标，越界截到值范围）。不改 value 或撤销历史，非文本控件不操作。
+例如 `ta.setTextHighlights(ta.value,[{start:0,end:1,color:4286564607}],true)`，
+再用 `ta.setSelectionRange(0,1)` 可定位诊断。脚本/绘制和原生输入有单测；真实游戏、系统 IME 候选窗另验。
+
 ## 动画
 
 `el.animate(keyframes, options)` 在元素 CSS 之上运行 Web Animations 风格的动画：

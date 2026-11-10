@@ -23,9 +23,9 @@ side = "BOTH"
 
 # Required: launchers install Oriel along with your mod. Also list it as a required dependency on your Modrinth and
 # CurseForge pages.
-# The 0.12 range accepts slim 0.12.0 and full 0.12.1; older consumers must migrate and verify.
+# The 0.15 range accepts slim 0.15.0 and full 0.15.1; older consumers must migrate and verify.
 [[dependencies.${mod_id}]]
 modId = "oriel"
 type = "required"
-versionRange = "[0.12.0,0.13.0)"
+versionRange = "[0.15.0,0.16.0)"
 side = "BOTH"

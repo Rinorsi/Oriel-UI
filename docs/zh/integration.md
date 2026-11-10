@@ -2,13 +2,17 @@
 
 [文档总目录](index.md)
 
-**打包前必读：[分发指南：瘦包 / 完整版 / Jar-in-Jar](distribution.md)**。本页依赖配方已迁到 0.12；六目标双变体产物与 26.3 双加载器专服五场景已验证，真实下游运行、客户端弹窗及游戏内设置未验证。完整范围见分发指南，旧版验证不能直接沿用。
+**打包前必读：[分发指南：瘦包 / 完整版 / Jar-in-Jar](distribution.md)**。当前配方使用 0.15.0 瘦包及同 minor 范围。0.12 的专服与客户端记录保留其历史适用范围；不能将旧版验证直接转记为 0.15 已通过。完整范围见分发指南。
 
 给**下游模组作者**（和帮他们写代码的 AI）。读完你应该知道：我的界面属于哪一类、依赖怎么加、页面放哪、怎么打开、怎么和模组代码或服务端对话。
 
 > 本页只写"怎么选、怎么串起来"。每个 API 的完整行为与限制见 [页面接口](pages.md)、[HUD 叠加层](hud.md)、[容器页面](containers.md)，方法签名速查见 [Java API](java-api.md)。
 
 ## 1. 先判断：你的界面属于哪一类
+
+0.13 的普通客户端页面可用 `screen.driver().uiScale(0..4)` 选择独立原生比例，
+默认 0 跟随游戏；保持原 Document，宿主自行保存偏好。不要为此套工作区 CSS transform
+或修改全局 GUI 选项。坐标转换及原版菜单槽限制见[页面接口](pages.md#独立页面比例013)。
 
 判断标准只有一条：**这个操作的结果会不会改变游戏世界里的真实数据？**
 
@@ -57,11 +61,11 @@ dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") { transiti
 
 所有目标均使用 Java 25 和未混淆的 Minecraft API。Fabric 使用 `implementation`，无需旧版 remapping Loom。26.1/26.2 使用 GLFW 输入事件；26.3 使用 SDL。渲染包迁移等差异见[版本适配](versions.md)。
 
-推荐的做法是必需依赖：`neoforge.mods.toml` 里 `[[dependencies.<modid>]] modId="oriel" type="required"`，`versionRange="[0.12.0,0.13.0)"`；`fabric.mod.json` 里 `"depends": {"oriel": ">=0.12.0 <0.13.0"}`；并在你的 Modrinth 和 CurseForge 页面上声明必需依赖，这样启动器会和你的 mod 一起安装它。玩家这样就能直接得到 Oriel 的修复，不用等你的下一个版本。
+推荐的做法是必需依赖：`neoforge.mods.toml` 里 `[[dependencies.<modid>]] modId="oriel" type="required"`，`versionRange="[0.15.0,0.16.0)"`；`fabric.mod.json` 里 `"depends": {"oriel": ">=0.15.0 <0.16.0"}`；并在你的 Modrinth 和 CurseForge 页面上声明必需依赖，这样启动器会和你的 mod 一起安装它。玩家这样就能直接得到 Oriel 的修复，不用等你的下一个版本。
 
 ### Jar-in-Jar：嵌入瘦包
 
-也可以把 **0.12.0 瘦包**打进你的 jar，让玩家只装一个文件。模板提供 `-PorielEmbedded=true` 开关：Fabric 用禁传递解析的 `implementation` 与 `include`；NeoForge 用 `jarJar` 声明 `[0.12.0,0.13.0)` 的严格范围及 `0.12.0` 优先版本。完整 Groovy 与元数据片段见[分发指南第 4 节](distribution.md#4-gradle-与加载器元数据)，不要只给 NeoForge 的 TOML 写范围、却把嵌套清单锁死为单一版本。两种变体的 id 都为 `oriel`，完整版 `0.12.1` 也满足此范围。
+也可以把 **0.15.0 瘦包**打进你的 jar，让玩家只装一个文件。模板提供 `-PorielEmbedded=true` 开关：Fabric 用禁传递解析的 `implementation` 与 `include`；NeoForge 用 `jarJar` 声明 `[0.15.0,0.16.0)` 的严格范围及 `0.15.0` 优先版本。完整 Groovy 与元数据片段见[分发指南第 4 节](distribution.md#4-gradle-与加载器元数据)，不要只给 NeoForge 的 TOML 写范围、却把嵌套清单锁死为单一版本。两种变体的 id 都为 `oriel`，完整版 `0.15.1` 也满足此范围。
 
 无论哪种方式，都要在 `neoforge.mods.toml` 或 `fabric.mod.json` 里保留必需依赖。多个 mod 都带了 Oriel、或玩家另外装了它时，加载器先满足全部消费者的版本约束再选一份可用版本，约束无交集会拒绝加载，不保证总是选最新版，所以实际加载的版本可能与你编译时用的不同。Oriel 仍然显示在 mod 列表里，并保留自己的配置文件。Rhino 的许可证和声明已在 Oriel 的 jar 里。
 
@@ -83,7 +87,7 @@ dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") { transiti
 
 公共 API 是：`dev.oriel.mod.server.OrielServer`、`OrielSession`、设置文件的键，以及 `dev.oriel.mod.client.OrielScreens`、`OrielScreen`、`OrielContainerScreen`、`OrielHud`、`OrielEntities`、`OrielAutomation` 和 `DocumentDriver` 的公共方法。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；不再属于公共 API。带 `@ApiStatus.Internal` 注解的成员是跨包的实现桥接，不是下游 API。所有实现类都在 `dev.oriel.mod.internal` 之下；即使 Java 的可见性是 public，也不要导入它们。
 
-1.0 之前，不兼容的受支持 API 变更必须提升 minor。**0.12 起进一步规定：核心任何变化（包括 bug 修复）都升 minor；同 minor 的完整版补丁只更新参考内容。** 当前模板范围为 `>=0.12.0 <0.13.0` / `[0.12.0,0.13.0)`，覆盖瘦包 `0.12.0` 和完整版 `0.12.1`。旧的 0.9 槽位回调到 0.10 的 `DocumentDriver.SlotSink`、0.11 移出物品编辑器等仍是历史迁移边界；旧消费者必须保留原范围，完成迁移再升级，不能只放宽范围。已有 0.11 下游（如 Editor）的 0.12 编译、业务、资源和游戏验证未完成前，不应发布兼容声明。详见[升级说明](upgrading.md)。
+1.0 之前，不兼容的受支持 API 变更必须提升 minor。**0.12 起进一步规定：核心任何变化（包括 bug 修复）都升 minor；同 minor 的完整版补丁只更新参考内容。** 当前模板范围为 `>=0.15.0 <0.16.0` / `[0.15.0,0.16.0)`，覆盖瘦包 `0.15.0` 和完整版 `0.15.1`。旧的 0.9 槽位回调到 0.10 的 `DocumentDriver.SlotSink`、0.11 移出物品编辑器等仍是历史迁移边界；旧消费者必须保留原范围，完成迁移再升级，不能只放宽范围。已有 0.11 下游（如 Editor）的 0.12 编译、业务、资源和游戏验证未完成前，不应发布兼容声明。详见[升级说明](upgrading.md)。
 
 跨 minor 必须迁移消费者并分别验证；只改版本元数据的夹具、共同 DOM 子集的无头通过，都不能证明游戏内或全部 API 兼容。实际发行 jar 的无头消费者探针见[验证工具](../../tools/compat/README.md)。嵌入和外部依赖都支持；推荐外部必需依赖。瘦包不含模板、showcase、demo 等参考内容，要复用就[复制到自己的模组](showcase.md#怎么复用到你的模组)。嵌套检测与提示 **0.12 起提供**：26.3 双加载器专服、单元与通知页预览已测，游戏弹窗仍未验证；不能替代加载器约束或兼容性测试。
 

@@ -9,6 +9,7 @@ import dev.oriel.mod.internal.client.McText;
 import dev.oriel.mod.internal.client.OrielClient;
 import dev.oriel.mod.internal.client.OrielResources;
 import dev.oriel.mod.internal.client.PageNarrator;
+import dev.oriel.mod.internal.client.PageScale;
 import dev.oriel.mod.internal.client.ServerPages;
 
 import com.google.gson.JsonElement;
@@ -138,6 +139,8 @@ public final class DocumentDriver {
     private net.minecraft.locale.Language translationSource;
     private @Nullable ErrorPanel error;
     private int width, height;
+    private int uiScale;
+    private double lastVanillaScale;
     /** The inspected page's width: the screen's, less the inspector's panel while it is open. */
     private int pageWidth;
     private @Nullable InspectorAccess inspector;
@@ -224,6 +227,34 @@ public final class DocumentDriver {
     }
 
     // ---- Lifecycle ----
+
+    /** The page's independent GUI scale: 0 follows Minecraft (the default), 1..4 are explicit. */
+    public int uiScale() { return uiScale; }
+
+    /**
+     * Changes layout, painting and input together, keeping this Document, its focus and script state.
+     * Does not change Minecraft's options or any other driver. Render thread only.
+     */
+    public DocumentDriver uiScale(int value) {
+        PageScale.resolve(value, Minecraft.getInstance().getWindow().getGuiScale());
+        if (value != 0 && owner.slots() != null)
+            throw new IllegalStateException("Independent UI scale is not supported by native menu slots");
+        if (uiScale != value) {
+            uiScale = value;
+            applyViewport(document);
+        }
+        return this;
+    }
+
+    private PageScale scale() {
+        return PageScale.resolve(uiScale, Minecraft.getInstance().getWindow().getGuiScale());
+    }
+
+    /** Converts one vanilla GUI coordinate to this page's viewport coordinate. */
+    public double toPage(double guiCoordinate) { return scale().toPage(guiCoordinate); }
+
+    /** Converts one page viewport coordinate to vanilla GUI coordinates (for custom owners/automation). */
+    public double toGui(double pageCoordinate) { return scale().toGui(pageCoordinate); }
 
     /** Sets the viewport (GUI-scaled size); loads the page on first use. */
     public void resize(int width, int height) {
@@ -330,7 +361,9 @@ public final class DocumentDriver {
     /** The GUI-scaled window, which pages are laid out in. */
     private Viewport viewport() {
         // A minimised or mid-resize window can report 0x0; a page laid out at zero size has nothing to show anyway.
-        return new Viewport(Math.max(1, pageWidth), Math.max(1, height), (float) Minecraft.getInstance().getWindow().getGuiScale());
+        PageScale s = scale();
+        lastVanillaScale = Minecraft.getInstance().getWindow().getGuiScale();
+        return new Viewport(s.extent(pageWidth), s.extent(height), s.devicePixelRatio());
     }
 
     private void disposeDocument() {
@@ -354,6 +387,7 @@ public final class DocumentDriver {
     /** {@link #extract} without the title tooltip, for owners that draw over the page and show it later. */
     @org.jetbrains.annotations.ApiStatus.Internal
     public void extractPage(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+        if (lastVanillaScale != Minecraft.getInstance().getWindow().getGuiScale()) applyViewport(document);
         if (document != null && (!host.language().equals(language)
                 || translationSource != net.minecraft.locale.Language.getInstance())) {
             dev.oriel.kit.GameRegistry.refresh();
@@ -368,7 +402,7 @@ public final class DocumentDriver {
         if (doc != null) {
             doc.frame(Util.getMillis());
             owner.beforePaint(doc);
-            McCanvas canvas = new McCanvas(g, mouseX, mouseY, owner.slots());
+            McCanvas canvas = new McCanvas(g, mouseX, mouseY, owner.slots(), (float) scale().ratio());
             doc.paint(canvas);
             canvas.finish();
             narrator.tick(owner.screen() == null && (mouseX != -1 || mouseY != -1));
@@ -376,7 +410,8 @@ public final class DocumentDriver {
             if (textInput) {
                 // The input method's candidate window follows the caret.
                 float[] caret = doc.input().textCaretRect();
-                if (caret != null) McClient.textInputArea(Math.round(caret[0]), Math.round(caret[1]), Math.round(caret[2]));
+                if (caret != null) McClient.textInputArea((int) Math.round(toGui(caret[0])),
+                        (int) Math.round(toGui(caret[1])), Math.max(1, (int) Math.round(toGui(caret[2]))));
             }
             McGui.cursor(g, cursor, owner.screen() != null);
         }
@@ -415,6 +450,15 @@ public final class DocumentDriver {
         Document doc = document();
         Tooltip tooltip = doc == null || mouseX < 0 ? null : doc.input().tooltip();
         if (tooltip == null) return;
+        float ratio = (float) scale().ratio();
+        if (ratio != 1) {
+            GuiGraphicsExtractor scaled = McGui.tooltipContext(g, ratio);
+            extractPageTooltip(scaled, tooltip);
+            McGui.drawTooltipsNow(scaled, (int) toPage(mouseX), (int) toPage(mouseY), 0);
+        } else extractPageTooltip(g, tooltip);
+    }
+
+    private void extractPageTooltip(GuiGraphicsExtractor g, Tooltip tooltip) {
         int x = (int) tooltip.x(), y = (int) tooltip.y();
         if (tooltip.content() != null) {
             List<Component> extra = tooltip.element() == null ? List.of() : titleLines(tooltip);
@@ -507,10 +551,10 @@ public final class DocumentDriver {
                 : host.errorCount() + doc.diagnostics().count(dev.oriel.engine.diag.Diagnostic.Severity.ERROR);
     }
 
-    /** The element under a viewport point (hit testing mirrors paint), or null. */
+    /** The element under a vanilla GUI point (hit testing mirrors paint), or null. */
     public @Nullable Element elementAt(double x, double y) {
         Document doc = document();
-        HitResult hit = doc == null ? null : doc.hitTest((float) x, (float) y);
+        HitResult hit = doc == null ? null : doc.hitTest((float) toPage(x), (float) toPage(y));
         return hit == null ? null : hit.element();
     }
 
@@ -532,18 +576,18 @@ public final class DocumentDriver {
 
     public boolean mouseMoved(double x, double y) {
         if (inspector != null && inspector.mouseMoved(x, y)) return true;
-        return input(in -> in.mouseMove((float) x, (float) y, KeyNames.current()));
+        return input(in -> in.mouseMove((float) toPage(x), (float) toPage(y), KeyNames.current()));
     }
 
     public boolean mouseClicked(MouseButtonEvent e) {
         if (inspector != null && inspector.mouseClicked(e)) return true;
         lastUserInput = Util.getMillis();
-        return input(in -> in.mouseDown((float) e.x(), (float) e.y(), KeyNames.button(e.button()), KeyNames.modifiers(e.modifiers())));
+        return input(in -> in.mouseDown((float) toPage(e.x()), (float) toPage(e.y()), KeyNames.button(e.button()), KeyNames.modifiers(e.modifiers())));
     }
 
     public boolean mouseReleased(MouseButtonEvent e) {
         if (inspector != null && inspector.mouseReleased(e)) return true;
-        return input(in -> in.mouseUp((float) e.x(), (float) e.y(), KeyNames.button(e.button()), KeyNames.modifiers(e.modifiers())));
+        return input(in -> in.mouseUp((float) toPage(e.x()), (float) toPage(e.y()), KeyNames.button(e.button()), KeyNames.modifiers(e.modifiers())));
     }
 
     /** The pointer left the page (an interactive HUD overlay whose screen closed): hover ends. */
@@ -555,7 +599,7 @@ public final class DocumentDriver {
 
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         if (inspector != null && inspector.mouseScrolled(x, y, scrollX, scrollY)) return true;
-        return input(in -> in.wheel((float) x, (float) y, (float) -scrollX * InputHandler.WHEEL_NOTCH,
+        return input(in -> in.wheel((float) toPage(x), (float) toPage(y), (float) -scrollX * InputHandler.WHEEL_NOTCH,
                 (float) -scrollY * InputHandler.WHEEL_NOTCH, KeyNames.current()));
     }
 
@@ -577,7 +621,7 @@ public final class DocumentDriver {
             y = mouseY;
         }
         float[] at = doc.input().pointer();
-        if (at == null || at[0] != (float) x || at[1] != (float) y) mouseMoved(x, y);
+        if (at == null || at[0] != (float) toPage(x) || at[1] != (float) toPage(y)) mouseMoved(x, y);
     }
 
     /**

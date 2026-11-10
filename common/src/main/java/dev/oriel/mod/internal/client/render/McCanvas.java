@@ -58,6 +58,7 @@ public final class McCanvas implements Canvas {
     /** Where primitives go: the frame's GUI, or the layer of the innermost open group. */
     private McGui gui;
     private final float mouseX, mouseY;
+    private final float nativeMouseX, nativeMouseY;
     private final float guiScale;
     private final @Nullable SlotSink slots;
     /** Whether shapes go to the shape shader this frame. */
@@ -104,16 +105,23 @@ public final class McCanvas implements Canvas {
      * @param slots  where {@code <slot>} elements report their painted position, or null outside container screens
      */
     public McCanvas(GuiGraphicsExtractor g, float mouseX, float mouseY, @Nullable SlotSink slots) {
+        this(g, mouseX, mouseY, slots, 1);
+    }
+
+    /** Root page-to-GUI transform; layer extents and scissors remain in vanilla GUI space. */
+    public McCanvas(GuiGraphicsExtractor g, float mouseX, float mouseY, @Nullable SlotSink slots, float pageScale) {
         this.mc = Minecraft.getInstance();
         Layers.beginFrame();
         this.gui = new McGui(g);
-        this.mouseX = mouseX;
-        this.mouseY = mouseY;
+        this.mouseX = mouseX / pageScale;
+        this.mouseY = mouseY / pageScale;
+        this.nativeMouseX = mouseX;
+        this.nativeMouseY = mouseY;
         this.slots = slots;
         this.guiScale = (float) mc.getWindow().getGuiScale();
         // Clips start from what the GUI renderer can draw this frame (McGui.drawableArea).
         this.clips = gui.drawableArea();
-        this.m = gui.begin();
+        this.m = gui.begin().scale(pageScale);
         this.shapes = OrielConfig.CLIENT_SHAPE_SHADER.get() && gui.shapesAvailable();
     }
 
@@ -235,7 +243,7 @@ public final class McCanvas implements Canvas {
     /** Draws into {@code layer} (in the innermost group's space) from now on, inside the clip there is now. */
     private void enter(Layers.Layer layer) {
         Layers.Space space = groups.peek().space();
-        gui = new McGui(new GuiGraphicsExtractor(mc, layer.state, Math.round(mouseX), Math.round(mouseY)), space.x(), space.y());
+        gui = new McGui(new GuiGraphicsExtractor(mc, layer.state, Math.round(nativeMouseX), Math.round(nativeMouseY)), space.x(), space.y());
         gui.begin();
         if (!clippedAway()) gui.pushScissor(clips.left(), clips.top(), clips.right(), clips.bottom());
     }

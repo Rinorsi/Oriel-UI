@@ -18,7 +18,7 @@ public final class OrielKeys {
     public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(Constants.id("ui"));
     /** Opens Oriel's home page (the gallery; its Demos button leads to the finished showcase pages). */
     public static final KeyMapping HOME = new KeyMapping("key.oriel.home",
-            Services.PLATFORM.isDevelopmentEnvironment() ? InputConstants.KEY_F8 : -1, CATEGORY);
+            Services.PLATFORM.isDevelopmentEnvironment() ? InputConstants.KEY_F8 : InputConstants.UNKNOWN.getValue(), CATEGORY);
 
     private OrielKeys() {}
 

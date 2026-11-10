@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.15.0 (unreleased)
+
+- Add opt-in paint-only UTF-16 color ranges and line numbers to native textareas, retaining their single text model, caret, selection, clipboard, undo and IME composition.
+- Support textarea `wrap=off` with native horizontal scrolling and caret visibility. Existing consumers keep their defaults.
+- Expose native `selectionStart`, `selectionEnd` and `setSelectionRange(start,end)` to page scripts without changing text or undo history. Retain the 0.14 UNKNOWN-key fix and the 0.13 driver-scale/source-location changes.
+- Six-target slim/full builds, paired core hashes and Maven inventory checks pass. Engine tests do not replace game input or real OS IME acceptance.
+
+## 0.14.0 (unreleased)
+
+- Fix the player-environment Home default to use Minecraft's UNKNOWN key value instead of -1. Minecraft 26.3 uses SDL and UNKNOWN=0; the old default caused a negative keyboard-buffer index when mouse capture refreshed key states on entering a world. Development F8 and the older GLFW targets retain their defaults. Add a regression that compiles the real key initializer against both backend contracts and refreshes focus in player/development modes.
+- Advance slim to 0.14.0 and full to 0.14.1; downstream ranges are >=0.14.0 <0.15.0 / [0.14.0,0.15.0).
+
+## 0.13.0 (unreleased)
+
+- Add per-driver native UI scale (automatic or 1..4), preserving the Document while updating viewport, paint and input coordinates. Native menu slots explicitly reject independent scale.
+- Keep tooltip layout and IME caret anchors aligned with the page; automation reports vanilla GUI coordinates.
+- Cache weakly held source-position indexes instead of rescanning CSS for every component column, preserving UTF-16 and CRLF boundary semantics.
+- Local slim Maven builds only; previous release runtime evidence does not validate this minor.
+
 Versions 0.9.0 and earlier below are the history inherited from the upstream project Vellum (MIT, Max Leiter), from which
 Oriel UI was forked. Names in those entries (`VellumPages`, `VellumSession`, `vellum.data`, `/vellum`, `vellum.properties`) are
 the upstream's; in this fork they are `OrielPages`, `OrielSession`, `oriel.data`, `/oriel` and `oriel.properties` (the handbook in `docs/zh` is authoritative). Treat

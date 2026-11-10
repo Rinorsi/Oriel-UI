@@ -52,13 +52,16 @@ test('variant versions and template ranges reject equal patches, wrong minors an
 
 test('current nested fixtures retain real variant bytes and express conflicting ranges', () => {
   assert.ok(process.env.ORIEL_TEST_TMP);
+  const core = release.properties(fs.readFileSync(path.join(root, 'gradle.properties'), 'utf8')).version;
+  const parts = core.split('.').map(Number);
+  const next = parts[0] + '.' + (parts[1] + 1) + '.0';
   const dir = fs.mkdtempSync(path.join(process.env.ORIEL_TEST_TMP, 'slim-jij-'));
   const bin = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java') : 'java';
   const slim = path.join(dir, 'slim.jar'), full = path.join(dir, 'full.jar');
   fs.writeFileSync(slim, 'real-slim-bytes'); fs.writeFileSync(full, 'real-full-bytes');
   for (const loader of ['fabric','neoforge']) for (const scenario of ['slim','top-full','two-parents','conflict']) {
     const out = path.join(dir, loader, scenario);
-    execFileSync(bin, [path.join(root,'tools/compat/BundleFixtures.java'), loader, slim, out, full, scenario]);
+    execFileSync(bin, [path.join(root,'tools/compat/BundleFixtures.java'), loader, slim, out, full, scenario], {cwd:root});
     const entries = release.readJar(path.join(out,'oriel_bundle_1.jar')).entries;
     assert.deepEqual(entries.get('META-INF/jars/oriel.jar'), fs.readFileSync(slim));
     if (scenario === 'top-full') assert.deepEqual(fs.readFileSync(path.join(out,'oriel-full.jar')), fs.readFileSync(full));
@@ -66,7 +69,7 @@ test('current nested fixtures retain real variant bytes and express conflicting 
       const second = release.readJar(path.join(out,'oriel_bundle_2.jar')).entries;
       assert.deepEqual(second.get('META-INF/jars/oriel.jar'), fs.readFileSync(full));
       const meta = second.get(loader === 'fabric' ? 'fabric.mod.json' : 'META-INF/neoforge.mods.toml').toString();
-      assert.ok(meta.includes(scenario === 'conflict' ? '0.13.0' : '0.12.0'));
+      assert.ok(meta.includes(scenario === 'conflict' ? next : core));
     }
   }
 });

@@ -213,6 +213,17 @@ public final class McGui {
 
     // ---- Panels, tooltips, the cursor ----
 
+    /** Vanilla tooltip layout in page pixels, submitted to the same frame with the page's paint transform. */
+    public static GuiGraphicsExtractor tooltipContext(GuiGraphicsExtractor parent, float ratio) {
+        var scaled = new GuiGraphicsExtractor(Minecraft.getInstance(), parent.guiRenderState, -1, -1) {
+            @Override public int guiWidth() { return Math.max(1, (int) Math.ceil(parent.guiWidth() / ratio)); }
+            @Override public int guiHeight() { return Math.max(1, (int) Math.ceil(parent.guiHeight() / ratio)); }
+        };
+        scaled.pose().set(parent.pose()).scale(ratio);
+        nextLayer(scaled);
+        return scaled;
+    }
+
     /** From here on, everything is drawn above what was drawn before (vanilla's next stratum). */
     public static void nextLayer(GuiGraphicsExtractor g) {
         g.nextStratum();

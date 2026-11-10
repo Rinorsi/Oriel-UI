@@ -12,6 +12,8 @@ import dev.oriel.engine.dom.Text;
 import dev.oriel.engine.event.Event;
 import dev.oriel.engine.event.EventListener;
 import dev.oriel.engine.html.HtmlParser;
+import dev.oriel.engine.input.TextHighlights;
+import dev.oriel.engine.input.TextSelection;
 import dev.oriel.shadow.rhino.Callable;
 import dev.oriel.shadow.rhino.Scriptable;
 
@@ -181,6 +183,25 @@ final class DomBindings {
                 .method("closest", (e, a) -> syntax(() -> e.closest(a.str(0))))
                 // Form state.
                 .prop("value", Element::value, (e, v) -> e.setValue(Js.strOrEmpty(v)))
+                .get("selectionStart", TextSelection::start)
+                .get("selectionEnd", TextSelection::end)
+                .method("setSelectionRange", (e, a) -> { TextSelection.select(e, (int) a.num(0, 0), (int) a.num(1, 0)); return null; })
+                .method("setTextHighlights", (e, a) -> {
+                    if (!(a.get(1) instanceof Scriptable spans)) throw Js.typeError("Expected text highlight ranges");
+                    var ranges = new java.util.ArrayList<TextHighlights.Range>();
+                    for (Object item : Js.elements(spans)) {
+                        if (!(item instanceof Scriptable span)) throw Js.typeError("Expected text highlight range");
+                        double start = Js.num(Js.property(span, "start")), end = Js.num(Js.property(span, "end"));
+                        double color = Js.num(Js.property(span, "color"));
+                        if (!Double.isFinite(start) || start != Math.rint(start) || start < 0 || start > Integer.MAX_VALUE
+                                || !Double.isFinite(end) || end != Math.rint(end) || end < 0 || end > Integer.MAX_VALUE
+                                || !Double.isFinite(color) || color != Math.rint(color) || color < 0 || color > 0xFFFFFFFFL)
+                            throw Js.typeError("Invalid text highlight offsets or ARGB color");
+                        ranges.add(new TextHighlights.Range((int) start, (int) end, (int) (long) color));
+                    }
+                    try { return TextHighlights.set(e, a.str(0), ranges, a.bool(2)); }
+                    catch (IllegalArgumentException ex) { throw Js.typeError(ex.getMessage()); }
+                })
                 .prop("checked", Element::checked, (e, v) -> e.setChecked(Js.bool(v)))
                 .prop("selected", Element::selected, (e, v) -> e.setSelected(Js.bool(v)))
                 .prop("selectedIndex", Element::selectedIndex, (e, v) -> e.setSelectedIndex((int) Js.num(v)))

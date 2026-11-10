@@ -43,6 +43,8 @@ screen.driver().onMessage("preview", value -> {
 | 方法 | 参数/行为 |
 |---|---|
 | document() | Document 或 null（未加载/错误时），不要无条件解引用 |
+| uiScale() / uiScale(int) | 0 自动跟随 GUI（默认），1..4 独立比例；setter 返回 driver，保留 Document；原版菜单槽拒绝非自动 |
+| toPage(double) / toGui(double) | 原版 GUI 与页面逻辑坐标互转；DOM 布局坐标无需再缩放 |
 | url() / data() / serverSession() | 当前 URL、保存的 JSON 数据、是否来自服务器会话 |
 | push(JsonElement) | 完整替换数据；更新模板并通知 data |
 | merge(JsonObject) | 合并顶层字段，保留其余；页面仍收到整份数据 |

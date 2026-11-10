@@ -6,6 +6,22 @@
 
 ## 在客户端打开页面
 
+### 独立页面比例（0.13）
+
+`screen.driver().uiScale(0)` 默认跟随 Minecraft GUI 比例；`uiScale(1)` 至 `uiScale(4)`
+仅改变该 driver 的页面比例。其它值明确抛错，不改全局选项。`uiScale()` 读取设置值。
+可在 `onPageLoad` 中首次设置，也可在页面打开时即时调整；调整使用同一个 Document，
+保留脚本、草稿、输入焦点和撤销状态，不触发导航或重载。宿主自行持久化这个设置。
+
+页面宽高、DPR、绘制和裁剪使用一致比例。DOM 坐标仍是页面逻辑像素；driver 的鼠标、
+`elementAt/contentAt` 接受原版 GUI 坐标，`toPage(double)` / `toGui(double)` 供自定义宿主换算。
+原版物品图标跟随画布比例，title/物品 tooltip 使用页面比例布局绘制，IME 候选位置转换回 GUI 坐标。
+`OrielAutomation.rect/pointerTarget` 仍返回原版 GUI 坐标。
+
+原版菜单槽由原版屏幕处理固定尺寸，当前有 `Owner.slots()` 的 driver 不允许非自动比例，
+调用会抛出明确异常，避免槽位显示与点击不一致；普通 OrielScreen（包括下游编辑器）不受此限制。
+GPU、真实输入法及游戏内坐标仍需按目标加载器/版本实测，单元测试不替代实机验收。
+
 ```java
 OrielScreen screen = OrielScreens.open("mymod:oriel/settings.html");
 screen.driver().onMessage("save", value -> MyConfig.save(value.getAsJsonObject()));

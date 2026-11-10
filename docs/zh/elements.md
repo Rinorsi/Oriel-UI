@@ -75,7 +75,7 @@ Oriel 完全按原版方式量字，所以在小盒子里会出现字体的两�
 |---|---|---|
 | button | type=button/submit/reset；缺省 submit | 普通操作显式写 type=button，避免触发表单提交 |
 | input 文本 | type=text，value、placeholder、name、maxlength、readonly、disabled、autofocus | UA 150×20；password 隐藏字符；未知类型按文本处理，不能因此假定 date/file/color 有原生选择器 |
-| textarea | 文本子节点为初值；placeholder、maxlength、readonly、disabled | UA 150×60，多行滚动；运行时读写 value |
+| textarea | 文本子节点为初值；placeholder、maxlength、readonly、disabled、wrap | UA 150×60，多行滚动；运行时读写 value；0.15 起 wrap=off 关闭软折行并允许横滚 |
 | checkbox / radio | checked 布尔；value 缺省 on；radio 用同一 name 分组 | 用户变化发 input/change；脚本赋值不等于用户操作 |
 | input range | min=0、max=100、step=1；step=any 连续；value | 按范围/步长钳制，未设值取中间；max 不小于 min。业务上限仍由服务器再验。Ore 自制滑块另见组件表 |
 | select / option | value、selected、disabled | selectedIndex=-1 表示无匹配；option 文本是显示名；不要假定浏览器多选/搜索下拉能力 |
@@ -90,6 +90,8 @@ value/checked 是运行时状态，HTML 属性主要是初始值。不要靠 CSS
 文本控件的光标、选区偏移仍为 UTF-16 索引；左右移动、Backspace、Delete 和鼠标命中按扩展字素边界处理（含组合重音、肤色 emoji、ZWJ 家庭与旗帜），落在字素内部的选区端点向前吸附。maxlength 仍以 UTF-16 单位计数。
 
 textarea 在空白与中文允许的边界换行；相同字体、字距、内容宽度和保留空白条件下，中文及中英混排与普通 p 的正常断行一致。避头尾的连续标点和无断点的长单词允许溢出，不强行拆开；p 默认折叠空白，textarea 保留空白与硬换行，因此两者的空白处理不等价。文本控件尚不按 word-break / overflow-wrap 切换断行策略。
+
+0.15 起 `textarea` 可通过脚本 `setTextHighlights(source,ranges,lineNumbers)` 在原生输入模型上添加颜色和行号；选区、撤销和输入法预编辑仍由同一个控件维护。UTF-16 范围、颜色值与选区定位合同见[脚本手册](scripting.md#原生多行编辑着色015)。`wrap=off` 仍保留硬换行，行号不随文本横滚。
 
 预编辑由宿主通过 InputHandler.preedit(text, caret, focusStart, focusEnd) 提供；三个偏移均为预编辑字符串中的 UTF-16 索引，null/空字符串取消显示，已提交字符通过 charTyped 输入。预编辑不改变 value；组合中编辑按键留给宿主输入法，Escape 取消预编辑，失焦取消且保留已提交值和选区。一次组合开始会分隔撤销组。预编辑会滚动到组合光标；textCaretRect() 返回 {x,y,height}（视口 GUI px），计入滚动与 CSS 变换，实际窗口/GUI 缩放由 MC 宿主换算。
 

@@ -91,6 +91,7 @@ public final class OrielAutomation {
         Element e = find(selector);
         if (e == null) return Optional.empty();
         float[] rect = e.getBoundingClientRect();
+        for (int i = 0; i < rect.length; i++) rect[i] = (float) driver.toGui(rect[i]);
         return e.box == null ? Optional.empty() : Optional.of(rect);
     }
 
@@ -313,6 +314,10 @@ public final class OrielAutomation {
     private float @Nullable [] aim(String selector) {
         Element e = find(selector);
         float[] at = e == null ? null : e.ownerDocument().pointerTarget(e);
+        if (at != null) {
+            at[0] = (float) driver.toGui(at[0]);
+            at[1] = (float) driver.toGui(at[1]);
+        }
         // A click goes to the topmost interactive overlay with content there, else to the screen.
         return at != null && OrielHud.pointerDriverAt(at[0], at[1]) == (hud ? driver : null) ? at : null;
     }

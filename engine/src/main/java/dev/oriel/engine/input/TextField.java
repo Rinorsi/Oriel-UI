@@ -38,6 +38,7 @@ final class TextField {
     /** Caret x kept across consecutive Up/Down moves, or NaN. */
     private float goalX = Float.NaN;
     private TextLayout layout, placeholderLayout;
+    TextHighlights.State highlights;
     /** The document and value versions {@link #sync} last read the element at. */
     private int domVersion = -1, valueVersion = -1;
 
@@ -110,7 +111,8 @@ final class TextField {
 
     /** {@code cached} if it lays out {@code text} as this field would now, else a new layout: wrapped in a textarea. */
     private TextLayout lines(TextLayout cached, String text, boolean masked) {
-        float wrap = multiline && element.box != null ? element.box.contentWidth() : Float.POSITIVE_INFINITY;
+        float wrap = multiline && element.box != null ? Math.max(1, element.box.contentWidth() - gutter()) : Float.POSITIVE_INFINITY;
+        if (multiline && "off".equals(element.getAttribute("wrap"))) wrap = Float.MAX_VALUE;
         ComputedStyle s = element.computedStyle();
         FontSpec font = FontSpec.of(s);
         if (cached != null && cached.matches(text, masked, wrap, font, s, measure().generation())) return cached;
@@ -129,6 +131,7 @@ final class TextField {
         if (multiline) {
             box.scrollHeight = Math.max(box.paddingBoxHeight(),
                     box.paddingTop + l.lineCount() * lineHeight() + box.paddingBottom);
+            box.scrollWidth = Math.max(box.paddingBoxWidth(), box.paddingLeft + gutter() + l.width() + 1 + box.paddingRight);
         } else {
             box.scrollWidth = Math.max(box.paddingBoxWidth(), box.paddingLeft + l.width() + 1 + box.paddingRight);
         }
@@ -154,7 +157,14 @@ final class TextField {
 
     /** Left edge of the text in border-box coordinates: the content box, scrolled. Requires a box. */
     float textX() {
-        return element.box.contentX() - element.scrollLeft();
+        return element.box.contentX() + gutter() - element.scrollLeft();
+    }
+
+    float gutter() {
+        if (highlights == null || !highlights.lineNumbers()) return 0;
+        int count = 1;
+        for (int i = 0; i < editor.text().length(); i++) if (editor.text().charAt(i) == '\n') count++;
+        return measure().width("0".repeat(Integer.toString(count).length() + 2), font(), element.computedStyle());
     }
 
     /** Top of line {@code i}'s glyph box in border-box coordinates (centred in its line height). Requires a box. */
@@ -468,10 +478,9 @@ final class TextField {
         if (multiline) {
             float h = lineHeight(), lineTop = l.lineOf(caret) * h;
             top = clamp(top, lineTop + h - box.contentHeight(), lineTop);
-        } else {
-            float x = l.x(caret);
-            left = clamp(left, x + 1 - box.contentWidth(), x);
         }
+        float x = l.x(caret);
+        left = clamp(left, x + 1 - (box.contentWidth() - gutter()), x);
         element.scrollTo(left, top);
     }
 
