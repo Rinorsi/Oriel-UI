@@ -95,3 +95,80 @@
 3. 信息和操作先清楚；需要强调时只保留一个视觉中心，不为填空白强塞特效。
 4. 键盘可达：Tab 有焦点框，Enter/空格可激活，Esc 关闭。
 5. 亮色主题下再看一遍。
+
+## 字体、尺寸与最小骨架
+
+### 1. 字体与字号：像素字只在"原生字号"和"2 倍"上清晰
+
+开始做动画前，还必须读 [粒子与动画性能规范](performance.md)：密集粒子共享画布、旋转四边形用原生 fillQuad，禁止脚本逐扫描线；先测最重阶段，不能用静止帧率代替动画验收。
+
+| 字体 | family | 清晰的字号 | 用在哪 |
+|---|---|---|---|
+| MC 默认 / `oriel:pixel` | `minecraft:default` / `oriel:pixel` | **8、16** | 英文、数字、图标旁的短标签 |
+| `oriel:pixel_12` | `oriel:pixel_12` | **12、24** | **中文正文和标题的首选** |
+| `oriel:cubic` | `oriel:cubic` | 11、22 | 中文，笔画更圆润 |
+| 轮廓字体（sans、kai 等） | `oriel:sans` 等 | 任意 | 需要任意字号时 |
+
+- **中文不要用 8px。** 汉字只有 8×8 个点，笔画挤成一团（实测又粗又糊）。中文用 `oriel:pixel_12` + 12px，标题 24px。
+- 字号不在上表的阶梯上，`oriel_check` / `preview --check --strict` 会报"字号 Npx 不在 …阶梯上（像素字会糊）"。看到这条就改字号，不要忽略。
+- **Ore 标题栏的 `h1` 默认是 8px**（`ore.css`），用中文时在页面里加 `.o-titlebar h1 { font-size: 12px; }`。
+- 自定义字体放 `assets/<ns>/font/<name>.json`，CSS 写 `font-family: <ns>:<name>`，不用 `@font-face`。
+
+### 2. 尺寸：先按 640×360 做，再保证 427×240 不坏
+
+- 1 CSS px = 1 GUI px。设计基准 **640×360**，最小要撑住 **427×240**（1280×720 窗口、GUI 缩放 3）。小屏用 `@media (max-width: 560px)`、`(max-height: 300px)` 收起次要内容。
+- 间距只用 2 / 4 / 6 / 8 / 12。图标 16×16，放大只用 2 倍。
+- **任何文字都不能出框**：长文本用 `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`，或让它换行；统计行、标签行要么换行要么在小屏隐藏。
+
+- **限高滚动框直接用 `max-height: 40px; overflow-y: auto`。** 内容少时随内容收缩，超出时内部滚动；父级自动高度按限高后的盒子计算。`height: 40px` 则始终保留固定高度，不需要额外包固定高度容器。
+
+检查器会报告实际省略却没有 title / title-json 的文字、nowrap 被自身或祖先裁掉的文字，以及 flex 行收缩切掉的内容；图标和角标可设 flex:none / min-width，文字区域单独省略并提供完整提示。详见[诊断列表](validation.md#布局后诊断与-png-检查)。引用 PNG 宽高超过 2048px 或文件超过 1 MiB 也会报告，应先缩图、压缩。
+
+### 3. 最小骨架：直接复制这个
+
+放在 `assets/<你的模组id>/ui/index.html`（或 `config/oriel/my-pages/` 里）。复制后按目标资源运行 `preview --check --strict`，并检查实际字体与尺寸。
+
+```html
+<!doctype html>
+<html data-oriel-shell>
+<head>
+  <meta charset="utf-8">
+  <title>我的页面</title>
+  <meta name="oriel-subtitle" content="一句话说明这个页面">
+  <link rel="stylesheet" href="oriel:ui/ore.css">
+  <style>
+    html { font-family: oriel:pixel_12; font-size: 12px; }   /* 中文正文：pixel_12 + 12px，大标题 24px */
+    .o-titlebar h1 { font-size: 12px; }                          /* Ore 标题栏默认 8px，中文要改成 12px */
+    .page { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+    .page h2 { margin: 0; font-size: 24px; font-weight: normal; }
+  </style>
+</head>
+<body>
+<div class="o-app">
+  <div class="o-window">
+    <div class="o-titlebar">
+      <h1>我的页面</h1>
+      <div class="o-grow"></div>
+      <div class="ore-btn icon" data-action="close" tabindex="0"><img class="o-ico" src="oriel:textures/icons/close.png"></div>
+    </div>
+    <div class="o-body">
+      <div class="page">
+        <h2>你好，Oriel</h2>
+        <p>中文正文用 pixel_12 的 12px，标题 24px。</p>
+        <div class="ore-btn m-ripple" tabindex="0" style="align-self: flex-start">按我，有涟漪</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+```
+
+- `oriel:ui/ore.css` 是库的主题；`oriel:textures/icons/…` 是库的图标。**页面里引用库的资源一律写带 `oriel:` 的完整地址**，写 `../textures/…` 只在库自己的 `ui/` 目录里有效。
+- 关闭按钮用 `data-action="close"`，不用写脚本。
+
+### 4. 不写 Java，也要库的动效：`data-oriel-shell`
+
+UI 交互音效用库的[声音 token](capabilities.md#ui-音效)，默认悬停静音；`data-oriel-sound="tab"` 覆盖点击声，`off` 关闭当前元素的声音，不要给每个悬停都加声。
+
+涟漪（`m-ripple`）、指针聚光（`m-spot`）、数字计数（`data-count`）、主题/图标切换、`data-action` 的关闭与返回、粒子画布，这些原来要 Java 控制器调用 `Shell.setup`。**纯 HTML 页面在 `<html>` 上加 `data-oriel-shell` 就等于调用了它**，不需要控制器。动效只用 `ore.css` 里已有的 `m-*` 类和 `--m-*` 曲线，不要自己写时长和缓动。有自己控制器的页面不用加。

@@ -4,14 +4,14 @@
 
 [文档入口](index.md) · [CSS](css-guide.md) · [元素](elements.md) · [验收](validation.md)
 
-适用：Oriel UI 0.11.0 源码基准 `40cef5c`，MC 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标。Gradle 中 26.1.2 的工程名是 `26.1`。本页是实现核对，不是这次任务重新运行了六目标验收。0.12 分发与工具版本另见[分发合同](distribution.md)及 [MCP 手册](mcp.md)：profile/脚手架版本读取根 `gradle.properties`，缺省当前瘦包，也接受当前完整版，不代表游戏验收。
+适用：Oriel 0.15，Minecraft 26.1.2 / 26.2 / 26.3 的 Fabric、NeoForge 目标；26.1.2 工程名为 26.1。本页描述当前实现与限制，依赖规则见[分发指南](distribution.md)，不作为逐场景实机验收记录。
 
 ## 选择界面类型
 
-0.13 新增每 driver 原生比例（自动、1～4），普通 OrielScreen 可在不重载文档的情况下切换。
+每 driver 原生比例（自动、1～4），普通 OrielScreen 可在不重载文档的情况下切换。
 原版菜单槽暂拒绝非自动比例；API、坐标与实测边界见[页面接口](pages.md)。
 
-选择器默认用新匹配器（2026-11-08 起）；old/both 开关、复杂度与作用域合同见 [CSS 选择器](css-guide.md#选择器实现与迁移开关)。开关不扩大页面语法或游戏验收范围。
+选择器默认用新匹配器；old/both 开关、复杂度与作用域合同见 [CSS 选择器](css-guide.md#选择器实现与诊断开关)。开关不扩大页面语法或游戏验收范围。
 
 Agent 制作入口新增 [MCP 工作流](mcp.md)：规则查询、网页模拟预览、引擎严格检查、固定版本用户验收、oriel-dev / oriel-folder / mod-project 资源接入；前两者支持独立游戏预览，mod-project 需在下游游戏验证（参数见 MCP 手册）。网页桥接首版支持普通 DOM/JS，外部 Java 控制器及 Oriel 模板需专门适配，不能直接在浏览器执行。该工具能力不扩大下面列出的引擎 HTML/CSS/JS 范围。
 
@@ -95,7 +95,7 @@ filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不�
 | CSS 3D、perspective、rotateY、matrix3d | 不支持 | 用原生 3D 元素；普通卡片用 2D transform |
 | sticky | 解析后按 relative，提示近似 | 固定标题放滚动区域外 |
 | table、float、多栏布局 | 不支持对应布局 | Grid/Flex |
-| @layer 真正层级、CSS 嵌套 | 默认 layer 压平；[实验层序](d36-r04.md)须显式开启；CSS 选择器嵌套不支持 | 显式选择器顺序和命名空间 |
+| @layer 真正层级、CSS 嵌套 | 默认 layer 压平；[实验层序](maintainers/styles.md)须显式开启；CSS 选择器嵌套不支持 | 显式选择器顺序和命名空间 |
 | @font-face、网络字体 | 不支持 | MC font JSON + 本地字体资源 |
 | SVG、video、audio、iframe、WebGL | 不作为浏览器平台提供 | PNG/原生模型；声音走 `oriel.playSound` |
 | fetch、XHR、WebSocket、Java 直调、任意文件读写 | 脚本不提供 | 命名消息由宿主处理 |
@@ -109,13 +109,13 @@ filter/clip/mask/mix-blend 的注册插值是**离散**；能静态画出并不�
 
 纯外部 CSS 文件保存支持原 DOM 增量刷新，HTML/脚本变更仍整页重建；状态保留、手动重载及观察范围见 [热重载边界](validation.md#游戏与热重载)。F12 检查器仅在包含开发工具的构建可用，正式运行包不含其实现与页面。
 
-- 安装方向不对称：源码确认装库服务器通过 `requireOnClient` 要求客户端安装并匹配协议；客户端单装的本地页面/HUD/热重载/消息监听不依赖服务器库，但实际连接无库 Fabric / NeoForge 专服、原版服务端及注册表同步**未实测，待验证**。协议当前为 2；服务端拒绝回复携带语言键和参数，登录拒绝有双语文字。`serverSession()` 仅表示页面来源，没有统一服务端能力探测 API；等待确认的业务自行设置超时。详见[安装方向与验证边界](distribution.md#服务端到底要不要装-oriel)和[服务端](server.md)。
-- `data-i18n` 与 Java `Lang` 已提供，原生客户端提示使用 Minecraft I18n。API 检查、模板编译及依赖校验已有工程门禁；翻译参数见 [国际化](i18n.md)，工程限制见 [后端维护](backend-maintenance.md)。
+- 安装方向不对称：服务端通过 `requireOnClient` 要求客户端装库并匹配协议；客户端本地页面/HUD/热重载/消息监听不使用服务端会话。协议为 2，服务端拒绝回复携带语言键和参数，登录拒绝有双语文字。`serverSession()` 仅表示页面来源，没有统一服务端能力探测 API；业务确认须自行设计回执和超时。下游注册及连接兼容性按目标验证，详见[安装方向](distribution.md#服务端到底要不要装-oriel)和[服务端](server.md)。
+- `data-i18n` 与 Java `Lang` 已提供，原生客户端提示使用 Minecraft I18n。API 检查、模板编译及依赖校验已有工程门禁；翻译参数见 [国际化](i18n.md)，工程限制见 [后端维护](maintainers/building.md)。
 - 注册表可提供模组物品和可召唤实体条目，不等于能编辑所有模组的组件，或所有实体渲染器都已兼容。未知组件应保留。
 
-开发工具提供 `oriel_inspect` / `--why` 显式选择器解释，包含候选数、失败谓词、声明赢家和预算；不产生批准记录。参数与运行范围见 [选择器诊断](selector-debug.md)。
+开发工具提供 `oriel_inspect` / `--why` 显式选择器解释，包含候选数、失败谓词、声明赢家和预算；不产生批准记录。参数与运行范围见 [选择器诊断](maintainers/styles.md)。
 
-这些是使用边界。开发计划、分支合并状态和问题处置记录放工作区；能力真正合入后必须同时更新本页与字段参考，规则见 [维护约定](maintenance.md)。
+这些是使用边界。开发计划、分支合并状态和问题处置记录放工作区；能力真正合入后必须同时更新本页与字段参考，规则见 [维护约定](maintainers/maintenance.md)。
 
-输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端为 new（old 回退）；六目标真实 IME 与手柄另验。
-绘制诊断与窄扩展：提供实验渐变装饰缓存、DisplayList 导出，以及 Canvas strokeLine 和 source-over/lighter/screen 子集；限制见 [绘制检查](d36-paint.md)。不代表通用 Canvas 路径、连续 clip-path 动画或原生物品 Sheen 已完成。
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](maintainers/input.md)。缺省后端为 new（old 回退）；六目标真实 IME 与手柄另验。
+绘制诊断与窄扩展：提供实验渐变装饰缓存、DisplayList 导出，以及 Canvas strokeLine 和 source-over/lighter/screen 子集；限制见 [绘制检查](maintainers/rendering.md)。不代表通用 Canvas 路径、连续 clip-path 动画或原生物品 Sheen 已完成。

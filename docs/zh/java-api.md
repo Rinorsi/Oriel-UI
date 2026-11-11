@@ -118,4 +118,4 @@ OrielAutomation 用于游戏内点击、输入、拖拽与等待；准确签名�
 
 OrielEntities.registerPortraitState(EntityType<T>, PortraitState<? super T>) 为模组实体提供肖像 render state；回调 `(entity,partialTick)` 返回 state，null 回退，重复注册替换；每帧调用。Oriel 会去掉名称/世界阴影等并调整肖像朝向，详细字段见 [元素扩展](elements.md#实体渲染状态java)。
 
-属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。
+属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](maintainers/styles.md)。

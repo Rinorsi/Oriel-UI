@@ -36,7 +36,7 @@ Ore kit 的动画优先用 `ore.css` 里的命名动效和 `dev.oriel.kit.Motion
 | 自定义切页 | `Shell.go(doc, url, "next" / "prev" / "back")` | 同上三种，任意按钮都能用 |
 | 窗口化 / 最大化 | Shell 自动给每个标题栏加切换按钮；`Shell.window(doc, "mini")` | 窗口平滑缩成居中小窗（640×360）或铺满；所有页面记住同一个模式 |
 | 弹层 | `.m-modal` 加 `on` | 背景淡入，面板弹起 |
-| 提示 | `Notice.toast` / `data-toast` | 角落滑入叠放，到时自己离开（见 making-a-page「通知与提示」） |
+| 提示 | `Notice.toast` / `data-toast` | 角落滑入叠放，到时自己离开（见 [组件](components.md)的通知与提示） |
 | 加载 | `.m-skeleton` | 灰色占位块上扫过一道光 |
 | 成功 / 失败 / 提醒 | `Motion.play(el, "m-success"/"m-error", ms)`；`m-attention` | 放大一下发绿光 / 左右抖 + 红框 / 持续金色脉冲 |
 | 一次性动画重播 | `Motion.play(el, 类名, 毫秒)` | 去掉再加上类名，保证每次都从头播 |

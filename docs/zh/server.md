@@ -6,9 +6,9 @@ Oriel 的页面运行在客户端。服务端决定业务状态和物品变化�
 
 ## 安装方向与当前边界
 
-**客户端装 Oriel 不要求服务端也装；这是本地功能路径的源码判断，连接场景未实测。服务端装 Oriel 则要求客户端也装并匹配协议。** 两个方向不能互相推导，完整说明、加载器元数据写法与计划验证见[服务端到底要不要装 Oriel](distribution.md#服务端到底要不要装-oriel)。
+**本地页面、HUD、热重载和本地消息监听不要求服务端安装 Oriel；服务端会话与推送需要两端都有库。** 服务器装库后要求客户端安装并匹配协议。最终下游的注册项、入口和连接仍须按目标核验；详见[安装方向](distribution.md#服务端到底要不要装-oriel)。
 
-客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端。26.3 已实测 Fabric full 客户端→无库 Fabric 专服、NeoForge full JAR→无库 NeoForge 专服、Fabric slim JAR→原版专服；均正常进服，本地页面/消息/HUD/热重载通过，未出现额外参考菜单注册导致的拒绝。精确版本与未测边界见[分发指南](distribution.md#已测边界)。没有服务端 Oriel 时，`OrielServer` 会话、推页面/数据不可用；ForgeMenu 参考也不能在没有相应服务端实现时提供业务。
+客户端单装时，本地 `OrielScreens.open/openInline`、本地数据 HUD、热重载和本地 `oriel.send` 监听不依赖服务端。客户端本地功能不使用服务端会话；下游注册、业务与具体连接目标需要独立验证。
 
 反方向的当前源码行为明确：服务端有库而客户端没有时，两个加载器在玩家加入时都调用 `requireOnClient` 主动断开，提示中英文原因，当前不支持。optional 通道不会跳过此检查。
 

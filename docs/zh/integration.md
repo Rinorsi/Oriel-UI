@@ -2,7 +2,7 @@
 
 [文档总目录](index.md)
 
-**打包前必读：[分发指南：瘦包 / 完整版 / Jar-in-Jar](distribution.md)**。当前配方使用 0.15.0 瘦包及同 minor 范围。0.12 的专服与客户端记录保留其历史适用范围；不能将旧版验证直接转记为 0.15 已通过。完整范围见分发指南。
+**当前版本与打包规则见[分发指南](distribution.md)。** 本页负责页面与业务接线；依赖方式、同 minor 范围和最终成品审计统一在分发指南维护。
 
 给**下游模组作者**（和帮他们写代码的 AI）。读完你应该知道：我的界面属于哪一类、依赖怎么加、页面放哪、怎么打开、怎么和模组代码或服务端对话。
 
@@ -10,24 +10,24 @@
 
 ## 1. 先判断：你的界面属于哪一类
 
-0.13 的普通客户端页面可用 `screen.driver().uiScale(0..4)` 选择独立原生比例，
+当前普通客户端页面可用 `screen.driver().uiScale(0..4)` 选择独立原生比例，
 默认 0 跟随游戏；保持原 Document，宿主自行保存偏好。不要为此套工作区 CSS transform
-或修改全局 GUI 选项。坐标转换及原版菜单槽限制见[页面接口](pages.md#独立页面比例013)。
+或修改全局 GUI 选项。坐标转换及原版菜单槽限制见[页面接口](pages.md#独立页面比例)。
 
 判断标准只有一条：**这个操作的结果会不会改变游戏世界里的真实数据？**
 
 | 类别 | 例子 | 服务端要不要参与 | 用什么 |
 |---|---|---|---|
-| **A. 纯客户端界面** | 设置、音乐播放器、图鉴、主题切换 | 源码路径不依赖服务端 Oriel；连接未实测 | `OrielScreens.open/openInline(...)` |
-| **B. 常驻 HUD** | 药水栏、任务追踪、提示条 | 本地数据不依赖服务端 Oriel；连接未实测 | `OrielHud.register/show/push` |
+| **A. 纯客户端界面** | 设置、音乐播放器、图鉴、主题切换 | 本地能力不依赖服务端 Oriel | `OrielScreens.open/openInline(...)` |
+| **B. 常驻 HUD** | 药水栏、任务追踪、提示条 | 本地数据不依赖服务端 Oriel | `OrielHud.register/show/push` |
 | **C. 服务端驱动的界面** | 物品/组件编辑器、商店、排行榜 | 需要：服务端提供数据并校验操作 | `OrielServer.open(player, 页面, 数据)` |
 | **D. 带物品槽的界面** | 锻造台、箱子、自定义背包 | 需要：物品在服务端，走原版菜单同步 | 注册菜单类型 + `OrielScreens.registerContainer` |
 
-C 和 D 的原理与完整例子见 [服务端篇](server.md)。A/B 的本地消息监听与热重载同样不依赖服务端库，这是源码判断，**未实测**；注册表同步及连接无 Oriel 的 Fabric / NeoForge 专服、原版服务端仍**待验证**。目前这项下游专服验收只覆盖有服务端部分的 Editor。纯客户端下游的环境/入口/依赖声明见[安装方向与元数据说明](distribution.md#服务端到底要不要装-oriel)：Fabric 的 environment 与 NeoForge 依赖 side 的作用不同。
+C 和 D 的原理与完整例子见[服务端篇](server.md)。A/B 的本地消息监听与热重载不使用服务端会话；最终下游的注册项、端侧入口和连接兼容性须按目标验证。两加载器的环境与依赖声明见[安装方向与元数据](distribution.md#服务端到底要不要装-oriel)。
 
 ## 2. 获取与依赖
 
-只有 jar、没有仓库时，直接看 [只有 jar 时的最小 Fabric 工程](quickstart.md)（`implementation files(...)` 的写法；0.12 未验证）。
+只有 jar、没有仓库时，直接看 [只有 jar 时的最小 Fabric 工程](quickstart.md)（本地 jar 依赖写法）。
 
 在本仓库里不加 `-Poriel_slim` 构建完整版，加 `-Poriel_slim` 构建瘦包（同时排除开发工具）；给玩家的完整版另加 `-Poriel_release`。每个目标的 jar 在 `<加载器>/versions/<项目版本>/build/libs/oriel-<加载器>-<MC 版本>-<版本>.jar`（MC 26.1.2 的项目目录是 `26.1`）。把它放进测试环境的 `mods/`，开发时让你的工程依赖这个 jar。仓库的 `./gradlew templateCompile -Poriel_slim` 会把瘦包发布到 `build/template-maven` 并编译两个模板，不使用上游 Vellum 的 Maven。
 
@@ -37,59 +37,17 @@ C 和 D 的原理与完整例子见 [服务端篇](server.md)。A/B 的本地消
 
 ### 依赖写法
 
-没有公开 Maven 仓库的承诺；不要使用上游 Vellum 仓库。下面以瘦包 `0.12.0` 为例，先在本仓库执行 `./gradlew publishToMavenLocal -Poriel_slim`。**Maven 只允许瘦包 `X.Y.0`**；不带 `-Poriel_slim` 的发布（包括 MavenLocal、`-Poriel_maven_dir` 对应任务、templateCompile 私有仓库）直接报错。完整版只作为 jar 分发到 Modrinth / CurseForge / dist，不能用作下游 Maven 编译依赖；否则范围解析可能取到更高的 full 并误嵌参考内容。下游依赖固定 `X.Y.0`，嵌入采用严格同 minor 范围加瘦包 prefer 时也须核验实际解析版本。发布完整性需在新的临时 Maven 目录通过 `check-release --maven-dir` 检查，流程见[维护约定](maintenance.md#双变体发布与专服复核)。然后：
+下游可外部依赖或嵌入瘦包，仓库 template/ 默认外部依赖。完整 Fabric include / NeoForge jarJar 与元数据片段见[分发指南](distribution.md#4-gradle-与加载器元数据)，不要仅更新元数据而遗漏实际工件。
 
-```groovy
-repositories {
-    mavenLocal()
-}
-// common/：用自包含的同游戏版本 loader 工件仅作编译类型来源，不加载 Fabric 入口。
-dependencies { compileOnly("dev.oriel:oriel-fabric-26.3:0.12.0") { transitive = false } }
-// neoforge/ 和 fabric/：匹配目标 loader；由下游自己声明 Minecraft/加载器/Fabric API。
-dependencies { implementation("dev.oriel:oriel-neoforge-26.3:0.12.0") { transitive = false } } // 或 oriel-fabric-26.3
-```
+从 Maven 消费 0.15.0 瘦包，目标坐标为 dev.oriel:oriel-<loader>-<mc>:0.15.0。loader 工件自包含，transitive=false；common 只需类型时可 compileOnly 使用同游戏版本的 loader 工件。只有 jar 时见[最小 Fabric 工程](quickstart.md)。Maven 不发布完整版。
 
-独立 `oriel-common-*` 仍发布，其 runtime 元数据引用同版本 `oriel-engine`、`oriel-kit`、`oriel-script-rhino`、`oriel-mc-extension`，这些坐标均由全 publication 发布提供。API variant 不传递 implementation 依赖，因此单独 `compileOnly(oriel-common)` 不保证引擎/kit 类型可用；上面的 loader 配方更简单。独立模块不作为瘦运行包，发布合同见[分发指南](distribution.md#maven-模块合同)。
-
-没有仓库、只有 jar 时见[只有 jar 时的最小 Fabric 工程](quickstart.md)。每个 Minecraft 版本有自己的工件，版本号相同：
-
-| Minecraft | Common | NeoForge | Fabric |
-|---|---|---|---|
-| 26.3 | `dev.oriel:oriel-common-26.3` | `dev.oriel:oriel-neoforge-26.3` | `dev.oriel:oriel-fabric-26.3` |
-| 26.2 | `dev.oriel:oriel-common-26.2` | `dev.oriel:oriel-neoforge-26.2` | `dev.oriel:oriel-fabric-26.2` |
-| 26.1.2 | `dev.oriel:oriel-common-26.1.2` | `dev.oriel:oriel-neoforge-26.1.2` | `dev.oriel:oriel-fabric-26.1.2` |
-
-所有目标均使用 Java 25 和未混淆的 Minecraft API。Fabric 使用 `implementation`，无需旧版 remapping Loom。26.1/26.2 使用 GLFW 输入事件；26.3 使用 SDL。渲染包迁移等差异见[版本适配](versions.md)。
-
-推荐的做法是必需依赖：`neoforge.mods.toml` 里 `[[dependencies.<modid>]] modId="oriel" type="required"`，`versionRange="[0.15.0,0.16.0)"`；`fabric.mod.json` 里 `"depends": {"oriel": ">=0.15.0 <0.16.0"}`；并在你的 Modrinth 和 CurseForge 页面上声明必需依赖，这样启动器会和你的 mod 一起安装它。玩家这样就能直接得到 Oriel 的修复，不用等你的下一个版本。
-
-### Jar-in-Jar：嵌入瘦包
-
-也可以把 **0.15.0 瘦包**打进你的 jar，让玩家只装一个文件。模板提供 `-PorielEmbedded=true` 开关：Fabric 用禁传递解析的 `implementation` 与 `include`；NeoForge 用 `jarJar` 声明 `[0.15.0,0.16.0)` 的严格范围及 `0.15.0` 优先版本。完整 Groovy 与元数据片段见[分发指南第 4 节](distribution.md#4-gradle-与加载器元数据)，不要只给 NeoForge 的 TOML 写范围、却把嵌套清单锁死为单一版本。两种变体的 id 都为 `oriel`，完整版 `0.15.1` 也满足此范围。
-
-无论哪种方式，都要在 `neoforge.mods.toml` 或 `fabric.mod.json` 里保留必需依赖。多个 mod 都带了 Oriel、或玩家另外装了它时，加载器先满足全部消费者的版本约束再选一份可用版本，约束无交集会拒绝加载，不保证总是选最新版，所以实际加载的版本可能与你编译时用的不同。Oriel 仍然显示在 mod 列表里，并保留自己的配置文件。Rhino 的许可证和声明已在 Oriel 的 jar 里。
-
-如果你的 mod 没有 Oriel 也能工作，就把依赖改成可选（`type="optional"`、`"suggests"`），并且：
-
-- 在接触 `dev.oriel` 的类之前先确认 Oriel 已加载：
-  - NeoForge：`ModList.get().isLoaded("oriel")`
-  - Fabric：`FabricLoader.getInstance().isModLoaded("oriel")`
-- 把面向 Oriel 的代码放进单独的类。这样它只在 Oriel 存在时才被类加载，你也可以在没有时退回原版界面。
-
-两种方式都一样：
-
-- 服务器调用在服务器线程运行；客户端调用在渲染线程运行。
-- 页面 URL 是资源 id：`mymod:oriel/shop.html` 就是你 jar 里的 `assets/mymod/oriel/shop.html`（或资源包里的同名文件，所以资源包可以给你的界面换皮肤）。页面引用的样式表、脚本和图片相对它来解析，所以 `<link rel="stylesheet" href="shop.css">` 加载 `assets/mymod/oriel/shop.css`。
-
-**服务端装有 Oriel 时，客户端必须也装并匹配协议；客户端单装的本地功能路径不要求服务器安装，连接仍未实测。** 前一方向是当前源码已确认的行为：Fabric/NeoForge 在玩家加入时调用 `requireOnClient`，缺库或协议不兼容就主动断开，并由服务器读取内置 en_us/zh_cn 语言文件发送中英文说明；未通过前不发送应用数据。NeoForge 的 optional 通道不取消这项检查。后一方向还须验证注册表同步和实际连接，不能因 optional 就宣称已兼容无库或原版服务器。详见[分发指南](distribution.md#服务端到底要不要装-oriel)。
+页面与客户端 API 在渲染线程使用，服务端 API 在服务器线程使用。服务端打开页面、推送会话或提供菜单时两端需要匹配 Oriel；纯客户端本地页面/HUD 不使用服务端会话，但下游注册与连接仍须按目标验收。详见[安装方向](distribution.md#服务端到底要不要装-oriel)。
 
 ### 稳定性与兼容性
 
 公共 API 是：`dev.oriel.mod.server.OrielServer`、`OrielSession`、设置文件的键，以及 `dev.oriel.mod.client.OrielScreens`、`OrielScreen`、`OrielContainerScreen`、`OrielHud`、`OrielEntities`、`OrielAutomation` 和 `DocumentDriver` 的公共方法。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；不再属于公共 API。带 `@ApiStatus.Internal` 注解的成员是跨包的实现桥接，不是下游 API。所有实现类都在 `dev.oriel.mod.internal` 之下；即使 Java 的可见性是 public，也不要导入它们。
 
-1.0 之前，不兼容的受支持 API 变更必须提升 minor。**0.12 起进一步规定：核心任何变化（包括 bug 修复）都升 minor；同 minor 的完整版补丁只更新参考内容。** 当前模板范围为 `>=0.15.0 <0.16.0` / `[0.15.0,0.16.0)`，覆盖瘦包 `0.15.0` 和完整版 `0.15.1`。旧的 0.9 槽位回调到 0.10 的 `DocumentDriver.SlotSink`、0.11 移出物品编辑器等仍是历史迁移边界；旧消费者必须保留原范围，完成迁移再升级，不能只放宽范围。已有 0.11 下游（如 Editor）的 0.12 编译、业务、资源和游戏验证未完成前，不应发布兼容声明。详见[升级说明](upgrading.md)。
-
-跨 minor 必须迁移消费者并分别验证；只改版本元数据的夹具、共同 DOM 子集的无头通过，都不能证明游戏内或全部 API 兼容。实际发行 jar 的无头消费者探针见[验证工具](../../tools/compat/README.md)。嵌入和外部依赖都支持；推荐外部必需依赖。瘦包不含模板、showcase、demo 等参考内容，要复用就[复制到自己的模组](showcase.md#怎么复用到你的模组)。嵌套检测与提示 **0.12 起提供**：26.3 双加载器专服、单元与通知页预览已测，游戏弹窗仍未验证；不能替代加载器约束或兼容性测试。
+核心有任何变化都提升 minor；同 minor 完整版补丁只更新参考内容。公共 API、基础资源和自己的页面可以作为运行依赖；模板、showcase/demo、内部类与演示注册不能作为核心合同。需要示例时[复制到自己的模组](templates.md#怎么复用到你的模组)，再用瘦包检查类、资源、通信及业务。跨 minor 后重新编译验证，不仅放宽元数据范围。
 
 `./gradlew check -Poriel_slim` 包含用本仓库编译的两个加载器模板，以及每个 Minecraft 版本的 API 快照 `api/*.txt`。`:common:<版本>:checkPublicApi` 拒绝受支持签名里出现内部类型和签名漂移；经过审查后用 `-PupdateApi` 更新。`checkBackendBoundaries` 锁定引擎、kit 和预览不得导入游戏或加载器。这些在 fork 的内部实现演进时保护它。
 
@@ -106,7 +64,7 @@ src/main/resources/assets/mymod/oriel/icon.png       →  <img src="icon.png">
 - URL 是 Minecraft 风格的标识符：`命名空间:路径`，**命名空间必须是你的模组 id**；路径没有强制目录，本手册示例统一用 `oriel/`。库自己的内置页面放在 `assets/oriel/ui/…` 与 `assets/oriel/oriel/…`，那只是库内部的习惯。相对引用按页面所在目录解析。
 - 资源包可以覆盖你的页面，玩家因此能换皮肤。
 - Ore 像素主题的结构和类名见 [制作流程](ui-workflow.md) 与 [设计规范](design.md)。不用主题，自己写 CSS 也完全可以。
-- 开发环境下，保存页面文件会热重载已打开的页面，不用重启游戏。下游模组：运行目录在工程里时自动生效；运行目录在别处加 `-Doriel.sourceRoot=<工程目录>`；只把 jar 丢进 `mods/` 开发就在 `config/oriel/dev-sources.properties` 写一行 `命名空间=源码资源目录`（三种写法见 [快速入门](quickstart.md#边改边看模组自己的页面也能热更新)）。
+- 开发环境下，保存页面文件会热重载已打开的页面，不用重启游戏。下游模组：运行目录在工程里时自动生效；运行目录在别处加 `-Doriel.sourceRoot=<工程目录>`；只把 jar 丢进 `mods/` 开发就在 `config/oriel/dev-sources.properties` 写一行 `命名空间=源码资源目录`（三种写法见 [快速入门](hot-reload.md)）。
 
 ## 4. 客户端打开页面（A 类）
 
@@ -145,7 +103,7 @@ final class ShopController implements PageControllers.Controller {
 }
 ```
 
-控制器在页面解析完成、脚本运行之后、`DOMContentLoaded` 之前挂上。kit 里的 `Dom`、`Shell`、`Flip`、`Slider` 等是控制器常用的小工具（改 DOM、翻页过渡、FLIP 动画、滑块），看 `kit/src/main/java/dev/oriel/kit/` 的源码和 [做一个新页面](making-a-page.md) 的第 3 节。
+控制器在页面解析完成、脚本运行之后、`DOMContentLoaded` 之前挂上。kit 里的 `Dom`、`Shell`、`Flip`、`Slider` 等是控制器常用的小工具（改 DOM、翻页过渡、FLIP 动画、滑块），看 `kit/src/main/java/dev/oriel/kit/` 的源码和 [做一个新页面](ui-workflow.md) 的第 3 节。
 
 > 稳定性提示：[接入指南第 2 节](integration.md#2-获取与依赖) 把 `OrielServer`、`OrielSession`、`OrielScreens`、`OrielScreen`、`OrielContainerScreen`、`OrielHud`、`OrielAutomation`、`DocumentDriver` 的公共方法列为 API；`PageControllers`、`kit` 里的工具类目前**不在稳定承诺内**，1.0 前可能变。
 
@@ -181,7 +139,7 @@ session.close();
 
 页面必须在客户端存在（客户端装了你的模组，或服务器资源包提供了它）；纯服务端模组可以用 `OrielServer.openInline(player, html, data)` 把整页 HTML 发过去。**把页面发来的每条消息当成恶意输入**：校验玩家、校验范围、校验物品是否还在手上。本库已经替你做了限频、大小和嵌套深度限制、会话数上限，但"这个操作合不合理"只有你的代码知道。参考实现：`common/.../server/ItemEditor.java`。
 
-**本节的服务端功能需要两端都有库**：装有 Oriel 的服务器会在玩家加入时通过 `requireOnClient` 拒绝未装或协议不兼容的客户端，给出双语提示，这是当前源码行为。客户端单装时只能使用本地能力，不能调用本节的 `OrielServer` 会话、服务端推送或 `ForgeMenu`；连接无库服务器的 26.3 指定场景已实测，包含 Fabric/NeoForge 独立专服及 Fabric 瘦包连接原版专服，本地页面/消息/HUD/热重载通过，详见[分发指南](distribution.md#已测边界)。`driver.serverSession()` 只是页面来源标记，不是服务器装库探测；没有统一服务端能力探测 API，等待服务端确认的业务必须自己设计回执和超时。
+**本节的服务端功能需要两端都有库**：装有 Oriel 的服务器会在玩家加入时通过 `requireOnClient` 拒绝未装或协议不兼容的客户端，给出双语提示，这是当前源码行为。客户端单装时只能使用本地能力，不能调用本节的 `OrielServer` 会话、服务端推送或 `ForgeMenu`。安装方向与目标验证要求见[分发指南](distribution.md#服务端到底要不要装-oriel)。`driver.serverSession()` 只是页面来源标记，不是服务器装库探测；没有统一服务端能力探测 API，等待服务端确认的业务必须自己设计回执和超时。
 
 ## 7. 带物品槽的界面（D 类）
 
@@ -200,7 +158,7 @@ OrielScreens.registerContainer(MyMenus.FORGE, "mymod:oriel/forge.html");
 
 ## 8. 命令与配置
 
-下表的 showcase / 演示项只适用于完整版；瘦包移除参考入口或明确说明不含演示内容。两变体都提供 `/oriel settings` 和 `/oriel about`。瘦包 Home 动作打开模组设置，`Shell.back()` 直接关闭；关于页模板头像回退到核心 emblem。我的页面仍可用 `/oriel open oriel_mine:<目录>/index.html` 打开并保留热重载。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；只有完整版包含实现、默认 screen、`oriel:forge` 注册和 `/oriel-forge`，瘦包均不包含。公共容器绑定 API 保留。游戏实测范围以[分发指南](distribution.md#已测边界)为准；本轮包括 26.3 本地页面、按钮消息、HUD 和热重载，不代表所有入口/交互均已验证。
+下表的 showcase / 演示项只适用于完整版；瘦包移除参考入口或明确说明不含演示内容。两变体都提供 `/oriel settings` 和 `/oriel about`。瘦包 Home 动作打开模组设置，`Shell.back()` 直接关闭；关于页模板头像回退到核心 emblem。我的页面仍可用 `/oriel open oriel_mine:<目录>/index.html` 打开并保留热重载。`ForgeMenu` 现在是参考内容，需要请复制到自己模组；只有完整版包含实现、默认 screen、`oriel:forge` 注册和 `/oriel-forge`，瘦包均不包含。公共容器绑定 API 保留。具体目标的入口、交互与业务仍须分别验证，不能用构建通过替代。
 
 | 命令 | 作用 |
 |---|---|
@@ -249,3 +207,9 @@ Fabric 在客户端初始化中注册快捷键或客户端命令，NeoForge 在�
 要写入示例：同一工具传 `prepare=true`，只在工作区生成固定包，调用与 `oriel_check` 相同的真实引擎严格检查及双尺寸截图。拿返回的 `projectId` 调用 `oriel_review`（`mode=screenshots`），展示截图和清单，用户在聊天里明确批准后逐字引用原话记录决定，再用原参数、`apply=true`、`reviewId` 写入。参数、目标、资源或规则改变须重新 prepare/check/review。
 
 只新建两个不存在的文件：`assets/<modid>/ui/hello/index.html` 与所选源码目录/包下的 `OrielHello.java`；已有文件跳过并列在 `skipped`，重复执行幂等。不会改 Gradle、元数据或已有 Java；命令片段须自行合入客户端初始化，`OrielHello` 不能从公共/服务端入口引用。回执保留批准版本、写入摘要、跳过项及 `gameVerified=false`；下游编译、客户端效果和热更新仍需实际工程另行验证，不会启动 Oriel 自己的游戏。
+
+## 接入已有模组
+
+先确定页面显示的数据和动作，在自己的命名空间编写 HTML/CSS/JS；客户端用 OrielScreens 打开，服务端会话用 OrielServer 打开。把原来的按钮操作接到消息监听，状态变化通过 push 更新 DOM，避免反复重建文档而丢失焦点、滚动或草稿。真实槽位仍通过容器 API 接入，不以普通物品图标替代服务端物品栏逻辑。
+
+资源目录、打开代码和消息回执见本页各节与[页面接口](pages.md)；制作与验证只按[制作流程](ui-workflow.md)进行，无需另一套迁移步骤。

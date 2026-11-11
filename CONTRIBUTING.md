@@ -1,6 +1,6 @@
 # 参与维护 Oriel UI
 
-先读 [AGENTS.md](AGENTS.md)、[文档维护约定](docs/zh/maintenance.md)与当前任务范围。能力与默认值以[中文手册](docs/zh/index.md)为准；历史任务报告和设计提案不是已实现能力的证明。
+先读 [文档维护约定](docs/zh/maintainers/maintenance.md)与当前任务范围。能力与默认值以[中文手册](docs/zh/index.md)为准；历史任务报告和设计提案不是已实现能力的证明。
 
 ## 报告问题与提交改动
 
@@ -12,9 +12,9 @@
 
 ## 环境与文件位置
 
-使用项目的 Gradle wrapper、JDK 25，Node 24 用于开发工具与工程回归。Windows shell 示例使用 Git Bash；只为当前进程设置环境，不要求修改系统或全局Git配置。支持目标见[版本维护](docs/zh/versions.md)。
+使用项目的 Gradle wrapper、JDK 25，Node 24 用于开发工具与工程回归。Windows shell 示例使用 Git Bash；只为当前进程设置环境，不要求修改系统或全局Git配置。支持目标见[版本维护](docs/zh/maintainers/versions.md)。
 
-代码、测试和使用手册进仓库；日志、运行目录、临时文件、验收图和进度报告放仓库外工作区的当天目录。先按AGENTS.md创建当天目录，再将以下变量设置为实际的仓库外绝对路径：
+代码、测试和使用手册进仓库；日志、运行目录、临时文件、验收图和进度报告放仓库外工作区的当天目录。将以下变量设置为实际的仓库外绝对路径并创建目录：
 
 ```bash
 export ORIEL_RUN_DIR=/absolute/external/daily/YYYY-MM-DD/run
@@ -28,7 +28,7 @@ mkdir -p "$ORIEL_RUN_DIR" "$ORIEL_TEST_TMP"
 
 ```bash
 node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs
-./gradlew compileJava :check
+./gradlew compileJava :check -Poriel_slim
 ```
 
 `:check` 包含当前版本的公共API快照、边界和下游模板门禁。改网络、菜单或服务端物品编辑逻辑时，再运行两加载器服务端回归；GameTest mock不等于真实连接验收：
@@ -37,13 +37,13 @@ node --test tools/backend-boundaries.test.mjs tools/release-boundaries.test.mjs
 ./gradlew :fabric:26.1:runGameTest :neoforge:26.1:runGameTestServer
 ```
 
-页面和预览验证参数见[检查与验收工具](docs/zh/validation.md)，后端发布包、严格编译及依赖信任更新见[构建与维护](docs/zh/backend-maintenance.md)。既有 Build CI 会检查六个正式包；以对应提交的运行结果为准，不能用本机结果替代。提交前按AGENTS.md运行外部工作区的 `tools/repo-hygiene.sh`，并显式传入待提交仓库或工作树路径。
+页面和预览验证参数见[检查与验收工具](docs/zh/validation.md)，后端发布包、严格编译及依赖信任更新见[构建与维护](docs/zh/maintainers/building.md)。既有 Build CI 会检查六个正式包；以对应提交的运行结果为准，不能用本机结果替代。提交前按本地工作区约定运行仓库卫生检查，明确传入待提交仓库或工作树路径；临时产物不能进入提交。
 
 ## API、版本和安全边界
 
-公共API与0.10迁移合同见[安装与稳定性](docs/zh/integration.md#2-获取与依赖)。`public` 不等于下游稳定API；不要依赖 `internal` 或 `@ApiStatus.Internal` 类型。1.0之前不兼容的公共API变更提升次版本，消费者限制并验证同一次版本范围；当前没有额外承诺统一的弃用宽限期。
+公共 API 与稳定性约定见[安装与稳定性](docs/zh/integration.md#2-获取与依赖)。`public` 不等于下游稳定API；不要依赖 `internal` 或 `@ApiStatus.Internal` 类型。核心变化提升 minor，消费者限制并验证同 minor 范围；当前没有额外承诺统一的弃用宽限期。
 
-有意更改API快照前先审查下游影响，同步迁移说明和模板；不能直接用 `-PupdateApi` 让意外破坏变绿。新增MC版本要提供对应加载器构建与运行证据，不能只放宽模组元数据范围。网络消息始终由服务器验证权限、载荷、槽位和当前权威状态，不能把通道名或合法JSON当成授权。
+有意更改API快照前先审查下游影响，同步 CHANGELOG、当前手册和模板；不能直接用 `-PupdateApi` 让意外破坏变绿。新增MC版本要提供对应加载器构建与运行证据，不能只放宽模组元数据范围。网络消息始终由服务器验证权限、载荷、槽位和当前权威状态，不能把通道名或合法JSON当成授权。
 
 变更字段、默认值、限制或命令时，同次更新手册、参数表和示例。新增依赖和跨平台分类工件必须核对确切来源与哈希，不能关闭strict验证或添加整组信任通配。
 

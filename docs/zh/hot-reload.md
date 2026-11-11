@@ -29,7 +29,7 @@ loom {
 }
 ```
 
-NeoForge（ModDevGradle）：`runs { client { systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath } }`（**已实测**：NeoForge 26.1.2 最小模组，游戏目录放在工程外，日志出现 dev mode 那一行，页面改后约 2 秒重载）。
+NeoForge（ModDevGradle）：`runs { client { systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath } }`。
 
 ## 3. 只丢 jar：`config/oriel/dev-sources.properties`
 
@@ -42,7 +42,7 @@ mymod=C:/work/my-mod/src/main/resources/assets/mymod
 
 - 页面、样式表、脚本、JSON 数据从这个目录读并监视；目录里**没有**的文件自动用 jar 里的，所以漏一个不会崩。
 - 它在**任何环境**都生效，包括玩家环境：**别把这个文件发给玩家**。
-- 已实测：发布版 jar、无任何 Gradle 开关，指向工程外一份拷贝，页面从拷贝加载，保存后约 1 秒刷新。
+- 保存后在游戏中确认页面已重载，实际时间受资源与环境影响。
 
 ## 4. 怎么确认配好了（看游戏日志）
 
@@ -84,4 +84,4 @@ mymod=C:/work/my-mod/src/main/resources/assets/mymod
 
 开始做页面**之前**先确认第 1 节里有一条已经配好（日志能看到第 4 节的某一行），再开始改。不要用"复制文件 + 后台监视脚本"、"读自定义配置再指向文件夹页"之类的绕路办法；也不要为了看效果每次重新构建。把改动发到对话里的截图和游戏里的实时效果配合使用，见 [制作流程](ui-workflow.md) 的"快速迭代"。
 
-相关：[快速入门](quickstart.md#边改边看模组自己的页面也能热更新)、[页面接口里的文件夹命名空间](pages.md)、[验收工具里的热重载边界](validation.md#游戏与热重载)。
+相关：[快速入门](hot-reload.md)、[页面接口里的文件夹命名空间](pages.md)、[验收工具里的热重载边界](validation.md#游戏与热重载)。

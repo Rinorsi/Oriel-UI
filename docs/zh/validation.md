@@ -1,10 +1,10 @@
 # 检查与验收工具
 
-开发期布局 old/new/both、--boxes 的约束 JSON 输出与 oriel_layout MCP 参数见[布局尺寸诊断](d36-r06.md)。默认 new，旧实现用 old 回退；不替代常规检查。
+开发期布局 old/new/both、--boxes 的约束 JSON 输出与 oriel_layout MCP 参数见[布局尺寸诊断](maintainers/layout.md)。默认 new，旧实现用 old 回退；不替代常规检查。
 
 下游骨架 `oriel_scaffold` 默认只读；prepare 使用 `oriel_check` 的严格引擎诊断与双尺寸截图，用户聊天批准后 apply 仅新建不存在的 HTML/Java。`node --test tools/mcp/scaffold.test.mjs` 用伪造工程覆盖检测、路径、批准及幂等；`ORIEL_TEST_TMP` 指向仓库外临时目录。Java 注册片段未据此证明下游编译或游戏可用，详见 [MCP 手册](mcp.md#下游骨架oriel_scaffold)。
 
-下游骨架与规则 profile 的版本读取根 `gradle.properties`，缺省当前瘦包，也接受当前完整版；版本变更使规则哈希及旧验收失效。脚手架默认生成外部必需依赖坐标和同 minor 范围。发布元数据与模板开关的永久检查见[维护约定](maintenance.md#maven-发布完整性与模板打包门禁)。
+下游骨架与规则 profile 的版本读取根 `gradle.properties`，缺省当前瘦包，也接受当前完整版；版本变更使规则哈希及旧验收失效。脚手架默认生成外部必需依赖坐标和同 minor 范围。发布元数据与模板开关的永久检查见[维护约定](maintainers/maintenance.md#maven-发布完整性与模板打包门禁)。
 
 粒子/动画的性能验收见 [性能规范](performance.md)（MCP：`oriel_rules` 的 `topic=performance`）。strict 零诊断不等于帧率达标；保留同动作基线、离线与实机证据分开记录。
 
@@ -68,7 +68,7 @@ CI 对全部 kit 页面分别执行默认语言（zh_cn）和 en_us 的严格检
 
 每个规则、每个视口最多显示前 5 处，超出另报一条总数汇总；结构化报告保留 code/source/line/column/suggestion。文本规则跳过隐藏、完全不可见、尚未稳定的入场动画、循环动画及旋转/斜切内容；已结束的入场动画、轴向缩放/平移仍检查。非 nowrap、多行裁剪、复杂遮挡不在 text-clipped 的覆盖范围内。动态生成节点没有原始行号时用元素标识定位。离线字体和数据必须与目标页面匹配。
 
-**库内示例迁移例外：** 上表新增规则在本仓库真实路径下的 kit/ui、common/showcase 和 common/demo 页面保留 INFO，提示“库内示例待修复”，不阻断 strict；这些页面的视觉修复单独验收。仅凭 oriel 命名空间不能豁免，外部页面和 tools/mcp/examples 仍为 WARNING。原有 CSS、缺图和设计规则不放宽，因此 INFO 不等于该页面已完整通过视觉或旧规则验收。
+**库内示例诊断级别：** 上表新增规则在本仓库真实路径下的 kit/ui、common/showcase 和 common/demo 页面保留 INFO，提示“库内示例待修复”，不阻断 strict；这些页面的视觉修复单独验收。仅凭 oriel 命名空间不能豁免，外部页面和 tools/mcp/examples 仍为 WARNING。原有 CSS、缺图和设计规则不放宽，因此 INFO 不等于该页面已完整通过视觉或旧规则验收。
 
 | Preview 参数 | 默认/作用 |
 |---|---|
@@ -189,7 +189,7 @@ HTML（含内联 `<style>`）、脚本、JSON 或混合变更仍整页重建，�
 
 mod-project 接入只验证资源复制与批准关卡，回执 gameVerified=false；需在下游游戏用回执 pageUrl 打开验证。oriel_game_preview 对此目标返回 DOWNSTREAM_GAME_REQUIRED。参数和路径限制见 [MCP 手册](mcp.md#下游模组目标mod-project)。
 
-## 选择器迁移双跑
+## 选择器双跑诊断
 
 维护者在当前 shell 设置 `JAVA_TOOL_OPTIONS='-Doriel.selector=both -Doriel.selector.audit=<工作区绝对路径>/selector-%p.jsonl'`，再运行 `:engine:test :kit:test :preview:test :preview:checkUi`。`old` 是默认实现，`new` 是实验实现，`both` 执行独立匹配与规则候选索引并在差异时抛异常；不改变解析器开关 `oriel.parser`。完成后清除当前 shell 的 `JAVA_TOOL_OPTIONS`，不要改系统环境变量。
 
@@ -199,10 +199,9 @@ mod-project 接入只验证资源复制与批准关卡，回执 gameVerified=fal
 
 预览黄金断言可选 `-Doriel.snapshotCapture=<工作区绝对目录>` 保存每帧实际图；仍执行原黄金断言，不重写黄金。分别运行 old/new，逐 RGBA 比较这些帧；默认不输出额外图片。通过 `JAVA_TOOL_OPTIONS` 传给测试 JVM。图像、日志与性能数据放仓库外 daily 目录。默认切换须等 Lead 验收，双跑退出码零不自动切换。
 
+`--why <selector> <element-query>` 与 MCP `oriel_inspect` 的字段、退出码、预算边界见 [选择器诊断](maintainers/styles.md)。`both` 返回旧匹配路径，不验证 `new` 增量失效；另做 old/new 动态 computed style 对照。
 
-`--why <selector> <element-query>` 与 MCP `oriel_inspect` 的字段、退出码、预算边界见 [选择器诊断](selector-debug.md)。`both` 返回旧匹配路径，不验证 `new` 增量失效；另做 old/new 动态 computed style 对照。
+属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](maintainers/styles.md)。
 
-属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。
-
-输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
-绘制命令诊断：快照可加 --paint-trace <file.json> 与 --paint-element <标签子串>；输出 JSON/JSONL/文本。参数、限制、默认模式及像素验证边界见 [绘制检查](d36-paint.md)。
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](maintainers/input.md)。缺省后端为 new（old 回退）；六目标真实 IME 与手柄另验。
+绘制命令诊断：快照可加 --paint-trace <file.json> 与 --paint-element <标签子串>；输出 JSON/JSONL/文本。参数、限制、默认模式及像素验证边界见 [绘制检查](maintainers/rendering.md)。

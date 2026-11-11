@@ -19,9 +19,9 @@ test('every showcase and demo page has at least one entry, and no entry is dupli
   assert.equal(new Set(keys).size, keys.length);
 });
 
-test('the table in docs/zh/showcase.md is up to date', async () => {
+test('the table in docs/zh/templates.md is up to date', async () => {
   const { table } = await import('./query.mjs');
-  const doc = fs.readFileSync(path.join(ROOT, 'docs/zh/showcase.md'), 'utf8').replace(/\r\n/g, '\n');
+  const doc = fs.readFileSync(path.join(ROOT, 'docs/zh/templates.md'), 'utf8').replace(/\r\n/g, '\n');
   const a = doc.indexOf('<!-- showcase-index:start -->') + '<!-- showcase-index:start -->'.length, b = doc.indexOf('<!-- showcase-index:end -->');
   assert.ok(a > 30 && b > a, '文档缺少标记');
   assert.equal(doc.slice(a, b).trim(), table().trim(), '运行 node tools/showcase/query.mjs --write-doc');

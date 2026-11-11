@@ -112,11 +112,11 @@ Tests that need Minecraft's assets are skipped when no jar is found. Page snapsh
 `src/test/resources/pages/*.html` and the demo UIs, and they are skipped while the engine still throws
 `UnsupportedOperationException`.
 
-属性解释：`--why-property width '#detail'` 输出层叠、继承、变量和当前采样值的 JSONL；支持 `::before/color`。详见 [实验层叠](../docs/zh/d36-r04.md)。
-Input diagnostics: actions accept trace-input on/off, why-no-click <selector>, and focus-info <selector>. JSONL is printed to stdout and excludes input text. See [input contract](../docs/zh/d36-input.md).
+属性解释：`--why-property width '#detail'` 输出层叠、继承、变量和当前采样值的 JSONL；支持 `::before/color`。详见 [实验层叠](../docs/zh/maintainers/styles.md)。
+Input diagnostics: actions accept trace-input on/off, why-no-click <selector>, and focus-info <selector>. JSONL is printed to stdout and excludes input text. See [input contract](../docs/zh/maintainers/input.md).
 # Oriel previewer
 
-开发期布局开关、--boxes 的 why-size/几何 JSON 输出见[布局迁移诊断](../docs/zh/d36-r06.md)。
+开发期布局开关、--boxes 的 why-size/几何 JSON 输出见[布局迁移诊断](../docs/zh/maintainers/layout.md)。
 
 > 中文参数、工作区输出位置、外部页面资源根、MCP 与验收范围见 [验收工具](../docs/zh/validation.md)。临时页要同时提供其引用的 Oriel assets；仅把 kit 放进 Java classpath 不等于加载资源包。截图/动作输出显式指定仓库外 daily，勿在仓库根按 Ctrl+S 留截图。
 

@@ -2,7 +2,7 @@
 
 ## D36 统一比较入口
 
-引擎 old/new 使用[统一 CPU 基准工具](d36-mcp-bench.md)：`node tools/bench/run.mjs --config <工作区配置> --manifest <冻结清单> --out <新输出目录>`。先--freeze记录21页与资源摘要，提前经gws构建，工具自动进入bench-window。默认逐轮配对差值+A/A噪声底+95% Student-t置信区间检查每页p50/p95，区间未能证明不退化或噪声过大均不通过；进程前后探测并记录外部java/Minecraft提示，不沿用旧25%容差。
+引擎 old/new 使用[统一 CPU 基准工具](maintainers/benchmark.md)：`node tools/bench/run.mjs --config <工作区配置> --manifest <冻结清单> --out <新输出目录>`。先--freeze记录21页与资源摘要，提前经gws构建，工具自动进入bench-window。默认逐轮配对差值+A/A噪声底+95% Student-t置信区间检查每页p50/p95，区间未能证明不退化或噪声过大均不通过；进程前后探测并记录外部java/Minecraft提示，不沿用旧25%容差。
 
 --synthetic 生成27种压力页，hover迁移仍需输入适配器；tools/bench/effects.mjs 比较已捕获15效果120帧，不执行捕获、不批准基线。独立样式/布局成本与实机 GPU/IME 不在默认 FrameBenchmark 输出中。配置、退出码与限制见上述手册。
 
@@ -61,12 +61,11 @@
 
 发布前对准确的提交内容执行测试、严格 UI 检查、后端边界检查和目标加载器构建。日志、JFR、截图、运行目录、个人模板与原视频素材留在工作区，不加入库提交。只上传源码、必要回归与维护文档，核对 GitHub 仓库、账号和实际远端提交。
 
-
 ## 实验选择器的测量边界
 
 属性规则候选按元素实际属性名查询，避免 hover 重算扫描整张样式表的空属性桶。比较仍须固定输入，按页面/动作分别报告中位数和 p95，并先用同一旧实现的 A/A 对照确定噪声底，不能用合成大页面收益抵消小页面回退。
 仅含基础谓词的 compound 使用直接程序，减少逐谓词 lambda 分派；预算计数仍精确覆盖实际求值，不能靠关闭预算换取性能。复杂关系与函数选择器也要单独测量，不以简单属性场景代替。
 
-选择器 `new` 实验模式对简单属性与相对 `:has` 使用保守反向失效，`nth(of)` 在单次匹配中复用兄弟排名。仍遍历树更新继承，复杂关系保留全树匹配；默认 `new`（`old` 回退）。查询诊断耗时不能作为运行时基准，详见 [选择器诊断](selector-debug.md)。
+选择器 `new` 实验模式对简单属性与相对 `:has` 使用保守反向失效，`nth(of)` 在单次匹配中复用兄弟排名。仍遍历树更新继承，复杂关系保留全树匹配；默认 `new`（`old` 回退）。查询诊断耗时不能作为运行时基准，详见 [选择器诊断](maintainers/styles.md)。
 
-属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](d36-r04.md)。
+属性解释：预览器新增 `--why-property <property> <element-query>`；MCP `oriel_inspect` 的 selector/property 二选一，page/element 必填，frames 默认 1（1–600）。仅加载无头预览，不批准、不接入或启动游戏。字段、伪元素、实验开关和限制见 [实验层叠与属性解释](maintainers/styles.md)。

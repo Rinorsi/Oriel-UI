@@ -1,6 +1,6 @@
 # Minecraft 26.3 客户端 GUI API 笔记（维护者资料）
 
-[入口](index.md) · [版本适配](versions.md) · [后端构建与维护](backend-maintenance.md)
+[入口](../index.md) · [版本适配](versions.md) · [后端构建与维护](building.md)
 
 **读者：维护 `common/` 里 Minecraft 后端、或把库移植到新 Minecraft 版本的人。** 做页面和接入的人不需要读这份。它是针对 26.3 核对过的笔记，对照的是原版 26.3（NeoForm 26.3-1）、NeoForge 26.3.0.26-beta 和 Fabric API 0.161.0+26.3；26.1 和 26.2 的差异见[版本适配](versions.md)。
 
@@ -184,7 +184,7 @@ g.pose().pushMatrix(); g.pose().translate(x, y); g.pose().scale(s, s); g.text(fo
   - NeoForge：`RegisterPictureInPictureRenderersEvent.register(Class<T>, Supplier<...>)`，再 `g.submitPictureInPictureRenderState`。
   - Fabric：`PictureInPictureRendererRegistry.register(ctx -> ...)`。
 - 实体辅助：`InventoryScreen.extractEntityInInventoryFollowsMouse(GuiGraphicsExtractor g, int x0,int y0,int x1,int y1, int size, float offsetY, float mouseX, float mouseY, LivingEntity e)`。
-- 自定义肖像：构建 `EntityRenderState`，再调用 `g.entity(state, scale, translation, rotation, tilt, x0,y0,x1,y1)`。Oriel 自己的做法见 `OrielEntities.registerPortraitState`（[元素](elements.md#实体渲染状态java)）。
+- 自定义肖像：构建 `EntityRenderState`，再调用 `g.entity(state, scale, translation, rotation, tilt, x0,y0,x1,y1)`。Oriel 自己的做法见 `OrielEntities.registerPortraitState`（[元素](../elements.md#实体渲染状态java)）。
 - 一幅图是怎么画的（`PictureInPictureRenderer.prepare`）：一张 `(x1-x0)*guiScale × (y1-y0)*guiScale` 像素的纹理，正交投影，pose 先 `translate(w/2, getTranslateY(h))` 再 `scale(guiScale*state.scale(), 同值, -同值)`，所以一个单位是 `state.scale()` 个 GUI 像素，y 向下。`renderToTexture` 提交到一个 `SubmitNodeCollector`；然后这幅图被 blit（`blitTexture`），用 `GUI_TEXTURED_PREMULTIPLIED_ALPHA` 和颜色 `-1`。纹理视图是私有的，所以要带颜色 blit（染色或淡出）的渲染器需要把它放宽（Oriel 的 AT/AW）。`textureIsReadyToBlit(state)` 在纹理里仍是正确的图时跳过渲染（原版的超大物品用它）。
 - 池：NeoForge 优先对一个*相等*的状态（record 的 `equals`）复用上一帧的渲染器，其次是同样纹理大小的任何一个；同一帧里两个相等的状态会让它丢掉一个渲染器，所以同一帧内各状态必须不同。Fabric 按帧内顺序复用。
 - 实体：`GuiEntityRenderer.renderToTexture` 设置 `Lighting.Entry.ENTITY_IN_UI`，平移、旋转，按倾斜设置相机，再调用 `entityRenderDispatcher.submit(state, camera, 0,0,0, pose, collector)`。`EntityType.create(level, reason)` 对和平世界里的怪物返回 null（`canSpawn`）；展示用实体在检查 `type.isEnabled(level.enabledFeatures())` 之后用 `create(level, new EntitySpawnRequest(reason, true))`。

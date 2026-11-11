@@ -1,6 +1,6 @@
 # 只有 jar 时的最小 Fabric 工程
 
-**先读[分发指南：瘦包 / 完整版 / 嵌入或外部依赖](distribution.md)。** 本页是外部必需依赖配方：适用拿到打包好的库 jar（`oriel-fabric-<MC 版本>-0.12.0.jar` 瘦包，或 `0.12.1` 完整版）、没有本仓库和 Maven 仓库的情况。下方以瘦包 `0.12.0` 为例，**0.12 配方的编译、启动与页面渲染未验证**。历史最小工程曾在 Minecraft 26.1.2 + Fabric + Oriel 0.10.0 编译并启动，不能把该记录算作 0.12 验证。
+**先读[分发指南](distribution.md)。** 本页是 Oriel 0.15 的本地 jar 外部必需依赖配方，面向没有源码仓库或 Maven 仓库的下游。使用匹配目标的 0.15.0 瘦包；独立玩家安装也可选同 minor 完整版 0.15.1。示例仍需在自己的游戏目标中验证，不能用库的构建检查替代下游验收。
 
 [入口](index.md) · [接入指南](integration.md) · [Java API](java-api.md)
 
@@ -11,7 +11,7 @@ my-mod/
   settings.gradle
   gradle.properties
   build.gradle
-  libs/oriel-fabric-26.1.2-0.12.0.jar          ← 库 jar 放这里
+  libs/oriel-fabric-26.1.2-0.15.0.jar          ← 库 jar 放这里
   src/main/java/com/example/mymod/MyModClient.java
   src/main/resources/fabric.mod.json
   src/main/resources/assets/mymod/oriel/hello.html
@@ -23,11 +23,11 @@ Gradle wrapper 用你自己的（`gradle wrapper`，Gradle 9.x，JDK 25）。把
 
 | Minecraft | `minecraft_version` | `fabric_version` | 库 jar |
 |---|---|---|---|
-| 26.1.2 | `26.1.2` | `0.155.3+26.1.2` | `oriel-fabric-26.1.2-0.12.0.jar` |
-| 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.12.0.jar` |
-| 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.12.0.jar` |
+| 26.1.2 | `26.1.2` | `0.155.3+26.1.2` | `oriel-fabric-26.1.2-0.15.0.jar` |
+| 26.2 | `26.2` | `0.161.0+26.2` | `oriel-fabric-26.2-0.15.0.jar` |
+| 26.3 | `26.3` | `0.161.0+26.3` | `oriel-fabric-26.3-0.15.0.jar` |
 
-`fabric_loader_version` 目前都是 `0.19.5`。以上来自 [版本适配](versions.md)；换版本时以该页为准。
+`fabric_loader_version` 目前都是 `0.19.5`。以上来自 [版本适配](maintainers/versions.md)；换版本时以该页为准。
 
 ## settings.gradle
 
@@ -51,7 +51,7 @@ rootProject.name = 'my-mod'
 minecraft_version=26.1.2
 fabric_loader_version=0.19.5
 fabric_version=0.155.3+26.1.2
-oriel_version=0.12.0
+oriel_version=0.15.0
 
 mod_id=mymod
 mod_name=My Mod
@@ -115,12 +115,12 @@ processResources {
         "fabric-api": "*",
         "minecraft": "~${minecraft_version}",
         "java": ">=25",
-        "oriel": ">=0.12.0 <0.13.0"
+        "oriel": ">=0.15.0 <0.16.0"
     }
 }
 ```
 
-`oriel` 这一行就是对库的**必需依赖**，范围限定在 0.12 系列，瘦包 `0.12.0` 与完整版 `0.12.1` 均满足。用完整版时同步修改 `oriel_version` 和实际 jar 文件；跨 minor 需要重新迁移和验证。
+`oriel` 这一行就是对库的**必需依赖**，范围限定在 0.15 系列，瘦包 `0.15.0` 与完整版 `0.15.1` 均满足。用完整版时同步修改 `oriel_version` 和实际 jar 文件；跨 minor 需要重新迁移和验证。
 
 ## 入口类：一个命令打开页面
 
@@ -189,13 +189,13 @@ public final class MyModClient implements ClientModInitializer {
 | 打开任意页面 | `/oriel open mymod:oriel/hello.html` |
 | 不建工程，先看一个 .html | 把页面（连同它的 css、图片）放进游戏的 `config/oriel/my-pages/`，进游戏 `/oriel open oriel_mine:文件名.html`（子文件夹照写，如 `oriel_mine:item-editor/index.html`）；完整版也可在 模板中心 → 我的页面 里点开。页面里用相对路径引用同文件夹的资源。保存即热重载 |
 | 改了页面看效果 | 开发环境保存文件会热重载已打开的页面；也可以 `/oriel reload` |
-| 看库自带的例子 | **仅完整版**：`/oriel showcase`；示例源码在完整版 jar 的 `assets/oriel/oriel/showcase/` 下。瘦包不含演示，复用时[复制资源到自己模组](showcase.md#怎么复用到你的模组) |
-| 确认库已加载 | 日志中的实际运行版本应与加载器选中结果一致（瘦包 `0.12.0` / 完整版 `0.12.1`），模组列表里有 `oriel`；混装不按编译时版本猜测 |
+| 看库自带的例子 | **仅完整版**：`/oriel showcase`；示例源码在完整版 jar 的 `assets/oriel/oriel/showcase/` 下。瘦包不含演示，复用时[复制资源到自己模组](templates.md#怎么复用到你的模组) |
+| 确认库已加载 | 日志中的实际运行版本应与加载器选中结果一致（瘦包 `0.15.0` / 完整版 `0.15.1`），模组列表里有 `oriel`；混装不按编译时版本猜测 |
 | 页面写错了 | 不支持的 CSS/HTML 会在日志里报带文件和位置的诊断，不会静默忽略 |
 
 ## 我的页面：标题、副标题、封面，以及库的动效
 
-瘦包与完整版均保留 `config/oriel/my-pages/` 的 `oriel_mine` 注册和热重载。下述模板中心卡片说明只适用于完整版；瘦包使用 `/oriel open oriel_mine:<目录>/index.html`，Home 动作打开设置，也可直接用 `/oriel settings`、`/oriel about`。入口已做控制器/JVM 链接验证，0.12 游戏内页面与热重载仍未验证。完整版中卡片内容写在页面自己的 `<head>` 里，全部可选：
+瘦包与完整版均保留 `config/oriel/my-pages/` 的 `oriel_mine` 注册和热重载。下述模板中心卡片说明只适用于完整版；瘦包使用 `/oriel open oriel_mine:<目录>/index.html`，Home 动作打开设置，也可直接用 `/oriel settings`、`/oriel about`。完整版中卡片内容写在页面自己的 `<head>` 里，全部可选：
 
 ```html
 <html data-oriel-shell>   <!-- 想要涟漪、聚光、数字计数、主题切换等库的效果就加；纯展示可以不加 -->
@@ -207,43 +207,9 @@ public final class MyModClient implements ClientModInitializer {
 
 封面推荐 16:9（官方封面 320×180），其他比例会被裁切；封面必须是文件夹内的 PNG。鼠标放到卡片上会显示完整标题、副标题、文件路径、修改时间和大小，超长内容会被截断，不会出框。
 
-## 边改边看：模组自己的页面也能热更新
+## 开发时热更新
 
-**完整的配置指南、日志确认方法、什么会热什么不会、排错表：[热更新](hot-reload.md)。** 以下“已实测”指历史版本的机制验证，0.12 两种变体的游戏内热重载未验证。下面是三种情形的速览。
-
-打包进模组的页面（`assets/<模组id>/…`）默认要重新构建才变。下面三种情形，**选符合你的那一种**，都不需要模组里写任何代码：
-
-**① 用 Gradle 的 `runClient`，运行目录在工程里（默认的 `run/`）：什么都不用配。** 库会从游戏的工作目录往上找，找到工程的 `src/main/resources/assets` 并监视它，保存页面即刷新。启动日志里有 `Oriel: dev mode, reading UI sources from [...]` 就是生效了（已实测：最小 Fabric 工程 + 发布版 jar）。
-
-**② 运行目录不在工程里（例如放到别处的 `daily/…/run`）：加一个 JVM 参数，告诉库源码在哪。**
-
-```groovy
-// build.gradle（Fabric Loom）
-loom {
-    runs {
-        client {
-            vmArg "-Doriel.sourceRoot=${project.projectDir.absolutePath}"
-        }
-    }
-}
-```
-
-NeoForge（ModDevGradle）写 `systemProperty 'oriel.sourceRoot', project.projectDir.absolutePath`（放在 `neoForge { runs { client { … } } }` 里；已在 NeoForge 26.1.2 实测）。多模块工程里填**含有 `src/main/resources/assets` 的那个子工程目录**。
-
-**③ 不用 Gradle，只是把模组 jar 丢进 `mods/` 开发：在游戏的 `config/oriel/dev-sources.properties` 里写一行**，把你的命名空间指向源码里的资源目录：
-
-```properties
-# 一行一个命名空间；值是 assets/<命名空间> 这个目录（也可以写 assets 目录，库会自己找下一层）
-mymod=C:/work/my-mod/src/main/resources/assets/mymod
-```
-
-之后进游戏打开页面，改源码保存，约 1 秒内页面刷新；文件夹里没有的文件自动用 jar 里的。日志里有 `Oriel: dev source: 'mymod:' pages are read from …` 就是生效了（已实测：改一份放在工程外面的拷贝，页面从该拷贝加载并在保存后刷新）。这条在**任何环境**都生效，包括玩家环境，所以别把这个文件发给玩家。
-
-共同的说明：
-- 页面、样式表、脚本、页面读取的 JSON 都是热的；**图片（PNG）和语言文件仍取自 jar/构建输出**，换图要重新构建、语言文件要 F3+T。Java 代码的改动也仍需重新编译。
-- 之后才新建的文件不会触发刷新（保存一个已有文件，或重新打开页面）。
-- 另一条路：把页面放进 `config/oriel/my-pages/`，所有环境保存即重载，见上面的"我的页面"。
-- **不要为了热更新自己发明"开发时改读文件夹页"的开关**，上面三种就是官方做法，页面地址不变，物品读写和控制器都照旧。
+按[热更新指南](hot-reload.md)选择源码目录或 dev-sources 配置，确认启动日志显示实际读取位置后再制作页面。页面保存可热重载；替换 Java 库、绑定或引擎仍须重启客户端。
 
 ## 页面路径约定
 

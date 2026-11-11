@@ -117,13 +117,13 @@ Rhino 实现了 ES2015 的大部分和后续版本的不少内容。Oriel 用补
 
 ### Canvas 凸四边形扩展
 
-线段扩展 strokeLine(x0,y0,x1,y1,cap?) 与 globalCompositeOperation 的 source-over/lighter/screen 子集见 [绘制检查与扩展](d36-paint.md#canvas-线段与混合窄子集)。默认 source-over 不变；这不增加通用路径或抗锯齿。
+线段扩展 strokeLine(x0,y0,x1,y1,cap?) 与 globalCompositeOperation 的 source-over/lighter/screen 子集见 [绘制检查与扩展](maintainers/rendering.md#canvas-线段与混合窄子集)。默认 source-over 不变；这不增加通用路径或抗锯齿。
 
 `ctx.fillQuad(x0, y0, x1, y1, x2, y2, x3, y3)` 是 **Oriel 扩展**，不属于浏览器 Canvas 标准。用于旋转矩形、粗线段和四边形粒子；由引擎一次处理扫描线，避免脚本逐行调用 fillRect。
 
 | 字段 | 合同 |
 |---|---|
-| 前置条件 | 本版引擎/预览器的 2D 上下文；先检测 `typeof ctx.fillQuad === "function"`。旧 0.11.0 jar 可能没有此方法，需要更新库并重启客户端 |
+| 前置条件 | 本版引擎/预览器的 2D 上下文；先检测 `typeof ctx.fillQuad === "function"`。需要支持该方法的当前库；更新 Java 绑定后须重启客户端 |
 | 参数 | 必须传 8 个可转为有限数值的坐标，单位为画布像素，允许小数/负值/出画布坐标；没有省略值 |
 | 顶点顺序 | 沿凸四边形周界顺时针或逆时针；自交、凹形、非有限坐标抛 TypeError；全部共线/面积为零不绘制 |
 | 样式 | 使用当前 fillStyle、globalAlpha 和 globalCompositeOperation（缺省 source-over）；混合状态也随 save/restore 保存 |
@@ -171,7 +171,7 @@ Oriel 的 `activationsound` 是可冒泡、可取消的 `Event`：原生按钮/�
 
 按 Esc 会关闭界面，除非 `keydown` 监听器调用了 `preventDefault()`；但 Shift+Esc 或快速多次 Esc 由宿主强制关闭，所以要保留明确的关闭入口。显示页面的 mod 可以处理页面没有占用的任何按键，例如打开界面的那个键。想为页面保留某个键，在 `keydown` 监听器里取消它。文本框有焦点时，除 Esc 之外的按键都是输入，永远不会传给 mod。
 
-`title` 属性显示提示框（规则见[元素](elements.md#提示框与物品提示)）。Minecraft 的朗读器会读页面标题、获得焦点或悬停的元素的名称和角色（`aria-label`、`aria-labelledby`、`role`、`aria-hidden`），以及文字变化时的实时区域（`aria-live`、`role="status"`、`"log"`、`"alert"`）。规则见[朗读](narration.md)。脚本通过改变这些属性和区域文字来改变朗读内容。
+`title` 属性显示提示框（规则见[元素](elements.md#提示框与物品提示)）。Minecraft 的朗读器会读页面标题、获得焦点或悬停的元素的名称和角色（`aria-label`、`aria-labelledby`、`role`、`aria-hidden`），以及文字变化时的实时区域（`aria-live`、`role="status"`、`"log"`、`"alert"`）。规则见[朗读](i18n.md)。脚本通过改变这些属性和区域文字来改变朗读内容。
 
 ### 原生多行编辑着色（0.15）
 
@@ -396,4 +396,4 @@ function save() {
 
 用 `+` 拼接的字符串本身没有上限，所以避免构造巨大的字符串：做这件事的 entry 会被内存预算停掉。
 
-输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](maintainers/input.md)。缺省后端为 new（old 回退）；六目标真实 IME 与手柄另验。

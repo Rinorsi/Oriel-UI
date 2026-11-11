@@ -4,12 +4,12 @@ import { ROOT, sha, requireThat, fileHash, walk } from './core.mjs';
 import { distributionVersions } from './version.mjs';
 
 export const topics = {
-  orchestration: 'agent-orchestration.md', 'agent-tools': 'd36-agent-tools.md', benchmark: 'd36-mcp-bench.md',
-  input: 'd36-input.md',
-  layout: 'd36-r06.md',
+  orchestration: 'mcp.md', 'agent-tools': 'maintainers/mcp-tools.md', benchmark: 'maintainers/benchmark.md',
+  input: 'maintainers/input.md',
+  layout: 'maintainers/layout.md',
   distribution: 'distribution.md',
   performance: 'performance.md',
-  principles: 'principles.md', replication: 'replication.md', upgrading: 'upgrading.md', quickref: 'page-rules.md', hotreload: 'hot-reload.md', showcase: 'showcase.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
+  principles: 'ui-workflow.md', replication: 'ui-workflow.md', upgrading: 'distribution.md', quickref: 'design.md', hotreload: 'hot-reload.md', showcase: 'templates.md', overview: 'capabilities.md', html: 'elements.md', css: 'css-guide.md', javascript: 'scripting.md',
   components: 'components.md', design: 'design.md', workflow: 'ui-workflow.md', integration: 'integration.md', validation: 'validation.md',
 };
 export const profileVersions = ['26.1.2', '26.2', '26.3'];
@@ -25,11 +25,11 @@ export function instructions() {
 }
 export function prompt(name = 'workflow') {
   requireThat(['workflow', 'revise', 'integrate'].includes(name), 'UNKNOWN_PROMPT', '提示词不存在。');
-  const source = fs.readFileSync(path.join(ROOT, 'docs/zh/agent-prompts.md'), 'utf8').replaceAll('\r\n', '\n');
+  const source = fs.readFileSync(path.join(ROOT, 'docs/zh/mcp.md'), 'utf8').replaceAll('\r\n', '\n');
   return source.split('## ' + name + '\n')[1]?.split('\n## ')[0]?.trim() || source;
 }
 export function rulesIdentity() {
-  const files = [...Object.values(topics), 'agent-prompts.md', 'mcp.md'];
+  const files = [...new Set(Object.values(topics))];
   const implementation = ['oriel-preview.mjs', 'web-worker.mjs', 'game-worker.mjs', ...walk(path.join(ROOT, 'tools/mcp/lib')).map(file => 'lib/' + file), ...walk(path.join(ROOT, 'tools/mcp/schemas')).map(file => 'schemas/' + file)];
   return sha(JSON.stringify({ versions: distributionVersions(), docs: files.map(file => [file, fs.existsSync(path.join(ROOT, 'docs/zh', file)) ? fs.readFileSync(path.join(ROOT, 'docs/zh', file), 'utf8') : '']), implementation: implementation.map(file => [file, fileHash(path.join(ROOT, 'tools/mcp', file))]) }));
 }

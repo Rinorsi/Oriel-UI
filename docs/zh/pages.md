@@ -6,7 +6,7 @@
 
 ## 在客户端打开页面
 
-### 独立页面比例（0.13）
+### 独立页面比例
 
 `screen.driver().uiScale(0)` 默认跟随 Minecraft GUI 比例；`uiScale(1)` 至 `uiScale(4)`
 仅改变该 driver 的页面比例。其它值明确抛错，不改全局选项。`uiScale()` 读取设置值。

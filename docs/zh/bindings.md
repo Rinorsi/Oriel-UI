@@ -1,6 +1,6 @@
 # Java ViewModel 声明式绑定
 
-[入口](index.md) · [Java API](java-api.md) · [脚本路线](scripting.md) · [维护约定](maintenance.md)
+[入口](index.md) · [Java API](java-api.md) · [脚本路线](scripting.md) · [维护约定](maintainers/maintenance.md)
 
 `dev.oriel.kit.bind` 是 kit 的可选 Java 控制器能力，不依赖 Minecraft、Rhino 或反射。只有调用 `Bindings.attach(Document, ViewModel)` 才会处理 `o-*`；单独加载 HTML、stock 预览器或浏览器不会自动创建 ViewModel。不要让 JS 模板、Shell 与绑定共同修改同一节点的内容或同一个状态属性。
 

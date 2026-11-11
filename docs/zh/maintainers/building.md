@@ -1,8 +1,8 @@
 # 后端构建与性能门禁
 
-## D36 交替基准工具
+## 交替 CPU 基准工具
 
-新增[统一 CPU 比较入口](d36-mcp-bench.md)：先经工作区 gws.sh 构建 old/new 的 :preview:installDist，再用 tools/bench/run.mjs 冻结资源并自动获取 bench-window。新清单记录21页相对旧20页增加forge_station；旧基线不变，不用旧25%容差。默认按同时间序列逐轮配对相对差、A/A噪声底与95% Student-t置信区间判定，区间重叠或高噪声为INCONCLUSIVE；每个测量进程前后记录外部java/Minecraft提示，不能据此杀进程。完整合同见链接。
+[统一 CPU 比较入口](benchmark.md)：先经工作区 gws.sh 构建 old/new 的 :preview:installDist，再用 tools/bench/run.mjs 冻结资源并自动获取 bench-window。固定基准清单与资源摘要，不自动更新基线或容差。默认按同时间序列逐轮配对相对差、A/A噪声底与95% Student-t置信区间判定，区间重叠或高噪声为INCONCLUSIVE；每个测量进程前后记录外部java/Minecraft提示，不能据此杀进程。完整合同见链接。
 
 FrameBenchmark 暂不导出样式/布局独立耗时，27组合中的 hover状态迁移、15效果实际捕获及 GPU/IME 仍需阶段补充，不能拿整页CPU结果宣告全部R10通过。
 
@@ -20,13 +20,13 @@ FrameBenchmark 暂不导出样式/布局独立耗时，27组合中的 hover状�
 
 验证环境是 Gradle 9.7.1，Loom 1.18.2、ModDevGradle 2.0.147、Stonecutter 0.9.8、Shadow 9.6.1。Rhino relocated runtime 也声明正式publication，避免script-rhino发布依赖指向未发布项目。
 
-**尚存插件弃用**：Loom 1.18.2 的 CompileConfiguration.getLockFile 调用执行期注入的 Project，嵌套模板构建中会触发 Gradle 10 禁用警告。因此全套 --warning-mode fail 当前仍会失败，不能称已完全兼容 Gradle 10。仓库没有绕过插件或隐藏该警告。上游相关记录：[Loom #1582](https://github.com/FabricMC/fabric-loom/issues/1582)（已关闭，旧版本的执行期Project访问报告；调用点不同，不代表本问题已修复）。2026-11-05检索getLockFile未找到精确匹配的issue；没有擅自发帖。升级 Loom 后用上述命令复查；普通 --warning-mode all 用于保留完整追踪。
+**尚存插件弃用**：Loom 1.18.2 的 CompileConfiguration.getLockFile 调用执行期注入的 Project，嵌套模板构建中会触发 Gradle 10 禁用警告。因此全套 --warning-mode fail 当前仍会失败，不能称已完全兼容 Gradle 10。仓库没有绕过插件或隐藏该警告。上游相关记录：[Loom #1582](https://github.com/FabricMC/fabric-loom/issues/1582)（已关闭，旧版本的执行期Project访问报告；调用点不同，不代表本问题已修复）。升级 Loom 后用上述命令复查；普通 --warning-mode all 用于保留完整追踪。
 
-2026-11-06 核对官方发布元数据及稳定版 [Loom 1.19.3 源码](https://maven.fabricmc.net/net/fabricmc/fabric-loom/1.19.3/fabric-loom-1.19.3-sources.jar)：CompileConfiguration.getLockFile 第359、361、365行仍读取 getProject()。未找到解决此调用点的可用稳定版本，因此保持1.18.2，没有采用预发布插件。
+升级 Loom 时核对 CompileConfiguration.getLockFile 的实现与完整弃用追踪；不能仅凭相似 issue 已关闭就视为当前调用点已修复。
 
 ## JDK 25 编译警告
 
-2026-11-06 核对 [JOML Central 元数据](https://repo.maven.apache.org/maven2/org/joml/joml/maven-metadata.xml)，最新仍为1.10.9；#398仍开放并指向未发布的1.10.10里程碑，因此保留下述窄例外和复现开关。
+升级 JOML 或目标 Minecraft 依赖时重新核对下述 classfile 例外，不把上游未发布修复当作已生效。
 
 engine、kit、preview、mc-extension 以及 common/两个加载器开启 -Xlint:all 和 -Werror，测试源码也受检查。预览 Swing 控件及服务端异常类补齐 serialVersionUID，过时的物品附魔访问改为数据组件，重复悬空 Javadoc 已整理。
 
@@ -144,9 +144,9 @@ ORIEL_LOG_DIR=/absolute/workspace/daily/YYYY-MM-DD/logs/jij-neoforge \
 
 EULA 必须由操作者确认；已有 `eula=true` 时不需要 `--accept-eula`。每次运行有 900 秒上限，正常关闭使用 RCON stop，不停止全局 Gradle daemon；每场景用新的外部运行根，`mods/` 必须为空。
 
-`same-core`（也可用 `two-parents`）在外部目录生成两父模组，分别内嵌当前真实 slim/full（0.12.0/0.12.1），两者同目标核心相同，范围为 `[0.12.0,0.13.0)`。Fabric 使用 nested jars，NeoForge 使用 JarJar。`slim` 验单父嵌瘦包；`top-full` 验顶层 full + 父嵌 slim；`different-core` 修改被淘汰副本的实际 Ore CSS 并重算清单；`legacy` 要求 `ORIEL_LEGACY_JAR` 指向匹配加载器/26.3 的真实无清单旧包；`conflict` 验范围无交集的加载器拒绝。
+`same-core`（也可用 `two-parents`）在外部目录生成两父模组，分别内嵌当前真实 slim/full（0.15.0/0.15.1），两者同目标核心相同，范围为 `[0.15.0,0.16.0)`。Fabric 使用 nested jars，NeoForge 使用 JarJar。`slim` 验单父嵌瘦包；`top-full` 验顶层 full + 父嵌 slim；`different-core` 修改被淘汰副本的实际 Ore CSS 并重算清单；`legacy` 要求 `ORIEL_LEGACY_JAR` 指向匹配加载器/26.3 的真实无清单旧包；`conflict` 验范围无交集的加载器拒绝。
 
-26.3 Fabric / NeoForge 的 `same-core/different-core/legacy/slim/top-full` 五场景各已实测：检测摘要、副本数和恰一活动来源、风险 WARN 双方名字、`ore.css` 或 `version-only` 差异按场景断言；正常启动均回读 `/oriel version` 并停服，共 10/10。混装选择 0.12.1，单嵌 slim 为 0.12.0。范围冲突的明确拒绝沿用 A 阶段证据，未计入 B 五场景。日志与 result.json 留在外部目录，具体验证等级见[分发指南](distribution.md#5-多个模组都带-oriel-时)。这些结果不证明游戏客户端、26.1.2 / 26.2 混装或真实 Editor 迁移；历史 0.10 同代码改元数据夹具只证明当时的择优与单实例，不再是当前脚本的场景描述。
+这些场景应对每次实际发行包分别执行；不把专服或无头结果扩大为客户端、输入法或下游业务通过。
 
 正常客户端和服务端启动均记录加载器实际选中的版本；/oriel version 在对应侧输出该版本，不读取编译期常量。
 

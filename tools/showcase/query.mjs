@@ -4,7 +4,7 @@
 //   node tools/showcase/query.mjs box-shadow --list   # headings only
 //   node tools/showcase/query.mjs --page showcase/title.html --list
 //   node tools/showcase/query.mjs 进度条 --lines 30 --json
-//   node tools/showcase/query.mjs --write-doc          # refresh the table in docs/zh/showcase.md
+//   node tools/showcase/query.mjs --write-doc          # refresh the table in docs/zh/templates.md
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,13 +59,13 @@ function main(argv) {
     else terms.push(a.toLowerCase());
   }
   if (opts.write) {
-    const doc = path.join(ROOT, 'docs/zh/showcase.md');
+    const doc = path.join(ROOT, 'docs/zh/templates.md');
     const text = fs.readFileSync(doc, 'utf8');
     const start = '<!-- showcase-index:start -->', end = '<!-- showcase-index:end -->';
     const a = text.indexOf(start), b = text.indexOf(end);
-    if (a < 0 || b < a) throw new Error('docs/zh/showcase.md has no showcase-index markers');
+    if (a < 0 || b < a) throw new Error('docs/zh/templates.md has no showcase-index markers');
     fs.writeFileSync(doc, text.slice(0, a + start.length) + '\n' + table() + text.slice(b));
-    console.log('updated docs/zh/showcase.md');
+    console.log('updated docs/zh/templates.md');
     return;
   }
   const found = entries().filter(e => (!opts.page || e.page === opts.page)

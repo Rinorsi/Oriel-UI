@@ -10,7 +10,7 @@
 
 服务端安装了 Oriel，就要求加入的客户端也安装并匹配协议：两个加载器当前都会在玩家加入时执行 `requireOnClient`，缺库或不兼容时主动断开并提示中英文原因。这是源码确认的现状，NeoForge 的 optional 网络注册不会取消该检查。
 
-反方向不能据此推导：客户端单装 Oriel 的本地页面、HUD、热重载及本地消息监听不依赖服务端库。26.3 已实测 Fabric full→无库 Fabric、NeoForge full JAR→无库 NeoForge、Fabric slim JAR→原版，均进入世界并通过上述本地能力检查，没有额外参考菜单注册导致的拒绝。其他版本与真实下游仍须分别验证。服务端没有库时不能提供 `OrielServer` 会话或页面/数据推送；`ForgeMenu` 已是完整版参考内容，需要请复制到自己模组。精确目标和限制见[分发指南](distribution.md#已测边界)。
+反方向不能据此推导：客户端单装 Oriel 的本地页面、HUD、热重载及本地消息监听不依赖服务端库。最终下游的注册、业务与连接兼容性仍须按目标验证。服务端没有库时不能提供 `OrielServer` 会话或页面/数据推送；`ForgeMenu` 已是完整版参考内容，需要请复制到自己模组。精确目标和限制见[分发指南](distribution.md#已测边界)。
 
 ## 玩家受到哪些保护
 
@@ -78,7 +78,7 @@
 
 客户端允许页面做什么：
 
-`client.nestedNotice` **0.12 起提供**，默认 `on`，配置值为 `on/off`，内部为 Choice/enum（`NestedNotice.ON/OFF`），设置页以开关呈现。提示页勾选“不再提示”立即写回 `off`；设置白名单、非法值与 boolean 拒绝、写盘/回执和恢复默认到 `on` 已通过单元测试，**游戏内设置页、勾选和重启显示仍未验证**。关闭只抑制客户端提示，扫描与风险日志继续工作；恢复默认不清空已提示指纹历史。嵌套风险日志、缓存与旧副本限制见[分发指南](distribution.md#5-多个模组都带-oriel-时)。
+`client.nestedNotice`，默认 `on`，配置值为 `on/off`，内部为 Choice/enum（`NestedNotice.ON/OFF`），设置页以开关呈现。提示页勾选“不再提示”立即写回 `off`；配置只接受 on/off，不接受 boolean。关闭只抑制客户端提示，扫描与风险日志继续工作；恢复默认不清空已提示指纹历史。嵌套风险日志、缓存与旧副本限制见[分发指南](distribution.md#5-多个模组都带-oriel-时)。
 
 可在模组设置页修改的项：`client.uiSounds`、`client.uiSoundVolume`、`client.reducedMotion`、`client.typingNotice`、`client.serverPages`、`client.webLinks`、`client.shapeShader`、`client.nestedNotice`。保存成功后立即更新内存并原子替换 `config/oriel.properties`，保留注释与其他键的顺序；恢复默认只改这八项。音量控件步长为 0.05，宿主接受范围内的有限数值，不钳制非法值。`shapeShader` 每帧读取，不需重启；减少动效是否被页面脚本遵守取决于页面实现。文件保存失败或值不合法时保留原值并记录诊断。
 
@@ -88,7 +88,7 @@
 
 | 键 | 缺省 | 范围 | 含义 |
 |---|---|---|---|
-| `client.nestedNotice` | `on` | `on`、`off` | 0.12 起提供。仅客户端的嵌套风险提示开关，设置页以开关呈现；提示页“不再提示”写 `off` 到 `config/oriel.properties`，恢复默认为 `on`。关闭不影响扫描、风险日志或加载器选择；专服不弹窗。白名单/持久化/恢复已单测，游戏内仍未验证。 |
+| `client.nestedNotice` | `on` | `on`、`off` | 仅客户端的嵌套风险提示开关，设置页以开关呈现；提示页“不再提示”写 `off` 到 `config/oriel.properties`，恢复默认为 `on`。关闭不影响扫描、风险日志或加载器选择；专服不弹窗。白名单/持久化/恢复已单测，游戏内仍未验证。 |
 | `client.serverPages` | `allow` | `allow`、`ask`、`block` | 服务器打开的页面是否显示。`ask` 每次访问问一次。 |
 | `client.maxInlineHtmlChars` | 200000 | 1 到 200000 | 显示的最大内联页面。 |
 | `client.maxDataChars` | 100000 | 1 到 100000 | 接受的服务器数据最大长度。 |

@@ -28,7 +28,7 @@ Java 控制器可显式启用 o-text/o-for/o-key/o-if/o-class:*/o-attr:*/o-on:* 
 
 通用属性：`id`、`class`、`style`、`hidden`、`tabindex`、`title`、`title-json`、`title-nowrap`、`data-*`。data-* 本身只存字符串，除本文/组件手册列出的监听者外，不会自动产生行为。
 
-焦点：可交互的 div 应给 `tabindex="0"` 并接 Enter/Space；优先原生 button/input。tabindex=-1 允许程序聚焦而不加入普通 Tab 顺序。朗读使用 aria-label、aria-labelledby、aria-describedby、aria-hidden、aria-live 等，准确范围见 [朗读参考](narration.md)。
+焦点：可交互的 div 应给 `tabindex="0"` 并接 Enter/Space；优先原生 button/input。tabindex=-1 允许程序聚焦而不加入普通 Tab 顺序。朗读使用 aria-label、aria-labelledby、aria-describedby、aria-hidden、aria-live 等，准确范围见 [朗读参考](i18n.md)。
 
 ## 原版外观类
 
@@ -189,7 +189,6 @@ entity.speaker { -mc-gaze-reach: 80px; -mc-gaze-limit: 30deg 9deg; }
 
 两者只影响绘制，可以做动画（`transition: -mc-gaze-limit 300ms`）。`none` 不能插值，所以变到或变自 `none` 会立即生效，在 `@keyframes` 里则在中途生效。它们只作用于指针增加的部分：`-mc-yaw`、`-mc-pitch` 和拖动 `rotatable` 实体照常转动，注视在此基础上再转。指针距离：`-mc-entity-focus: eyes` 时从眼点量，`body` 时从盒子往下三分之一处量，与背包界面一致。
 
-
 ## scene 小场景
 
 scene 是展示用小世界，不是服务端方块编辑器。默认 160×120，零角度从东北上方看，自动适配框。
@@ -337,9 +336,8 @@ public interface PortraitState<T extends Entity> {   // OrielEntities.PortraitSt
 
 从 `bodyRot` 往下的字段只在生物实体的状态上设置。没有注册函数时，除非 `follow-mouse` 转动，头部朝正前方。身体取景按你返回的状态来量，所以它没包含的部分在盒子里不占空间。
 
-
 ## 提示与验收
 
 浏览器用同尺寸 PNG/色块替身并标记占位。预览器也不能证明 3D 正确。真实皮肤、装备、附魔光、槽位、实体朝向、裁剪深度与提示均须进游戏检查。
 
-输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](d36-input.md)。缺省后端仍为 old；六目标真实 IME 与手柄另验。
+输入后端开关、事件 JSONL、预览/MCP 动作、inert 与可选空间导航的参数及限制见[输入诊断与导航](maintainers/input.md)。缺省后端为 new（old 回退）；六目标真实 IME 与手柄另验。

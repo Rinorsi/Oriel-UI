@@ -2,7 +2,7 @@
 
 [入口](index.md) · [脚本合同](scripting.md) · [性能](performance.md) · [安全](security.md)
 
-适用：0.11.0 的 Rhino 运行时；本增量 2026-11-08 起**默认启用 new**；宿主 JVM 加 -Doriel.ecosystem=old 可关闭下述 DOM 新入口，未知值报错。游戏要在启动参数里设置并重启；预览器使用 Java 命令时将参数放在主类前。这里列的是固定构建的窄场景；不代表任意 npm 包、组件、插件或浏览器行为。Java 绑定更新需要更新 jar / 重启客户端，页面热更新不能替换引擎。游戏 GPU、IME 与六目标客户端仍须分别验证。
+适用：Oriel 0.15 的 Rhino 运行时；兼容入口**默认启用 new**；宿主 JVM 加 -Doriel.ecosystem=old 可关闭下述 DOM 新入口，未知值报错。游戏要在启动参数里设置并重启；预览器使用 Java 命令时将参数放在主类前。这里列的是固定构建的窄场景；不代表任意 npm 包、组件、插件或浏览器行为。Java 绑定更新需要更新 jar / 重启客户端，页面热更新不能替换引擎。游戏 GPU、IME 与六目标客户端仍须分别验证。
 
 ## 引用与许可
 
@@ -75,7 +75,7 @@ fire({particleCount:24, ticks:60, origin:{x:0.5,y:0.8}});
 
 ## 已知阻断与替代
 
-Rhino 已设为 `VERSION_ECMASCRIPT`；单纯升语言级别不能消除以下解析限制。保持 VM / 安全补丁不变，本轮不修改 Rhino。
+Rhino 已设为 `VERSION_ECMASCRIPT`；单纯升语言级别不能消除以下解析限制。保持 VM / 安全补丁不变，此兼容层不改变 Rhino 的安全补丁。
 
 | 库 | 具体失败位置 / 后续缺口 | 替代路线 |
 |---|---|---|

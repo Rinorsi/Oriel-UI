@@ -1,8 +1,8 @@
 # Minecraft 版本适配
 
-[入口](index.md) · [接入指南](integration.md) · [分发指南](distribution.md) · [后端构建与维护](backend-maintenance.md)
+[入口](../index.md) · [接入指南](../integration.md) · [分发指南](../distribution.md) · [后端构建与维护](building.md)
 
-**0.12 分发边界：瘦包 `0.12.0` / 完整版 `0.12.1`，mod id 都为 `oriel`。** 核心任何变化都升 minor，完整版补丁只改参考内容；下游使用 `>=0.12.0 <0.13.0` / `[0.12.0,0.13.0)`。六目标双变体构建及发行检查已通过，26.3 两加载器专服五场景已实测；26.1.2 / 26.2 专服混装、客户端弹窗/设置及真实 Editor 下游升级仍未验证。下列旧客户端冒烟流程不等于 0.12 已通过，详细证据范围见分发指南。
+当前分发、版本及依赖范围统一见[分发指南](../distribution.md)，本页只维护游戏版本适配与验证方法。
 
 Oriel 用 [Stonecutter](https://stonecutter.kikugie.dev) 从同一份源码树为三个 Minecraft 版本构建：
 
@@ -14,7 +14,7 @@ Oriel 用 [Stonecutter](https://stonecutter.kikugie.dev) 从同一份源码树�
 
 每个版本有各自的 Gradle 子项目，以版本命名：`:common:26.1`、`:neoforge:26.1`、`:fabric:26.1`。它们的设置在 `stonecutter.properties.toml`。引擎、Rhino 和预览器只构建一次，所有版本共用。
 
-jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`，例如瘦包 `oriel-neoforge-26.1.2-0.12.0.jar`、完整版 `oriel-neoforge-26.1.2-0.12.1.jar`，位于 `<加载器>/versions/<项目版本>/build/libs/`（26.1.2 对应项目目录 `26.1`）。加载器 Maven 坐标为 `dev.oriel:oriel-<loader>-<mc>:X.Y.0`，仅发布瘦包，不增加 slim/full 分类器；所有 Maven 发布必须带 `-Poriel_slim`。完整版 `X.Y.N` 只作为 jar 分发到 Modrinth / CurseForge / dist；两种变体在六目标各使用相同 Oriel 版本。构建开关和版本单一来源见[分发指南](distribution.md#2-变体与版本规则)。
+jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`，例如瘦包 `oriel-neoforge-26.1.2-0.15.0.jar`、完整版 `oriel-neoforge-26.1.2-0.15.1.jar`，位于 `<加载器>/versions/<项目版本>/build/libs/`（26.1.2 对应项目目录 `26.1`）。加载器 Maven 坐标为 `dev.oriel:oriel-<loader>-<mc>:X.Y.0`，仅发布瘦包，不增加 slim/full 分类器；所有 Maven 发布必须带 `-Poriel_slim`。完整版 `X.Y.N` 只作为 jar 分发到 Modrinth / CurseForge / dist；两种变体在六目标各使用相同 Oriel 版本。构建开关和版本单一来源见[分发指南](../distribution.md#2-变体与版本规则)。
 
 源码以 26.3 为活动版本。26.x 内部的 API 差异使用 `>=26.2`、`>=26.3`、`<26.3` 等 Stonecutter 条件，包名与键名迁移放在 `stonecutter.gradle`。**提交前恢复活动版本 26.3。**
 
@@ -22,7 +22,7 @@ jar 命名为 `oriel-<加载器>-<MC 版本>-<版本>.jar`，例如瘦包 `oriel
 
 ## 26.2 与 26.3 的差异
 
-26.2 上一切都能工作，只有开发 tour（`-Ptour`）仅限 26.3。26.2 就是 26.3 的代码，差别体现为 `>=26.3` 注释，以及 `stonecutter.gradle` 里的 `blaze3d`/`renderpearl` 重命名：
+26.2 与 26.3 共用源码，开发 tour（`-Ptour`）仅限 26.3。版本适配主要体现为 `>=26.3` 注释，以及 `stonecutter.gradle` 里的 `blaze3d`/`renderpearl` 重命名：
 
 - 渲染 API 是 `com.mojang.blaze3d.pipeline.RenderPipeline` 和 `com.mojang.blaze3d.textures.FilterMode`/`GpuTextureView`；26.3 把它们移到了 `com.mojang.renderpearl.api.*`。
 - 按键是 GLFW 的，不是 SDL 的：`KeyEvent(key, scancode, modifiers)` 持有 GLFW 键码，`KeyNames` 也是 GLFW 的。鼠标按键是 GLFW 的（0 左、1 右、2 中）；没有 `onTextInputFocusChange`。
@@ -66,17 +66,17 @@ bash tools/test-smoke-all.sh /absolute/path/outside/the/repo/smoke-script-test
 1. 把该版本加进 `settings.gradle` 的 `minecraftVersions`。
 2. 在 `stonecutter.properties.toml` 里加一个 `["<版本>"]` 表，键与其他版本相同。NeoForge 和 NeoForm 的版本在 [projects.neoforged.net](https://projects.neoforged.net/neoforged/neoforge)，Fabric 的在 [fabricmc.net/develop](https://fabricmc.net/develop/)。Fabric 使用适用于未混淆版本的 Loom。
 3. 让它能编译：先 `./gradlew :common:<版本>:compileJava`，再编译各加载器。小差异用 Stonecutter 注释（`//? if >=26.3 {`）或 `stonecutter.gradle` 里的重命名处理。只有整个文件都需要写成不同形式的版本，才在 `common/versions/<MC 版本>/src` 里放它自己的一份；这时把共享文件包在一个条件里，让它对该版本不生效。access transformer 和 access widener 由所有版本共用，一个版本需要的部分用 `#? if` 块（被禁用的块里每行用 `##` 注释，不是 `#`：widener 解析器会拒绝单个 `#` 留下的前导空格）。也要检查 mod 元数据：NeoForge 26.x 需要在 `neoforge.mods.toml` 里用 `iconFile` 代替 `logoFile`（`neoforge_logo_key`），因为 NeoForge 的弃用警告界面会让客户端在启动时停下。相邻 26.x 版本之间常见的破坏：包移动（`blaze3d` 到 `renderpearl`）、需要放宽的私有输入处理器、以及提示框和模型提交代码里变化的签名；26.2 就是一个现成的例子（`>=26.3` 注释和 `stonecutter.gradle` 里的 `renderpearl` 重命名）。
-4. 先运行编译与无头检查，按 [UI 工作流](ui-workflow.md) 取得用户对固定版本的网页批准后，才运行游戏测试与客户端。根 `build` 可能包含 GameTest，不可在批准前作为快捷步骤。批准后再运行 `./gradlew build` 及 `./gradlew :neoforge:<版本>:runClient -Pautopilot`，Fabric 同样验证。在 macOS 上，先把一个能工作的外部运行目录里的 `options.txt`（带 `enableVsync:false`）和 `config/fml.toml`（带 `earlyWindowControl = false`）复制到新版本的运行目录。把 `ORIEL_RUN_DIR` 设成仓库之外的工作区目录。
+4. 先运行编译与无头检查，按 [UI 工作流](../ui-workflow.md) 取得用户对固定版本的网页批准后，才运行游戏测试与客户端。根 `build` 可能包含 GameTest，不可在批准前作为快捷步骤。批准后再运行 `./gradlew build` 及 `./gradlew :neoforge:<版本>:runClient -Pautopilot`，Fabric 同样验证。在 macOS 上，先把一个能工作的外部运行目录里的 `options.txt`（带 `enableVsync:false`）和 `config/fml.toml`（带 `earlyWindowControl = false`）复制到新版本的运行目录。把 `ORIEL_RUN_DIR` 设成仓库之外的工作区目录。
 5. 把该版本加到本文件顶部的表里，列出在它上面表现不同的任何东西，并在 `CHANGELOG.md` 的下一个版本下加一行。
 
-新增 Minecraft 版本或升级 Loom 后，还须审查 `gradle/generated-minecraft.json` 中本地生成包的排除范围：确切版本与受限模块/文件正则。`verifyMinecraftContent` 在 Fabric 编译及根 `:check` 前检查当前工作树的 Loom 本地来源、文件形态及版本，不再固定已应用访问扩展的生成字节。访问扩展修改无需更新清单；有意升级时先核对输入与命名规则，再更新 JSON，并运行 `writeDependencyVerification` 同步和审查 XML。失败信息会列出版本、文件、期望/实际与更新步骤；不要用整个 `net.minecraft` 组的信任例外绕过检查。外部下载依赖 SHA-256 与 Linux 等平台分类器须保留。刷新命令、真实访问扩展回归命令与信任限制见 [后端维护](backend-maintenance.md)。
+新增 Minecraft 版本或升级 Loom 后，还须审查 `gradle/generated-minecraft.json` 中本地生成包的排除范围：确切版本与受限模块/文件正则。`verifyMinecraftContent` 在 Fabric 编译及根 `:check` 前检查当前工作树的 Loom 本地来源、文件形态及版本，不再固定已应用访问扩展的生成字节。访问扩展修改无需更新清单；有意升级时先核对输入与命名规则，再更新 JSON，并运行 `writeDependencyVerification` 同步和审查 XML。失败信息会列出版本、文件、期望/实际与更新步骤；不要用整个 `net.minecraft` 组的信任例外绕过检查。外部下载依赖 SHA-256 与 Linux 等平台分类器须保留。刷新命令、真实访问扩展回归命令与信任限制见 [后端维护](building.md)。
 
 ## 提交与发布
 
-0.12 起发布须逐目标核对瘦包与完整版条目、同 minor 版本关系、模板范围、`oriel` id 和核心哈希；清单见[分发指南的发布检查](distribution.md#6-发布前检查清单)。瘦包使用 `-Poriel_slim`，完整版玩家包使用 `-Poriel_release`；受控核心哈希记录在 `tools/release/core-hash.properties`，同 minor 的后续核心变化应拒绝发布并要求升 minor。十二产物清单/核心哈希检查已通过，六目标 0.12 pin 已冻结并通过普通发布复核；命令与 pin 规则见[维护约定](maintenance.md#双变体发布与专服复核)。这不证明远端 CI、游戏客户端或全部门禁通过；全量预览仍有 about 设计 warning，源码总量卫生门禁仍有既有超限项。
+发布时逐目标核对双变体内容、同 minor 核心一致性、依赖范围、mod id 与受控核心哈希，见[分发检查清单](../distribution.md#6-发布前检查清单)和[构建发布命令](maintenance.md#双变体发布与专服复核)。构建、游戏、专服及下游验证分别记录，不用历史包结果代替新发行包验收。
 
 提交时保持共享源码为 26.3。当前仓库仅配置 `.github/workflows/build.yml`，没有 release.yml 或自动标签发布流程。Build 在 main 推送、PR 或手动触发时运行，不使用路径过滤；执行全版本构建、根检查、NeoForge 26.1 服务端 GameTest 及下游模板编译，并用 Node 24 运行后端/发布边界回归与无游戏的冒烟结果计数测试。运行和测试临时目录放在 runner.temp。上传前再以 `-Poriel_release` 构建六个加载器/版本 JAR 并检查开发类排除及许可条目。源码 JAR 仍保留源码。配置存在不代表远端运行已通过，须查看对应提交的 GitHub Actions 回执。
 
 发布插件保留 Maven、Modrinth、CurseForge 的配置入口，但地址/项目 ID、凭据、产物许可和平台权限均需实际确认，不能把历史 maven.maxleiter.com 地址当成本项目已获发布授权的目的地，也不会因创建标签自动发布。同一个 JAR 兼容多个 MC 版本时，可在对应版本表填写 `publish_minecraft_versions = "26.2, 26.2.1"`；支持声明仍须运行证据。
 
-本 fork 的接入及本地依赖获取见[接入指南](integration.md)。Modrinth/CurseForge 发布需要已确认的项目 ID、令牌和明确发布授权。
+本 fork 的接入及本地依赖获取见[接入指南](../integration.md)。Modrinth/CurseForge 发布需要已确认的项目 ID、令牌和明确发布授权。

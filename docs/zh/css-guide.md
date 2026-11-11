@@ -1,9 +1,9 @@
 # CSS 参数与实际行为
 
 > 本页是 Oriel 的 CSS 参考，不是浏览器完整 CSS。属性注册与语法表来源于本项目既有探测清单，并对当前实现复核。
-> 已有 `CssReferenceTest` 守护机器探测表 [css-reference.md](css-reference.md)，不覆盖本文全部语义合同。更新命令：`ORIEL_UPDATE_DOCS=1 ./gradlew :engine:test --tests '*CssReferenceTest'`。本文的行为、示例和限制仍须同步维护，见 [维护约定](maintenance.md)。
+> 已有 `CssReferenceTest` 守护机器探测表 [css-reference.md](css-reference.md)，不覆盖本文全部语义合同。更新命令：`ORIEL_UPDATE_DOCS=1 ./gradlew :engine:test --tests '*CssReferenceTest'`。本文的行为、示例和限制仍须同步维护，见 [维护约定](maintainers/maintenance.md)。
 > 下表“关键字/类型”是已列候选与常用写法，不以“接受一个字符串”证明对应绘制行为。先看下面的语义例外，再查参数。
-> 145 个单项属性与简写注册表已在此文档基准的引擎上临时探测核对；这是本轮检查，不是已安装的持续自动更新服务。
+> 145 个单项属性与简写注册表已在此文档基准的引擎上临时探测核对；这是文档注册表核对，不代表后台会自动更新说明。
 
 [文档总目录](index.md)
 
@@ -12,7 +12,7 @@
 | 项 | 实际行为与建议 |
 |---|---|
 | position:sticky | 按 relative 处理并给诊断；固定标题放滚动区域外 |
-| @layer | 默认压平；显式实验真实层序、限制和诊断见 [实验层叠](d36-r04.md) |
+| @layer | 默认压平；显式实验真实层序、限制和诊断见 [实验层叠](maintainers/styles.md) |
 | content:counter()/counters() | 能被接受但输出空文本；不是计数器支持。编号由控制器/模板明确生成 |
 | word-break:keep-all / anywhere | 当前分别映射 normal / break-word，不保证浏览器 CJK 语义 |
 | border-radius 椭圆双半径 | 第二轴半径被丢弃；使用单半径，不承诺椭圆角等价 |
@@ -404,21 +404,21 @@
 
 ## 选择器
 
-### 选择器实现与迁移开关
+### 选择器实现与诊断开关
 
-页面语法保持不变。默认使用新编译器（2026-11-08 起，`-Doriel.selector=old` 回到旧匹配器）；新编译器复用阶段 2 的选择器 AST 和基础 DOM/状态谓词，独立编译逻辑伪类、相对关系和规则候选索引。它不是另一个 CSS 文本解析器。
+页面语法保持不变。默认使用新编译器（`-Doriel.selector=old` 回到旧匹配器）；新编译器复用选择器 AST 和基础 DOM/状态谓词，独立编译逻辑伪类、相对关系和规则候选索引。它不是另一个 CSS 文本解析器。
 
 | 项 | 合同 |
 |---|---|
 | specificity | ID、类/属性/伪类、类型三级；:is/:not/:has 取参数最大值，:where 为零，:nth-child(of S) 增加 S 最大值 |
 | 相对 :has | 从当前元素锚定后代、子代、相邻或后续兄弟，可继续组合；禁止嵌套 :has |
 | 查询作用域/顺序 | :scope 为查询根；querySelectorAll 只返回根的后代，按 DOM 顺序去重，祖先匹配可越过查询根；matches 的 :scope 为当前元素 |
-| 复杂度 | 沿用 maxSelectorParts（默认 256，含嵌套参数）与 DOM 限额；新匹配器按每层关系去重候选，避免组合回溯指数增长；实验新实现另按匹配上下文限制 compound/simple 求值次数为 maxNodes × maxSelectorParts（默认 25,600,000），避免嵌套 nth 等重复求值失控；不是毫秒预算，旧实现无此运行时门禁，both 对每次隔离比较独立计数 |
+| 复杂度 | 沿用 maxSelectorParts（默认 256，含嵌套参数）与 DOM 限额；新匹配器按每层关系去重候选，避免组合回溯指数增长；新实现另按匹配上下文限制 compound/simple 求值次数为 maxNodes × maxSelectorParts（默认 25,600,000），避免嵌套 nth 等重复求值失控；不是毫秒预算，旧实现无此运行时门禁，both 对每次隔离比较独立计数 |
 | 错误 | 语法与编译前预算仍由解析层检查；样式规则生成带来源的 invalid-selector 诊断，DOM 查询抛 IllegalArgumentException；新实现超出运行时求值预算时报告 selector-budget（页面 URL，位置未知为 0）并抛异常，不返回伪造的未匹配；:is/:where 沿用宽容列表语义 |
 
-JVM 参数 oriel.selector 的允许值为 old（默认）、new（实验）、both（双跑并返回旧结果）。未知值立即报错。both 比较匹配布尔值、specificity 和规则命中集合/重数/层叠 key；同规则等 key 的选择器访问顺序不作为差异。交互读取标记可因求值路径不同而变化，不能当作逐字段等价判断；失效行为由现有样式回归验证。开关在匹配上下文和索引创建时读取，必须在 JVM 启动前设置，不能在已加载页面中热切换。
+JVM 参数 oriel.selector 的允许值为 old（回退）、new（默认）、both（双跑并返回旧结果）。未知值立即报错。both 比较匹配布尔值、specificity 和规则命中集合/重数/层叠 key；同规则等 key 的选择器访问顺序不作为差异。交互读取标记可因求值路径不同而变化，不能当作逐字段等价判断；失效行为由现有样式回归验证。开关在匹配上下文和索引创建时读取，必须在 JVM 启动前设置，不能在已加载页面中热切换。
 
-new/both 只供引擎维护验收，不表示已获游戏或浏览器等价验收。命令和审计输出见[验收工具](validation.md#选择器迁移双跑)。没有新增 @scope、命名空间或未列出的伪类支持。
+模式开关用于维护诊断，默认 new 也不表示任意页面已通过游戏或浏览器等价验收。命令和审计输出见[验收工具](validation.md#选择器双跑诊断)。没有新增 @scope、命名空间或未列出的伪类支持。
 
 ### 基本形式
 
@@ -466,5 +466,4 @@ new/both 只供引擎维护验收，不表示已获游戏或浏览器等价验�
 
 其中 `float`、表格布局（`display: table`）、`position: sticky`（按 `relative` 处理并提示）、CSS 嵌套、`@layer` 的层级顺序目前都没有或只是近似；表格请用 `display: grid`，内联 SVG 请用 `<img>`、渐变或边框代替（引擎会按元素给出建议）。
 
-
-:target 的 URL 片段语义、new 模式增量失效范围与 --why 诊断见 [选择器诊断](selector-debug.md)。属性 schema、独立 cascade 开关和显式实验 @layer 见 [实验层叠](d36-r04.md)；Shadow DOM、@scope、容器查询仍未支持。上表层序近似描述默认模式。
+:target 的 URL 片段语义、new 模式增量失效范围与 --why 诊断见 [选择器诊断](maintainers/styles.md)。属性 schema、独立 cascade 开关和显式实验 @layer 见 [实验层叠](maintainers/styles.md)；Shadow DOM、@scope、容器查询仍未支持。上表层序近似描述默认模式。

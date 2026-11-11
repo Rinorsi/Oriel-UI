@@ -2,7 +2,7 @@
 // Scaffolds a kit page: the HTML (app shell on the Ore theme), its Java controller, a test, and the registration in
 // OrielKit. Usage, from the repository root:  node tools/new-page.mjs <name> "<标题>"
 //   e.g. node tools/new-page.mjs bestiary "怪物图鉴"
-// Then: ./gradlew :kit:test :preview:checkUi, preview it (docs/zh/making-a-page.md), open it in game with /oriel demo.
+// Then: ./gradlew :kit:test :preview:checkUi, preview it (docs/zh/ui-workflow.md), open it in game with /oriel demo.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path/posix';
 
