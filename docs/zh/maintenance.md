@@ -36,7 +36,7 @@
 | 新增或改名公开类（`dev.oriel.mod.client` / `server`） | `api/*.txt` 快照（`-PupdateApi`）、`tools/api/ApiCheck.java` 与 `tools/backend-boundaries.test.mjs` 的名单、`java-api.md` |
 | 新增或改名示例页（showcase / demo） | `tools/showcase/index.json` 条目，运行 `node tools/showcase/query.mjs --write-doc` 刷新 `showcase.md` 的效果表 |
 | 热更新机制、开发环境读取源码的方式 | `hot-reload.md`、`quickstart.md`「边改边看」、`page-rules.md` |
-| 瘦包/完整版、版本生成、核心哈希、Jar-in-Jar、嵌套检测与提示 | `distribution.md`（权威定义）、`integration.md`、`upgrading.md`、`versions.md`、`showcase.md`、`security.md`（`client.nestedNotice`）、`../../CHANGELOG.md`、`../../template/README.md` 与模板依赖/元数据；`index.md`、`quickstart.md`、`agent-prompts.md`、`mcp.md`、`../../README.md`、`../../AGENTS.md` 同步入口；MCP `oriel_rules topic=distribution`、发布包 `AGENTS-snippet.md` 同步 |
+| 瘦包/完整版、版本生成、核心哈希、Jar-in-Jar、嵌套检测与提示 | `distribution.md`（权威定义）、`integration.md`、`upgrading.md`、`versions.md`、`showcase.md`、`security.md`（`client.nestedNotice`）、`../../CHANGELOG.md`、`../../template/README.md` 与模板依赖/元数据；`index.md`、`quickstart.md`、`agent-prompts.md`、`mcp.md`、`../../README.md` 同步入口；MCP `oriel_rules topic=distribution`、发布包 `AGENTS-snippet.md` 同步 |
 | 配置、限额、协议、依赖与发布坐标 | `security.md`、`integration.md`、`server.md`、`capabilities.md`、`../../template/README.md` |
 | i18n 接口、语言 key、回退逻辑 | `components.md` 的字体/翻译段、`scripting.md`、新增的专属 i18n 参考及索引；不得覆盖原流程 |
 | preview CLI / MCP / h5ref / 脚手架 | `validation.md`、`ui-workflow.md`、工具 README：参数、默认、退出码、路径、覆盖范围 |
@@ -54,7 +54,7 @@ MCP 工作流、规则资源、验收状态与接入适配器变化时，同步 
 
 ## 一次变更的完成流程
 
-1. 开始前读仓库 `AGENTS.md` 和本页。确认正在改的能力对应哪张表，读该表的当前合同。
+1. 开始前读本页及本地协作规则（如有）。确认正在改的能力对应哪张表，读该表的当前合同。
 2. 改能力的维护者核对实现；页面作者正常只读手册。发现文档无法决定的写法，先用已有支持的替代办法；不可自行猜测为可用。
 3. 同步上述关联文档，确保所有入口指向同一份定义。新例子在预览器加载；新业务字段做有意义的请求/回执验证。
 4. 检查链接、CSS 注册项覆盖、元素属性/消息字段覆盖、过时术语、默认值与错误提示。测试存在时运行对应测试；测试不存在时如实说明，不能写“自动门禁已启用”。

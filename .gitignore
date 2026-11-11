@@ -1,6 +1,11 @@
 # Third-party reference sources: read-only, never built or shipped
 /reference/
 
+# Local agent instructions
+AGENTS.md
+Agent.md
+agent.md
+
 # Build outputs and tooling
 .gradle/
 build/
